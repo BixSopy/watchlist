@@ -105,6 +105,33 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .sb-refresh svg{width:10px;height:10px}
 .sb-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:auto}
 .sb-scroll::-webkit-scrollbar{width:3px}.sb-scroll::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:10px}
+/* SUIVI MODULE */
+.suivi-wrap{border-bottom:1px solid var(--border);flex-shrink:0}
+.suivi-hdr{padding:12px 16px 8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.suivi-hdr:hover .sb-title{color:var(--text2)}
+.suivi-toggle-ic{width:12px;height:12px;color:var(--text3);transition:transform .25s ease}
+.suivi-wrap.collapsed .suivi-toggle-ic{transform:rotate(-90deg)}
+.suivi-body{max-height:340px;overflow-y:auto;padding:0 10px 10px;transition:max-height .3s ease,opacity .25s ease}
+.suivi-body::-webkit-scrollbar{width:3px}.suivi-body::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:10px}
+.suivi-wrap.collapsed .suivi-body{max-height:0;padding-top:0;padding-bottom:0;opacity:0;overflow:hidden}
+.suivi-empty{font-size:11px;color:var(--text3);padding:8px 6px 12px}
+.suivi-item{display:flex;align-items:center;gap:9px;padding:7px 6px;border-radius:9px;transition:background var(--tr-fast)}
+.suivi-item:hover{background:var(--bg3)}
+.suivi-poster{width:32px;height:48px;flex-shrink:0;border-radius:5px;object-fit:cover;background:var(--bg4)}
+.suivi-poster-ph{width:32px;height:48px;flex-shrink:0;border-radius:5px;background:var(--bg4);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:14px}
+.suivi-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.suivi-title{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.suivi-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;width:fit-content}
+.suivi-badge.new{background:rgba(92,200,255,.14);color:var(--accent);border:1px solid rgba(92,200,255,.22)}
+.suivi-badge.soon{background:rgba(255,255,255,.06);color:var(--text2);border:1px solid var(--border)}
+.suivi-badge.tomorrow{background:rgba(255,180,60,.14);color:#ffb43c;border:1px solid rgba(255,180,60,.28);margin-left:5px}
+.suivi-providers{display:flex;gap:4px;margin-top:1px}
+.suivi-provider-logo{width:16px;height:16px;border-radius:4px;object-fit:cover}
+.suivi-reminder-toggle{background:none;border:none;cursor:pointer;font-size:14px;opacity:.3;transition:opacity var(--tr-fast);flex-shrink:0;padding:4px;line-height:1}
+.suivi-reminder-toggle:hover{opacity:.7}
+.suivi-reminder-toggle[data-active="true"]{opacity:1}
+.suivi-more{width:100%;text-align:center;font-size:11px;color:var(--text3);background:none;border:none;padding:8px 6px 2px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif}
+.suivi-more:hover{color:var(--accent)}
 .sb-section{padding:12px 14px 10px;border-bottom:1px solid var(--border)}
 .sb-sec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:5px}
 .sb-sec-title svg{width:11px;height:11px}
@@ -583,6 +610,13 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 <div class="layout">
   <div class="sb-backdrop" id="sbBackdrop" onclick="toggleSidebar(false)"></div>
   <aside class="sidebar">
+    <div class="suivi-wrap" id="suiviWrap">
+      <div class="suivi-hdr" onclick="toggleSuiviSection()">
+        <div class="sb-title">Suivi</div>
+        <svg class="suivi-toggle-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="suivi-body" id="suiviBody"><div class="suivi-empty">Chargement...</div></div>
+    </div>
     <div class="sb-hdr">
       <div class="sb-title">Recommandations</div>
       <button class="sb-refresh" onmouseenter="sfx('hover')" onclick="sfx('click');_preserveContentScroll(function(){cache={};seenRecos=[];loadRecos();})">
@@ -1695,7 +1729,189 @@ function checkAllAir(){
   setTimeout(function(){
     var newEps=memDB.filter(function(i){return i.hasNewEp});
     if(newEps.length){var ab=document.getElementById('alertWrap');document.getElementById('alertText').innerHTML='<b>'+newEps.length+' nouvel episode'+(newEps.length>1?'s':'')+' disponible'+(newEps.length>1?'s':'')+'</b> : '+esc(newEps.slice(0,3).map(function(i){return i.title}).join(', '));ab.classList.add('on');sfx('toast');render();}
+    renderSuivi();
   },3000);
+}
+
+/* ===== MODULE SUIVI ===== */
+var suiviCollapsed=(localStorage.getItem('wl_suivi_collapsed')=='1');
+var SUIVI_MAX=9;
+
+function toggleSuiviSection(){
+  suiviCollapsed=!suiviCollapsed;
+  localStorage.setItem('wl_suivi_collapsed',suiviCollapsed?'1':'0');
+  document.getElementById('suiviWrap').classList.toggle('collapsed',suiviCollapsed);
+  sfx('click');
+}
+
+/* Migration non-destructive : ajoute les champs manquants sans écraser l'existant */
+function migrateSuiviFields(item){
+  var changed=false;
+  if(item.reminderEnabled===undefined){item.reminderEnabled=false;changed=true;}
+  if(item.nextAirDate===undefined){item.nextAirDate=null;changed=true;}
+  if(item.lastEpisodeCheck===undefined){item.lastEpisodeCheck=null;changed=true;}
+  if(item.tvmazeId===undefined){item.tvmazeId=null;changed=true;}
+  if(item.streamingProviders===undefined){item.streamingProviders=null;changed=true;}
+  return changed;
+}
+
+function initSuivi(){
+  var toFix=[];
+  memDB.forEach(function(item){if(migrateSuiviFields(item))toFix.push(item);});
+  if(toFix.length){toFix.forEach(function(item){dbPut(item,function(){});});}
+  refreshSuiviData();
+  checkReminders();
+  renderSuivi();
+}
+
+/* Rafraîchit nextAirDate / streamingProviders pour les items pertinents, avec cache 24h */
+function refreshSuiviData(){
+  var now=Date.now();
+  var candidates=memDB.filter(function(i){
+    if(i.type=='film'&&i.status!='avoir')return false;
+    if(i.type!='film'&&i.status!='encours')return false;
+    if(!i.tmdbId)return false;
+    if(i.lastEpisodeCheck&&(now-i.lastEpisodeCheck)<86400000)return false;
+    return true;
+  });
+  candidates.forEach(function(item){
+    if(item.type=='film'){fetchFilmRelease(item);}
+    else{fetchNextAirDate(item);}
+  });
+}
+
+function fetchFilmRelease(item){
+  tf(TB+'/movie/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(d){
+    var changed=false;
+    if(d.release_date){item.nextAirDate=d.release_date;changed=true;}
+    item.lastEpisodeCheck=Date.now();
+    fetchWatchProviders(item,function(){
+      persistSuiviItem(item);
+      renderSuivi();
+    });
+  }).catch(function(){item.lastEpisodeCheck=Date.now();persistSuiviItem(item);});
+}
+
+function fetchNextAirDate(item){
+  var afterTvmaze=function(){
+    tf(TB+'/tv/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(d){
+      if(d.next_episode_to_air&&d.next_episode_to_air.air_date){
+        item.nextAirDate=d.next_episode_to_air.air_date;
+        item.nextAir=d.next_episode_to_air.air_date;
+      }
+      item.lastEpisodeCheck=Date.now();
+      persistSuiviItem(item);
+      renderSuivi();
+    }).catch(function(){item.lastEpisodeCheck=Date.now();persistSuiviItem(item);});
+  };
+  /* Mapping TVMaze best-effort — n'affecte pas nextAirDate si échec, TMDB reste la source */
+  if(!item.tvmazeId){
+    fetch('https://api.tvmaze.com/singlesearch/shows?q='+encodeURIComponent(item.title))
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(d){if(d&&d.id)item.tvmazeId=d.id;afterTvmaze();})
+      .catch(function(){afterTvmaze();});
+  }else{afterTvmaze();}
+}
+
+/* TMDB watch/providers en priorité, JustWatch en best-effort seulement */
+function fetchWatchProviders(item,cb){
+  var kind=item.type=='film'?'movie':'tv';
+  tf(TB+'/'+kind+'/'+item.tmdbId+'/watch/providers?api_key='+TKEY).then(function(d){
+    var fr=d&&d.results&&d.results.FR;
+    if(fr&&fr.flatrate&&fr.flatrate.length){
+      item.streamingProviders=fr.flatrate.slice(0,4).map(function(p){return{name:p.provider_name,logo:p.logo_path?IB+'w45'+p.logo_path:null,url:fr.link||null};});
+    }
+    cb&&cb();
+  }).catch(function(){cb&&cb();});
+}
+
+function persistSuiviItem(item){
+  for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break;}}
+  dbPut(item,function(){});
+}
+
+/* Calcule le statut d'affichage pour un item suivi */
+function suiviStatusFor(item){
+  if(!item.nextAirDate)return null;
+  if(item.type=='film'&&item.status!='avoir')return null;
+  if(item.type!='film'&&item.status!='encours')return null;
+  var today=new Date();today.setHours(0,0,0,0);
+  var d=new Date(item.nextAirDate+'T00:00:00');
+  if(isNaN(d.getTime()))return null;
+  var diffDays=Math.round((d-today)/86400000);
+  if(diffDays>7)return null;
+  if(diffDays<=0){
+    return{cls:'new',text:'&#10003; Nouvel episode sorti',tomorrow:false};
+  }
+  var dd=pad(d.getDate()),mm=pad(d.getMonth()+1),yyyy=d.getFullYear();
+  return{cls:'soon',text:'&#9200; Sortie prevue le '+dd+'/'+mm+'/'+yyyy,tomorrow:diffDays===1};
+}
+
+function renderSuivi(){
+  var body=document.getElementById('suiviBody');
+  if(!body)return;
+  var tracked=memDB.map(function(i){var st=suiviStatusFor(i);return st?{item:i,status:st}:null;}).filter(Boolean);
+  tracked.sort(function(a,b){return new Date(a.item.nextAirDate)-new Date(b.item.nextAirDate);});
+  if(!tracked.length){body.innerHTML='<div class="suivi-empty">Rien de prevu dans les 7 prochains jours.</div>';return;}
+  var shown=tracked.slice(0,SUIVI_MAX);
+  var html=shown.map(function(t){
+    var item=t.item,st=t.status;
+    var poster=item.poster?'<img class="suivi-poster" src="'+IB+'w92'+item.poster+'" alt="">':'<div class="suivi-poster-ph">'+icon(item.type)+'</div>';
+    var provHtml='';
+    if(item.streamingProviders&&item.streamingProviders.length){
+      provHtml='<div class="suivi-providers">'+item.streamingProviders.map(function(p){return p.logo?'<img class="suivi-provider-logo" src="'+p.logo+'" title="'+esc(p.name)+'" alt="'+esc(p.name)+'">':'';}).join('')+'</div>';
+    }
+    var tomorrowBadge=st.tomorrow?'<span class="suivi-badge tomorrow">&#9200; Demain !</span>':'';
+    return '<div class="suivi-item" data-id="'+item.id+'">'+poster+
+      '<div class="suivi-info"><span class="suivi-title">'+esc(item.title)+'</span>'+
+      '<span class="suivi-badge '+st.cls+'">'+st.text+'</span>'+tomorrowBadge+provHtml+'</div>'+
+      '<button class="suivi-reminder-toggle" data-active="'+(item.reminderEnabled?'true':'false')+'" onclick="event.stopPropagation();toggleReminder(\''+item.id+'\')" title="Rappel">&#128276;</button>'+
+      '</div>';
+  }).join('');
+  if(tracked.length>SUIVI_MAX){
+    html+='<button class="suivi-more" onclick="sfx(\'click\')">Voir tout ('+tracked.length+')</button>';
+  }
+  body.innerHTML=html;
+}
+
+/* Toggle reminder — stockage IndexedDB uniquement (jamais localStorage) */
+function toggleReminder(itemId){
+  var item=null;
+  for(var j=0;j<memDB.length;j++){if(memDB[j].id==itemId){item=memDB[j];break;}}
+  if(!item)return;
+  item.reminderEnabled=!item.reminderEnabled;
+  var enabling=item.reminderEnabled;
+  var finish=function(){persistSuiviItem(item);renderSuivi();sfx(enabling?'add':'click');};
+  if(enabling&&typeof Notification!=='undefined'&&Notification.permission==='default'){
+    Notification.requestPermission().then(function(perm){
+      if(perm!=='granted'){item.reminderEnabled=false;toast('Notifications refusees — rappel desactive','nfo');}
+      finish();
+    }).catch(function(){item.reminderEnabled=false;finish();});
+  }else{
+    if(enabling&&typeof Notification!=='undefined'&&Notification.permission==='denied'){
+      item.reminderEnabled=false;toast('Notifications bloquees dans le navigateur','nfo');
+    }
+    finish();
+  }
+}
+
+/* Notifications le jour J — appelee une fois au chargement, pas en boucle */
+function checkReminders(){
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  var today=new Date();today.setHours(0,0,0,0);
+  memDB.forEach(function(item){
+    if(!item.reminderEnabled||!item.nextAirDate)return;
+    var d=new Date(item.nextAirDate+'T00:00:00');
+    if(isNaN(d.getTime()))return;
+    if(d.getTime()===today.getTime()){
+      try{
+        new Notification(item.title,{
+          body:item.type=='film'?'Sortie aujourd\'hui':'Nouvel episode disponible aujourd\'hui',
+          icon:item.poster?(IB+'w92'+item.poster):undefined
+        });
+      }catch(e){}
+    }
+  });
 }
 
 /* STATS */
@@ -1897,7 +2113,7 @@ try{dismissed=JSON.parse(localStorage.getItem('wl_dis')||'[]');}catch(e){dismiss
 if(!soundOn)toggleSound();
 if(compactOn){document.getElementById('cptBtn').classList.add('on');}
 document.addEventListener('click',function u(){getAC();document.removeEventListener('click',u);},{once:true});
-openDB(function(){render();loadRecos();loadDiscovery(activeTab);setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();});
+openDB(function(){render();loadRecos();loadDiscovery(activeTab);setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();});
 /* ResizeObserver : recalcul card size si fenêtre redimensionnée */
 if(typeof ResizeObserver!=='undefined'){
   var _drRO=new ResizeObserver(function(){_calcDrCardSize();});
