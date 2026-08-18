@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Watchlist Pierre</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -37,6 +38,26 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .hstats{display:flex;gap:10px;margin-left:auto;align-items:center}
 .pill{font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:20px}
 .pill b{color:var(--text);font-weight:600}
+/* SYNC STATUS */
+.sync-pill{font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:20px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:var(--tr-fast);font-family:'IBM Plex Sans',sans-serif}
+.sync-pill:hover{border-color:var(--border2)}
+.sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sync-dot.synced{background:#4ade80;box-shadow:0 0 6px rgba(74,222,128,.6)}
+.sync-dot.syncing{background:#facc15;box-shadow:0 0 6px rgba(250,204,21,.6);animation:syncPulse 1s ease-in-out infinite}
+.sync-dot.offline{background:#ff5a5a;box-shadow:0 0 6px rgba(255,90,90,.6)}
+.sync-dot.anon{background:var(--text3)}
+@keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* AUTH MODAL */
+.auth-tabs{display:flex;gap:6px;margin-bottom:16px;background:var(--bg3);border-radius:9px;padding:3px}
+.auth-tab{flex:1;text-align:center;padding:7px;font-size:12px;font-weight:600;color:var(--text2);background:none;border:none;border-radius:7px;cursor:pointer;transition:var(--tr-fast);font-family:'IBM Plex Sans',sans-serif}
+.auth-tab.on{background:var(--bg5);color:var(--text)}
+.auth-msg{font-size:12px;padding:8px 10px;border-radius:8px;margin-bottom:12px;display:none}
+.auth-msg.on{display:block}
+.auth-msg.err{background:rgba(255,90,90,.1);color:#ff7070;border:1px solid rgba(255,90,90,.25)}
+.auth-msg.ok{background:rgba(92,200,255,.1);color:var(--accent);border:1px solid rgba(92,200,255,.22)}
+.auth-account-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px}
+.auth-account-email{font-size:13px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auth-local-note{font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.5}
 .hbtn{width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:var(--tr-slow)}
 .hbtn:hover{color:var(--text);border-color:var(--border2)}.hbtn svg{width:15px;height:15px}
 /* SEARCH BAR HEADER */
@@ -384,7 +405,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.field select,.field input[type=number],.field input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 10px;border-radius:8px;outline:none;appearance:none;-webkit-appearance:none;transition:var(--tr)}
+.field select,.field input[type=number],.field input[type=text],.field input[type=password],.field input[type=email]{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 10px;border-radius:8px;outline:none;appearance:none;-webkit-appearance:none;transition:var(--tr)}
 .field select:focus,.field input:focus{border-color:var(--border2)}.field select option{background:var(--bg3)}
 .stars{display:flex;gap:2px;margin-top:2px}
 .star{width:26px;height:26px;cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center;transition:var(--tr)}
@@ -581,6 +602,10 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     <input type="text" id="tmdbSearchInput" placeholder="Chercher un film, série, anime..." autocomplete="off" aria-label="Chercher dans le catalogue TMDB">
   </div>
   <div class="hstats" id="hstats"></div>
+  <div class="sync-pill" id="syncStatusPill" onclick="openAuthModal()" title="Compte & synchronisation">
+    <span class="sync-dot anon" id="syncDot"></span>
+    <span id="syncStatusText">Non connecte</span>
+  </div>
   <button class="hbtn" onclick="openStats()" title="Stats (S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></button>
   <button class="hbtn" onclick="toggleMenu()" title="Options"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div id="optMenu" class="opt-menu" style="display:none;position:absolute;top:48px;right:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-md);min-width:200px;box-shadow:var(--shadow-modal);z-index:100">
@@ -706,6 +731,47 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
   </div>
 </div>
 
+<!-- AUTH MODAL -->
+<div class="mbk" id="authMbk">
+  <div class="modal-add" style="max-width:380px">
+    <div class="mtitle" id="authMtitle">Compte &amp; synchronisation</div>
+
+    <div id="authLoggedOutView">
+      <div class="auth-tabs">
+        <button class="auth-tab on" id="authTabIn" onclick="switchAuthTab('signin')">Se connecter</button>
+        <button class="auth-tab" id="authTabUp" onclick="switchAuthTab('signup')">Creer un compte</button>
+      </div>
+      <div class="auth-msg" id="authMsg"></div>
+      <div class="field"><label>Email</label><input type="email" id="authEmail" placeholder="toi@exemple.com" autocomplete="email"></div>
+      <div class="field"><label>Mot de passe</label><input type="password" id="authPassword" placeholder="********" autocomplete="current-password"></div>
+      <div class="mact" style="justify-content:stretch">
+        <button class="btn btn-primary" id="authSubmitBtn" style="flex:1" onclick="submitAuth()">Se connecter</button>
+      </div>
+      <div class="auth-local-note">L'app fonctionne sans compte, en local uniquement.<br>Se connecter active la synchronisation multi-appareils.</div>
+      <div class="mact">
+        <button class="btn btn-ghost" style="flex:1" onclick="sfx('close');closeAuthModal()">Continuer sans compte</button>
+      </div>
+    </div>
+
+    <div id="authLoggedInView" style="display:none">
+      <div class="auth-account-row">
+        <span class="sync-dot synced" id="authAccountDot"></span>
+        <span class="auth-account-email" id="authAccountEmail"></span>
+      </div>
+      <div class="field" id="authSyncInfo" style="font-size:12px;color:var(--text2)"></div>
+      <div class="mact">
+        <button class="btn btn-ghost" style="flex:1" onclick="sfx('click');syncNow()">Synchroniser maintenant</button>
+      </div>
+      <div class="mact">
+        <button class="btn btn-ghost" style="flex:1;color:#ff7070" onclick="sfx('close');signOutUser()">Se deconnecter</button>
+      </div>
+      <div class="mact">
+        <button class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- PLEX MODAL -->
 <div class="plex-mbk" id="plexMbk">
   <div class="plex-wrap">
@@ -773,6 +839,11 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 /* CONFIG */
 var TKEY='9889edf442467bddfc6bde3413a53bfc',TB='https://api.themoviedb.org/3',IB='https://image.tmdb.org/t/p/';
 var PROXY='';
+/* SUPABASE — sync multi-appareils (Session 10) */
+var SUPA_URL='https://batfulcvvquffgfeppcx.supabase.co';
+var SUPA_KEY='sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
+var supa=(typeof supabase!=='undefined')?supabase.createClient(SUPA_URL,SUPA_KEY):null;
+var authUser=null,authProfileId=null,syncInProgress=false,syncLoopTimer=null,lastSyncErrorToast=0,authMode='signin';
 /* Retourne une URL image passant par le proxy local (same-origin → canvas safe) */
 function proxied(url){return url?PROXY+encodeURIComponent(url):'';}
 /* Version proxy de IB pour canvas/ambient (pas pour <img> normaux) */
@@ -880,7 +951,7 @@ function openYT(key){if(key)window.open('https://www.youtube.com/watch?v='+key,'
 
 /* RENDER */
 function getItems(tab,stat,q){
-  var items=memDB.slice();
+  var items=memDB.slice().filter(function(i){return !i.deleted});
   if(tab&&tab!='all')items=items.filter(function(i){return i.type==tab});
   if(stat&&stat!='all')items=items.filter(function(i){if(stat=='avoir')return i.status=='avoir'||i.status=='todo';return i.status==stat});
   if(q){var ql=q.toLowerCase();items=items.filter(function(i){return(i.title&&i.title.toLowerCase().indexOf(ql)>-1)||(i.tags&&i.tags.join(' ').toLowerCase().indexOf(ql)>-1)});}
@@ -1002,7 +1073,7 @@ function render(){
 
   if(!html)html=memDB.length==0?'<div class="empty-state"><div class="empty-state-icon">🎬</div><p>Ta watchlist est vide</p><small>Appuie sur <strong style="color:var(--accent)">N</strong> ou clique sur Ajouter pour commencer</small></div>':'<div class="empty-state"><div class="empty-state-icon">🔍</div><p>Aucun résultat</p><small>Essaie un autre filtre ou terme de recherche</small></div>';
   document.getElementById('mc').innerHTML=html;
-  var total=memDB.length,ec2=memDB.filter(function(i){return i.status=='encours'}).length,te=memDB.filter(function(i){return i.status=='termine'}).length;
+  var total=memDB.filter(function(i){return !i.deleted}).length,ec2=memDB.filter(function(i){return i.status=='encours'&&!i.deleted}).length,te=memDB.filter(function(i){return i.status=='termine'&&!i.deleted}).length;
   document.getElementById('hstats').innerHTML='<div class="pill"><b>'+total+'</b> titres</div><div class="pill">En cours <b>'+ec2+'</b></div><div class="pill">Termines <b>'+te+'</b></div>';
   if(typeof updateStatsFooter==='function')updateStatsFooter();
 }
@@ -1329,7 +1400,11 @@ function saveEntry(){
     tmdbId:selTmdb.tmdbId,tmdbType:selTmdb.tmdbType,title:selTmdb.title,year:selTmdb.year,
     poster:selTmdb.poster,overview:selTmdb.overview,tmdbScore:selTmdb.tmdbScore,
     hasNewEp:ex?ex.hasNewEp:false,nextAir:ex?ex.nextAir:null,
-    collectionId:collId,collectionName:collName};
+    collectionId:collId,collectionName:collName,
+    supaId:ex?ex.supaId:null,deleted:false,updatedAtLocal:Date.now(),needsSync:true,
+    reminderEnabled:ex?ex.reminderEnabled:false,nextAirDate:ex?ex.nextAirDate:null,
+    lastEpisodeCheck:ex?ex.lastEpisodeCheck:null,tvmazeId:ex?ex.tvmazeId:null,
+    streamingProviders:ex?ex.streamingProviders:null};
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}
   dbPut(entry,function(){render();loadRecos();if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast((editId?'Modifie':'Ajoute')+' : '+entry.title);closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);});
@@ -1337,8 +1412,16 @@ function saveEntry(){
 function delEntry(id){
   if(!confirm('Supprimer ?'))return;
   var item=memDB.find(function(i){return i.id==id});
-  memDB=memDB.filter(function(i){return i.id!=id});
-  dbDel(id,function(){sfx('del');render();loadRecos();toast('Supprime'+(item?' : '+item.title:''),'nfo');});
+  if(!item){return;}
+  if(item.supaId||authUser){
+    /* Item potentiellement connu de Supabase (ou compte actif) : tombstone pour propager la suppression, purge physique locale seulement apres confirmation de sync */
+    item.deleted=true;item.updatedAtLocal=Date.now();item.needsSync=true;
+    dbPut(item,function(){sfx('del');render();loadRecos();toast('Supprime'+(item?' : '+item.title:''),'nfo');});
+  }else{
+    /* Jamais connecte / jamais synchronise : suppression physique immediate (comportement historique) */
+    memDB=memDB.filter(function(i){return i.id!=id});
+    dbDel(id,function(){sfx('del');render();loadRecos();toast('Supprime'+(item?' : '+item.title:''),'nfo');});
+  }
 }
 
 /* PLEX MODAL */
@@ -1479,7 +1562,7 @@ function nextEpPlex(){
   var d=plexData;if(!d||!d.item)return;
   var item=d.item;var ep=(item.episode||1)+1;var sai=item.saison||1;
   if(plexSeasons.length){var cur=plexSeasons.find(function(s){return s.season_number==sai});if(cur&&cur.episode_count&&ep>cur.episode_count){var nx=plexSeasons.find(function(s){return s.season_number==sai+1});if(nx){sai++;ep=1;}else{ep=cur.episode_count;}}}
-  item.episode=ep;item.saison=sai;
+  item.episode=ep;item.saison=sai;item.updatedAtLocal=Date.now();item.needsSync=true;
   for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
   dbPut(item,function(){sfx('next');render();document.getElementById('plexProgVal').textContent='S'+pad(sai)+' E'+pad(ep);toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
 }
@@ -1880,6 +1963,7 @@ function toggleReminder(itemId){
   for(var j=0;j<memDB.length;j++){if(memDB[j].id==itemId){item=memDB[j];break;}}
   if(!item)return;
   item.reminderEnabled=!item.reminderEnabled;
+  item.updatedAtLocal=Date.now();item.needsSync=true;
   var enabling=item.reminderEnabled;
   var finish=function(){persistSuiviItem(item);renderSuivi();sfx(enabling?'add':'click');};
   if(enabling&&typeof Notification!=='undefined'&&Notification.permission==='default'){
@@ -1912,6 +1996,264 @@ function checkReminders(){
       }catch(e){}
     }
   });
+}
+
+/* ===== MODULE SYNC MULTI-APPAREILS (Session 10) ===== */
+
+/* --- Mapping IndexedDB (camelCase) <-> Supabase (snake_case) --- */
+function localToSupabase(item,profileId){
+  return{
+    id:item.supaId||undefined,
+    local_id:item.id,
+    profile_id:profileId,
+    tmdb_id:item.tmdbId,
+    tmdb_type:item.tmdbType,
+    type:item.type,
+    status:item.status,
+    title:item.title,
+    year:item.year,
+    poster_path:item.poster,
+    tmdb_score:item.tmdbScore?parseFloat(item.tmdbScore):null,
+    my_rating:item.myRating,
+    overview:item.overview,
+    tags:item.tags||[],
+    saison:item.saison,
+    episode:item.episode,
+    total_ep:item.totalEp,
+    anime_genre:item.animeGenre,
+    collection_id:item.collectionId,
+    collection_name:item.collectionName,
+    tmdb_collection_id:item.tmdbCollectionId,
+    has_new_ep:item.hasNewEp,
+    next_air:item.nextAir,
+    deleted:!!item.deleted,
+    updated_at:new Date(item.updatedAtLocal||Date.now()).toISOString()
+  };
+}
+function supabaseToLocal(row){
+  return{
+    id:row.local_id,
+    supaId:row.id,
+    tmdbId:row.tmdb_id,
+    tmdbType:row.tmdb_type,
+    type:row.type,
+    status:row.status,
+    title:row.title,
+    year:row.year,
+    poster:row.poster_path,
+    tmdbScore:row.tmdb_score,
+    myRating:row.my_rating,
+    overview:row.overview,
+    tags:row.tags||[],
+    saison:row.saison,
+    episode:row.episode,
+    totalEp:row.total_ep,
+    animeGenre:row.anime_genre,
+    collectionId:row.collection_id,
+    collectionName:row.collection_name,
+    tmdbCollectionId:row.tmdb_collection_id,
+    hasNewEp:row.has_new_ep,
+    nextAir:row.next_air,
+    deleted:row.deleted,
+    updatedAtLocal:new Date(row.updated_at).getTime(),
+    addedAt:row.added_at?new Date(row.added_at).getTime():Date.now(),
+    needsSync:false
+  };
+}
+
+/* --- Auth UI --- */
+function openAuthModal(){
+  sfx('click');
+  document.getElementById('authMbk').classList.add('on');
+  refreshAuthModalView();
+}
+function closeAuthModal(){document.getElementById('authMbk').classList.remove('on');}
+document.getElementById('authMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closeAuthModal();}});
+
+function switchAuthTab(mode){
+  authMode=mode;
+  document.getElementById('authTabIn').classList.toggle('on',mode=='signin');
+  document.getElementById('authTabUp').classList.toggle('on',mode=='signup');
+  document.getElementById('authSubmitBtn').textContent=mode=='signin'?'Se connecter':'Creer le compte';
+  document.getElementById('authMsg').classList.remove('on');
+}
+
+function refreshAuthModalView(){
+  var out=document.getElementById('authLoggedOutView'),inn=document.getElementById('authLoggedInView');
+  if(authUser){
+    out.style.display='none';inn.style.display='block';
+    document.getElementById('authAccountEmail').textContent=authUser.email||'';
+    var dot=document.getElementById('authAccountDot');
+    dot.className='sync-dot '+(navigator.onLine?'synced':'offline');
+    var pending=memDB.filter(function(i){return i.needsSync}).length;
+    document.getElementById('authSyncInfo').textContent=pending?(pending+' element'+(pending>1?'s':'')+' en attente de synchronisation.'):'Tout est synchronise.';
+  }else{
+    out.style.display='block';inn.style.display='none';
+  }
+}
+
+function showAuthMsg(msg,kind){
+  var m=document.getElementById('authMsg');
+  m.textContent=msg;m.className='auth-msg on '+(kind||'err');
+}
+
+function submitAuth(){
+  if(!supa){showAuthMsg('Client Supabase indisponible');return;}
+  var email=(document.getElementById('authEmail').value||'').trim();
+  var pass=document.getElementById('authPassword').value||'';
+  if(!email||!pass){showAuthMsg('Email et mot de passe requis');return;}
+  sfx('click');
+  var btn=document.getElementById('authSubmitBtn');btn.disabled=true;
+  var after=function(){btn.disabled=false;};
+  if(authMode=='signup'){
+    supa.auth.signUp({email:email,password:pass}).then(function(res){
+      after();
+      if(res.error){showAuthMsg(res.error.message);return;}
+      showAuthMsg('Compte cree. Verifie ta boite mail si confirmation requise.','ok');
+    }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
+  }else{
+    supa.auth.signInWithPassword({email:email,password:pass}).then(function(res){
+      after();
+      if(res.error){showAuthMsg(res.error.message);return;}
+      toast('Connecte','ok');
+    }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
+  }
+}
+
+function signOutUser(){
+  if(!supa)return;
+  supa.auth.signOut().then(function(){
+    toast('Deconnecte','nfo');
+    closeAuthModal();
+  });
+}
+
+/* Cree/verifie la ligne profiles correspondante */
+function ensureProfile(user){
+  return supa.from('profiles').select('id').eq('account_id',user.id).maybeSingle().then(function(res){
+    if(res.data&&res.data.id)return res.data.id;
+    return supa.from('profiles').insert({account_id:user.id,name:user.email?user.email.split('@')[0]:'Moi'}).select('id').single().then(function(ins){
+      if(ins.error)throw ins.error;
+      return ins.data.id;
+    });
+  });
+}
+
+function initAuth(){
+  if(!supa){updateSyncStatusUI('anon');return;}
+  supa.auth.getSession().then(function(res){
+    var session=res.data&&res.data.session;
+    if(session&&session.user)onAuthResolved(session.user);
+    else updateSyncStatusUI('anon');
+  }).catch(function(){updateSyncStatusUI('anon');});
+
+  supa.auth.onAuthStateChange(function(event,session){
+    if(event=='SIGNED_IN'&&session&&session.user){
+      onAuthResolved(session.user);
+    }else if(event=='SIGNED_OUT'){
+      authUser=null;authProfileId=null;
+      stopSyncLoop();
+      updateSyncStatusUI('anon');
+      refreshAuthModalView();
+    }
+  });
+}
+
+function onAuthResolved(user){
+  authUser=user;
+  ensureProfile(user).then(function(profileId){
+    authProfileId=profileId;
+    refreshAuthModalView();
+    updateSyncStatusUI('syncing');
+    syncNow();
+    startSyncLoop();
+  }).catch(function(e){
+    console.error('[sync] ensureProfile',e);
+    updateSyncStatusUI('offline');
+  });
+}
+
+/* --- Sync pull/push --- */
+function syncPull(){
+  if(!supa||!authProfileId)return Promise.resolve();
+  return supa.from('watchlist_items').select('*').eq('profile_id',authProfileId).then(function(res){
+    if(res.error){throw res.error;}
+    var rows=res.data||[];
+    rows.forEach(function(row){
+      var localItem=memDB.find(function(i){return i.id===row.local_id;});
+      var remoteTime=new Date(row.updated_at).getTime();
+      if(!localItem){
+        var mapped=supabaseToLocal(row);
+        if(!mapped.deleted){memDB.push(mapped);dbPut(mapped,function(){});}
+        else{dbPut(mapped,function(){});} /* tombstone distant jamais vu localement : on le stocke marque supprime, filtré du rendu */
+      }else if(remoteTime>(localItem.updatedAtLocal||0)){
+        var updated=supabaseToLocal(row);
+        for(var j=0;j<memDB.length;j++){if(memDB[j].id===updated.id){
+          /* Préserve les champs Suivi (Session 9) non gérés par Supabase */
+          updated.reminderEnabled=memDB[j].reminderEnabled;updated.nextAirDate=memDB[j].nextAirDate;
+          updated.lastEpisodeCheck=memDB[j].lastEpisodeCheck;updated.tvmazeId=memDB[j].tvmazeId;
+          updated.streamingProviders=memDB[j].streamingProviders;
+          memDB[j]=updated;break;
+        }}
+        dbPut(updated,function(){});
+      }
+    });
+    render();
+    if(typeof renderSuivi==='function')renderSuivi();
+  });
+}
+
+function syncPush(){
+  if(!supa||!authProfileId)return Promise.resolve();
+  var toPush=memDB.filter(function(i){return i.needsSync;});
+  if(!toPush.length)return Promise.resolve();
+  var chain=Promise.resolve();
+  toPush.forEach(function(item){
+    chain=chain.then(function(){
+      var payload=localToSupabase(item,authProfileId);
+      return supa.from('watchlist_items').upsert(payload,{onConflict:'local_id'}).select().then(function(res){
+        if(res.error){console.error('[sync push]',res.error);return;}
+        if(res.data&&res.data[0]){
+          item.supaId=res.data[0].id;item.needsSync=false;
+          dbPut(item,function(){});
+        }
+      }).catch(function(e){console.error('[sync push]',e);});
+    });
+  });
+  return chain;
+}
+
+function syncNow(){
+  if(!supa||!authProfileId||syncInProgress)return;
+  if(!navigator.onLine){updateSyncStatusUI('offline');return;}
+  syncInProgress=true;updateSyncStatusUI('syncing');
+  syncPull().then(function(){return syncPush();}).then(function(){return syncPull();}).then(function(){
+    syncInProgress=false;updateSyncStatusUI('synced');refreshAuthModalView();
+  }).catch(function(e){
+    syncInProgress=false;
+    console.error('[sync]',e);
+    updateSyncStatusUI(navigator.onLine?'synced':'offline');
+    var now=Date.now();
+    if(now-lastSyncErrorToast>60000){lastSyncErrorToast=now;toast('Synchronisation impossible pour le moment','nfo');}
+  });
+}
+
+function startSyncLoop(){
+  stopSyncLoop();
+  syncLoopTimer=setInterval(function(){
+    if(authProfileId&&navigator.onLine)syncNow();
+  },30000);
+}
+function stopSyncLoop(){if(syncLoopTimer){clearInterval(syncLoopTimer);syncLoopTimer=null;}}
+
+/* --- Indicateur visuel --- */
+function updateSyncStatusUI(state){
+  var dot=document.getElementById('syncDot'),txt=document.getElementById('syncStatusText');
+  if(!dot||!txt)return;
+  if(state=='anon'){dot.className='sync-dot anon';txt.textContent='Non connecte';}
+  else if(state=='syncing'){dot.className='sync-dot syncing';txt.textContent='Synchronisation...';}
+  else if(state=='offline'){dot.className='sync-dot offline';txt.textContent='Hors ligne';}
+  else{dot.className='sync-dot synced';txt.textContent='Synchronise';}
 }
 
 /* STATS */
@@ -2113,7 +2455,7 @@ try{dismissed=JSON.parse(localStorage.getItem('wl_dis')||'[]');}catch(e){dismiss
 if(!soundOn)toggleSound();
 if(compactOn){document.getElementById('cptBtn').classList.add('on');}
 document.addEventListener('click',function u(){getAC();document.removeEventListener('click',u);},{once:true});
-openDB(function(){render();loadRecos();loadDiscovery(activeTab);setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();});
+openDB(function(){render();loadRecos();loadDiscovery(activeTab);setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();});
 /* ResizeObserver : recalcul card size si fenêtre redimensionnée */
 if(typeof ResizeObserver!=='undefined'){
   var _drRO=new ResizeObserver(function(){_calcDrCardSize();});
@@ -2334,9 +2676,12 @@ setInterval(function() {
 window.addEventListener('online', function() {
   console.log('[' + new Date().toLocaleTimeString() + '] ✓ App en ligne');
   if (typeof loadRecos === 'function') loadRecos();
+  if (authProfileId) syncNow();
+  else updateSyncStatusUI(authUser?'synced':'anon');
 });
 window.addEventListener('offline', function() {
   console.warn('[' + new Date().toLocaleTimeString() + '] ⚠ App HORS LIGNE — TMDB inaccessible');
+  if (authUser) updateSyncStatusUI('offline');
 });
 
 // ===== EXPORT WATCHLIST JSON =====
