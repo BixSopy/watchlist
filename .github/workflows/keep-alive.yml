@@ -1,0 +1,17 @@
+   name: Keep Supabase Alive
+
+   on:
+     schedule:
+       - cron: '0 9 * * *'
+     workflow_dispatch:
+
+   jobs:
+     keep-alive:
+       runs-on: ubuntu-latest
+       steps:
+         - name: Ping Supabase keep_alive endpoint
+           run: |
+             curl -X POST "https://batfulcvvquffgfeppcx.supabase.co/rest/v1/keep_alive" \
+               -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+               -H "Content-Type: application/json" \
+               -d '{"ping":"keep-alive"}'
