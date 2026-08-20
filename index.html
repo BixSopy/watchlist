@@ -108,11 +108,36 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .search-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 22px;background:rgba(10,10,12,.96);border-top:1px solid var(--border);backdrop-filter:blur(12px);flex-shrink:0}
 .search-counter{font-size:13px;color:var(--text2);font-weight:600}
 .search-empty{padding:32px;text-align:center;color:var(--text3);border:1px dashed var(--border2);border-radius:12px;background:var(--bg3)}
-.opt-menu{display:none !important;position:fixed;top:48px;right:12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-md);min-width:200px;box-shadow:var(--shadow-modal);z-index:100;overflow:hidden;animation:scaleIn .15s ease}
+.opt-menu{display:none !important;position:fixed;top:48px;right:12px;width:330px;max-width:calc(100vw - 24px);max-height:calc(100vh - 80px);background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-md);box-shadow:var(--shadow-modal);z-index:100;overflow-y:auto;overflow-x:hidden;animation:scaleIn .15s ease}
 .opt-menu.on{display:flex !important;flex-direction:column}
 .opt-btn{width:100%;padding:10px 14px;border:none;background:transparent;color:var(--text2);text-align:left;font-size:13px;cursor:pointer;transition:var(--tr-fast);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-family:'IBM Plex Sans',sans-serif}
 .opt-btn:last-child{border-bottom:none}
 .opt-btn:hover{background:var(--bg3);color:var(--text)}
+.opt-sep{height:1px;background:var(--border);margin:4px 0}
+.settings-view{width:100%;display:flex;flex-direction:column}
+.settings-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text);position:sticky;top:0;background:var(--bg2);z-index:1}
+.settings-back{background:transparent;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;align-items:center;border-radius:var(--r-sm);transition:var(--tr-fast)}
+.settings-back:hover{background:var(--bg3);color:var(--text)}
+.settings-section{padding:10px 14px}
+.settings-section-title{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0}
+.setting-copy{flex:1;min-width:0}
+.setting-label{font-size:12.5px;color:var(--text)}
+.setting-hint{font-size:11px;color:var(--text3);margin-top:1px;line-height:1.4}
+.setting-control{flex-shrink:0}
+.toggle-switch{width:36px;height:20px;border-radius:20px;background:var(--bg5);border:1px solid var(--border2);position:relative;cursor:pointer;transition:var(--tr-fast);flex-shrink:0}
+.toggle-switch.on{background:var(--accent-dim2);border-color:var(--accent)}
+.toggle-switch .knob{position:absolute;top:1px;left:1px;width:16px;height:16px;border-radius:50%;background:var(--text2);transition:var(--tr-fast)}
+.toggle-switch.on .knob{left:17px;background:var(--accent)}
+.settings-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:5px 8px;border-radius:var(--r-sm);font-family:'IBM Plex Sans',sans-serif;cursor:pointer}
+.segmented-control{display:flex;background:var(--bg3);border-radius:var(--r-sm);padding:2px;gap:2px}
+.segmented-control button{flex:1;padding:5px 8px;font-size:11px;border:none;background:transparent;color:var(--text2);border-radius:calc(var(--r-sm) - 2px);cursor:pointer;transition:var(--tr-fast);font-family:'IBM Plex Sans',sans-serif}
+.segmented-control button.on{background:var(--bg5);color:var(--text)}
+.settings-action-row{padding:8px 0;cursor:pointer;border-radius:var(--r-sm);transition:var(--tr-fast)}
+.settings-action-row:hover{background:var(--bg3)}
+.settings-danger{color:#ff7070}
+.settings-foot{padding:10px 14px;font-size:10.5px;color:var(--text3);border-top:1px solid var(--border);text-align:center}
+.settings-sync-badge{font-size:11px;color:var(--text2)}
 
 /* LAYOUT */
 .layout{display:flex;min-height:calc(100vh - 62px)}
@@ -330,6 +355,15 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 /* GRID */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:18px}
 .grid.cpt{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+html.grid-cols-4 .grid,html.grid-cols-4 .grid.cpt{grid-template-columns:repeat(4,minmax(0,1fr))}
+html.grid-cols-5 .grid,html.grid-cols-5 .grid.cpt{grid-template-columns:repeat(5,minmax(0,1fr))}
+html.grid-cols-6 .grid,html.grid-cols-6 .grid.cpt{grid-template-columns:repeat(6,minmax(0,1fr))}
+html.grid-cols-7 .grid,html.grid-cols-7 .grid.cpt{grid-template-columns:repeat(7,minmax(0,1fr))}
+body.ratings-my .crating{display:none}
+body.ratings-tmdb .cmyr{display:none}
+body.ratings-off .crating,body.ratings-off .cmyr{display:none}
+body.badges-off .card-meta .badge{display:none}
+body.suivi-providers-off .suivi-providers{display:none}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;position:relative;transition:border-color var(--tr-slow),transform var(--tr-slow),box-shadow var(--tr-slow);animation:fadeUp .3s ease both;box-shadow:var(--shadow-card)}
 .card:hover{border-color:rgba(92,200,255,.18);transform:translateY(-4px);box-shadow:var(--shadow-card-hover)}
 .card-poster{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:var(--bg4)}
@@ -574,7 +608,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
   .folder-wrap{width:100%;max-height:100%;height:100%;border-radius:0}
 }
 @media (max-width:400px){
-  .grid,.grid.cpt{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid,.grid.cpt,html.grid-cols-4 .grid,html.grid-cols-5 .grid,html.grid-cols-6 .grid,html.grid-cols-7 .grid,html.grid-cols-4 .grid.cpt,html.grid-cols-5 .grid.cpt,html.grid-cols-6 .grid.cpt,html.grid-cols-7 .grid.cpt{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ntab{font-size:14px;padding:12px 9px}
   .hbtn{width:28px;height:28px}
 }
@@ -608,11 +642,25 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
   </div>
   <button class="hbtn" onclick="openStats()" title="Stats (S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></button>
   <button class="hbtn" onclick="toggleMenu()" title="Options"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-  <div id="optMenu" class="opt-menu" style="display:none;position:absolute;top:48px;right:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-md);min-width:200px;box-shadow:var(--shadow-modal);z-index:100">
-    <button class="opt-btn" onclick="exportJSON();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exporter JSON</button>
-    <button class="opt-btn" onclick="triggerImport();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importer JSON</button>
-    <button class="opt-btn" onclick="triggerImportCSV();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Importer CSV</button>
-    <button class="opt-btn" onclick="detectCollections();toggleMenu()" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Détecter les sagas</button>
+  <div id="optMenu" class="opt-menu">
+    <div class="settings-view" id="optMenuMain">
+      <button class="opt-btn" onclick="openSettingsView()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Réglages</button>
+      <div class="opt-sep"></div>
+      <button class="opt-btn" onclick="exportJSON();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exporter JSON</button>
+      <button class="opt-btn" onclick="triggerImport();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importer JSON</button>
+      <button class="opt-btn" onclick="triggerImportCSV();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Importer CSV</button>
+      <button class="opt-btn" onclick="detectCollections();toggleMenu()" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Détecter les sagas</button>
+      <div class="opt-sep"></div>
+      <button class="opt-btn" onclick="openAuthModal();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Compte &amp; synchronisation</button>
+    </div>
+    <div class="settings-view" id="optMenuSettings" style="display:none">
+      <div class="settings-head">
+        <button class="settings-back" onclick="closeSettingsView()" title="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span>Réglages</span>
+      </div>
+      <div id="settingsBody"></div>
+      <div class="settings-foot">Les réglages sont enregistrés automatiquement sur cet appareil.</div>
+    </div>
   </div>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
   <input type="file" id="importCSVFile" accept=".csv,.xlsx" style="display:none" onchange="importCSV()">
@@ -1278,6 +1326,27 @@ function loadDiscovery(tab){
   });
 }
 function switchTab(btn){sfx('click');document.querySelectorAll('.ntab').forEach(function(b){b.classList.remove('on')});btn.classList.add('on');activeTab=btn.dataset.tab;render();loadDiscovery(activeTab);}
+
+/* Session 11B : actions Réglages > Recommandations */
+function resetDismissedRecos(){
+  if(!confirm('Réafficher tous les titres ignorés dans les recommandations ?'))return;
+  dismissed=[];
+  localStorage.setItem('wl_dis','[]');
+  _preserveContentScroll(function(){cache={};seenRecos=[];loadRecos();});
+  toast('Titres ignorés réaffichés');
+}
+function clearDiscoveryCache(){
+  if(!confirm('Vider le cache Discovery et forcer un nouveau chargement ?'))return;
+  _drCache={};
+  cache={};
+  seenRecos=[];
+  _preserveContentScroll(function(){
+    loadDiscovery(activeTab);
+    loadRecos();
+  });
+  toast('Catalogue actualisé.');
+}
+
 document.getElementById('stabs').addEventListener('click',function(e){var b=e.target.closest('.stab');if(!b)return;sfx('click');document.querySelectorAll('.stab').forEach(function(x){x.classList.remove('on')});b.classList.add('on');activeStat=b.dataset.s;render();});
 document.getElementById('sortSel').addEventListener('change',render);
 document.getElementById('qinput').addEventListener('input',function(e){fq=e.target.value;render();});
@@ -1575,7 +1644,52 @@ function skeletonHTML(){
   for(var i=0;i<4;i++){html+='<div class="sb-skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-meta"></div><div class="sk-meta" style="width:50%"></div></div></div>';}
   html+='</div>';return html;
 }
-var seenRecos=[];/* IDs vus dans la sidebar cette session — reset à l'actualisation */
+/* ===== SESSION 11B : SYSTÈME DE RÉGLAGES (100% local, jamais synchronisé) ===== */
+var wlSettings={};
+var WL_SETTINGS_DEFAULTS={
+  wl_grid_cols:'auto',
+  wl_card_ratings:'both',
+  wl_card_badges:'full',
+  wl_reco_autoscroll:'1',
+  wl_reco_speed:'normal',
+  wl_reco_pause_hover:'1',
+  wl_reco_limit:'15',
+  wl_suivi_providers:'1',
+  wl_reminders_global:'1'
+};
+var WL_RECO_SPEEDS={
+  slow:{duration:2100,pause:700},
+  normal:{duration:1600,pause:450},
+  fast:{duration:950,pause:260}
+};
+function loadSettings(){
+  wlSettings={};
+  Object.keys(WL_SETTINGS_DEFAULTS).forEach(function(key){
+    var v=localStorage.getItem(key);
+    wlSettings[key]=(v===null||v===undefined||v==='')?WL_SETTINGS_DEFAULTS[key]:v;
+  });
+  return wlSettings;
+}
+function saveSetting(key,value){
+  wlSettings[key]=value;
+  localStorage.setItem(key,value);
+}
+function applySettings(){
+  var root=document.documentElement;
+  /* Grille */
+  root.classList.remove('grid-cols-4','grid-cols-5','grid-cols-6','grid-cols-7');
+  if(wlSettings.wl_grid_cols&&wlSettings.wl_grid_cols!=='auto')root.classList.add('grid-cols-'+wlSettings.wl_grid_cols);
+  /* Notes cartes */
+  document.body.classList.remove('ratings-both','ratings-my','ratings-tmdb','ratings-off');
+  document.body.classList.add('ratings-'+(wlSettings.wl_card_ratings==='my'?'my':wlSettings.wl_card_ratings==='tmdb'?'tmdb':wlSettings.wl_card_ratings==='off'?'off':'both'));
+  /* Badges cartes */
+  document.body.classList.remove('badges-full','badges-off');
+  document.body.classList.add('badges-'+(wlSettings.wl_card_badges==='off'?'off':'full'));
+  /* Suivi providers */
+  document.body.classList.toggle('suivi-providers-off',wlSettings.wl_suivi_providers==='0');
+}
+
+
 
 function loadRecos(){
   var sb=document.getElementById('sbContent');sb.innerHTML=skeletonHTML();
@@ -1662,6 +1776,14 @@ function renderRecos(tHtml,bHtml,json,inList){
   /* Réinjecter les numéros dans tHtml/bHtml qui ont été copiés raw */
   var ctr=0;
   html=html.replace(/<div class="reco-num">[\d]+<\/div>/g,'');/* nettoyer anciens */
+  /* Limite d'affichage (Réglages > Recommandations > Suggestions affichées) */
+  var recoLimit=parseInt(wlSettings.wl_reco_limit,10)||15;
+  var tmpWrap=document.createElement('div');tmpWrap.innerHTML=html;
+  var allCards=tmpWrap.querySelectorAll('.reco-card');
+  if(allCards.length>recoLimit){
+    for(var ri=recoLimit;ri<allCards.length;ri++)allCards[ri].remove();
+  }
+  html=tmpWrap.innerHTML;
   /* Réinjecter proprement via DOM serait idéal mais on injecte innerHTML direct */
   document.getElementById('sbContent').innerHTML=html||'<div class="sb-loading">Aucune recommandation</div>';
   /* Numéroter après injection */
@@ -1786,18 +1908,71 @@ var autoRAF2=0,autoSeq2=0;
 function easeInOutCubic(t){return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
 function stopAutoScroll(){autoSeq2++;if(autoRAF2)cancelAnimationFrame(autoRAF2);autoRAF2=0;if(autoTimer){clearTimeout(autoTimer);autoTimer=null;}}
 function _animScrollTo(el,to,dur){return new Promise(function(resolve){var seq=autoSeq2,from=el.scrollTop,start=performance.now();var max=Math.max(0,el.scrollHeight-el.clientHeight);to=Math.max(0,Math.min(to,max));function frame(now){if(seq!==autoSeq2)return resolve(false);if(autoPaused){autoRAF2=requestAnimationFrame(frame);return;}var p=Math.min(1,(now-start)/dur);el.scrollTop=from+(to-from)*easeInOutCubic(p);if(p<1){autoRAF2=requestAnimationFrame(frame);}else{el.scrollTop=to;autoRAF2=0;resolve(true);}}autoRAF2=requestAnimationFrame(frame);});}
+
+/* Session 11B : cibles de scroll alignées sur chaque carte de reco (jamais de carte coupée) */
+function getRecoSnapTargets(wrap){
+  var max=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
+  var targets=[0];
+  var cards=wrap.querySelectorAll('.reco-card');
+  cards.forEach(function(card){
+    var top=card.offsetTop-wrap.offsetTop;
+    top=Math.max(0,Math.min(top,max));
+    if(targets.indexOf(top)<0)targets.push(top);
+  });
+  targets.sort(function(a,b){return a-b;});
+  if(max>0&&targets[targets.length-1]<max)targets.push(max);
+  return targets;
+}
+function getNextRecoSnap(wrap,currentTop){
+  var targets=getRecoSnapTargets(wrap);
+  var tol=4;
+  for(var i=0;i<targets.length;i++){
+    if(targets[i]>currentTop+tol)return targets[i];
+  }
+  return 0;
+}
 async function startAutoScroll(){
-  stopAutoScroll();var wrap=document.getElementById('sbScroll');if(!wrap)return;var seq=autoSeq2;
+  stopAutoScroll();
+  loadSettings();
+  if(wlSettings.wl_reco_autoscroll==='0')return;
+  var wrap=document.getElementById('sbScroll');if(!wrap)return;var seq=autoSeq2;
   while(seq===autoSeq2){
     if(autoPaused||wrap.scrollHeight<=wrap.clientHeight){await new Promise(function(r){autoTimer=setTimeout(r,300);});continue;}
-    var max=wrap.scrollHeight-wrap.clientHeight;var target=Math.min(wrap.scrollTop+180,max);
-    await _animScrollTo(wrap,target,1600);if(seq!==autoSeq2)break;
-    await new Promise(function(r){autoTimer=setTimeout(r,400);});if(seq!==autoSeq2)break;
-    if(wrap.scrollTop>=max-2){wrap.scrollTop=0;await new Promise(function(r){autoTimer=setTimeout(r,700);});}
+    var speedKey=WL_RECO_SPEEDS[wlSettings.wl_reco_speed]?wlSettings.wl_reco_speed:'normal';
+    var speed=WL_RECO_SPEEDS[speedKey];
+    var targets=getRecoSnapTargets(wrap);
+    if(targets.length<2)return; /* pas assez de cartes distinctes pour un snap pertinent */
+    var target=getNextRecoSnap(wrap,wrap.scrollTop);
+    var isReturnToStart=(target===0&&wrap.scrollTop>0);
+    await _animScrollTo(wrap,target,speed.duration);if(seq!==autoSeq2)break;
+    var pause=isReturnToStart?speed.pause+250:speed.pause;
+    await new Promise(function(r){autoTimer=setTimeout(r,pause);});if(seq!==autoSeq2)break;
   }
 }
-document.getElementById('sbScroll').addEventListener('mouseenter',function(){autoPaused=true;});
-document.getElementById('sbScroll').addEventListener('mouseleave',function(){autoPaused=false;});
+(function(){
+  var wrap=document.getElementById('sbScroll');
+  if(!wrap)return;
+  var resumeTimer=null;
+  function pauseThenResume(){
+    autoPaused=true;
+    if(resumeTimer)clearTimeout(resumeTimer);
+    resumeTimer=setTimeout(function(){
+      loadSettings();
+      if(wlSettings.wl_reco_pause_hover!=='0'){
+        var hovering=wrap.matches(':hover');
+        if(!hovering)autoPaused=false;
+      }else{
+        autoPaused=false;
+      }
+    },2500);
+  }
+  wrap.addEventListener('mouseenter',function(){loadSettings();if(wlSettings.wl_reco_pause_hover!=='0')autoPaused=true;});
+  wrap.addEventListener('mouseleave',function(){loadSettings();if(wlSettings.wl_reco_pause_hover!=='0')autoPaused=false;});
+  wrap.addEventListener('pointerdown',function(){autoPaused=true;});
+  wrap.addEventListener('touchstart',function(){autoPaused=true;},{passive:true});
+  wrap.addEventListener('wheel',pauseThenResume,{passive:true});
+  wrap.addEventListener('scroll',pauseThenResume,{passive:true});
+})();
 
 /* AIR ALERTS */
 function checkAir(item){
@@ -1984,6 +2159,8 @@ function toggleReminder(itemId){
 
 /* Notifications le jour J — appelee une fois au chargement, pas en boucle */
 function checkReminders(){
+  loadSettings();
+  if(wlSettings.wl_reminders_global==='0')return;
   if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
   var today=new Date();today.setHours(0,0,0,0);
   memDB.forEach(function(item){
@@ -2316,12 +2493,97 @@ function applyAmbient(imgUrl, targetEl, opacity){
 /* MENU */
 function toggleMenu(){
   var menu=document.getElementById('optMenu');
+  var opening=!menu.classList.contains('on');
   menu.classList.toggle('on');
+  if(!opening)closeSettingsView();
 }
 document.addEventListener('click',function(e){
   var menu=document.getElementById('optMenu');
-  if(!e.target.closest('.hbtn')&&!e.target.closest('.opt-menu')){menu.classList.remove('on');}
+  if(!e.target.closest('.hbtn')&&!e.target.closest('.opt-menu')){menu.classList.remove('on');closeSettingsView();}
 });
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    var menu=document.getElementById('optMenu');
+    if(menu.classList.contains('on')){menu.classList.remove('on');closeSettingsView();}
+  }
+});
+
+/* Session 11B : panneau Réglages */
+function openSettingsView(){
+  loadSettings();
+  document.getElementById('optMenuMain').style.display='none';
+  document.getElementById('optMenuSettings').style.display='flex';
+  renderSettingsMenu();
+  sfx('click');
+}
+function closeSettingsView(){
+  var mv=document.getElementById('optMenuMain'),sv=document.getElementById('optMenuSettings');
+  if(mv)mv.style.display='flex';
+  if(sv)sv.style.display='none';
+}
+function _toggleRow(label,hint,key,checked){
+  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'</div><div class="setting-control"><div class="toggle-switch'+(checked?' on':'')+'" onclick="_onSettingToggle(\''+key+'\',this)"><div class="knob"></div></div></div></div>';
+}
+function _delegatedToggleRow(label,hint,fnName,checked){
+  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'</div><div class="setting-control"><div class="toggle-switch'+(checked?' on':'')+'" onclick="'+fnName+'();renderSettingsMenu()"><div class="knob"></div></div></div></div>';
+}
+function _selectRow(label,key,options,current){
+  var opts=options.map(function(o){return '<option value="'+o.v+'"'+(o.v===current?' selected':'')+'>'+o.l+'</option>';}).join('');
+  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div></div><div class="setting-control"><select class="settings-select" onchange="_onSettingSelect(\''+key+'\',this.value)">'+opts+'</select></div></div>';
+}
+function _onSettingToggle(key,el){
+  var newVal=(wlSettings[key]==='1')?'0':'1';
+  saveSetting(key,newVal);
+  el.classList.toggle('on',newVal==='1');
+  _onSettingChanged(key,newVal);
+}
+function _onSettingSelect(key,val){
+  saveSetting(key,val);
+  _onSettingChanged(key,val);
+}
+function _onSettingChanged(key,val){
+  if(key==='wl_grid_cols'||key==='wl_card_ratings'||key==='wl_card_badges'||key==='wl_suivi_providers'){
+    applySettings();
+  }
+  if(key==='wl_reco_autoscroll'){
+    if(val==='0')stopAutoScroll();else startAutoScroll();
+  }
+  if(key==='wl_reco_limit'){
+    loadRecos();
+  }
+  sfx('click');
+}
+function renderSettingsMenu(){
+  var body=document.getElementById('settingsBody');
+  if(!body)return;
+  var pending=memDB.filter(function(i){return i.needsSync;}).length;
+  var syncLabel=!supa?'Indisponible':(authUser?(pending?(pending+' élément'+(pending>1?'s':'')+' en attente'):'Synchronisé'):'Non connecté');
+  var html='';
+  html+='<div class="settings-section"><div class="settings-section-title">Apparence</div>';
+  html+=_delegatedToggleRow('Mode compact','','toggleCompact',compactOn);
+  html+=_delegatedToggleRow('Sons d\'interface','','toggleSound',soundOn);
+  html+=_selectRow('Grille watchlist','wl_grid_cols',[{v:'auto',l:'Automatique'},{v:'4',l:'4 colonnes'},{v:'5',l:'5 colonnes'},{v:'6',l:'6 colonnes'},{v:'7',l:'7 colonnes'}],wlSettings.wl_grid_cols);
+  html+=_selectRow('Notes sur les cartes','wl_card_ratings',[{v:'both',l:'Les deux'},{v:'my',l:'Ma note seulement'},{v:'tmdb',l:'TMDB seulement'},{v:'off',l:'Masquer'}],wlSettings.wl_card_ratings);
+  html+=_selectRow('Badges de cartes','wl_card_badges',[{v:'full',l:'Complets'},{v:'off',l:'Masquer'}],wlSettings.wl_card_badges);
+  html+='</div><div class="opt-sep"></div>';
+  html+='<div class="settings-section"><div class="settings-section-title">Recommandations</div>';
+  html+=_toggleRow('Défilement automatique','','wl_reco_autoscroll',wlSettings.wl_reco_autoscroll==='1');
+  html+=_selectRow('Vitesse de défilement','wl_reco_speed',[{v:'slow',l:'Lent'},{v:'normal',l:'Normal'},{v:'fast',l:'Rapide'}],wlSettings.wl_reco_speed);
+  html+=_toggleRow('Pause au survol','','wl_reco_pause_hover',wlSettings.wl_reco_pause_hover==='1');
+  html+=_selectRow('Suggestions affichées','wl_reco_limit',[{v:'10',l:'10'},{v:'15',l:'15'},{v:'20',l:'20'}],wlSettings.wl_reco_limit);
+  html+='<div class="settings-action-row" onclick="resetDismissedRecos()"><div class="setting-label">Réinitialiser les titres ignorés</div><div class="setting-hint">Réaffiche les recommandations masquées avec « Non ».</div></div>';
+  html+='<div class="settings-action-row" onclick="clearDiscoveryCache()"><div class="setting-label">Vider le cache Discovery</div><div class="setting-hint">Force un nouveau chargement des rangées et suggestions TMDB.</div></div>';
+  html+='</div><div class="opt-sep"></div>';
+  html+='<div class="settings-section"><div class="settings-section-title">Suivi</div>';
+  html+=_delegatedToggleRow('Replier Suivi au démarrage','','toggleSuiviSection',suiviCollapsed);
+  html+=_toggleRow('Afficher les plateformes','','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
+  html+=_toggleRow('Rappels navigateur','Les rappels individuels restent conservés.','wl_reminders_global',wlSettings.wl_reminders_global==='1');
+  html+='</div><div class="opt-sep"></div>';
+  html+='<div class="settings-section"><div class="settings-section-title">Données</div>';
+  html+='<div class="settings-action-row" onclick="openAuthModal();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">Compte &amp; synchronisation</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
+  html+='</div>';
+  body.innerHTML=html;
+}
 
 /* EXPORT */
 function exportJSON(){
@@ -2467,6 +2729,7 @@ document.addEventListener('keydown',function(e){
 soundOn=localStorage.getItem('wl_snd')!='0';
 compactOn=localStorage.getItem('wl_cpt')=='1';
 try{dismissed=JSON.parse(localStorage.getItem('wl_dis')||'[]');}catch(e){dismissed=[];}
+loadSettings();applySettings();
 if(!soundOn)toggleSound();
 if(compactOn){document.getElementById('cptBtn').classList.add('on');}
 document.addEventListener('click',function u(){getAC();document.removeEventListener('click',u);},{once:true});
