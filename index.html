@@ -1796,7 +1796,7 @@ function renderRecos(tHtml,bHtml,json,inList){
   var secs=[{key:'films',label:'Films',ico:'<rect x="2" y="2" width="20" height="20" rx="2"/><path d="m7 2 0 20M17 2v20M2 12h20M2 7h5M17 7h5M2 17h5M17 17h5"/>',t:'film'},{key:'series',label:'Séries',ico:'<rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/>',t:'serie'},{key:'anime',label:'Anime',ico:'<circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/>',t:'anime'}];
   secs.forEach(function(s){
     var items=json[s.key]||[];if(!items.length)return;
-    html+=recoSection('<path d="'+s.ico+'"/>',s.label,items);
+    html+=recoSection(s.ico,s.label,items);
   });
   /* Réinjecter les numéros dans tHtml/bHtml qui ont été copiés raw */
   var ctr=0;
