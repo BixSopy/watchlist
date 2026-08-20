@@ -1993,10 +1993,9 @@ async function startAutoScroll(){
   }
   wrap.addEventListener('mouseenter',function(){loadSettings();if(wlSettings.wl_reco_pause_hover!=='0')autoPaused=true;});
   wrap.addEventListener('mouseleave',function(){loadSettings();if(wlSettings.wl_reco_pause_hover!=='0')autoPaused=false;});
-  wrap.addEventListener('pointerdown',function(){autoPaused=true;});
-  wrap.addEventListener('touchstart',function(){autoPaused=true;},{passive:true});
+  wrap.addEventListener('pointerdown',pauseThenResume);
+  wrap.addEventListener('touchstart',pauseThenResume,{passive:true});
   wrap.addEventListener('wheel',pauseThenResume,{passive:true});
-  wrap.addEventListener('scroll',pauseThenResume,{passive:true});
 })();
 
 /* AIR ALERTS */
