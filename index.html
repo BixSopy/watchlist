@@ -1141,7 +1141,7 @@ function _drFetchBecause(filter){
   if(!best)pool.forEach(function(i){if(i.tmdbScore&&(!best||parseFloat(i.tmdbScore)>parseFloat(best.tmdbScore||0)))best=i;});
   if(!best)return Promise.resolve({title:'',items:[]});
   var t=best.tmdbType||(best.type==='film'?'movie':'tv');
-  var inL=memDB.map(function(i){return i.tmdbId;});
+  var inL=new Set(memDB.map(function(i){return i.tmdbId;}));
   function get(u){return fetch(u).then(function(r){return r.json();}).catch(function(){return{results:[]};});}
   var base=TB+'/'+t+'/'+best.tmdbId,q='?api_key='+TKEY+'&language=fr-FR&page=';
   /* recommendations p1+p2 puis similar p1+p2 en fallback → pool large garanti */
@@ -1150,7 +1150,7 @@ function _drFetchBecause(filter){
     pages.forEach(function(d){
       (d.results||[]).forEach(function(x){
         if(seen[x.id])return;seen[x.id]=1;
-        if(inL.indexOf(x.id)>=0||dismissed.indexOf(x.id)>=0||!x.poster_path)return;
+        if(inL.has(x.id)||dismissed.indexOf(x.id)>=0||!x.poster_path)return;
         items.push(_drNormItem(x,t));
       });
     });
@@ -1158,13 +1158,13 @@ function _drFetchBecause(filter){
   }).catch(function(){return{title:'',items:[]};});
 }
 function _drFetchRow(cfg){
-  var inL=memDB.map(function(i){return i.tmdbId;});
+  var inL=new Set(memDB.map(function(i){return i.tmdbId;}));
   if(cfg.type==='because')return _drFetchBecause(cfg.filter);
   var sep=cfg.url.indexOf('?')>-1?'&':'?';
   var TARGET=30,seen={},out=[];
   function keep(x){
     if(seen[x.id])return;seen[x.id]=1;
-    if(inL.indexOf(x.id)>=0||dismissed.indexOf(x.id)>=0||!x.poster_path)return;
+    if(inL.has(x.id)||dismissed.indexOf(x.id)>=0||!x.poster_path)return;
     if(!cfg.mixed&&x.media_type&&x.media_type!==(cfg.mtype||'movie'))return;
     if(cfg.mixed&&x.media_type&&x.media_type!=='movie'&&x.media_type!=='tv')return;
     out.push(_drNormItem(x,cfg.mtype||null));
@@ -1741,11 +1741,14 @@ function detectCollections(){
   if(!films.length){toast('Tous les films ont déjà une saga ou pas de collection.','nfo');return;}
   _detectRunning=true;
   toast('Détection des sagas en cours ('+films.length+' films)…','nfo');
-  var updated=0,done=0;
+  var updated=0,done=0,rateLimited=0;
   function next(idx){
-    if(idx>=films.length){_detectRunning=false;if(updated>0){render();toast(updated+' saga'+(updated>1?'s':'')+' détectée'+(updated>1?'s':'')+'.');} else{toast('Aucune nouvelle saga détectée.','nfo');}return;}
+    if(idx>=films.length){_detectRunning=false;if(updated>0){render();toast(updated+' saga'+(updated>1?'s':'')+' détectée'+(updated>1?'s':'')+'.');} else if(rateLimited>0){toast('TMDB a limité les requêtes ('+rateLimited+' échecs) — réessaie dans quelques minutes.','err');} else{toast('Aucune nouvelle saga détectée.','nfo');}return;}
     var item=films[idx];
-    fetch(TB+'/movie/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(r){return r.json();}).then(function(d){
+    fetch(TB+'/movie/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(r){
+      if(r.status===429){rateLimited++;throw new Error('429');}
+      return r.json();
+    }).then(function(d){
       if(d.belongs_to_collection&&d.belongs_to_collection.name){
         var cname=d.belongs_to_collection.name.replace(/\s*collection$/i,'').replace(/\s*saga$/i,'').trim();
         var cid=_slugify(cname);
@@ -2174,6 +2177,14 @@ function onAuthResolved(user){
 }
 
 /* --- Sync pull/push --- */
+function preserveSuiviFields(local,remote){
+  remote.reminderEnabled=local.reminderEnabled;
+  remote.nextAirDate=local.nextAirDate;
+  remote.lastEpisodeCheck=local.lastEpisodeCheck;
+  remote.tvmazeId=local.tvmazeId;
+  remote.streamingProviders=local.streamingProviders;
+  return remote;
+}
 function syncPull(){
   if(!supa||!authProfileId)return Promise.resolve();
   return supa.from('watchlist_items').select('*').eq('profile_id',authProfileId).then(function(res){
@@ -2190,9 +2201,7 @@ function syncPull(){
         var updated=supabaseToLocal(row);
         for(var j=0;j<memDB.length;j++){if(memDB[j].id===updated.id){
           /* Préserve les champs Suivi (Session 9) non gérés par Supabase */
-          updated.reminderEnabled=memDB[j].reminderEnabled;updated.nextAirDate=memDB[j].nextAirDate;
-          updated.lastEpisodeCheck=memDB[j].lastEpisodeCheck;updated.tvmazeId=memDB[j].tvmazeId;
-          updated.streamingProviders=memDB[j].streamingProviders;
+          updated=preserveSuiviFields(memDB[j],updated);
           memDB[j]=updated;break;
         }}
         dbPut(updated,function(){});
@@ -2411,7 +2420,13 @@ function importJSON(input){
     var entries=Array.isArray(data)?data:(data.entries||[]);
     if(!entries.length){toast('Aucune entrée trouvée dans le fichier','err');return;}
     /* Validation minimale */
-    var valid=entries.filter(function(i){return i&&i.id&&i.title&&i.type;});
+    var validTypes=['film','serie','anime'];
+    var valid=entries.filter(function(i){
+      return i&&i.id&&i.title&&i.type&&validTypes.indexOf(i.type)>-1;
+    }).map(function(i){
+      if(!i.status)i.status='avoir';
+      return i;
+    });
     if(!valid.length){sfx('err');toast('Format non reconnu — aucune entrée valide','err');return;}
     if(!confirm('Importer '+valid.length+' titre(s) ? Les entrees existantes avec le meme ID seront mises a jour. Les nouvelles seront ajoutees.')){return;}
     var added=0,updated=0;
