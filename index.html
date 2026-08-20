@@ -1027,7 +1027,26 @@ function cardHtml(item,idx){
   return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex(\''+id+'\')">'+newep+todof+po+ph+'<div class="cact"><div class="ibtn" onclick="event.stopPropagation();sfx(\'click\');openEdit(\''+id+'\')" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del" onclick="event.stopPropagation();delEntry(\''+id+'\')" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(item.title)+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
 }
 
-var INIT_VISIBLE=15;
+/* Session 11B : estimation du nombre de colonnes réelles de la grille principale,
+   avant injection DOM (getComputedStyle indisponible tant que l'élément n'existe pas). */
+function _estimateGridCols(){
+  var w=document.getElementById('content');
+  var containerW=w?w.clientWidth:window.innerWidth;
+  if(window.innerWidth<=400)return 2;
+  loadSettings();
+  if(wlSettings.wl_grid_cols&&wlSettings.wl_grid_cols!=='auto'){
+    return parseInt(wlSettings.wl_grid_cols,10)||4;
+  }
+  var minCard=compactOn?120:160;
+  var gap=compactOn?10:18;
+  var cols=Math.max(1,Math.floor((containerW+gap)/(minCard+gap)));
+  return cols;
+}
+function _initVisibleRows(){
+  var cols=_estimateGridCols();
+  var rows=compactOn?11:8;
+  return cols*rows;
+}
 /* Sidebar mobile (drawer) */
 function toggleSidebar(force){
   var sb=document.querySelector('.sidebar'),bk=document.getElementById('sbBackdrop');
@@ -1070,14 +1089,15 @@ function secHtml(label,items){
   blocks.sort(function(a,b){return b.at-a.at;});
   var secId='s'+Math.random().toString(36).slice(2,8);
   var gridClass='grid'+(compactOn?' cpt':'');
+  var initVisible=_initVisibleRows();
   var h='<div class="sec" id="'+secId+'"><div class="sec-hd"><div class="sec-title">'+label+'</div></div><div class="'+gridClass+'">';
   blocks.forEach(function(b,i){
-    var more=i>=INIT_VISIBLE?'data-more="1"':'';
+    var more=i>=initVisible?'data-more="1"':'';
     if(b.type==='folder')h+=folderCardHtml(b.cid,b.items,more);
     else h+=cardHtml(b.item,i,more);
   });
   h+='</div>';
-  var rem=blocks.length-INIT_VISIBLE;
+  var rem=blocks.length-initVisible;
   if(rem>0)h+='<div class="load-more-wrap"><button class="load-more-btn" onclick="loadMoreSec(\''+secId+'\',this)">Charger plus \xb7 '+rem+' autre'+(rem>1?'s':'')+'</button><span class="load-more-count">'+blocks.length+' au total</span></div>';
   return h+'</div>';
 }
@@ -1454,6 +1474,10 @@ document.getElementById('addMbk').addEventListener('click',function(e){if(e.targ
 /* SAVE/DELETE */
 function saveEntry(){
   if(!selTmdb){sfx('err');toast('Selectionne un titre','err');return;}
+  if(!editId){
+    var dup=memDB.find(function(i){return i.tmdbId==selTmdb.tmdbId;});
+    if(dup){sfx('err');toast('"'+selTmdb.title+'" est deja dans ta liste','err');return;}
+  }
   var type=document.getElementById('ftype').value,status=document.getElementById('fstat').value;
   var sai=parseInt(document.getElementById('fsai').value)||1,epi=parseInt(document.getElementById('fepi').value)||1,totep=parseInt(document.getElementById('ftotep').value)||0;
   var ag=type=='anime'?document.getElementById('fanimegenre').value:'';
@@ -1908,7 +1932,7 @@ function recoAddDirect(d){
 var autoRAF2=0,autoSeq2=0;
 function easeInOutCubic(t){return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
 function stopAutoScroll(){autoSeq2++;if(autoRAF2)cancelAnimationFrame(autoRAF2);autoRAF2=0;if(autoTimer){clearTimeout(autoTimer);autoTimer=null;}}
-function _animScrollTo(el,to,dur){return new Promise(function(resolve){var seq=autoSeq2,from=el.scrollTop,start=performance.now();var max=Math.max(0,el.scrollHeight-el.clientHeight);to=Math.max(0,Math.min(to,max));function frame(now){if(seq!==autoSeq2)return resolve(false);if(autoPaused){autoRAF2=requestAnimationFrame(frame);return;}var p=Math.min(1,(now-start)/dur);el.scrollTop=from+(to-from)*easeInOutCubic(p);if(p<1){autoRAF2=requestAnimationFrame(frame);}else{el.scrollTop=to;autoRAF2=0;resolve(true);}}autoRAF2=requestAnimationFrame(frame);});}
+function _animScrollTo(el,to,dur){return new Promise(function(resolve){var seq=autoSeq2,from=el.scrollTop,start=performance.now();var max=Math.max(0,el.scrollHeight-el.clientHeight);to=Math.max(0,Math.min(to,max));var wasPaused=false;function frame(now){if(seq!==autoSeq2)return resolve(false);if(autoPaused){wasPaused=true;autoRAF2=requestAnimationFrame(frame);return;}if(wasPaused){/* recale : on repart avec la position actuelle comme nouveau point de départ */from=el.scrollTop;start=now;wasPaused=false;}var p=Math.min(1,(now-start)/dur);el.scrollTop=from+(to-from)*easeInOutCubic(p);if(p<1){autoRAF2=requestAnimationFrame(frame);}else{el.scrollTop=to;autoRAF2=0;resolve(true);}}autoRAF2=requestAnimationFrame(frame);});}
 
 /* Session 11B : cibles de scroll alignées sur chaque carte de reco (jamais de carte coupée) */
 function getRecoSnapTargets(wrap){
@@ -1990,7 +2014,14 @@ function checkAllAir(){
   following.forEach(function(item){checkAir(item);});
   setTimeout(function(){
     var newEps=memDB.filter(function(i){return i.hasNewEp});
-    if(newEps.length){var ab=document.getElementById('alertWrap');document.getElementById('alertText').innerHTML='<b>'+newEps.length+' nouvel episode'+(newEps.length>1?'s':'')+' disponible'+(newEps.length>1?'s':'')+'</b> : '+esc(newEps.slice(0,3).map(function(i){return i.title}).join(', '));ab.classList.add('on');sfx('toast');render();}
+    if(newEps.length){
+      var ab=document.getElementById('alertWrap');
+      var namesHtml=newEps.slice(0,3).map(function(i){
+        return '<span class="alert-link" onclick="openPlex(\''+i.id+'\')" style="cursor:pointer;text-decoration:underline">'+esc(i.title)+'</span>';
+      }).join(', ');
+      document.getElementById('alertText').innerHTML='<b>'+newEps.length+' nouvel episode'+(newEps.length>1?'s':'')+' disponible'+(newEps.length>1?'s':'')+'</b> : '+namesHtml;
+      ab.classList.add('on');sfx('toast');render();
+    }
     renderSuivi();
   },3000);
 }
@@ -2124,7 +2155,7 @@ function renderSuivi(){
       provHtml='<div class="suivi-providers">'+item.streamingProviders.map(function(p){return p.logo?'<img class="suivi-provider-logo" src="'+p.logo+'" title="'+esc(p.name)+'" alt="'+esc(p.name)+'">':'';}).join('')+'</div>';
     }
     var tomorrowBadge=st.tomorrow?'<span class="suivi-badge tomorrow">&#9200; Demain !</span>':'';
-    return '<div class="suivi-item" data-id="'+item.id+'">'+poster+
+    return '<div class="suivi-item" data-id="'+item.id+'" onclick="sfx(\'click\');openPlex(\''+item.id+'\')" style="cursor:pointer">'+poster+
       '<div class="suivi-info"><span class="suivi-title">'+esc(item.title)+'</span>'+
       '<span class="suivi-badge '+st.cls+'">'+st.text+'</span>'+tomorrowBadge+provHtml+'</div>'+
       '<button class="suivi-reminder-toggle" data-active="'+(item.reminderEnabled?'true':'false')+'" onclick="event.stopPropagation();toggleReminder(\''+item.id+'\')" title="Rappel">&#128276;</button>'+
@@ -2297,6 +2328,7 @@ function submitAuth(){
       after();
       if(res.error){showAuthMsg(res.error.message);return;}
       toast('Connecte','ok');
+      refreshAuthModalView();
     }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
   }
 }
