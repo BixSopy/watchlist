@@ -1691,6 +1691,7 @@ function applySettings(){
 
 
 
+var seenRecos=[];/* IDs vus dans la sidebar cette session — reset à l'actualisation */
 function loadRecos(){
   var sb=document.getElementById('sbContent');sb.innerHTML=skeletonHTML();
   stopAutoScroll();var inList=memDB.map(function(i){return i.tmdbId});
