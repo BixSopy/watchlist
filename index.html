@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Watchlist Pierre</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -534,25 +533,6 @@ body.suivi-providers-off .suivi-providers{display:none}
 @keyframes newepPulse{0%,100%{box-shadow:0 0 0 0 rgba(92,200,255,.55),0 0 0 0 rgba(92,200,255,.25)}50%{box-shadow:0 0 0 4px rgba(92,200,255,.2),0 0 0 8px rgba(92,200,255,0)}}
 @keyframes skeletonPulse{0%,100%{opacity:.6}50%{opacity:.9}}
 
-/* Export/Import buttons */
-.hdr-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 11px;
-  background: var(--bg4);
-  border: 1px solid var(--border2);
-  border-radius: 7px;
-  color: var(--text2);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background var(--tr), color var(--tr);
-}
-.hdr-btn:hover {
-  background: var(--bg5);
-  color: var(--text);
-}
-
 /* ============ RESPONSIVE — 320px → 1920px ============ */
 .sb-toggle{display:none}
 .sb-backdrop{display:none;position:fixed;inset:0;top:62px;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:940;animation:fadeIn .2s ease}
@@ -564,7 +544,6 @@ body.suivi-providers-off .suivi-providers{display:none}
 }
 @media (max-width:980px){
   .hstats{display:none}
-  .hdr-btn{display:none}
 }
 @media (max-width:768px){
   .hdr{padding:0 14px;gap:10px}
@@ -647,8 +626,6 @@ body.suivi-providers-off .suivi-providers{display:none}
       <button class="opt-btn" onclick="openSettingsView()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Réglages</button>
       <div class="opt-sep"></div>
       <button class="opt-btn" onclick="exportJSON();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exporter JSON</button>
-      <button class="opt-btn" onclick="triggerImport();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importer JSON</button>
-      <button class="opt-btn" onclick="triggerImportCSV();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Importer CSV</button>
       <button class="opt-btn" onclick="detectCollections();toggleMenu()" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Détecter les sagas</button>
       <div class="opt-sep"></div>
       <button class="opt-btn" onclick="openAuthModal();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Compte &amp; synchronisation</button>
@@ -662,23 +639,9 @@ body.suivi-providers-off .suivi-providers{display:none}
       <div class="settings-foot">Les réglages sont enregistrés automatiquement sur cet appareil.</div>
     </div>
   </div>
-  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
-  <input type="file" id="importCSVFile" accept=".csv,.xlsx" style="display:none" onchange="importCSV()">
   <button class="hbtn" id="cptBtn" onclick="toggleCompact()" title="Compact (C)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
   <button class="hbtn on" id="sndBtn" onclick="toggleSound()" title="Son (M)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
 
-<!-- Bouton Export JSON -->
-<button id="exportBtn" class="hdr-btn" title="Exporter la watchlist en JSON" onmouseenter="sfx('hover')" onclick="sfx('click')">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-  Export
-</button>
-
-<!-- Input file caché + Bouton Import JSON -->
-<input type="file" id="importFile" accept=".json" style="display:none" aria-hidden="true">
-<button id="importBtn" class="hdr-btn" title="Importer une watchlist JSON" onmouseenter="sfx('hover')" onclick="sfx('click')">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10" transform="rotate(180 12 12)"/><line x1="12" y1="9" x2="12" y2="21"/></svg>
-  Import
-</button>
 </header>
 <div class="layout">
   <div class="sb-backdrop" id="sbBackdrop" onclick="toggleSidebar(false)"></div>
@@ -770,7 +733,7 @@ body.suivi-providers-off .suivi-providers{display:none}
       <div class="field"><label>Note TMDB</label><input type="text" id="ftmdb" placeholder="--" readonly style="color:var(--accent);background:var(--bg4)"></div>
       <div class="field"><label>Annee</label><input type="text" id="fyear" placeholder="--" readonly style="background:var(--bg4)"></div>
     </div>
-    <div class="field"><label>Tags</label><div class="tags-wrap" id="tagsWrap"><input type="text" class="tag-inp" id="tagInput" placeholder="+ tag"></div></div>
+    <div class="field"><label>Tags</label><div class="tags-wrap" id="tagsWrap"></div></div>
     <div class="field field-saga"><label>Saga / Collection <span style="color:var(--text3);font-weight:400;font-size:11px">(optionnel)</span></label><input type="text" id="fsaga" placeholder="ex: Star Wars, Harry Potter..." autocomplete="off" list="sagaSuggest"><datalist id="sagaSuggest"></datalist></div>
     <div class="mact">
       <button class="btn btn-ghost" onclick="sfx('close');closeAdd()">Annuler</button>
@@ -960,8 +923,13 @@ function tbadge(t){var c={film:'bf',serie:'bs',anime:'ba'}[t]||'bf';var l={film:
 function sbadge(s){var c={avoir:'bav',encours:'bec',termine:'bte',todo:'btd'}[s]||'bav';var l={avoir:'A voir',encours:'En cours',termine:'Terminé',todo:'À qualifier'}[s]||s;return '<span class="badge '+c+'">'+l+'</span>';}
 function starsvg(f){if(f)return '<svg viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="currentColor"/></svg>';return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>';}
 
-/* CACHE FETCH */
-function tf(url){if(cache[url])return Promise.resolve(cache[url]);return fetch(url).then(function(r){return r.json()}).then(function(d){cache[url]=d;return d;});}
+/* CACHE FETCH — TTL 24h pour que le throttle Suivi (lastEpisodeCheck) redevienne effectif en session longue */
+var TF_CACHE_TTL=86400000;
+function tf(url){
+  var c=cache[url];
+  if(c&&(Date.now()-c.t)<TF_CACHE_TTL)return Promise.resolve(c.d);
+  return fetch(url).then(function(r){return r.json()}).then(function(d){cache[url]={d:d,t:Date.now()};return d;});
+}
 
 /* ANIME GENRE DETECT */
 var KW_SHONEN=['shonen','shounen','superpower','martial arts','ninja','pirate','demon slayer','dragon ball'];
@@ -1197,7 +1165,7 @@ var _drCache={};/* cache rows fetched, tab:id → items[] */
 
 function _drNormItem(x,mtype){
   var isM=(mtype==='movie')||(x.media_type==='movie');
-  return{tmdbId:x.id,type:isM?'movie':'tv',title:isM?x.title:x.name,year:(isM?(x.release_date||''):(x.first_air_date||'')).slice(0,4),poster:x.poster_path||null,score:x.vote_average?x.vote_average.toFixed(1):null,overview:x.overview||''};
+  return{tmdbId:x.id,type:isM?'movie':'tv',title:isM?x.title:x.name,year:(isM?(x.release_date||''):(x.first_air_date||'')).slice(0,4),poster:x.poster_path||null,score:x.vote_average?x.vote_average.toFixed(1):null,overview:x.overview||'',genreIds:x.genre_ids||[]};
 }
 function _drFetchBecause(filter){
   var pool=memDB.slice();
@@ -1222,6 +1190,7 @@ function _drFetchBecause(filter){
         items.push(_drNormItem(x,t));
       });
     });
+    items=_sortByProfile(items,computeTasteProfile());
     return{title:best.title,items:items.slice(0,30)};
   }).catch(function(){return{title:'',items:[]};});
 }
@@ -1259,7 +1228,7 @@ function _drFetchRow(cfg){
     }
     return next();
   }).then(function(){
-    return{title:null,items:out.slice(0,TARGET)};
+    return{title:null,items:_sortByProfile(out,computeTasteProfile()).slice(0,TARGET)};
   });
 }
 function _drCardHtml(d){
@@ -1497,10 +1466,10 @@ function saveEntry(){
     supaId:ex?ex.supaId:null,deleted:false,updatedAtLocal:Date.now(),needsSync:true,
     reminderEnabled:ex?ex.reminderEnabled:false,nextAirDate:ex?ex.nextAirDate:null,
     lastEpisodeCheck:ex?ex.lastEpisodeCheck:null,tvmazeId:ex?ex.tvmazeId:null,
-    streamingProviders:ex?ex.streamingProviders:null};
+    streamingProviders:ex?ex.streamingProviders:null,genreIds:ex?ex.genreIds:null};
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}
-  dbPut(entry,function(){render();loadRecos();if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast((editId?'Modifie':'Ajoute')+' : '+entry.title);closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);});
+  dbPut(entry,function(){render();loadRecos();if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast((editId?'Modifie':'Ajoute')+' : '+entry.title);closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
 }
 function delEntry(id){
   if(!confirm('Supprimer ?'))return;
@@ -1662,6 +1631,62 @@ function nextEpPlex(){
 function closePlex(){document.getElementById('plexMbk').classList.remove('on');plexData=null;}
 document.getElementById('plexMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closePlex();}});
 
+/* ===== SESSION 11 : PROFIL DE GOÛT LOCAL (scoring recommandations) =====
+   Le profil est recalculé à la volée depuis memDB (pas de store IndexedDB dédié :
+   toutes les données sources — myRating, status, type, genreIds — sont déjà dans
+   les entries, donc un recalcul est aussi fiable qu'un cache et évite une migration
+   de schéma IndexedDB. genreIds est un champ 100% local (jamais envoyé à Supabase,
+   même logique que streamingProviders/tvmazeId du module Suivi), rempli en tâche de
+   fond uniquement pour les titres notés (myRating), un par un et espacé pour ne pas
+   déclencher de rate-limit TMDB. */
+var _profileBuildRunning=false;
+function buildTasteProfileCache(){
+  if(_profileBuildRunning)return;
+  var pending=memDB.filter(function(i){return i.myRating&&i.tmdbId&&!i.deleted&&(i.genreIds===undefined||i.genreIds===null);});
+  if(!pending.length)return;
+  _profileBuildRunning=true;
+  function next(idx){
+    if(idx>=pending.length){_profileBuildRunning=false;return;}
+    var item=pending[idx];
+    var kind=item.tmdbType||(item.type==='film'?'movie':'tv');
+    tf(TB+'/'+kind+'/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(d){
+      item.genreIds=(d.genres||[]).map(function(g){return g.id;});
+    }).catch(function(){item.genreIds=[];}).finally(function(){persistSuiviItem(item);setTimeout(function(){next(idx+1);},150);});
+  }
+  next(0);
+}
+/* Poids par statut (termine compte plus qu'avoir) x boost/malus selon la note perso (1-10, 5.5=neutre) */
+function computeTasteProfile(){
+  var STATUS_W={termine:1,encours:0.6,avoir:0.25,todo:0.1};
+  var genreW={},typeW={film:0,serie:0,anime:0};
+  memDB.forEach(function(i){
+    if(i.deleted)return;
+    var sw=STATUS_W[i.status]||0.1;
+    var rb=i.myRating?((i.myRating-5.5)/4.5):0;
+    var w=sw*(1+rb);
+    typeW[i.type]=(typeW[i.type]||0)+w;
+    (i.genreIds||[]).forEach(function(g){genreW[g]=(genreW[g]||0)+w;});
+  });
+  return{genreW:genreW,typeW:typeW};
+}
+function _isAnimeGenreIds(gids){return(gids||[]).indexOf(16)>-1;}
+/* Accepte aussi bien un objet TMDB brut (media_type/genre_ids) qu'un objet normalisé (type/genreIds) */
+function scoreCandidate(d,profile){
+  var mtype=d.type||d.media_type;
+  var gids=d.genreIds||d.genre_ids||[];
+  var appType=mtype==='movie'?'film':(_isAnimeGenreIds(gids)?'anime':'serie');
+  var typeScore=profile.typeW[appType]||0;
+  var genreScore=0;
+  gids.forEach(function(g){genreScore+=profile.genreW[g]||0;});
+  return typeScore*0.4+genreScore;
+}
+/* Tri stable décroissant par score de personnalisation (tie-break sur l'ordre d'origine) */
+function _sortByProfile(arr,profile){
+  return arr.map(function(d,i){return{d:d,s:scoreCandidate(d,profile),i:i};})
+    .sort(function(a,b){return b.s-a.s||a.i-b.i;})
+    .map(function(x){return x.d;});
+}
+
 /* RECOS */
 function skeletonHTML(){
   var html='<div class="sb-loading">';
@@ -1735,9 +1760,11 @@ function loadRecos(){
     ]).then(function(res){return{type:'discover',data:res}}).catch(function(){return{type:'discover',data:null}})
   ]).then(function(res){
     var tHtml='',bHtml='',dJson={films:[],series:[],anime:[]};
+    var profile=computeTasteProfile();
     res.forEach(function(r){
       if(r.type=='trending'&&r.data){
-        var items=(r.data.results||[]).filter(function(x){return(x.media_type=='movie'||x.media_type=='tv')&&notExcl(x)}).slice(0,6);
+        var items=(r.data.results||[]).filter(function(x){return(x.media_type=='movie'||x.media_type=='tv')&&notExcl(x)});
+        items=_sortByProfile(items,profile).slice(0,6);
         items.forEach(function(x){seenRecos.push(x.id);});
         var html='<div class="sb-section"><div class="sb-sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Tendances</div>';
         items.forEach(function(x){html+=recoCardHtml(x.media_type=='movie'?{tmdbId:x.id,type:'movie',title:x.title,year:(x.release_date||'').slice(0,4),poster:x.poster_path,score:x.vote_average?x.vote_average.toFixed(1):'',overview:x.overview}:{tmdbId:x.id,type:'tv',title:x.name,year:(x.first_air_date||'').slice(0,4),poster:x.poster_path,score:x.vote_average?x.vote_average.toFixed(1):'',overview:x.overview});});
@@ -1745,13 +1772,14 @@ function loadRecos(){
       }
       else if(r.type=='because'&&r.data){
         var best=r.data.best;var d=r.data.results;
-        var items2=(d.results||[]).filter(function(x){return notExcl(x)}).slice(0,5);
+        var items2=(d.results||[]).filter(function(x){return notExcl(x)});
+        items2=_sortByProfile(items2,profile).slice(0,5);
         items2.forEach(function(x){seenRecos.push(x.id);});
         if(items2.length){var html2='<div class="sb-section"><div class="sb-sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg> Car tu as aimé '+esc(best.title.slice(0,18))+'</div>';items2.forEach(function(x){var isM=!x.name;html2+=recoCardHtml({tmdbId:x.id,type:isM?'movie':'tv',title:isM?x.title:x.name,year:isM?(x.release_date||'').slice(0,4):(x.first_air_date||'').slice(0,4),poster:x.poster_path,score:x.vote_average?x.vote_average.toFixed(1):'',overview:x.overview});});html2+='</div>';bHtml=html2;}
       }
       else if(r.type=='discover'&&r.data){
         var res2=r.data;
-        function pick(data,n){return(data.results||[]).filter(function(x){return notExcl(x)}).slice(0,n);}
+        function pick(data,n){return _sortByProfile((data.results||[]).filter(function(x){return notExcl(x)}),profile).slice(0,n);}
         function toR(x,type){var isM=type=='movie';return{tmdbId:x.id,type:type,title:isM?x.title:x.name,year:isM?(x.release_date||'').slice(0,4):(x.first_air_date||'').slice(0,4),poster:x.poster_path,score:x.vote_average?x.vote_average.toFixed(1):'',overview:x.overview};}
         /* Mélanger pop + top_rated pour films */
         var filmsPop=pick(res2[0],4),filmsTop=pick(res2[1],3);
@@ -1900,6 +1928,7 @@ function detectCollections(){
         var cname=d.belongs_to_collection.name.replace(/\s*collection$/i,'').replace(/\s*saga$/i,'').trim();
         var cid=_slugify(cname);
         item.collectionId=cid;item.collectionName=cname;item.tmdbCollectionId=d.belongs_to_collection.id;
+        item.updatedAtLocal=Date.now();item.needsSync=true;
         for(var k=0;k<memDB.length;k++){if(memDB[k].id===item.id){memDB[k]=item;break;}}
         dbPut(item,null);updated++;
       }
@@ -2386,12 +2415,17 @@ function onAuthResolved(user){
 }
 
 /* --- Sync pull/push --- */
+/* Reporte les champs 100% locaux (jamais envoyés à Supabase) sur l'objet qui va remplacer
+   memDB[j] lors d'une résolution de conflit — sinon ils seraient silencieusement perdus
+   puisque supabaseToLocal() reconstruit un objet neuf sans eux (cf. Session 9 : Suivi,
+   Session 11 : genreIds du profil de goût). */
 function preserveSuiviFields(local,remote){
   remote.reminderEnabled=local.reminderEnabled;
   remote.nextAirDate=local.nextAirDate;
   remote.lastEpisodeCheck=local.lastEpisodeCheck;
   remote.tvmazeId=local.tvmazeId;
   remote.streamingProviders=local.streamingProviders;
+  remote.genreIds=local.genreIds;
   return remote;
 }
 function syncPull(){
@@ -2428,11 +2462,15 @@ function syncPush(){
   var chain=Promise.resolve();
   toPush.forEach(function(item){
     chain=chain.then(function(){
+      var sentAt=item.updatedAtLocal;
       var payload=localToSupabase(item,authProfileId);
       return supa.from('watchlist_items').upsert(payload,{onConflict:'local_id'}).select().then(function(res){
         if(res.error){console.error('[sync push]',res.error);return;}
         if(res.data&&res.data[0]){
-          item.supaId=res.data[0].id;item.needsSync=false;
+          item.supaId=res.data[0].id;
+          /* Ne marque "synchronisé" que si rien n'a modifié l'item depuis l'envoi du payload —
+             sinon on écraserait le besoin de push d'une modification plus récente (course avec le polling 30s). */
+          if(item.updatedAtLocal===sentAt)item.needsSync=false;
           dbPut(item,function(){});
         }
       }).catch(function(e){console.error('[sync push]',e);});
@@ -2633,111 +2671,6 @@ function exportJSON(){
   toast('Export OK — '+memDB.length+' titres');
 }
 
-/* CSV IMPORT */
-function triggerImportCSV(){
-  document.getElementById('importCSVFile').value='';
-  document.getElementById('importCSVFile').click();
-}
-function importCSV(){
-  var input=document.getElementById('importCSVFile');
-  var file=input.files[0];
-  if(!file){toast('Aucun fichier selectione','err');return;}
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var text=e.target.result;
-    var delimiter=text.indexOf('\t')>-1?'\t':',';
-    Papa.parse(text, {complete:function(results){processCSVRows(results.data);},header:true,delimiter:delimiter,skipEmptyLines:true});
-  };
-  reader.onerror=function(){sfx('err');toast('Erreur lecture fichier','err');};
-  reader.readAsText(file);
-}
-function processCSVRows(rows){
-  if(!rows.length){toast('Fichier vide','err');return;}
-  var valid=rows.filter(function(r){return r.title&&r.type});
-  if(!valid.length){toast('Aucune ligne valide (besoin: title, type)','err');return;}
-  if(!confirm('Importer '+valid.length+' titre(s) ? TMDB search sera lancee pour chaque.')){return;}
-  sfx('add');
-  var added=0,failed=0;
-  function processNext(idx){
-    if(idx>=valid.length){
-      toast('Import OK — '+added+' ajoutes, '+failed+' erreurs');
-      render();loadRecos();return;
-    }
-    var row=valid[idx];
-    var query=row.title+(row.year?' '+row.year:'');
-    // Recherche TMDB
-    tf(TB+'/search/'+(row.type=='film'?'movie':'tv')+'?api_key='+TKEY+'&query='+encodeURIComponent(query)+'&language=fr-FR').then(function(d){
-      var results=d.results||[];
-      if(!results.length){failed++;processNext(idx+1);return;}
-      var match=results[0];
-      var id=makeId();
-      var entry={
-        id:id,
-        tmdbId:match.id,
-        type:row.type=='film'?'film':'serie',
-        tmdbType:row.type=='film'?'movie':'tv',
-        title:row.title,
-        status:row.status||'avoir',
-        my_rating:row.my_rating?parseInt(row.my_rating):null,
-        poster:match.poster_path||null,
-        overview:match.overview||'',
-        tags:(row.tags||'').split('|').map(function(t){return t.trim()}).filter(Boolean),
-        saison:row.saison?parseInt(row.saison):null,
-        episode:row.episode?parseInt(row.episode):null,
-        tmdb_score:match.vote_average||null,
-        added_at:Date.now(),
-        updated_at:Date.now(),
-        device_id:getDeviceId()
-      };
-      memDB.unshift(entry);
-      dbPut(entry,null);
-      added++;
-      setTimeout(function(){processNext(idx+1);},100); // Throttle API calls
-    }).catch(function(){failed++;processNext(idx+1);});
-  }
-  processNext(0);
-}
-
-/* JSON IMPORT */
-function triggerImport(){
-  document.getElementById('importFile').value='';
-  document.getElementById('importFile').click();
-}
-function importJSON(input){
-  var file=input.files[0];if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var data;
-    try{data=JSON.parse(e.target.result);}
-    catch(err){sfx('err');toast('Fichier JSON invalide','err');return;}
-    /* Accepte : tableau direct, ou objet {entries:[...]} */
-    var entries=Array.isArray(data)?data:(data.entries||[]);
-    if(!entries.length){toast('Aucune entrée trouvée dans le fichier','err');return;}
-    /* Validation minimale */
-    var validTypes=['film','serie','anime'];
-    var valid=entries.filter(function(i){
-      return i&&i.id&&i.title&&i.type&&validTypes.indexOf(i.type)>-1;
-    }).map(function(i){
-      if(!i.status)i.status='avoir';
-      return i;
-    });
-    if(!valid.length){sfx('err');toast('Format non reconnu — aucune entrée valide','err');return;}
-    if(!confirm('Importer '+valid.length+' titre(s) ? Les entrees existantes avec le meme ID seront mises a jour. Les nouvelles seront ajoutees.')){return;}
-    var added=0,updated=0;
-    valid.forEach(function(entry){
-      var ex=memDB.find(function(i){return i.id===entry.id});
-      if(ex){memDB[memDB.indexOf(ex)]=entry;updated++;}
-      else{memDB.unshift(entry);added++;}
-      dbPut(entry,null);
-    });
-    sfx('add');
-    render();
-    loadRecos();
-    toast('Import OK — '+added+' ajoutés, '+updated+' mis à jour');
-  };
-  reader.onerror=function(){sfx('err');toast('Erreur lecture fichier','err');};
-  reader.readAsText(file);
-}
 
 /* KEYBOARD */
 document.addEventListener('keydown',function(e){
@@ -2765,7 +2698,7 @@ loadSettings();applySettings();
 if(!soundOn)toggleSound();
 if(compactOn){document.getElementById('cptBtn').classList.add('on');}
 document.addEventListener('click',function u(){getAC();document.removeEventListener('click',u);},{once:true});
-openDB(function(){render();loadRecos();loadDiscovery(activeTab);setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();});
+openDB(function(){render();loadRecos();loadDiscovery(activeTab);setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);});
 /* ResizeObserver : recalcul card size si fenêtre redimensionnée */
 if(typeof ResizeObserver!=='undefined'){
   var _drRO=new ResizeObserver(function(){_calcDrCardSize();});
@@ -2789,7 +2722,8 @@ function _normSR(r){
   var isM=r.media_type==='movie';
   return{key:r.media_type+'-'+r.id,tmdbId:r.id,tmdbType:r.media_type,type:_mediaAppType(r.media_type,r),
     title:(isM?r.title:r.name)||'Sans titre',year:(isM?(r.release_date||''):(r.first_air_date||'')).slice(0,4),
-    poster:r.poster_path||null,overview:r.overview||'',score:r.vote_average?r.vote_average.toFixed(1):null};
+    poster:r.poster_path||null,overview:r.overview||'',score:r.vote_average?r.vote_average.toFixed(1):null,
+    genreIds:r.genre_ids||[]};
 }
 function _inList(id){return !!memDB.find(function(i){return i.tmdbId==id;});}
 function _inDismissed(id){return dismissed.indexOf(id)>-1;}
@@ -2850,6 +2784,85 @@ function closeSearchModal(){
   }else{setTimeout(function(){searchState.ignoreFocus=false;},120);}
 }
 
+/* ===== SESSION 11 : REQUÊTES STRUCTURÉES (langage naturel simplifié) =====
+   Exemple : "Action 2020 ★4+" → genre=Action, année≥2020, note TMDB≥4, puis résultats
+   classés par le profil de goût (section scoring ci-dessus). Reste 100% côté client :
+   aucune modif de _runSearch()/_renderSR() qui consomment _searchTMDB() sans savoir
+   d'où viennent les résultats — si aucun mot-clé structuré n'est reconnu, on retombe
+   sur la recherche TMDB standard (search/multi), donc une recherche texte classique
+   ("Inception") n'est jamais affectée. */
+var GENRE_MAP={
+  action:{movie:28,tv:10759},aventure:{movie:12,tv:10759},animation:{movie:16,tv:16},
+  comedie:{movie:35,tv:35},crime:{movie:80,tv:80},policier:{movie:80,tv:80},
+  documentaire:{movie:99,tv:99},drame:{movie:18,tv:18},famille:{movie:10751,tv:10751},
+  familial:{movie:10751,tv:10751},fantastique:{movie:14,tv:10765},histoire:{movie:36,tv:null},
+  horreur:{movie:27,tv:null},musique:{movie:10402,tv:null},musical:{movie:10402,tv:null},
+  mystere:{movie:9648,tv:9648},romance:{movie:10749,tv:null},scifi:{movie:878,tv:10765},
+  sciencefiction:{movie:878,tv:10765},sf:{movie:878,tv:10765},thriller:{movie:53,tv:null},
+  guerre:{movie:10752,tv:10768},western:{movie:37,tv:37},kids:{movie:null,tv:10762},
+  enfant:{movie:null,tv:10762}
+};
+function _normTok(s){return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9+>]/g,'');}
+/* Retourne null si rien de structuré n'est reconnu (→ fallback recherche classique) */
+function _parseStructuredQuery(q){
+  var tokens=(q||'').trim().split(/\s+/).filter(Boolean);
+  if(!tokens.length)return null;
+  var genreIds={movie:[],tv:[]},year=null,minScore=null,forcedType=null,forceAnime=false,textParts=[],matchedSomething=false;
+  tokens.forEach(function(raw){
+    var t=_normTok(raw);
+    if(!t){textParts.push(raw);return;}
+    if(/^(19|20)\d{2}$/.test(t)){year=t;matchedSomething=true;return;}
+    var rm=t.match(/^(?:note)?([1-9])\+$/)||t.match(/^>([1-9])$/);
+    if(rm){minScore=parseInt(rm[1],10);matchedSomething=true;return;}
+    if(t==='film'||t==='films'){forcedType='movie';matchedSomething=true;return;}
+    if(t==='serie'||t==='series'||t==='tv'){forcedType='tv';matchedSomething=true;return;}
+    if(t==='anime'){forceAnime=true;forcedType='tv';matchedSomething=true;return;}
+    if(GENRE_MAP[t]){
+      var g=GENRE_MAP[t];
+      if(g.movie)genreIds.movie.push(g.movie);
+      if(g.tv)genreIds.tv.push(g.tv);
+      matchedSomething=true;return;
+    }
+    textParts.push(raw);
+  });
+  if(!matchedSomething)return null;
+  if(forceAnime&&genreIds.tv.indexOf(16)<0)genreIds.tv.unshift(16);
+  var mtypes;
+  if(forcedType){mtypes=[forcedType];}
+  else{
+    var hasGenreAsked=genreIds.movie.length>0||genreIds.tv.length>0;
+    if(!hasGenreAsked)mtypes=['movie','tv'];
+    else{mtypes=[];if(genreIds.movie.length>0)mtypes.push('movie');if(genreIds.tv.length>0)mtypes.push('tv');}
+  }
+  return{genreIds:genreIds,year:year,minScore:minScore,mtypes:mtypes,textQuery:textParts.join(' ').trim()};
+}
+/* Discover TMDB filtré à partir d'une requête structurée, résultats classés par profil de goût */
+function _discoverStructured(parsed,page){
+  var calls=[];
+  parsed.mtypes.forEach(function(mt){
+    var gids=parsed.genreIds[mt]||[];
+    var params='?api_key='+TKEY+'&language=fr-FR&page='+page+'&sort_by=popularity.desc';
+    if(gids.length)params+='&with_genres='+gids.join(',');
+    if(parsed.year)params+=(mt==='movie'?'&primary_release_date.gte=':'&first_air_date.gte=')+parsed.year+'-01-01';
+    if(parsed.minScore)params+='&vote_average.gte='+parsed.minScore;
+    if(parsed.textQuery)params+='&with_text_query='+encodeURIComponent(parsed.textQuery);
+    var ep=mt==='movie'?'/discover/movie':'/discover/tv';
+    calls.push(tf(TB+ep+params).then(function(d){return{mt:mt,data:d};}).catch(function(){return{mt:mt,data:null};}));
+  });
+  return Promise.all(calls).then(function(res){
+    var merged=[],totalPages=1,totalResults=0;
+    res.forEach(function(r){
+      if(!r.data)return;
+      totalPages=Math.max(totalPages,Math.min(r.data.total_pages||1,50));
+      totalResults+=r.data.total_results||0;
+      (r.data.results||[]).filter(function(x){return(x.title||x.name)&&!_inDismissed(x.id);}).forEach(function(x){
+        merged.push(_normSR(Object.assign({},x,{media_type:r.mt})));
+      });
+    });
+    merged=_sortByProfile(merged,computeTasteProfile()).slice(0,20);
+    return{results:merged,page:page,total_pages:totalPages,total_results:totalResults||merged.length};
+  });
+}
 function _searchTMDB(q,page){
   q=(q||'').trim();page=page||1;
   if(q.length<2)return Promise.resolve({results:[],page:1,total_pages:1,total_results:0});
@@ -2859,6 +2872,12 @@ function _searchTMDB(q,page){
   var typeFilter=sfType?sfType.value:'';
   var sortFilter=sfSort?sfSort.value:'';
   var yearFilter=sfYear?sfYear.value:'';
+  /* Requête structurée ("Action 2020 ★4+") : uniquement si aucun filtre manuel n'est déjà
+     actif, pour ne jamais entrer en conflit avec les sélecteurs existants du modal. */
+  if(!typeFilter&&!sortFilter&&!yearFilter){
+    var parsed=_parseStructuredQuery(q);
+    if(parsed)return _discoverStructured(parsed,page);
+  }
   /* Si filtres actifs, utiliser discover au lieu de search/multi */
   if(typeFilter&&sortFilter){
     var ep=typeFilter==='movie'?'/discover/movie':'/discover/tv';
@@ -2967,21 +2986,6 @@ function bindSearchModalEvents(){
   });
 }
 
-// ===== AUTO-SAVE LOCALSTORAGE (30s) =====
-// Sauvegarde de secours des préférences user toutes les 30s
-// (IndexedDB gère la watchlist principale — localStorage gère prefs/dismissed)
-setInterval(function() {
-  try {
-    localStorage.setItem('wl_dis', JSON.stringify(dismissed));
-    localStorage.setItem('wl_snd', soundOn ? '1' : '0');
-    localStorage.setItem('wl_cpt', compactOn ? '1' : '0');
-    var ts = new Date().toLocaleTimeString();
-    console.log('[' + ts + '] Prefs sauvegardées');
-  } catch(e) {
-    console.warn('Auto-save failed:', e);
-  }
-}, 30000);
-
 // ===== DÉTECTION OFFLINE / ONLINE =====
 window.addEventListener('online', function() {
   console.log('[' + new Date().toLocaleTimeString() + '] ✓ App en ligne');
@@ -2992,73 +2996,6 @@ window.addEventListener('online', function() {
 window.addEventListener('offline', function() {
   console.warn('[' + new Date().toLocaleTimeString() + '] ⚠ App HORS LIGNE — TMDB inaccessible');
   if (authUser) updateSyncStatusUI('offline');
-});
-
-// ===== EXPORT WATCHLIST JSON =====
-document.getElementById('exportBtn') && document.getElementById('exportBtn').addEventListener('click', function() {
-  // Lit IndexedDB directement (store 'entries' — architecture existante)
-  if (!idb) { alert('Base non initialisée'); return; }
-  var req = idb.transaction('entries', 'readonly').objectStore('entries').getAll();
-  req.onsuccess = function() {
-    var items = req.result || [];
-    var data = {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      count: items.length,
-      items: items
-    };
-    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'watchlist-' + new Date().toISOString().slice(0, 10) + '.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    sfx('click');
-    console.log('[Export] ' + items.length + ' items exportés');
-  };
-});
-
-// ===== IMPORT WATCHLIST JSON =====
-document.getElementById('importBtn') && document.getElementById('importBtn').addEventListener('click', function() {
-  document.getElementById('importFile').click();
-});
-
-document.getElementById('importFile') && document.getElementById('importFile').addEventListener('change', function(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(evt) {
-    try {
-      var data = JSON.parse(evt.target.result);
-      if (!data.items || !Array.isArray(data.items)) {
-        alert('❌ Format invalide : propriété "items" manquante');
-        return;
-      }
-      // Merge via memDB + dbPut (architecture existante — pas de doublon par id)
-      var existingIds = new Set(memDB.map(function(x) { return x.id; }));
-      var added = 0, skipped = 0;
-      data.items.forEach(function(item) {
-        if (item && item.id && !existingIds.has(item.id)) {
-          memDB.push(item);
-          dbPut(item);
-          added++;
-        } else {
-          skipped++;
-        }
-      });
-      render();
-      updateStatsFooter();
-      sfx('click');
-      alert('✓ Import terminé : ' + added + ' ajoutés, ' + skipped + ' déjà présents');
-    } catch(err) {
-      alert('❌ Fichier JSON invalide : ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
 });
 
 // ===== STATS FOOTER =====
@@ -3080,7 +3017,7 @@ function updateStatsFooter() {
     <div class="search-modal-head">
       <div>
         <div class="mtitle" id="searchModalTitle">Catalogue TMDB</div>
-        <div class="search-modal-sub">Recherche parmi films, séries et anime</div>
+        <div class="search-modal-sub">Recherche parmi films, séries et anime · astuce : « Action 2020 ★4+ » filtre par genre / année / note</div>
       </div>
       <button class="hbtn" onclick="sfx('close');closeSearchModal()" aria-label="Fermer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
