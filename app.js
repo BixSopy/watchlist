@@ -180,7 +180,21 @@ var TF_CACHE_TTL=86400000;
 function tf(url){
   var c=cache[url];
   if(c&&(Date.now()-c.t)<TF_CACHE_TTL)return Promise.resolve(c.d);
-  return fetch(url).then(function(r){return r.json()}).then(function(d){cache[url]={d:d,t:Date.now()};return d;});
+  return fetch(url).then(function(r){
+    /* Une réponse d'erreur (401, 429, 5xx...) n'est jamais mise en cache */
+    if(!r.ok){var e=new Error('HTTP '+r.status);e.status=r.status;throw e;}
+    return r.json();
+  }).then(function(d){
+    if(!_isApiErrorBody(d))cache[url]={d:d,t:Date.now()};
+    return d;
+  });
+}
+/* Corps d'erreur renvoyés avec un statut 200 : TMDB (success:false), OMDb (quota/clé) */
+function _isApiErrorBody(d){
+  if(!d||typeof d!=='object')return true;
+  if(d.success===false)return true;
+  if(d.Response==='False'&&/limit|key/i.test(d.Error||''))return true;
+  return false;
 }
 
 /* ANIME GENRE DETECT */
@@ -1482,7 +1496,12 @@ function suiviStatusFor(item){
   if(isNaN(d.getTime()))return null;
   var diffDays=Math.round((d-today)/86400000);
   if(diffDays>7)return null;
-  if(diffDays<=0){
+  if(item.type=='film'){
+    /* Film déjà sorti : rien à signaler (avant, tout film « À voir » sorti depuis des années
+       apparaissait comme « Nouvel episode sorti ») */
+    if(diffDays<0)return null;
+    if(diffDays===0)return{cls:'new',text:'&#10003; Sortie aujourd\'hui',tomorrow:false};
+  }else if(diffDays<=0){
     return{cls:'new',text:'&#10003; Nouvel episode sorti',tomorrow:false};
   }
   var dd=pad(d.getDate()),mm=pad(d.getMonth()+1),yyyy=d.getFullYear();
@@ -2170,25 +2189,27 @@ function _normTok(s){return(s||'').toLowerCase().normalize('NFD').replace(/[̀-�
 function _parseStructuredQuery(q){
   var tokens=(q||'').trim().split(/\s+/).filter(Boolean);
   if(!tokens.length)return null;
-  var genreIds={movie:[],tv:[]},year=null,minScore=null,forcedType=null,forceAnime=false,textParts=[],matchedSomething=false;
+  var genreIds={movie:[],tv:[]},year=null,minScore=null,forcedType=null,forceAnime=false,textParts=[],matchedSomething=false,explicit=false;
   tokens.forEach(function(raw){
     var t=_normTok(raw);
     if(!t){textParts.push(raw);return;}
     if(/^(19|20)\d{2}$/.test(t)){year=t;matchedSomething=true;return;}
     var rm=t.match(/^(?:note)?([1-9])\+$/)||t.match(/^>([1-9])$/);
-    if(rm){minScore=parseInt(rm[1],10);matchedSomething=true;return;}
-    if(t==='film'||t==='films'){forcedType='movie';matchedSomething=true;return;}
-    if(t==='serie'||t==='series'||t==='tv'){forcedType='tv';matchedSomething=true;return;}
-    if(t==='anime'){forceAnime=true;forcedType='tv';matchedSomething=true;return;}
+    if(rm){minScore=parseInt(rm[1],10);matchedSomething=explicit=true;return;}
+    if(t==='film'||t==='films'){forcedType='movie';matchedSomething=explicit=true;return;}
+    if(t==='serie'||t==='series'||t==='tv'){forcedType='tv';matchedSomething=explicit=true;return;}
+    if(t==='anime'){forceAnime=true;forcedType='tv';matchedSomething=explicit=true;return;}
     if(GENRE_MAP[t]){
       var g=GENRE_MAP[t];
       if(g.movie)genreIds.movie.push(g.movie);
       if(g.tv)genreIds.tv.push(g.tv);
-      matchedSomething=true;return;
+      matchedSomething=explicit=true;return;
     }
     textParts.push(raw);
   });
-  if(!matchedSomething)return null;
+  /* TMDB /discover ne sait pas filtrer par texte : dès qu'il reste du texte libre
+     (« Blade Runner 2049 ») ou qu'il n'y a qu'une année (« 1917 »), recherche classique. */
+  if(!matchedSomething||!explicit||textParts.length)return null;
   if(forceAnime&&genreIds.tv.indexOf(16)<0)genreIds.tv.unshift(16);
   var mtypes;
   if(forcedType){mtypes=[forcedType];}
@@ -2208,7 +2229,6 @@ function _discoverStructured(parsed,page){
     if(gids.length)params+='&with_genres='+gids.join(',');
     if(parsed.year)params+=(mt==='movie'?'&primary_release_date.gte=':'&first_air_date.gte=')+parsed.year+'-01-01';
     if(parsed.minScore)params+='&vote_average.gte='+parsed.minScore;
-    if(parsed.textQuery)params+='&with_text_query='+encodeURIComponent(parsed.textQuery);
     var ep=mt==='movie'?'/discover/movie':'/discover/tv';
     calls.push(tf(TB+ep+params).then(function(d){return{mt:mt,data:d};}).catch(function(){return{mt:mt,data:null};}));
   });
@@ -2241,17 +2261,26 @@ function _searchTMDB(q,page){
     var parsed=_parseStructuredQuery(q);
     if(parsed)return _discoverStructured(parsed,page);
   }
-  /* Si filtres actifs, utiliser discover au lieu de search/multi */
+  /* Type + tri : recherche texte sur /search/{type} (TMDB /discover n'a pas de filtre texte),
+     filtre d'année et tri appliqués côté client sur la page de résultats */
   if(typeFilter&&sortFilter){
-    var ep=typeFilter==='movie'?'/discover/movie':'/discover/tv';
-    var params='?api_key='+TKEY+'&language=fr-FR&page='+page+'&sort_by='+sortFilter+'&with_text_query='+encodeURIComponent(q);
-    if(yearFilter&&typeFilter==='movie')params+='&primary_release_date.gte='+yearFilter+'-01-01';
-    if(yearFilter&&typeFilter==='tv')params+='&first_air_date.gte='+yearFilter+'-01-01';
+    var ep=typeFilter==='movie'?'/search/movie':'/search/tv';
+    var params='?api_key='+TKEY+'&language=fr-FR&page='+page+'&include_adult=false&query='+encodeURIComponent(q);
     var url2=TB+ep+params;
     return tf(url2).then(function(data){
       var mtype=typeFilter;
-      var list=(data.results||[]).filter(function(r){return(r.title||r.name)&&!_inDismissed(r.id);}).slice(0,20).map(function(r){
-        var isM=mtype==='movie';
+      var dateOf=function(r){return(mtype==='movie'?r.release_date:r.first_air_date)||'';};
+      var rows=(data.results||[]).filter(function(r){
+        if(!(r.title||r.name)||_inDismissed(r.id))return false;
+        if(yearFilter){var yr=parseInt(dateOf(r).slice(0,4));if(!(yr>=parseInt(yearFilter)))return false;}
+        return true;
+      });
+      rows.sort(function(a,b){
+        if(sortFilter==='vote_average.desc')return(b.vote_average||0)-(a.vote_average||0);
+        if(sortFilter==='primary_release_date.desc')return dateOf(b).localeCompare(dateOf(a));
+        return(b.popularity||0)-(a.popularity||0);
+      });
+      var list=rows.slice(0,20).map(function(r){
         return _normSR(Object.assign({},r,{media_type:mtype}));
       });
       return{results:list,page:data.page||1,total_pages:Math.max(1,Math.min(data.total_pages||1,50)),total_results:data.total_results||list.length};
