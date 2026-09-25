@@ -1,215 +1,85 @@
-# Supabase Schema — Watchlist Ciné Premium
+# Schéma Supabase — Watchlist Ciné Premium
 
-## 📊 Vue d'ensemble
+Référence SQL : [`supabase/schema.sql`](../schema.sql) (état cible).
+Migrations : [`supabase/migrations/`](../migrations/) — à lancer à la main dans le SQL Editor.
 
-Trois tables principales + une utilitaire :
+## Vue d'ensemble
 
 ```
-profiles            ← Utilisateurs
-  ├── watchlist_items  ← Films/séries/anime (1:N)
-  └── keep_alive       ← Cron ping (isolation)
+auth.users (1 compte)
+  └── profiles (1:1, UNIQUE account_id)
+        └── watchlist_items (1:N, UNIQUE (local_id, profile_id))
+keep_alive  ← ping quotidien du workflow GitHub (isolée)
 ```
 
-**URL Projet** : `https://batfulcvvquffgfeppcx.supabase.co`  
-**Status** : Healthy (nano compute, free tier)  
-**RLS** : Actif — isolation par utilisateur  
-**Realtime** : Disponible si multi-device sync activé
+- Projet : `batfulcvvquffgfeppcx` (eu-central-1, Postgres 17, offre gratuite).
+- RLS activée sur toutes les tables.
+- Realtime non utilisé.
+- Aucune clé n'est documentée ici : la clé publique (publishable/anon) est dans `app.js`
+  (elle est faite pour être publique, la RLS protège les données) et dans les secrets
+  GitHub / variables Vercel. La clé secrète (service role) ne doit jamais sortir du tableau
+  de bord.
 
----
+## `profiles`
 
-## 📋 TABLE: `profiles`
+| Colonne | Type | Notes |
+|---|---|---|
+| `id` | uuid | PK, `uuid_generate_v4()` |
+| `account_id` | uuid | FK `auth.users(id)` ON DELETE CASCADE, **UNIQUE** |
+| `name` | text | Nom affiché |
+| `avatar`, `avatar_color` | text | Non utilisés par l'app pour l'instant |
+| `has_pin`, `pin_hash` | bool, text | Non utilisés par l'app pour l'instant |
+| `is_manager` | bool | Défaut `true`, non utilisé |
+| `created_at`, `updated_at` | timestamptz | `updated_at` mis à jour par le trigger `tr_profiles_ts` |
 
-Profils utilisateurs — authentification + préférences.
+Créé au premier login par l'app (un seul à la fois ; en cas de doublon ancien, l'app prend
+le plus ancien).
 
-| Colonne | Type | Nullable | Notes |
-|---------|------|----------|-------|
-| `id` | uuid | NO | PK, auto-généré |
-| `account_id` | uuid | NO | FK auth.users, UNIQUE |
-| `name` | text | NO | Nom affiché |
-| `avatar` | text | YES | URL image profil |
-| `avatar_color` | text | YES | Couleur fond avatar |
-| `has_pin` | bool | YES | Si PIN activé |
-| `pin_hash` | text | YES | Hash bcrypt du PIN |
-| `is_manager` | bool | YES | Administrateur |
-| `created_at` | timestamp | YES | Auto (now()) |
-| `updated_at` | timestamp | YES | Auto (now()) |
+## `watchlist_items`
 
-**RLS** : Utilisateur voit/modifie seulement son profil (`auth.uid() = account_id`)
+Films, séries, anime. Colonnes principales : `local_id` (identifiant IndexedDB, clé de
+synchro avec `profile_id`), métadonnées TMDB (`tmdb_id`, `tmdb_type`, `title`, `year`,
+`poster_path`, `tmdb_score`, `overview`), `type` (`film`/`serie`/`anime`), `status`
+(`avoir`/`encours`/`termine`/`todo`, défaut `avoir`), `my_rating`, `tags text[]`, suivi
+séries (`saison`, `episode`, `total_ep`, `has_new_ep`, `next_air`), sagas
+(`collection_id`, `collection_name`, `tmdb_collection_id`), synchro (`deleted`,
+`added_at`, `updated_at`).
 
-**Usage** : Une ligne par utilisateur. Créée automatiquement au premier login.
+- Suppression logique uniquement (`deleted = true`), jamais de DELETE côté client.
+- L'app fait ses upserts sur `(local_id, profile_id)`.
+- Index : `idx_watchlist_profile_id`.
 
----
+## `keep_alive`
 
-## 📋 TABLE: `watchlist_items`
+| Colonne | Type | Notes |
+|---|---|---|
+| `id` | uuid | PK |
+| `pinged_at` | timestamptz | Défaut `now()` |
 
-Films, séries, anime — le cœur de la watchlist.
+Le workflow `.github/workflows/keep-alive.yml` insère une ligne par jour à 9h UTC avec la
+clé publique dans l'en-tête `apikey` (secret GitHub `SUPABASE_ANON_KEY`).
 
-### Identifiant & Propriétaire
+## RLS et droits
 
-| Colonne | Type | Nullable | Notes |
-|---------|------|----------|-------|
-| `id` | uuid | NO | PK Supabase |
-| `local_id` | text | NO | ID local (IndexedDB) — relation multi-appareil |
-| `profile_id` | uuid | NO | FK profiles — isolation utilisateur |
+| Table | Politique | Droits |
+|---|---|---|
+| `profiles` | `owner profiles` : `auth.uid() = account_id` | authenticated : SELECT, INSERT, UPDATE ; anon : aucun |
+| `watchlist_items` | `owner watchlist` : le profil appartient à `auth.uid()` | authenticated : SELECT, INSERT, UPDATE ; anon : aucun |
+| `keep_alive` | `keep_alive insert anon` : INSERT, `pinged_at` à ± 10 min de `now()` | anon : INSERT seulement |
 
-### Metadata TMDB
+Seule fonction du schéma `public` : `update_timestamp()` (trigger, `search_path` figé).
 
-| Colonne | Type | Nullable | Notes |
-|---------|------|----------|-------|
-| `tmdb_id` | integer | YES | ID TMDB source |
-| `tmdb_type` | text | YES | `movie`, `tv`, `anime` |
-| `type` | text | NO | `film`, `série`, `anime` |
-| `title` | text | NO | Titre |
-| `year` | text | YES | Année sortie |
-| `poster_path` | text | YES | URL poster TMDB |
-| `tmdb_score` | double | YES | Note TMDB (0-10) |
-| `overview` | text | YES | Synopsis |
+## Réglages du tableau de bord (à faire à la main)
 
-### Notation Utilisateur
-
-| Colonne | Type | Nullable | Notes |
-|---------|------|----------|-------|
-| `my_rating` | double | YES | Note utilisateur (1-5) |
-| `tags` | ARRAY | YES | Catégories perso |
-
-### Séries & Anime
-
-| Colonne | Type | Nullable | Notes |
-|---------|------|----------|-------|
-| `saison` | integer | YES | S01, S02... |
-| `episode` | integer | YES | E01, E02... |
-| `total_ep` | integer | YES | Nombre épisodes total |
-| `anime_genre` | text | YES | Genre anime spécifique |
-| `has_new_ep` | boolean | YES | Nouvel épisode dispo |
-| `next_air` | text | YES | Date prochain épisode |
-
-### Collections & Sagas
-
-| Colonne | Type | Nullable | Notes |
-|---------|------|----------|-------|
-| `collection_id` | text | YES | ID collection locale |
-| `collection_name` | text | YES | Nom saga (ex: "MCU") |
-| `tmdb_collection_id` | integer | YES | ID collection TMDB |
-
-### Sync & Lifecycle
-
-| Colonne | Type | Nullable | Notes |
-|---------|------|----------|-------|
-| `deleted` | boolean | YES | Soft delete (sync multi-device) |
-| `added_at` | timestamp | YES | Date création (auto) |
-| `updated_at` | timestamp | YES | Dernière modif (auto) |
-
-**Statut valides** : `todo`, `encours`, `termine`, `avoir`
-
-**RLS** : Utilisateur voit/modifie seulement ses items (`profile_id` match)
-
-**Index** : `profile_id`, `status`, `tmdb_id` → perf queries
-
-**Usage** : Sync bidirectionnelle avec IndexedDB local.
-
----
-
-## 📋 TABLE: `keep_alive`
-
-Utilitaire — ping quotidien GitHub Actions → empêche pause projet (SLA free tier).
-
-| Colonne | Type | Nullable | Notes |
-|---------|------|----------|-------|
-| `id` | uuid | NO | PK |
-| `pinged_at` | timestamp | YES | Dernier ping (auto) |
-
-**RLS** : Ouvert (`true`) — cron GitHub seul accès
-
-**Usage** : Cron pings `/rest/v1/keep_alive` chaque jour 9h UTC.
-
----
-
-## 🔒 Row Level Security (RLS)
-
-**Toutes les tables** → RLS activé.
-
-### Policies
-
-#### `profiles`
-- **SELECT** : `auth.uid() = account_id`
-- **UPDATE** : `auth.uid() = account_id`
-- **DELETE** : ❌ Interdite (archive au lieu de supprimer)
-
-#### `watchlist_items`
-- **SELECT** : `profile_id` appartient à l'utilisateur
-- **INSERT** : `profile_id` match l'utilisateur
-- **UPDATE** : `profile_id` match l'utilisateur
-- **DELETE** : Non utilisé (soft delete via `deleted=true`)
-
-#### `keep_alive`
-- **INSERT** : Ouvert (cron service)
-- **SELECT/UPDATE** : ❌ Restreint
-
----
-
-## 🔄 Realtime (optionnel)
-
-Si multi-device sync (Session 9) :
-
-1. **Dashboard Supabase** → `Database` → `Realtime`
-2. Sélectionne `watchlist_items`
-3. Toggle **Enable realtime**
-
-Ça active le Realtime API pour les subscriptions.
-
-**N'active que si** tu implémente la sync Session 9 — sinon coûte en ressources.
-
----
-
-## 📈 Migrations & Backups
-
-**Migrations** : Aucune versionnée (schéma créé manuellement Session 6-8)  
-**Backups** : À configurer manuellement (Settings → Backups) si free tier le permet  
-**Recovery** : Voir `supabase_schema.sql` pour recréer schéma
-
----
-
-## 🔑 API Keys
-
-### Publishable (public, safe for browser)
-```
-sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0
-```
-- ✅ Utilisé pour le cron GitHub (keep-alive)
-- ✅ Utilisé pour fetch/insert/update via RLS
-- ✅ Sûr de publier (RLS protège les données)
-
-### Secret (backend only)
-```
-sb_secret_9iJTL****
-```
-- ❌ À ne jamais exposer
-- ❌ Bypasse RLS
-- ⚠️ Réservé aux migrations backend/CLI Supabase
-
----
-
-## 🚀 Configuration Checklist
-
-- [x] Tables créées
-- [x] RLS activé
-- [x] Index performants
-- [ ] Realtime activé (optionnel, si sync multi-device)
-- [ ] Backups configurés
-- [ ] GitHub Actions cron `keep-alive` actif
-
----
-
-## 📞 Support & Debugging
-
-**Problème** : Realtime pas de message  
-**Cause** : Table pas en Realtime, RLS bloque, auth user pas bon  
-**Fix** : Dashboard → Realtime → enable table + vérifier RLS policies
-
-**Problème** : "Row not found"  
-**Cause** : RLS rejette accès (profile_id ne match pas)  
-**Fix** : Vérifier `profile_id` = profil actuel via `auth.uid()`
-
-**Problème** : Projet pause après 7j  
-**Cause** : Cron GitHub pas exécuté  
-**Fix** : GitHub repo → Actions → "Keep Supabase Alive" → vérifier logs
+1. **Authentication → Sign In / Providers → Email** : désactiver « Allow new users to sign up »
+   (le compte existant continue de fonctionner). Laisser « Confirm email » activé.
+2. **Authentication → Sign In / Providers** : laisser « Allow anonymous sign-ins » désactivé.
+3. **Authentication → Attack Protection** (ou Passwords) : activer « Leaked password
+   protection » (HaveIBeenPwned) et fixer une longueur minimale d'au moins 12 caractères.
+4. **Authentication → URL Configuration** : Site URL = URL de prod Vercel ; Redirect URLs
+   limitées à ce domaine (retirer localhost et les jokers inutiles).
+5. **Authentication → Multi-Factor** : activer TOTP (facultatif, recommandé).
+6. **Advisors → Security** : relancer après la migration ; il ne doit rester aucune alerte
+   sur les fonctions SECURITY DEFINER ni sur `search_path`.
+7. **GitHub → Settings → Secrets → Actions** : vérifier que `SUPABASE_ANON_KEY` contient la
+   clé publique du projet (sinon le workflow keep-alive échoue, désormais visiblement).

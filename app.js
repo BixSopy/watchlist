@@ -1765,7 +1765,7 @@ function ensureProfile(user){
   _ensureProfilePromise=_selectOldestProfile(user.id).then(function(res){
     if(res.error)throw res.error;/* erreur réseau/RLS : surtout ne pas créer un profil de plus */
     if(res.data&&res.data.length)return res.data[0].id;
-    return supa.from('profiles').insert({account_id:user.id,name:user.email?user.email.split('@')[0]:'Moi'}).select('id').single().then(function(ins){
+    return supa.from('profiles').insert({account_id:user.id,name:'Moi'}).select('id').single().then(function(ins){
       if(!ins.error)return ins.data.id;
       /* Course possible avec un autre onglet (contrainte UNIQUE account_id) : on relit */
       return _selectOldestProfile(user.id).then(function(r2){
