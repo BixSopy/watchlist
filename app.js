@@ -1874,12 +1874,14 @@ function updateSyncStatusUI(state){
 
 /* STATS */
 function openStats(){
-  sfx('click');var total=memDB.length;
+  /* Les titres supprimés (tombstones en attente de synchro) ne comptent pas */
+  var live=memDB.filter(function(i){return !i.deleted;});
+  sfx('click');var total=live.length;
   var byT={film:0,serie:0,anime:0},byS={avoir:0,encours:0,termine:0},ratings=[],compat=[];
-  memDB.forEach(function(i){byT[i.type]=(byT[i.type]||0)+1;byS[i.status]=(byS[i.status]||0)+1;if(i.myRating)ratings.push(i.myRating);if(i.myRating&&i.tmdbScore)compat.push({mine:i.myRating,tmdb:parseFloat(i.tmdbScore)});});
+  live.forEach(function(i){byT[i.type]=(byT[i.type]||0)+1;byS[i.status]=(byS[i.status]||0)+1;if(i.myRating)ratings.push(i.myRating);if(i.myRating&&i.tmdbScore)compat.push({mine:i.myRating,tmdb:parseFloat(i.tmdbScore)});});
   var avgM=ratings.length?(ratings.reduce(function(a,b){return a+b},0)/ratings.length):0;
-  var estH=Math.round(memDB.reduce(function(acc,i){return acc+(i.type=='film'?120:(i.totalEp||i.episode||12)*24);},0)/60);
-  var avoirH=Math.round(memDB.filter(function(i){return i.status=='avoir'}).reduce(function(acc,i){return acc+(i.type=='film'?120:(i.totalEp||12)*24);},0)/60);
+  var estH=Math.round(live.reduce(function(acc,i){return acc+(i.type=='film'?120:(i.totalEp||i.episode||12)*24);},0)/60);
+  var avoirH=Math.round(live.filter(function(i){return i.status=='avoir'}).reduce(function(acc,i){return acc+(i.type=='film'?120:(i.totalEp||12)*24);},0)/60);
   var cHtml='';
   if(compat.length>=3){var d=compat.map(function(p){return p.mine-p.tmdb;});var avg=d.reduce(function(a,b){return a+b},0)/d.length;var r=Math.abs(avg).toFixed(1);cHtml=avg>0.5?'Tu notes en moyenne <b>+'+r+' points</b> au-dessus de TMDB. Tu es genereux.':avg<-0.5?'Tu notes en moyenne <b>-'+r+' points</b> en dessous de TMDB. Tu es severe.':'Tes notes sont alignees avec TMDB (ecart <b>'+r+' pt</b>).';}else{cHtml='Note au moins 3 titres pour voir ton profil.';}
   function bar(l,v,m){var p=m?Math.round((v/m)*100):0;return '<div class="bar-row"><div class="bar-lbl">'+l+'</div><div class="bar-track"><div class="bar-fill" style="width:'+p+'%"></div></div><div class="bar-val">'+v+'</div></div>';}
@@ -2364,7 +2366,7 @@ function updateStatsFooter() {
   var el = document.getElementById('statsFooter');
   if (!el) return;
   // Lit memDB (synchronisé avec IndexedDB) — statuts réels : termine/encours/avoir/todo
-  var items = memDB || [];
+  var items = (memDB || []).filter(function(w) { return !w.deleted; });
   var termine = items.filter(function(w) { return w.status === 'termine'; }).length;
   var encours = items.filter(function(w) { return w.status === 'encours'; }).length;
   var avoir   = items.filter(function(w) { return w.status === 'avoir'; }).length;
