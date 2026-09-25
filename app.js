@@ -1,16 +1,11 @@
 /* CONFIG */
 /* Les appels TMDB/OMDb passent par les fonctions serverless /api (clés côté serveur uniquement) */
 var TB='/api/tmdb',IB='https://image.tmdb.org/t/p/';
-var PROXY='';
 /* SUPABASE — sync multi-appareils (Session 10) */
 var SUPA_URL='https://batfulcvvquffgfeppcx.supabase.co';
 var SUPA_KEY='sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
 var supa=(typeof supabase!=='undefined')?supabase.createClient(SUPA_URL,SUPA_KEY):null;
-var authUser=null,authProfileId=null,syncInProgress=false,syncLoopTimer=null,lastSyncErrorToast=0,authMode='signin';
-/* Retourne une URL image passant par le proxy local (same-origin → canvas safe) */
-function proxied(url){return url?PROXY+encodeURIComponent(url):'';}
-/* Version proxy de IB pour canvas/ambient (pas pour <img> normaux) */
-function IBp(size,p){return p?proxied(IB+size+p):null;}
+var authUser=null,authProfileId=null,syncInProgress=false,syncLoopTimer=null,lastSyncErrorToast=0;
 /* STATE */
 var idb=null,memDB=[],editId=null,selTmdb=null,myRate=0,stimer=null;
 var activeTab='all',activeStat='all',fq='',sortBy='date';
@@ -173,6 +168,9 @@ function icon(t){return t=='film'?'&#127916;':t=='serie'?'&#128250;':'&#127884;'
 function tbadge(t){var c={film:'bf',serie:'bs',anime:'ba'}[t]||'bf';var l={film:'Film',serie:'Serie',anime:'Anime'}[t]||t;return '<span class="badge '+c+'">'+l+'</span>';}
 function sbadge(s){var c={avoir:'bav',encours:'bec',termine:'bte',todo:'btd'}[s]||'bav';var l={avoir:'A voir',encours:'En cours',termine:'Terminé',todo:'À qualifier'}[s]||s;return '<span class="badge '+c+'">'+l+'</span>';}
 function starsvg(f){if(f)return '<svg viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="currentColor"/></svg>';return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>';}
+
+/* Journalisation minimale : code et message seulement (jamais d'objet complet, de jeton ni de donnée perso) */
+function _logErr(tag,e){try{console.error(tag,(e&&e.code)||'',(e&&e.message)||String(e||''));}catch(_){}}
 
 /* API PROXY — TMDB/OMDb via /api (session Supabase obligatoire, clés jamais côté client) */
 var _apiAuthState=null;/* null | 'login' | 'forbidden' */
@@ -1706,13 +1704,8 @@ function openAuthModal(){
 function closeAuthModal(){document.getElementById('authMbk').classList.remove('on');}
 document.getElementById('authMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closeAuthModal();}});
 
-function switchAuthTab(mode){
-  authMode=mode;
-  document.getElementById('authTabIn').classList.toggle('on',mode=='signin');
-  document.getElementById('authTabUp').classList.toggle('on',mode=='signup');
-  document.getElementById('authSubmitBtn').textContent=mode=='signin'?'Se connecter':'Creer le compte';
-  document.getElementById('authMsg').classList.remove('on');
-}
+/* Inscription retirée de l'interface : compte unique, créé depuis le tableau de bord Supabase
+   (et inscriptions désactivées côté Supabase). */
 
 function refreshAuthModalView(){
   var out=document.getElementById('authLoggedOutView'),inn=document.getElementById('authLoggedInView');
@@ -1741,20 +1734,12 @@ function submitAuth(){
   sfx('click');
   var btn=document.getElementById('authSubmitBtn');btn.disabled=true;
   var after=function(){btn.disabled=false;};
-  if(authMode=='signup'){
-    supa.auth.signUp({email:email,password:pass}).then(function(res){
-      after();
-      if(res.error){showAuthMsg(res.error.message);return;}
-      showAuthMsg('Compte cree. Verifie ta boite mail si confirmation requise.','ok');
-    }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
-  }else{
-    supa.auth.signInWithPassword({email:email,password:pass}).then(function(res){
-      after();
-      if(res.error){showAuthMsg(res.error.message);return;}
-      toast('Connecte','ok');
-      refreshAuthModalView();
-    }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
-  }
+  supa.auth.signInWithPassword({email:email,password:pass}).then(function(res){
+    after();
+    if(res.error){showAuthMsg(res.error.message);return;}
+    toast('Connecte','ok');
+    refreshAuthModalView();
+  }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
 }
 
 function signOutUser(){
@@ -1843,7 +1828,7 @@ function onAuthResolved(user){
     syncNow();
     startSyncLoop();
   }).catch(function(e){
-    console.error('[sync] ensureProfile',e);
+    _logErr('[sync] ensureProfile',e);
     updateSyncStatusUI('offline');
   });
 }
@@ -1901,7 +1886,7 @@ function syncPush(){
       var sentAt=item.updatedAtLocal;
       var payload=localToSupabase(item,authProfileId);
       return supa.from('watchlist_items').upsert(payload,{onConflict:'local_id,profile_id'}).select().then(function(res){
-        if(res.error){console.error('[sync push]',res.error);return;}
+        if(res.error){_logErr('[sync push]',res.error);return;}
         if(res.data&&res.data[0]){
           item.supaId=res.data[0].id;
           /* Ne marque "synchronisé" que si rien n'a modifié l'item depuis l'envoi du payload —
@@ -1909,7 +1894,7 @@ function syncPush(){
           if(item.updatedAtLocal===sentAt)item.needsSync=false;
           dbPut(item,function(){});
         }
-      }).catch(function(e){console.error('[sync push]',e);});
+      }).catch(function(e){_logErr('[sync push]',e);});
     });
   });
   return chain;
@@ -1923,7 +1908,7 @@ function syncNow(){
     syncInProgress=false;updateSyncStatusUI('synced');refreshAuthModalView();
   }).catch(function(e){
     syncInProgress=false;
-    console.error('[sync]',e);
+    _logErr('[sync]',e);
     updateSyncStatusUI(navigator.onLine?'synced':'offline');
     var now=Date.now();
     if(now-lastSyncErrorToast>60000){lastSyncErrorToast=now;toast('Synchronisation impossible pour le moment','nfo');}
@@ -1995,7 +1980,8 @@ function applyAmbient(imgUrl, targetEl, opacity){
     }
   };
   img.onerror=function(){targetEl.style.background='';};
-  img.src=proxied(imgUrl);
+  /* image.tmdb.org renvoie Access-Control-Allow-Origin:* → canvas lisible sans proxy */
+  img.src=imgUrl;
 }
 
 /* MENU */

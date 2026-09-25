@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Watchlist Pierre</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Watchlist</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<!-- supabase-js 2.117.2 embarqué (identique au paquet npm), intégrité vérifiée par le navigateur -->
+<script src="/vendor/supabase-2.117.2.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 :root{
   /* COULEURS — fond profond (#1) */
@@ -594,12 +595,6 @@ body.suivi-providers-off .suivi-providers{display:none}
   .hbtn{width:28px;height:28px}
 }
 </style>
-<!-- Open Graph — Partage social -->
-<meta property="og:title" content="Watchlist Ciné Premium">
-<meta property="og:description" content="Suivi perso films, séries, anime — aesthetic OLED dark">
-<meta property="og:image" content="https://image.tmdb.org/t/p/w500/fqv4g7spta3jytsYewhd2VjCoDT.jpg">
-<meta property="og:url" content="https://watchlist-xxx.vercel.app">
-<meta property="og:type" content="website">
 <!-- Theme color -->
 <meta name="theme-color" content="#0a0a0c">
 <!-- Favicon SVG inline -->
@@ -750,17 +745,13 @@ body.suivi-providers-off .suivi-providers{display:none}
     <div class="mtitle" id="authMtitle">Compte &amp; synchronisation</div>
 
     <div id="authLoggedOutView">
-      <div class="auth-tabs">
-        <button class="auth-tab on" id="authTabIn" onclick="switchAuthTab('signin')">Se connecter</button>
-        <button class="auth-tab" id="authTabUp" onclick="switchAuthTab('signup')">Creer un compte</button>
-      </div>
       <div class="auth-msg" id="authMsg"></div>
       <div class="field"><label>Email</label><input type="email" id="authEmail" placeholder="toi@exemple.com" autocomplete="email"></div>
       <div class="field"><label>Mot de passe</label><input type="password" id="authPassword" placeholder="********" autocomplete="current-password"></div>
       <div class="mact" style="justify-content:stretch">
         <button class="btn btn-primary" id="authSubmitBtn" style="flex:1" onclick="submitAuth()">Se connecter</button>
       </div>
-      <div class="auth-local-note">L'app fonctionne sans compte, en local uniquement.<br>Se connecter active la synchronisation multi-appareils.</div>
+      <div class="auth-local-note">Sans connexion, ta liste reste locale et le catalogue TMDB (recherche, recommandations) est désactivé.<br>Se connecter active le catalogue et la synchronisation multi-appareils.</div>
       <div class="mact">
         <button class="btn btn-ghost" style="flex:1" onclick="sfx('close');closeAuthModal()">Continuer sans compte</button>
       </div>

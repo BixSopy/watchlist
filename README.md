@@ -7,7 +7,7 @@ Suivi perso pour films, séries, anime avec aesthetic OLED dark inspiré de Plex
 - 🎬 Recherche TMDB (films, séries, anime)
 - ⭐ Notation 1-5 étoiles + notes perso
 - 🏷️ Filtres statut + genre + tri
-- 💾 Stockage 100% local (IndexedDB + localStorage)
+- 💾 Stockage local (IndexedDB + localStorage) + synchronisation Supabase optionnelle
 - 📊 Stats footer en temps réel
 - 🔄 Export / Import JSON (merge sans doublon)
 - 🎞️ Discovery rows — 30 résultats, cards dynamiques
@@ -24,21 +24,25 @@ Suivi perso pour films, séries, anime avec aesthetic OLED dark inspiré de Plex
 - API      : TMDB v3 + OMDb via fonctions serverless Vercel (`/api`, clés côté serveur)
 - Hosting  : Vercel (statique + fonctions `/api`)
 
-## 🔗 Accès
+## 🔒 Confidentialité
 
-📱 **https://watchlist-[HASH].vercel.app**
-*(Remplacer [HASH] par le sous-domaine Vercel réel après deploy)*
+- Dépôt privé, site non indexé (`noindex`), aucune police ni script tiers :
+  supabase-js est embarqué dans `vendor/` (version figée, contrôle d'intégrité SRI),
+  les polices sont servies depuis `fonts/`.
+- En-têtes de sécurité dans `vercel.json` (CSP stricte, `Referrer-Policy: no-referrer`,
+  `Permissions-Policy`, `frame-ancestors 'none'`…).
+- `.vercelignore` (liste blanche) : seuls `index.html`, `app.js`, `api/`, `vendor/` et `fonts/` sont publiés.
+- Inscription désactivée dans l'interface (compte unique).
 
 ## 💻 Usage local
 
 ```bash
-cd C:\Users\pierr\Downloads
-node server.js
-# Puis : http://localhost:9000/watchlist.html
+npx vercel dev          # sert index.html et les fonctions /api (variables dans .env.local, non versionné)
+node --test tests/      # tests des fonctions /api (fetch simulé)
 ```
 
-Le proxy local (`node server.js`) n'est utile qu'en développement.
-En production Vercel, `var PROXY=''` — les images TMDB sont directes HTTPS.
+Un simple serveur statique (`python3 -m http.server`) suffit pour l'interface, mais le
+catalogue TMDB ne répondra pas sans les fonctions `/api`.
 
 ## 📝 Utilisation
 
