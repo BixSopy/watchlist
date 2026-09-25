@@ -1,8 +1,7 @@
 /* CONFIG */
-var TKEY='',TB='https://api.themoviedb.org/3',IB='https://image.tmdb.org/t/p/';
+/* Les appels TMDB/OMDb passent par les fonctions serverless /api (clés côté serveur uniquement) */
+var TB='/api/tmdb',IB='https://image.tmdb.org/t/p/';
 var PROXY='';
-/* Session 12 : clé OMDb (omdbapi.com/apikey.aspx) */
-var OMDB_KEY='';
 /* SUPABASE — sync multi-appareils (Session 10) */
 var SUPA_URL='https://batfulcvvquffgfeppcx.supabase.co';
 var SUPA_KEY='sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
@@ -175,12 +174,67 @@ function tbadge(t){var c={film:'bf',serie:'bs',anime:'ba'}[t]||'bf';var l={film:
 function sbadge(s){var c={avoir:'bav',encours:'bec',termine:'bte',todo:'btd'}[s]||'bav';var l={avoir:'A voir',encours:'En cours',termine:'Terminé',todo:'À qualifier'}[s]||s;return '<span class="badge '+c+'">'+l+'</span>';}
 function starsvg(f){if(f)return '<svg viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="currentColor"/></svg>';return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>';}
 
+/* API PROXY — TMDB/OMDb via /api (session Supabase obligatoire, clés jamais côté client) */
+var _apiAuthState=null;/* null | 'login' | 'forbidden' */
+var _apiAuthToastAt=0;
+/* /api/tmdb/movie/1?language=fr-FR → /api/tmdb?path=%2Fmovie%2F1&language=fr-FR */
+function _toProxyUrl(url){
+  if(url.indexOf(TB+'/')!==0)return url;
+  var rest=url.slice(TB.length),qi=rest.indexOf('?');
+  var path=qi<0?rest:rest.slice(0,qi),qs=qi<0?'':rest.slice(qi+1);
+  return TB+'?path='+encodeURIComponent(path)+(qs?'&'+qs:'');
+}
+function _getAccessToken(){
+  if(!supa)return Promise.resolve(null);
+  return supa.auth.getSession().then(function(r){
+    var s=r&&r.data&&r.data.session;return s&&s.access_token?s.access_token:null;
+  }).catch(function(){return null;});
+}
+function _authError(state){var e=new Error(state==='forbidden'?'FORBIDDEN':'AUTH_REQUIRED');e.code=state==='forbidden'?'FORBIDDEN':'AUTH_REQUIRED';return e;}
+function apiFetch(url){
+  /* Kitsu/TVmaze (sans clé) : appel direct, jamais de jeton Supabase envoyé à un tiers */
+  if(url.indexOf('/api/')!==0)return fetch(url,{credentials:'omit'});
+  return _getAccessToken().then(function(tok){
+    if(!tok){_notifyLoginRequired('login');throw _authError('login');}
+    return fetch(_toProxyUrl(url),{headers:{Authorization:'Bearer '+tok},credentials:'omit'}).then(function(r){
+      if(r.status===401){_notifyLoginRequired('login');throw _authError('login');}
+      if(r.status===403){_notifyLoginRequired('forbidden');throw _authError('forbidden');}
+      return r;
+    });
+  });
+}
+function _loginMsgHtml(){
+  var m=_apiAuthState==='forbidden'
+    ?'Ce compte n\'est pas autorisé à charger le catalogue TMDB.'
+    :'Connecte-toi (menu Compte) pour charger le catalogue TMDB.';
+  return '<div class="sb-loading">'+esc(m)+'</div>';
+}
+function _paintLoginRequired(){
+  if(!_apiAuthState)return;
+  var sb=document.getElementById('sbContent');if(sb)sb.innerHTML=_loginMsgHtml();
+  var ds=document.getElementById('discoverSection');if(ds)ds.innerHTML=_loginMsgHtml();
+}
+function _notifyLoginRequired(state){
+  _apiAuthState=state||'login';
+  setTimeout(_paintLoginRequired,0);
+  if(Date.now()-_apiAuthToastAt>60000){
+    _apiAuthToastAt=Date.now();
+    toast(_apiAuthState==='forbidden'?'Compte non autorisé pour le catalogue':'Connecte-toi pour charger le catalogue TMDB','nfo');
+  }
+}
+/* Après connexion : on relance ce qui avait échoué faute de session */
+function _onApiAuthRestored(){
+  if(!_apiAuthState)return;
+  _apiAuthState=null;cache={};_drCache={};
+  loadRecos();loadDiscovery(activeTab);
+}
+
 /* CACHE FETCH — TTL 24h pour que le throttle Suivi (lastEpisodeCheck) redevienne effectif en session longue */
 var TF_CACHE_TTL=86400000;
 function tf(url){
   var c=cache[url];
   if(c&&(Date.now()-c.t)<TF_CACHE_TTL)return Promise.resolve(c.d);
-  return fetch(url).then(function(r){
+  return apiFetch(url).then(function(r){
     /* Une réponse d'erreur (401, 429, 5xx...) n'est jamais mise en cache */
     if(!r.ok){var e=new Error('HTTP '+r.status);e.status=r.status;throw e;}
     return r.json();
@@ -204,7 +258,7 @@ var KW_SHOJO=['shojo','shoujo','romance','magical girl','fruits basket'];
 var KW_ISEKAI=['isekai','another world','reincarnation','transported','summoned to'];
 var KW_SLICE=['slice of life','daily life','school life','coming of age','moe','everyday'];
 function detectAnimeGenre(tmdbId,cb){
-  tf(TB+'/tv/'+tmdbId+'?api_key='+TKEY+'&language=en-US&append_to_response=keywords').then(function(d){
+  tf(TB+'/tv/'+tmdbId+'?language=en-US&append_to_response=keywords').then(function(d){
     var g=(d.genres||[]).map(function(x){return x.name.toLowerCase()});
     var k=((d.keywords&&d.keywords.results)||[]).map(function(x){return x.name.toLowerCase()});
     var all=g.concat(k).join(' ');var genre='autre';
@@ -220,11 +274,11 @@ function detectAnimeGenre(tmdbId,cb){
 
 /* TRAILER */
 function getTrailer(type,id,sn,cb){
-  var u=sn?TB+'/tv/'+id+'/season/'+sn+'/videos?api_key='+TKEY+'&language=fr-FR':TB+'/'+type+'/'+id+'/videos?api_key='+TKEY+'&language=fr-FR';
+  var u=sn?TB+'/tv/'+id+'/season/'+sn+'/videos?language=fr-FR':TB+'/'+type+'/'+id+'/videos?language=fr-FR';
   tf(u).then(function(d){
     var v=(d.results||[]).filter(function(x){return x.site=='YouTube'&&(x.type=='Trailer'||x.type=='Teaser')});
     if(!v.length){
-      var u2=sn?TB+'/tv/'+id+'/season/'+sn+'/videos?api_key='+TKEY+'&language=en-US':TB+'/'+type+'/'+id+'/videos?api_key='+TKEY+'&language=en-US';
+      var u2=sn?TB+'/tv/'+id+'/season/'+sn+'/videos?language=en-US':TB+'/'+type+'/'+id+'/videos?language=en-US';
       tf(u2).then(function(d2){var v2=(d2.results||[]).filter(function(x){return x.site=='YouTube'&&(x.type=='Trailer'||x.type=='Teaser')});cb(v2.length?v2[0].key:null);}).catch(function(){cb(null)});
     }else{cb(v[0].key);}
   }).catch(function(){cb(null)});
@@ -444,8 +498,8 @@ function _drFetchBecause(filter){
   if(!best)return Promise.resolve({title:'',items:[]});
   var t=best.tmdbType||(best.type==='film'?'movie':'tv');
   var inL=new Set(memDB.map(function(i){return i.tmdbId;}));
-  function get(u){return fetch(u).then(function(r){return r.json();}).catch(function(){return{results:[]};});}
-  var base=TB+'/'+t+'/'+best.tmdbId,q='?api_key='+TKEY+'&language=fr-FR&page=';
+  function get(u){return apiFetch(u).then(function(r){return r.ok?r.json():{results:[]};}).catch(function(){return{results:[]};});}
+  var base=TB+'/'+t+'/'+best.tmdbId,q='?language=fr-FR&page=';
   /* recommendations p1+p2 puis similar p1+p2 en fallback → pool large garanti */
   return Promise.all([get(base+'/recommendations'+q+'1'),get(base+'/recommendations'+q+'2'),get(base+'/similar'+q+'1'),get(base+'/similar'+q+'2')]).then(function(pages){
     var seen={},items=[];
@@ -473,8 +527,8 @@ function _drFetchRow(cfg){
     out.push(_drNormItem(x,cfg.mtype||null));
   }
   function get(p){
-    return fetch(TB+cfg.url+sep+'api_key='+TKEY+'&language=fr-FR&page='+p)
-      .then(function(r){return r.json();}).catch(function(){return{results:[]};});
+    return apiFetch(TB+cfg.url+sep+'language=fr-FR&page='+p)
+      .then(function(r){return r.ok?r.json():{results:[]};}).catch(function(){return{results:[]};});
   }
   /* Burst initial : 3 pages en parallèle depuis un offset aléatoire (renouvellement) */
   var start=Math.ceil(Math.random()*4);
@@ -613,7 +667,7 @@ function toggleCompact(){compactOn=!compactOn;sfx('click');document.getElementBy
 var ti=document.getElementById('tinput'),tdd=document.getElementById('tdd'),spin=document.getElementById('spin');
 ti.addEventListener('input',function(){clearTimeout(stimer);var q=ti.value.trim();if(q.length<2){tdd.classList.remove('on');return}spin.classList.add('on');stimer=setTimeout(function(){doSearch(q)},400);});
 function doSearch(q){
-  tf(TB+'/search/multi?api_key='+TKEY+'&query='+encodeURIComponent(q)+'&language=fr-FR').then(function(data){
+  tf(TB+'/search/multi?query='+encodeURIComponent(q)+'&language=fr-FR').then(function(data){
     spin.classList.remove('on');
     var res=(data.results||[]).filter(function(r){return r.media_type=='movie'||r.media_type=='tv'}).slice(0,8);
     if(!res.length){tdd.innerHTML='<div class="ddi" style="color:var(--text3)">Aucun resultat</div>';tdd.classList.add('on');return}
@@ -644,7 +698,7 @@ tdd.addEventListener('click',function(e){
   if(isM){document.getElementById('ftype').value='film';}else{document.getElementById('ftype').value='serie';fetchTotEp(r.id);}
   chkEpt();
 });
-function fetchTotEp(id){tf(TB+'/tv/'+id+'?api_key='+TKEY+'&language=fr-FR').then(function(d){document.getElementById('ftotep').value=d.number_of_episodes||0;}).catch(function(){});}
+function fetchTotEp(id){tf(TB+'/tv/'+id+'?language=fr-FR').then(function(d){document.getElementById('ftotep').value=d.number_of_episodes||0;}).catch(function(){});}
 function clearSel(){selTmdb=null;document.getElementById('sprev').classList.remove('on');document.getElementById('swrap').style.display='';ti.value='';document.getElementById('ftmdb').value='';document.getElementById('fyear').value='';}
 document.addEventListener('click',function(e){if(!e.target.closest('.swrap'))tdd.classList.remove('on');});
 
@@ -797,7 +851,7 @@ function fillPlex(){
   buildPlexActions();
   /* Fetch details */
   if(d.tmdbId){
-    tf(TB+'/'+d.type+'/'+d.tmdbId+'?api_key='+TKEY+'&language=fr-FR&append_to_response=credits,images,keywords,watch%2Fproviders,external_ids').then(function(det){fillPlexDetails(det);}).catch(function(){});
+    tf(TB+'/'+d.type+'/'+d.tmdbId+'?language=fr-FR&append_to_response=credits,images,keywords,watch%2Fproviders,external_ids').then(function(det){fillPlexDetails(det);}).catch(function(){});
   }
   document.getElementById('plexMbk').classList.add('on');
 }
@@ -887,7 +941,7 @@ function fillPlexDetails(det){
    pas, aucun toast. */
 function fetchOMDbRatings(imdbId){
   if(!imdbId)return Promise.resolve(null);
-  return tf('https://www.omdbapi.com/?i='+encodeURIComponent(imdbId)+'&apikey='+OMDB_KEY).then(function(d){
+  return tf('/api/omdb?i='+encodeURIComponent(imdbId)).then(function(d){
     if(!d||d.Response==='False')return null;
     var out={imdb:null,rottenTomatoes:null,metacritic:null,fetchedAt:Date.now()};
     (d.Ratings||[]).forEach(function(r){
@@ -947,7 +1001,7 @@ function plexSeason(num){
   sfx('click');document.querySelectorAll('#sSelWrap .s-btn').forEach(function(b){b.classList.toggle('on',b.dataset.s==num);});
   if(num==0){if(plexData)fillPlex();return;}
   var d=plexData;if(!d||!d.tmdbId)return;
-  tf(TB+'/tv/'+d.tmdbId+'/season/'+num+'?api_key='+TKEY+'&language=fr-FR').then(function(s){
+  tf(TB+'/tv/'+d.tmdbId+'/season/'+num+'?language=fr-FR').then(function(s){
     document.getElementById('plexOverview').textContent=s.overview||d.overview||'';
     if(s.poster_path)document.getElementById('plexPosterWrap').innerHTML='<img class="plex-poster" src=\"'+IB+'w342'+esc(s.poster_path)+'\" alt="">';
     var st='';if(s.vote_average)st+='<div><div class="p-stat-l">Note saison</div><div class="p-stat-v gold">'+s.vote_average.toFixed(1)+'</div></div>';if(s.episodes)st+='<div><div class="p-stat-l">Episodes</div><div class="p-stat-v">'+s.episodes.length+'</div></div>';document.getElementById('plexStats').innerHTML=st;
@@ -984,7 +1038,7 @@ function buildTasteProfileCache(){
     if(idx>=pending.length){_profileBuildRunning=false;return;}
     var item=pending[idx];
     var kind=item.tmdbType||(item.type==='film'?'movie':'tv');
-    tf(TB+'/'+kind+'/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(d){
+    tf(TB+'/'+kind+'/'+item.tmdbId+'?language=fr-FR').then(function(d){
       item.genreIds=(d.genres||[]).map(function(g){return g.id;});
     }).catch(function(){item.genreIds=[];}).finally(function(){persistSuiviItem(item);setTimeout(function(){next(idx+1);},150);});
   }
@@ -1085,13 +1139,13 @@ function loadRecos(){
   var rp1=Math.ceil(Math.random()*8),rp2=Math.ceil(Math.random()*8),rp3=Math.ceil(Math.random()*8);
   /* Fetch tout en parallèle */
   Promise.all([
-    tf(TB+'/trending/all/week?api_key='+TKEY+'&language=fr-FR&page='+Math.ceil(Math.random()*3)).then(function(d){return{type:'trending',data:d}}).catch(function(){return{type:'trending',data:null}}),
-    (function(){var best=null;memDB.forEach(function(i){if(i.myRating&&(!best||i.myRating>best.myRating))best=i;});if(!best)return Promise.resolve({type:'because',data:null});var t=best.tmdbType||(best.type=='film'?'movie':'tv');return tf(TB+'/'+t+'/'+best.tmdbId+'/recommendations?api_key='+TKEY+'&language=fr-FR').then(function(d){return{type:'because',data:{best:best,results:d}}}).catch(function(){return{type:'because',data:null}})})(),
+    tf(TB+'/trending/all/week?language=fr-FR&page='+Math.ceil(Math.random()*3)).then(function(d){return{type:'trending',data:d}}).catch(function(){return{type:'trending',data:null}}),
+    (function(){var best=null;memDB.forEach(function(i){if(i.myRating&&(!best||i.myRating>best.myRating))best=i;});if(!best)return Promise.resolve({type:'because',data:null});var t=best.tmdbType||(best.type=='film'?'movie':'tv');return tf(TB+'/'+t+'/'+best.tmdbId+'/recommendations?language=fr-FR').then(function(d){return{type:'because',data:{best:best,results:d}}}).catch(function(){return{type:'because',data:null}})})(),
     Promise.all([
-      tf(TB+'/discover/movie?api_key='+TKEY+'&language=fr-FR&sort_by=popularity.desc&vote_count.gte=200&page='+rp1),
-      tf(TB+'/discover/movie?api_key='+TKEY+'&language=fr-FR&sort_by=vote_average.desc&vote_count.gte=500&page='+rp2),
-      tf(TB+'/discover/tv?api_key='+TKEY+'&language=fr-FR&sort_by=popularity.desc&vote_count.gte=100&page='+rp2),
-      tf(TB+'/discover/tv?api_key='+TKEY+'&language=fr-FR&with_genres=16&sort_by=popularity.desc&page='+rp3)
+      tf(TB+'/discover/movie?language=fr-FR&sort_by=popularity.desc&vote_count.gte=200&page='+rp1),
+      tf(TB+'/discover/movie?language=fr-FR&sort_by=vote_average.desc&vote_count.gte=500&page='+rp2),
+      tf(TB+'/discover/tv?language=fr-FR&sort_by=popularity.desc&vote_count.gte=100&page='+rp2),
+      tf(TB+'/discover/tv?language=fr-FR&with_genres=16&sort_by=popularity.desc&page='+rp3)
     ]).then(function(res){return{type:'discover',data:res}}).catch(function(){return{type:'discover',data:null}})
   ]).then(function(res){
     var tHtml='',bHtml='',dJson={films:[],series:[],anime:[]};
@@ -1136,6 +1190,7 @@ function recoCardHtml(d,idx){
   return '<div class="reco-card" '+ds+'><div class="reco-img-wrap" onclick="recoPreview(this.closest(\'.reco-card\'))" title="Apercu">'+num+ph+'</div><div class="reco-body"><div class="reco-title">'+esc(d.title)+'</div><div class="reco-year">'+esc(String(d.year||''))+'</div>'+sc+'<div class="reco-btns"><button class="rbtn add" onmouseenter="sfx(\'hover\')" onclick="recoAdd(this.closest(\'.reco-card\'))">+ Ajouter</button><button class="rbtn no" onmouseenter="sfx(\'hover\')" onclick="recoDismiss(this.closest(\'.reco-card\'))">x Non</button></div></div></div>';
 }
 function renderRecos(tHtml,bHtml,json,inList){
+  if(_apiAuthState){_paintLoginRequired();return;}
   /* Flux continu numéroté — sections fusionnées avec séparateur discret */
   var allItems=[];
   /* Extraire les items des sections tendances et because */
@@ -1224,7 +1279,7 @@ function openFolder(collId){
   /* Fetch collection TMDB si on a un tmdbCollectionId */
   var collTmdb=items[0].tmdbCollectionId;
   if(collTmdb){
-    tf(TB+'/collection/'+collTmdb+'?api_key='+TKEY+'&language=fr-FR').then(function(d){
+    tf(TB+'/collection/'+collTmdb+'?language=fr-FR').then(function(d){
       if(d.backdrop_path){bg.src=IB+'w1280'+d.backdrop_path;}
       if(d.poster_path){pi.src=IB+'w500'+d.poster_path;}
     }).catch(function(){});
@@ -1255,8 +1310,9 @@ function detectCollections(){
   function next(idx){
     if(idx>=films.length){_detectRunning=false;if(updated>0){render();toast(updated+' saga'+(updated>1?'s':'')+' détectée'+(updated>1?'s':'')+'.');} else if(rateLimited>0){toast('TMDB a limité les requêtes ('+rateLimited+' échecs) — réessaie dans quelques minutes.','err');} else{toast('Aucune nouvelle saga détectée.','nfo');}return;}
     var item=films[idx];
-    fetch(TB+'/movie/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(r){
+    apiFetch(TB+'/movie/'+item.tmdbId+'?language=fr-FR').then(function(r){
       if(r.status===429){rateLimited++;throw new Error('429');}
+      if(!r.ok)throw new Error('HTTP '+r.status);
       return r.json();
     }).then(function(d){
       if(d.belongs_to_collection&&d.belongs_to_collection.name){
@@ -1365,7 +1421,7 @@ async function startAutoScroll(){
 /* AIR ALERTS */
 function checkAir(item){
   if(!item.tmdbId||item.type=='film')return;
-  tf(TB+'/tv/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(d){
+  tf(TB+'/tv/'+item.tmdbId+'?language=fr-FR').then(function(d){
     var changed=false;
     if(d.next_episode_to_air&&d.next_episode_to_air.air_date){item.nextAir=d.next_episode_to_air.air_date;changed=true;}
     if(d.last_episode_to_air&&item.status=='encours'&&d.last_episode_to_air.episode_number>(item.episode||0)){item.hasNewEp=true;changed=true;}
@@ -1437,7 +1493,7 @@ function refreshSuiviData(){
 }
 
 function fetchFilmRelease(item){
-  tf(TB+'/movie/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(d){
+  tf(TB+'/movie/'+item.tmdbId+'?language=fr-FR').then(function(d){
     var changed=false;
     if(d.release_date){item.nextAirDate=d.release_date;changed=true;}
     item.lastEpisodeCheck=Date.now();
@@ -1450,7 +1506,7 @@ function fetchFilmRelease(item){
 
 function fetchNextAirDate(item){
   var afterTvmaze=function(){
-    tf(TB+'/tv/'+item.tmdbId+'?api_key='+TKEY+'&language=fr-FR').then(function(d){
+    tf(TB+'/tv/'+item.tmdbId+'?language=fr-FR').then(function(d){
       if(d.next_episode_to_air&&d.next_episode_to_air.air_date){
         item.nextAirDate=d.next_episode_to_air.air_date;
         item.nextAir=d.next_episode_to_air.air_date;
@@ -1472,7 +1528,7 @@ function fetchNextAirDate(item){
 /* TMDB watch/providers en priorité, JustWatch en best-effort seulement */
 function fetchWatchProviders(item,cb){
   var kind=item.type=='film'?'movie':'tv';
-  tf(TB+'/'+kind+'/'+item.tmdbId+'/watch/providers?api_key='+TKEY).then(function(d){
+  tf(TB+'/'+kind+'/'+item.tmdbId+'/watch/providers').then(function(d){
     var fr=d&&d.results&&d.results.FR;
     if(fr&&fr.flatrate&&fr.flatrate.length){
       item.streamingProviders=fr.flatrate.slice(0,4).map(function(p){return{name:p.provider_name,logo:p.logo_path?IB+'w45'+p.logo_path:null,url:fr.link||null};});
@@ -1781,6 +1837,7 @@ function onAuthResolved(user){
   ensureProfile(user).then(function(profileId){
     authProfileId=profileId;
     markLegacyItemsDirtyOnce(user.id);
+    _onApiAuthRestored();
     refreshAuthModalView();
     updateSyncStatusUI('syncing');
     syncNow();
@@ -2225,7 +2282,7 @@ function _discoverStructured(parsed,page){
   var calls=[];
   parsed.mtypes.forEach(function(mt){
     var gids=parsed.genreIds[mt]||[];
-    var params='?api_key='+TKEY+'&language=fr-FR&page='+page+'&sort_by=popularity.desc';
+    var params='?language=fr-FR&page='+page+'&sort_by=popularity.desc';
     if(gids.length)params+='&with_genres='+gids.join(',');
     if(parsed.year)params+=(mt==='movie'?'&primary_release_date.gte=':'&first_air_date.gte=')+parsed.year+'-01-01';
     if(parsed.minScore)params+='&vote_average.gte='+parsed.minScore;
@@ -2265,7 +2322,7 @@ function _searchTMDB(q,page){
      filtre d'année et tri appliqués côté client sur la page de résultats */
   if(typeFilter&&sortFilter){
     var ep=typeFilter==='movie'?'/search/movie':'/search/tv';
-    var params='?api_key='+TKEY+'&language=fr-FR&page='+page+'&include_adult=false&query='+encodeURIComponent(q);
+    var params='?language=fr-FR&page='+page+'&include_adult=false&query='+encodeURIComponent(q);
     var url2=TB+ep+params;
     return tf(url2).then(function(data){
       var mtype=typeFilter;
@@ -2287,7 +2344,7 @@ function _searchTMDB(q,page){
     });
   }
   /* Sinon search/multi standard + filtre type côté client si demandé */
-  var url=TB+'/search/multi?api_key='+TKEY+'&language=fr-FR&query='+encodeURIComponent(q)+'&page='+page+'&include_adult=false';
+  var url=TB+'/search/multi?language=fr-FR&query='+encodeURIComponent(q)+'&page='+page+'&include_adult=false';
   return tf(url).then(function(data){
     var list=(data.results||[]).filter(function(r){
       if(!(r.media_type==='movie'||r.media_type==='tv'))return false;
@@ -2342,9 +2399,12 @@ function _runSearch(query,page){
     searchState.results=res.results||[];searchState.page=res.page||1;searchState.totalPages=res.total_pages||1;
     _stateText((res.total_results||searchState.results.length)+' résultat'+(((res.total_results||searchState.results.length)>1)?'s':'')+' · page '+searchState.page);
     _renderSR(searchState.results);
-  }).catch(function(){
+  }).catch(function(e){
     if(tok!==searchState.token)return;
-    searchState.results=[];_stateText('Erreur réseau / TMDB.');_renderSR([]);toast('Erreur TMDB','err');sfx('err');
+    searchState.results=[];_renderSR([]);
+    if(e&&e.code==='AUTH_REQUIRED'){_stateText('Connecte-toi (menu Compte) pour rechercher dans TMDB.');return;}
+    if(e&&e.code==='FORBIDDEN'){_stateText('Compte non autorisé pour le catalogue TMDB.');return;}
+    _stateText('Erreur réseau / TMDB.');toast('Erreur TMDB','err');sfx('err');
   }).finally(function(){if(tok!==searchState.token)return;_setSearchLoad(false);_updatePager();});
 }
 function searchPage(delta){if(searchState.loading)return;var n=searchState.page+delta;if(n<1||n>searchState.totalPages)return;_runSearch(searchState.query,n);}

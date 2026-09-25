@@ -21,8 +21,8 @@ Suivi perso pour films, séries, anime avec aesthetic OLED dark inspiré de Plex
 
 - Frontend : HTML5 + CSS3 + Vanilla JS (zero framework)
 - Storage  : IndexedDB (watchlist) + localStorage (prefs)
-- API      : TMDB v3 (clé API client-side)
-- Hosting  : Vercel (static deploy)
+- API      : TMDB v3 + OMDb via fonctions serverless Vercel (`/api`, clés côté serveur)
+- Hosting  : Vercel (statique + fonctions `/api`)
 
 ## 🔗 Accès
 
@@ -65,10 +65,22 @@ En production Vercel, `var PROXY=''` — les images TMDB sont directes HTTPS.
 
 ## ⚙️ Configuration
 
-```javascript
-// watchlist.html — ligne 631
-var TKEY = '9889edf442467bddfc6bde3413a53bfc'; // TMDB API key
-var TB   = 'https://api.themoviedb.org/3';      // TMDB base URL
-var IB   = 'https://image.tmdb.org/t/p/';       // Images base URL
-var PROXY = '';                                  // Vide en prod (localhost:9000 en dev local)
-```
+Aucune clé TMDB ni OMDb n'est présente côté client. Les appels passent par deux
+fonctions serverless Vercel (`api/tmdb.js`, `api/omdb.js`) qui :
+
+- exigent une session Supabase valide (en-tête `Authorization: Bearer <access_token>`,
+  vérifié auprès de `/auth/v1/user`) ;
+- n'acceptent qu'une liste blanche de chemins et de paramètres (pas de proxy ouvert) ;
+- ne mettent jamais les erreurs en cache.
+
+Variables d'environnement Vercel (Production **et** Preview) :
+
+| Variable | Obligatoire | Rôle |
+|---|---|---|
+| `TMDB_API_KEY` | oui | Clé TMDB v3 (ou jeton de lecture v4) |
+| `OMDB_API_KEY` | oui | Clé OMDb |
+| `SUPABASE_ANON_KEY` | oui | Clé publique (anon/publishable) du projet, pour vérifier les sessions |
+| `SUPABASE_URL` | non | URL du projet Supabase (valeur par défaut : celle de l'app) |
+| `ALLOWED_EMAILS` | non | Liste d'emails autorisés, séparés par des virgules |
+
+Côté client (`app.js`) : `TB='/api/tmdb'` (proxy), `IB='https://image.tmdb.org/t/p/'` (images, direct).
