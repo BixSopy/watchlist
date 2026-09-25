@@ -1688,14 +1688,48 @@ function signOutUser(){
 }
 
 /* Cree/verifie la ligne profiles correspondante */
+/* Un seul appel à la fois par utilisateur : getSession() et onAuthStateChange('SIGNED_IN')
+   déclenchent tous deux onAuthResolved() au chargement ; sans ce verrou, deux profils
+   étaient créés en parallèle. S'il existe déjà plusieurs profils, on prend le plus ancien. */
+var _ensureProfilePromise=null,_ensureProfileUserId=null;
+function _selectOldestProfile(userId){
+  return supa.from('profiles').select('id').eq('account_id',userId)
+    .order('created_at',{ascending:true}).order('id',{ascending:true}).limit(1);
+}
 function ensureProfile(user){
-  return supa.from('profiles').select('id').eq('account_id',user.id).maybeSingle().then(function(res){
-    if(res.data&&res.data.id)return res.data.id;
+  if(_ensureProfilePromise&&_ensureProfileUserId===user.id)return _ensureProfilePromise;
+  _ensureProfileUserId=user.id;
+  _ensureProfilePromise=_selectOldestProfile(user.id).then(function(res){
+    if(res.error)throw res.error;/* erreur réseau/RLS : surtout ne pas créer un profil de plus */
+    if(res.data&&res.data.length)return res.data[0].id;
     return supa.from('profiles').insert({account_id:user.id,name:user.email?user.email.split('@')[0]:'Moi'}).select('id').single().then(function(ins){
-      if(ins.error)throw ins.error;
-      return ins.data.id;
+      if(!ins.error)return ins.data.id;
+      /* Course possible avec un autre onglet (contrainte UNIQUE account_id) : on relit */
+      return _selectOldestProfile(user.id).then(function(r2){
+        if(!r2.error&&r2.data&&r2.data.length)return r2.data[0].id;
+        throw ins.error;
+      });
     });
   });
+  _ensureProfilePromise.catch(function(){_ensureProfilePromise=null;_ensureProfileUserId=null;});
+  return _ensureProfilePromise;
+}
+
+/* Une seule fois par compte et par appareil : les titres créés avant la synchro (Session 10)
+   ou ajoutés sans drapeau n'ont jamais été envoyés. On les marque à synchroniser. */
+function markLegacyItemsDirtyOnce(userId){
+  var key='wl_legacy_dirty_'+userId;
+  if(localStorage.getItem(key)==='1')return 0;
+  var n=0;
+  memDB.forEach(function(item){
+    if(!item.supaId&&!item.needsSync&&!item.deleted){
+      item.needsSync=true;
+      if(!item.updatedAtLocal)item.updatedAtLocal=item.addedAt||Date.now();
+      dbPut(item,null);n++;
+    }
+  });
+  localStorage.setItem(key,'1');
+  return n;
 }
 
 function initAuth(){
@@ -1719,9 +1753,12 @@ function initAuth(){
 }
 
 function onAuthResolved(user){
+  /* Déjà initialisé pour ce compte (SIGNED_IN peut être réémis) : rien à refaire */
+  if(authUser&&authUser.id===user.id&&authProfileId)return;
   authUser=user;
   ensureProfile(user).then(function(profileId){
     authProfileId=profileId;
+    markLegacyItemsDirtyOnce(user.id);
     refreshAuthModalView();
     updateSyncStatusUI('syncing');
     syncNow();
@@ -1784,7 +1821,7 @@ function syncPush(){
     chain=chain.then(function(){
       var sentAt=item.updatedAtLocal;
       var payload=localToSupabase(item,authProfileId);
-      return supa.from('watchlist_items').upsert(payload,{onConflict:'local_id'}).select().then(function(res){
+      return supa.from('watchlist_items').upsert(payload,{onConflict:'local_id,profile_id'}).select().then(function(res){
         if(res.error){console.error('[sync push]',res.error);return;}
         if(res.data&&res.data[0]){
           item.supaId=res.data[0].id;
@@ -2056,7 +2093,8 @@ function addSearchEntryDirect(d){
     saison:null,episode:null,totalEp:null,tags:[],addedAt:Date.now(),
     tmdbId:d.tmdbId,tmdbType:d.tmdbType||(isFilm?'movie':'tv'),title:d.title,year:d.year||'',
     poster:d.poster||null,overview:d.overview||'',tmdbScore:d.score||null,
-    hasNewEp:false,nextAir:null,needsConfig:true,source:'search-modal'};
+    hasNewEp:false,nextAir:null,needsConfig:true,source:'search-modal',
+    deleted:false,updatedAtLocal:Date.now(),needsSync:true};
   memDB.unshift(entry);
   dbPut(entry,null);
   if(entry.type==='anime'&&entry.tmdbId){
