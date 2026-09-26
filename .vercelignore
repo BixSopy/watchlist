@@ -1,0 +1,10 @@
+# Liste blanche : seuls ces fichiers sont envoyés et servis par Vercel.
+# (Avant, la prod servait publiquement supabase/schema.sql, la doc Supabase et le
+# workflow GitHub.) Tout le reste (supabase/, .github/, tests/, *.md…) est exclu.
+/*
+!api
+!vendor
+!fonts
+!index.html
+!app.js
+!vercel.json
