@@ -2196,7 +2196,10 @@ function openSearchModal(prefill){
   document.getElementById('searchModalInput').value=q;
   searchState.query=q;_updateCounter();_updatePager();
   _stateText(q.length>=2?'Recherche en cours...':'Tape au moins 2 caractères');
-  setTimeout(function(){document.getElementById('searchModalInput').focus();},40);
+  /* Focus immédiat : sur iOS le clavier ne s'ouvre que si focus() est appelé pendant le geste (tap) */
+  var mi=document.getElementById('searchModalInput');
+  try{mi.focus({preventScroll:true});}catch(_){}
+  setTimeout(function(){if(document.activeElement!==mi)mi.focus();},40);
   if(q.length>=2)_runSearch(q,1);else _renderSR([]);
 }
 function closeSearchModal(){
@@ -2403,6 +2406,10 @@ function bindSearchModalEvents(){
   var modal=document.getElementById('searchModal');
   var res=document.getElementById('searchResults');
   hIn.addEventListener('focus',function(){if(searchState.ignoreFocus)return;openSearchModal(this.value.trim());});
+  /* Sur mobile le champ du header est écrasé à 0 px : seule la loupe (pointer-events:none) reste visible.
+     Toute la barre ouvre donc la recherche, sinon le tap sur la loupe ne fait rien. */
+  var hBar=hIn.closest('.search-bar');
+  if(hBar)hBar.addEventListener('click',function(e){if(e.target===hIn||searchState.open)return;sfx('click');openSearchModal(hIn.value.trim());});
   hIn.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();openSearchModal(this.value.trim());}});
   hIn.addEventListener('input',debounce(function(){if(this.value.trim().length>=2)openSearchModal(this.value.trim());},320));
   mIn.addEventListener('input',function(){_dbSearch();});
