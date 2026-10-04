@@ -384,8 +384,6 @@ function secHtml(label,items,statusClass){
   if(rem>0)h+='<div class="load-more-wrap"><button class="load-more-btn" onclick="loadMoreSec(\''+secId+'\',this)">Charger plus \xb7 '+rem+' autre'+(rem>1?'s':'')+'</button><span class="load-more-count">'+blocks.length+' au total</span></div>';
   return h+'</div>';
 }
-function animeLabel(g){return{shonen:'Shonen',seinen:'Seinen',shojo:'Shojo',slice:'Slice of Life',isekai:'Isekai',autre:'Autres'}[g]||'Autres';}
-
 function render(){
   sortBy=document.getElementById('sortSel').value;
   var tab=activeTab,stat=activeStat,q=fq;
@@ -412,12 +410,6 @@ function render(){
       html+=secHtml('Termines',items.filter(function(i){return i.status=='termine'}),'sec-status-termine');
     }
     else{html+=secHtml(stat=='avoir'?'A voir':stat=='encours'?'En cours':'Termines',items,STATUS_SEC_CLASS[stat]);}
-  } else if(tab=='anime'){
-    var genres=['shonen','seinen','shojo','slice','isekai','autre'];
-    genres.forEach(function(g){
-      var gi=items.filter(function(i){return(i.animeGenre||'autre')==g});
-      if(gi.length)html+=secHtml(animeLabel(g),gi);
-    });
   } else {
     var secs=[{s:'encours',l:'En cours',c:'sec-status-encours'},{s:'avoir',l:'A voir',c:'sec-status-avoir'},{s:'termine',l:'Termines',c:'sec-status-termine'}];
     secs.forEach(function(sec){
@@ -460,7 +452,7 @@ var DISCOVER_CONFIG={
     {id:'kr-serie',title:'K-Dramas',url:'/discover/tv?sort_by=popularity.desc&with_origin_country=KR&without_genres=16',mtype:'tv'},
   ],
   anime:[
-    {id:'tr-anime',title:'Tendances Anime',url:'/trending/tv/week?with_genres=16',mtype:'tv'},
+    {id:'tr-anime',title:'Tendances Anime',url:'/discover/tv?with_genres=16&sort_by=popularity.desc',mtype:'tv'},
     {id:'bc-anime',title:'Parce que tu as aimé',type:'because',filter:'anime'},
     {id:'an-action',title:'Action',url:'/discover/tv?with_genres=16,10759&sort_by=popularity.desc',mtype:'tv'},
     {id:'an-comedy',title:'Comédie',url:'/discover/tv?with_genres=16,35&sort_by=popularity.desc',mtype:'tv'},
