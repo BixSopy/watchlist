@@ -385,24 +385,57 @@ function secHtml(label,items,statusClass){
   if(rem>0)h+='<div class="load-more-wrap"><button class="load-more-btn" onclick="loadMoreSec(\''+secId+'\',this)">Charger plus \xb7 '+rem+' autre'+(rem>1?'s':'')+'</button><span class="load-more-count">'+blocks.length+' au total</span></div>';
   return h+'</div>';
 }
-/* Hero cinematique : met en avant le titre "en cours" le plus recemment touche.
-   Masque s'il n'y en a aucun. Le fond (backdrop TMDB) n'est refetch que si le
-   titre en avant change — pas a chaque render(). */
-var _heroItemId=null;
+/* Hero cinematique : met en avant les titres "en cours" de l'onglet actif (balayage
+   automatique s'il y en a plusieurs, comme un carrousel). Masque s'il n'y en a aucun
+   pour cet onglet. Le fond (backdrop TMDB) n'est refetch que si le titre en avant
+   change — pas a chaque render(). */
+var _heroItemId=null,_heroItems=[],_heroIdx=0,_heroTimer=null,_heroPaused=false;
+var _heroBandBound=false;
+function _heroCandidates(){
+  var tab=activeTab;
+  return memDB.filter(function(i){
+    if(i.deleted||i.status!=='encours'||!i.tmdbId)return false;
+    if(tab==='film'||tab==='serie'||tab==='anime')return i.type===tab;
+    return true;/* 'all' et 'discover' : toutes les series/anime/films en cours */
+  }).sort(function(a,b){return(b.updatedAtLocal||b.addedAt||0)-(a.updatedAtLocal||a.addedAt||0);});
+}
 function renderHero(){
   var band=document.getElementById('heroBand');
   if(!band)return;
-  var candidates=memDB.filter(function(i){return !i.deleted&&i.status=='encours'&&i.tmdbId;});
-  if(!candidates.length){band.classList.remove('on');_heroItemId=null;return;}
-  candidates.sort(function(a,b){return(b.updatedAtLocal||b.addedAt||0)-(a.updatedAtLocal||a.addedAt||0);});
-  var item=candidates[0];
+  if(!_heroBandBound){
+    _heroBandBound=true;
+    band.addEventListener('mouseenter',function(){_heroPaused=true;});
+    band.addEventListener('mouseleave',function(){_heroPaused=false;_scheduleHeroRotate();});
+  }
+  _heroItems=_heroCandidates();
+  clearTimeout(_heroTimer);
+  if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;document.getElementById('heroDots').innerHTML='';return;}
+  if(_heroIdx>=_heroItems.length)_heroIdx=0;
   band.classList.add('on');
+  _showHeroItem(_heroIdx);
+  _scheduleHeroRotate();
+}
+function _scheduleHeroRotate(){
+  clearTimeout(_heroTimer);
+  if(_heroItems.length<2||_heroPaused)return;
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  _heroTimer=setTimeout(function(){
+    _heroIdx=(_heroIdx+1)%_heroItems.length;
+    _showHeroItem(_heroIdx);
+    _scheduleHeroRotate();
+  },7000);
+}
+function _heroGoTo(i){_heroIdx=i;_showHeroItem(i);_scheduleHeroRotate();}
+function _showHeroItem(idx){
+  var item=_heroItems[idx];if(!item)return;
   document.getElementById('heroTitle').textContent=item.title;
   var typeLbl=item.type==='film'?'Film':item.type==='anime'?'Anime':'Serie';
   var epT=(item.saison&&item.episode)?('S'+pad(item.saison)+' E'+pad(item.episode)):'';
   document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
   document.getElementById('heroBtnPlay').onclick=function(){sfx('click');openPlex(item.id);};
   document.getElementById('heroBtnInfo').onclick=function(){sfx('click');openPlex(item.id);};
+  var dots=document.getElementById('heroDots');
+  dots.innerHTML=_heroItems.length>1?_heroItems.map(function(_,i){return '<button class="hero-dot'+(i===idx?' on':'')+'" onclick="sfx(\'click\');_heroGoTo('+i+')" aria-label="Titre '+(i+1)+'"></button>';}).join(''):'';
   if(_heroItemId===item.id)return;
   _heroItemId=item.id;
   var bg=document.getElementById('heroBg');
@@ -671,6 +704,7 @@ function switchTab(btn){
   btn.classList.add('on');
   activeTab=btn.dataset.tab;
   document.body.classList.toggle('view-discover',activeTab==='discover');
+  _heroIdx=0;
   render();
   if(activeTab==='discover')loadDiscovery(discoverCat);
 }
@@ -833,7 +867,8 @@ function saveEntry(){
     reminderEnabled:ex?ex.reminderEnabled:false,nextAirDate:ex?ex.nextAirDate:null,
     lastEpisodeCheck:ex?ex.lastEpisodeCheck:null,tvmazeId:ex?ex.tvmazeId:null,
     streamingProviders:ex?ex.streamingProviders:null,genreIds:ex?ex.genreIds:null,
-    omdbRatings:ex?ex.omdbRatings:null,kitsuRating:ex?ex.kitsuRating:null};
+    omdbRatings:ex?ex.omdbRatings:null,kitsuRating:ex?ex.kitsuRating:null,
+    collectionChecked:ex?ex.collectionChecked:false,tmdbCollectionId:ex?ex.tmdbCollectionId:null};
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}
   dbPut(entry,function(){render();loadRecos();if(!editId)_removeFromDiscoverUI(entry.tmdbId);if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast((editId?'Modifie':'Ajoute')+' : '+entry.title);closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
@@ -1395,21 +1430,25 @@ document.getElementById('folderMbk').addEventListener('click',function(e){if(e.t
 
 /* AUTO-DÉTECTION COLLECTIONS TMDB */
 var _detectRunning=false;
-function detectCollections(){
+/* Automatique et silencieuse au demarrage (plus dans le menu) : ne traite que les
+   films jamais verifies (collectionChecked), qu'ils aient une saga ou non — sinon un
+   film standalone (pas de collection TMDB) serait re-interroge a chaque lancement. */
+function detectCollections(silent){
   if(_detectRunning)return;
-  var films=memDB.filter(function(i){return(i.type==='film'||i.tmdbType==='movie')&&i.tmdbId&&!i.collectionId;});
-  if(!films.length){toast('Tous les films ont déjà une saga ou pas de collection.','nfo');return;}
+  var films=memDB.filter(function(i){return(i.type==='film'||i.tmdbType==='movie')&&i.tmdbId&&!i.collectionChecked;});
+  if(!films.length){if(!silent)toast('Tous les films ont déjà été vérifiés.','nfo');return;}
   _detectRunning=true;
-  toast('Détection des sagas en cours ('+films.length+' films)…','nfo');
+  if(!silent)toast('Détection des sagas en cours ('+films.length+' films)…','nfo');
   var updated=0,done=0,rateLimited=0;
   function next(idx){
-    if(idx>=films.length){_detectRunning=false;if(updated>0){render();toast(updated+' saga'+(updated>1?'s':'')+' détectée'+(updated>1?'s':'')+'.');} else if(rateLimited>0){toast('TMDB a limité les requêtes ('+rateLimited+' échecs) — réessaie dans quelques minutes.','err');} else{toast('Aucune nouvelle saga détectée.','nfo');}return;}
+    if(idx>=films.length){_detectRunning=false;if(updated>0){render();toast(updated+' saga'+(updated>1?'s':'')+' détectée'+(updated>1?'s':'')+'.');} else if(!silent){if(rateLimited>0)toast('TMDB a limité les requêtes ('+rateLimited+' échecs) — réessaie dans quelques minutes.','err');else toast('Aucune nouvelle saga détectée.','nfo');}return;}
     var item=films[idx];
     apiFetch(TB+'/movie/'+item.tmdbId+'?language=fr-FR').then(function(r){
       if(r.status===429){rateLimited++;throw new Error('429');}
       if(!r.ok)throw new Error('HTTP '+r.status);
       return r.json();
     }).then(function(d){
+      item.collectionChecked=true;
       if(d.belongs_to_collection&&d.belongs_to_collection.name){
         var cname=d.belongs_to_collection.name.replace(/\s*collection$/i,'').replace(/\s*saga$/i,'').trim();
         var cid=_slugify(cname);
@@ -1417,8 +1456,11 @@ function detectCollections(){
         item.updatedAtLocal=Date.now();item.needsSync=true;
         for(var k=0;k<memDB.length;k++){if(memDB[k].id===item.id){memDB[k]=item;break;}}
         dbPut(item,null);updated++;
+      }else{
+        for(var k2=0;k2<memDB.length;k2++){if(memDB[k2].id===item.id){memDB[k2]=item;break;}}
+        dbPut(item,null);
       }
-    }).catch(function(){}).finally(function(){done++;setTimeout(function(){next(idx+1);},120);});/* 120ms entre chaque pour éviter rate limit */
+    }).catch(function(e){if(String(e&&e.message)!=='429'){item.collectionChecked=true;for(var k3=0;k3<memDB.length;k3++){if(memDB[k3].id===item.id){memDB[k3]=item;break;}}dbPut(item,null);}}).finally(function(){done++;setTimeout(function(){next(idx+1);},120);});/* 120ms entre chaque pour éviter rate limit */
   }
   next(0);
 }
@@ -1975,6 +2017,8 @@ function preserveSuiviFields(local,remote){
   remote.genreIds=local.genreIds;
   remote.omdbRatings=local.omdbRatings;
   remote.kitsuRating=local.kitsuRating;
+  remote.collectionChecked=local.collectionChecked;
+  remote.tmdbCollectionId=local.tmdbCollectionId;
   return remote;
 }
 function syncPull(){
@@ -2226,6 +2270,7 @@ function renderSettingsMenu(){
   html+='<div class="settings-action-row" onclick="openAuthModal();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">Compte &amp; synchronisation</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
   html+='</div>';
   body.innerHTML=html;
+  enhanceAllSelects(body);
 }
 
 /* EXPORT */
@@ -2263,13 +2308,77 @@ document.addEventListener('keydown',function(e){
   else if(e.key==='m'||e.key==='M'){e.preventDefault();toggleSound();}
 });
 
+/* ===== Session 18 : selects personnalises (Liquid Glass + ressort) =====
+   Le popup d'un <select> natif est dessine par l'OS : impossible a styler en CSS
+   (c'est exactement ce qu'on voit sur un select ouvert — menu plat, surbrillance
+   bleue systeme). On masque le <select> (il reste dans le DOM, sa valeur et ses
+   evenements 'change' continuent de piloter tout le code existant sans aucune
+   modif ailleurs) et on construit un bouton + menu entierement stylables par-dessus. */
+function enhanceSelect(sel){
+  if(!sel||sel._cselDone)return;sel._cselDone=true;
+  var wrap=document.createElement('div');
+  wrap.className='csel'+(sel.className?' '+sel.className:'');
+  sel.parentNode.insertBefore(wrap,sel);
+  wrap.appendChild(sel);
+  var btn=document.createElement('button');
+  btn.type='button';btn.className='csel-btn '+sel.className;
+  var lbl=document.createElement('span');lbl.className='csel-lbl';
+  var chev=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  chev.setAttribute('class','csel-chev');chev.setAttribute('viewBox','0 0 24 24');chev.setAttribute('fill','none');chev.setAttribute('stroke','currentColor');chev.setAttribute('stroke-width','2.4');
+  chev.innerHTML='<polyline points="6 9 12 15 18 9"/>';
+  btn.appendChild(lbl);btn.appendChild(chev);
+  var menu=document.createElement('div');menu.className='csel-menu';menu.setAttribute('role','listbox');
+  function curLabel(){var o=sel.options[sel.selectedIndex];return o?o.text:'';}
+  function renderMenu(){
+    menu.innerHTML='';
+    Array.prototype.forEach.call(sel.options,function(o,i){
+      var opt=document.createElement('div');
+      opt.className='csel-opt'+(i===sel.selectedIndex?' on':'');
+      opt.setAttribute('role','option');opt.textContent=o.text;
+      opt.onclick=function(e){
+        e.stopPropagation();
+        if(sel.selectedIndex!==i){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}));}
+        lbl.textContent=curLabel();
+        close();sfx('click');
+      };
+      menu.appendChild(opt);
+    });
+  }
+  function isOpen(){return wrap.classList.contains('open');}
+  function open(){if(isOpen())return;renderMenu();wrap.classList.add('open');document.addEventListener('click',onDocClick);sfx('click');}
+  function close(){wrap.classList.remove('open');document.removeEventListener('click',onDocClick);}
+  function onDocClick(e){if(!wrap.contains(e.target))close();}
+  btn.onclick=function(e){e.stopPropagation();isOpen()?close():open();};
+  btn.onkeydown=function(e){
+    if(e.key==='Escape'){close();return;}
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();isOpen()?close():open();return;}
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault();
+      var n=sel.options.length;if(!n)return;
+      var d=e.key==='ArrowDown'?1:-1;
+      sel.selectedIndex=(sel.selectedIndex+d+n)%n;
+      sel.dispatchEvent(new Event('change',{bubbles:true}));
+      lbl.textContent=curLabel();
+      if(isOpen())renderMenu();
+    }
+  };
+  sel.addEventListener('change',function(){lbl.textContent=curLabel();});
+  lbl.textContent=curLabel();
+  wrap.appendChild(btn);wrap.appendChild(menu);
+}
+function enhanceAllSelects(root){
+  (root||document).querySelectorAll('select:not(.csel-done-marker)').forEach(function(s){
+    if(!s._cselDone)enhanceSelect(s);
+  });
+}
+
 /* INIT */
 soundOn=localStorage.getItem('wl_snd')!='0';
 compactOn=localStorage.getItem('wl_cpt')=='1';
 try{dismissed=JSON.parse(localStorage.getItem('wl_dis')||'[]');}catch(e){dismissed=[];}
 loadSettings();applySettings();
 document.addEventListener('click',function u(){getAC();document.removeEventListener('click',u);},{once:true});
-openDB(function(){render();loadRecos();setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);});
+openDB(function(){render();loadRecos();setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);enhanceAllSelects(document);setTimeout(function(){detectCollections(true);},6000);});
 /* ResizeObserver : recalcul card size si fenêtre redimensionnée */
 if(typeof ResizeObserver!=='undefined'){
   var _drRO=new ResizeObserver(function(){_calcDrCardSize();});
