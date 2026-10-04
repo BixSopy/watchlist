@@ -315,6 +315,15 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .sec-title em{color:var(--accent);font-style:normal}
 .sec-count{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text3)}
 
+/* MODULES PAR STATUT — léger lavis de couleur qui s'estompe, pas un aplat */
+.sec-status-encours,.sec-status-avoir,.sec-status-termine{border-radius:var(--r-xl);margin-left:-20px;margin-right:-20px;padding:20px 20px 4px}
+.sec-status-encours{background:linear-gradient(180deg,rgba(92,200,255,.06),rgba(92,200,255,0) 220px)}
+.sec-status-avoir{background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0) 220px)}
+.sec-status-termine{background:linear-gradient(180deg,rgba(75,232,122,.05),rgba(75,232,122,0) 220px)}
+.sec-status-encours .sec-hd{border-bottom-color:rgba(92,200,255,.28)}
+.sec-status-avoir .sec-hd{border-bottom-color:rgba(255,255,255,.14)}
+.sec-status-termine .sec-hd{border-bottom-color:rgba(75,232,122,.26)}
+
 /* LOAD MORE */
 @keyframes cardReveal{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .card[data-more="1"],.folder-card[data-more="1"]{display:none}
@@ -616,10 +625,10 @@ body.suivi-providers-off .suivi-providers{display:none}
     <span class="sync-dot anon" id="syncDot"></span>
     <span id="syncStatusText">Non connecte</span>
   </div>
-  <button class="hbtn" onclick="openStats()" title="Stats (S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></button>
-  <button class="hbtn" onclick="toggleMenu()" title="Options"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <button class="hbtn" onclick="toggleMenu()" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div id="optMenu" class="opt-menu">
     <div class="settings-view" id="optMenuMain">
+      <button class="opt-btn" onclick="openStats();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> Statistiques</button>
       <button class="opt-btn" onclick="openSettingsView()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Réglages</button>
       <div class="opt-sep"></div>
       <button class="opt-btn" onclick="exportJSON();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exporter JSON</button>
@@ -636,8 +645,6 @@ body.suivi-providers-off .suivi-providers{display:none}
       <div class="settings-foot">Les réglages sont enregistrés automatiquement sur cet appareil.</div>
     </div>
   </div>
-  <button class="hbtn" id="cptBtn" onclick="toggleCompact()" title="Compact (C)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
-  <button class="hbtn on" id="sndBtn" onclick="toggleSound()" title="Son (M)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
 
 </header>
 <div class="layout">

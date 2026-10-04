@@ -133,10 +133,6 @@ function sfx(x){
 }
 function toggleSound(){
   soundOn=!soundOn;localStorage.setItem('wl_snd',soundOn?'1':'0');
-  var b=document.getElementById('sndBtn');b.classList.toggle('on',soundOn);
-  b.innerHTML=soundOn
-    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>'
-    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
   if(soundOn)sfx('click');
 }
 
@@ -364,7 +360,8 @@ function loadMoreSec(secId,btn){
   if(left<=0){if(btn&&btn.parentElement)btn.parentElement.style.display='none';}
   else if(btn)btn.textContent='Charger plus · '+left+' autre'+(left>1?'s':'');
 }
-function secHtml(label,items){
+var STATUS_SEC_CLASS={encours:'sec-status-encours',avoir:'sec-status-avoir',termine:'sec-status-termine'};
+function secHtml(label,items,statusClass){
   if(!items.length)return'';
   var colGroups={},singles=[];
   items.forEach(function(item){if(item.collectionId){if(!colGroups[item.collectionId])colGroups[item.collectionId]=[];colGroups[item.collectionId].push(item);}else{singles.push(item);}});
@@ -376,7 +373,7 @@ function secHtml(label,items){
   var secId='s'+Math.random().toString(36).slice(2,8);
   var gridClass='grid'+(compactOn?' cpt':'');
   var initVisible=_initVisibleRows();
-  var h='<div class="sec" id="'+secId+'"><div class="sec-hd"><div class="sec-title">'+label+'</div></div><div class="'+gridClass+'">';
+  var h='<div class="sec'+(statusClass?' '+statusClass:'')+'" id="'+secId+'"><div class="sec-hd"><div class="sec-title">'+label+'</div><div class="sec-count">'+blocks.length+'</div></div><div class="'+gridClass+'">';
   blocks.forEach(function(b,i){
     var more=i>=initVisible?'data-more="1"':'';
     if(b.type==='folder')h+=folderCardHtml(b.cid,b.items,more);
@@ -398,7 +395,7 @@ function render(){
   if(tab=='all'){
     var ec=items.filter(function(i){return i.status=='encours'});
     if(ec.length){
-      html+='<div class="sec"><div class="sec-hd"><div class="sec-title">En cours</div><div class="sec-count">'+ec.length+'</div></div><div class="ec-strip">';
+      html+='<div class="sec sec-status-encours"><div class="sec-hd"><div class="sec-title">En cours</div><div class="sec-count">'+ec.length+'</div></div><div class="ec-strip">';
       ec.forEach(function(item){
         var po=item.poster?'<img class="ec-poster" src=\"'+IB+'w185'+esc(item.poster)+'\" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'';
         var ph='<div class="ec-poster-ph" '+(item.poster?'style="display:none"':'')+'>'+icon(item.type)+'</div>';
@@ -409,8 +406,12 @@ function render(){
       });
       html+='</div></div>';
     }
-    if(stat=='all'){html+=secHtml('Tous les titres',items);}
-    else{html+=secHtml(stat=='avoir'?'A voir':stat=='encours'?'En cours':'Termines',items);}
+    if(stat=='all'){
+      /* "En cours" a déjà sa bande dédiée ci-dessus : on évite de le répéter en grille complète */
+      html+=secHtml('A voir',items.filter(function(i){return i.status=='avoir'||i.status=='todo'}),'sec-status-avoir');
+      html+=secHtml('Termines',items.filter(function(i){return i.status=='termine'}),'sec-status-termine');
+    }
+    else{html+=secHtml(stat=='avoir'?'A voir':stat=='encours'?'En cours':'Termines',items,STATUS_SEC_CLASS[stat]);}
   } else if(tab=='anime'){
     var genres=['shonen','seinen','shojo','slice','isekai','autre'];
     genres.forEach(function(g){
@@ -418,10 +419,10 @@ function render(){
       if(gi.length)html+=secHtml(animeLabel(g),gi);
     });
   } else {
-    var secs=[{s:'encours',l:'En cours'},{s:'avoir',l:'A voir'},{s:'termine',l:'Termines'}];
+    var secs=[{s:'encours',l:'En cours',c:'sec-status-encours'},{s:'avoir',l:'A voir',c:'sec-status-avoir'},{s:'termine',l:'Termines',c:'sec-status-termine'}];
     secs.forEach(function(sec){
       var si=stat=='all'?items.filter(function(i){return i.status==sec.s}):(sec.s==stat?items:[]);
-      if(si.length)html+=secHtml(sec.l,si);
+      if(si.length)html+=secHtml(sec.l,si,sec.c);
     });
   }
 
@@ -659,7 +660,7 @@ document.getElementById('sortSel').addEventListener('change',render);
 document.getElementById('qinput').addEventListener('input',function(e){fq=e.target.value;render();});
 
 /* COMPACT */
-function toggleCompact(){compactOn=!compactOn;sfx('click');document.getElementById('cptBtn').classList.toggle('on',compactOn);localStorage.setItem('wl_cpt',compactOn?'1':'0');render();}
+function toggleCompact(){compactOn=!compactOn;sfx('click');localStorage.setItem('wl_cpt',compactOn?'1':'0');render();}
 
 /* SEARCH */
 var ti=document.getElementById('tinput'),tdd=document.getElementById('tdd'),spin=document.getElementById('spin');
@@ -2119,8 +2120,6 @@ soundOn=localStorage.getItem('wl_snd')!='0';
 compactOn=localStorage.getItem('wl_cpt')=='1';
 try{dismissed=JSON.parse(localStorage.getItem('wl_dis')||'[]');}catch(e){dismissed=[];}
 loadSettings();applySettings();
-if(!soundOn)toggleSound();
-if(compactOn){document.getElementById('cptBtn').classList.add('on');}
 document.addEventListener('click',function u(){getAC();document.removeEventListener('click',u);},{once:true});
 openDB(function(){render();loadRecos();loadDiscovery(activeTab);setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);});
 /* ResizeObserver : recalcul card size si fenêtre redimensionnée */
