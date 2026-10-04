@@ -1142,7 +1142,14 @@ function applyGlass(pct){
 
 
 var seenRecos=[];/* IDs vus dans la sidebar cette session — reset à l'actualisation */
+var _loadRecosTimer=null;
+/* Debounce : plusieurs appels rapprochés (ajout+suppression, etc.) ne déclenchent
+   qu'un seul lot de requêtes TMDB, 400ms après le dernier appel. */
 function loadRecos(){
+  clearTimeout(_loadRecosTimer);
+  _loadRecosTimer=setTimeout(_loadRecosNow,400);
+}
+function _loadRecosNow(){
   var sb=document.getElementById('sbContent');sb.innerHTML=skeletonHTML();
   stopAutoScroll();var inList=memDB.map(function(i){return i.tmdbId});
   var excl=inList.concat(dismissed).concat(seenRecos);
@@ -1205,11 +1212,6 @@ function renderRecos(tHtml,bHtml,json,inList){
   if(_apiAuthState){_paintLoginRequired();return;}
   /* Flux continu numéroté — sections fusionnées avec séparateur discret */
   var allItems=[];
-  /* Extraire les items des sections tendances et because */
-  function extractItems(html){
-    /* On passe les raw data dans json directement */
-    return [];
-  }
   var counter=0;
   function recoSection(svgPath,titleTxt,items){
     if(!items.length)return'';
