@@ -815,7 +815,7 @@ function saveEntry(){
     omdbRatings:ex?ex.omdbRatings:null,kitsuRating:ex?ex.kitsuRating:null};
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}
-  dbPut(entry,function(){render();loadRecos();if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast((editId?'Modifie':'Ajoute')+' : '+entry.title);closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
+  dbPut(entry,function(){render();loadRecos();if(!editId)_removeFromDiscoverUI(entry.tmdbId);if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast((editId?'Modifie':'Ajoute')+' : '+entry.title);closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
 }
 function delEntry(id){
   if(!confirm('Supprimer ?'))return;
@@ -1400,6 +1400,24 @@ function detectCollections(){
     }).catch(function(){}).finally(function(){done++;setTimeout(function(){next(idx+1);},120);});/* 120ms entre chaque pour éviter rate limit */
   }
   next(0);
+}
+/* Retire immediatement un titre tout juste ajoute des recommandations (sidebar) et des
+   rangees Discover (Tendances, etc.), sans attendre le prochain refresh reseau. Purge
+   aussi _drCache pour qu'il ne reapparaisse pas si une rangee se re-rend depuis le cache. */
+function _removeFromDiscoverUI(tmdbId){
+  if(!tmdbId)return;
+  document.querySelectorAll('.reco-card[data-tmdbid="'+tmdbId+'"]').forEach(function(card){
+    card.style.transition='opacity .25s,transform .25s';card.style.opacity='0';card.style.transform='scale(.92)';
+    setTimeout(function(){card.remove();},250);
+  });
+  document.querySelectorAll('.dr-card[data-tmdbid="'+tmdbId+'"]').forEach(function(card){
+    card.style.transition='opacity .2s';card.style.opacity='0';
+    setTimeout(function(){card.remove();},200);
+  });
+  Object.keys(_drCache).forEach(function(key){
+    var d=_drCache[key];
+    if(d&&d.items)d.items=d.items.filter(function(x){return x.tmdbId!=tmdbId;});
+  });
 }
 function recoPreview(card){sfx('click');var d=getCardData(card);openPlexReco(d);}
 function recoAdd(card){sfx('click');var d=getCardData(card);var dup=memDB.find(function(i){return i.tmdbId==d.tmdbId});if(dup){toast('"'+d.title+'" est deja dans ta liste','err');return;}recoAddDirect(d);}
