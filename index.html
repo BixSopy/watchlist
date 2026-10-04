@@ -18,7 +18,7 @@
   --accent:#5cc8ff;--accent-dim:rgba(92,200,255,0.12);--accent-dim2:rgba(92,200,255,0.35);
   --red:#e84b4b;--green:#4be87a;
   /* TRANSITIONS variées (#5) */
-  --tr:0.16s ease;--tr-fast:0.08s ease;--tr-slow:0.28s cubic-bezier(.4,0,.2,1);
+  --tr:0.16s ease;--tr-fast:0.08s ease;--tr-slow:0.28s cubic-bezier(.4,0,.2,1);--spring:cubic-bezier(.34,1.56,.64,1);
   /* BORDER-RADIUS harmonisé (#3) — 4 valeurs */
   --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
   /* SHADOWS (#2) */
@@ -39,7 +39,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 /* HEADER */
 .hdr{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;height:62px;display:flex;align-items:center;gap:20px}
-.logo{font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;letter-spacing:-.5px;color:#fff}
+.logo{font-family:'Inter',sans-serif;font-size:22px;font-weight:900;letter-spacing:-.5px;color:#fff}
 .logo em{color:var(--accent);font-style:normal}
 .logo sub{font-weight:400;color:var(--text2);font-size:15px;margin-left:3px;vertical-align:baseline}
 .hstats{display:flex;gap:10px;margin-left:auto;align-items:center}
@@ -273,7 +273,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 /* NAV */
 .nav{display:flex;align-items:center;padding:10px 0;border-bottom:none;background:transparent;gap:8px;flex-shrink:0;padding-left:28px}
-.ntab{font-family:'Nunito',sans-serif;font-size:21px;font-weight:900;padding:12px 24px;cursor:pointer;color:var(--text2);border:none;border-radius:999px;background:transparent;transition:var(--tr-slow);letter-spacing:-.4px;white-space:nowrap;position:relative;display:inline-flex;align-items:center;gap:9px}
+.ntab{font-family:'Inter',sans-serif;font-size:21px;font-weight:900;padding:12px 24px;cursor:pointer;color:var(--text2);border:none;border-radius:999px;background:transparent;transition:var(--tr-slow);letter-spacing:-.4px;white-space:nowrap;position:relative;display:inline-flex;align-items:center;gap:9px}
 .ntab-ic{font-size:18px;line-height:1;opacity:.85}
 .ntab:hover{color:var(--text);background:var(--bg3)}
 .ntab.on{color:#000;background:var(--accent);box-shadow:0 6px 20px rgba(92,200,255,.3)}
@@ -298,7 +298,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .discover-section{padding-top:32px;padding-bottom:40px}
 .dr-row{margin-bottom:36px;position:relative}
 .dr-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 var(--dr-pad,48px)}
-.dr-row-title{font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.3px}
+.dr-row-title{font-family:'Inter',sans-serif;font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.3px}
 .dr-row-title em{color:var(--accent);font-style:normal;font-size:14px;font-weight:600;margin-left:8px;font-family:'IBM Plex Sans',sans-serif}
 .dr-row-wrap{position:relative}
 .dr-row-inner{display:flex;gap:10px;overflow-x:hidden;padding:6px var(--dr-pad,48px) 10px}
@@ -326,7 +326,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 /* SECTION HEADERS */
 .sec{margin-bottom:36px}
 .sec-hd{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid var(--border)}
-.sec-title{font-family:'Nunito',sans-serif;font-size:30px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1}
+.sec-title{font-family:'Inter',sans-serif;font-size:30px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1}
 .sec-title em{color:var(--accent);font-style:normal}
 .sec-count{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text3)}
 
@@ -495,7 +495,7 @@ body.suivi-providers-off .suivi-providers{display:none}
 .plex-poster{width:120px;height:180px;object-fit:cover;border-radius:var(--r-md);flex-shrink:0;border:2px solid rgba(255,255,255,.12);box-shadow:var(--shadow-poster)}
 .plex-poster-ph{width:120px;height:180px;background:var(--bg4);border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:38px;color:var(--text3)}
 .plex-info{flex:1;min-width:0}
-.plex-title{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:6px;letter-spacing:-.5px}
+.plex-title{font-family:'Inter',sans-serif;font-size:28px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:6px;letter-spacing:-.5px}
 .plex-meta{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .plex-sep{opacity:.35}
 .plex-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
@@ -704,7 +704,7 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
 .hero-band-fade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,12,.05) 0%,rgba(10,10,12,.6) 68%,var(--bg) 100%)}
 .hero-band-content{position:absolute;left:48px;bottom:34px;max-width:580px;z-index:2}
 .hero-badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);background:rgba(92,200,255,.14);border:1px solid rgba(92,200,255,.3);padding:4px 11px;border-radius:20px;margin-bottom:13px}
-.hero-title{font-family:'Nunito',sans-serif;font-size:40px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:8px;line-height:1.05;text-shadow:0 4px 22px rgba(0,0,0,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-title{font-family:'Inter',sans-serif;font-size:40px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:8px;line-height:1.05;text-shadow:0 4px 22px rgba(0,0,0,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hero-meta{font-size:13.5px;color:rgba(255,255,255,.72);margin-bottom:18px;display:flex;align-items:center;gap:8px}
 .hero-score{color:#ffd166;font-weight:600}
 .hero-actions{display:flex;gap:10px}
@@ -731,6 +731,15 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
   .nav.floating{margin:14px 14px 0;border-radius:16px}
   .hero-band.on + .nav.floating{margin-top:-18px}
 }
+
+/* ===== Session 16 : motion ressort + retour tactile =====
+   Apple n'utilise jamais un easing lineaire sur ses transformations — toujours un
+   leger rebond physique. On surcharge juste le timing-function (la duree/propriete
+   de base ne bouge pas) sur les elements qui bougent au survol/clic, et on ajoute
+   une compression :active pour un retour "natif" au tap plutot que "site web". */
+.card,.ec-card,.ntab,.add-btn,.hero-btn,.rbtn,.dr-card,.folder-card,.bento-tile{transition-timing-function:var(--spring)}
+.card:active,.ec-card:active,.ntab:active,.add-btn:active,.hero-btn:active,.rbtn:active,.dr-card:active,.folder-card:active{transform:scale(.96)}
+.modal-add,.plex-wrap,.modal-stats,.opt-menu{animation-duration:.4s;animation-timing-function:var(--spring)}
 </style>
 <!-- Theme color -->
 <meta name="theme-color" content="#0a0a0c">
