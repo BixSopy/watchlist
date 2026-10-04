@@ -306,7 +306,8 @@ function cardHtml(item,idx){
   var newep=item.hasNewEp?'<div class="card-newep">Nouvel ep</div>':'';
   var todof=(item.status==='todo'||item.needsConfig)?'<div class="card-todo-flag" title="À qualifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>':'';
   var id=item.id;var delay=idx*0.02;
-  return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(id)+')">'+newep+todof+po+ph+'<div class="cact"><div class="ibtn" onclick="event.stopPropagation();sfx(\'click\');openEdit('+jsArg(id)+')" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del" onclick="event.stopPropagation();delEntry('+jsArg(id)+')" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(item.title)+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
+  var nextBtn=(item.status=='encours'&&item.type!='film')?'<div class="ibtn" onclick="quickNextEp('+jsArg(id)+',event)" title="Episode suivant vu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>':'';
+  return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(id)+')">'+newep+todof+po+ph+'<div class="cact">'+nextBtn+'<div class="ibtn" onclick="event.stopPropagation();sfx(\'click\');openEdit('+jsArg(id)+')" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del" onclick="event.stopPropagation();delEntry('+jsArg(id)+')" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(item.title)+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
 }
 
 /* Session 11B : estimation du nombre de colonnes réelles de la grille principale,
@@ -400,7 +401,8 @@ function render(){
         var epT=(item.saison&&item.episode)?'S'+pad(item.saison)+' E'+pad(item.episode):'En cours';
         var pct=0;if(item.totalEp&&item.totalEp>0&&item.episode)pct=Math.min(100,Math.round((item.episode/item.totalEp)*100));
         var pb=item.totalEp?'<div class="pbar"><div class="pbar-fill" style="width:'+pct+'%"></div></div>':'';
-        html+='<div class="ec-card" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(item.id)+')">'+po+ph+'<div class="ec-body"><div class="ec-title">'+esc(item.title)+'</div><div class="ec-ep">'+epT+'</div>'+pb+'</div></div>';
+        var nextBtn=item.type!='film'?'<button class="ec-next" title="Episode suivant vu" onclick="quickNextEp('+jsArg(item.id)+',event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>':'';
+        html+='<div class="ec-card" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(item.id)+')">'+po+ph+nextBtn+'<div class="ec-body"><div class="ec-title">'+esc(item.title)+'</div><div class="ec-ep">'+epT+'</div>'+pb+'</div></div>';
       });
       html+='</div></div>';
     }
@@ -1004,12 +1006,26 @@ function nextEpPlex(){
   var d=plexData;if(!d||!d.item)return;
   var item=d.item;var ep=(item.episode||1)+1;var sai=item.saison||1;
   if(plexSeasons.length){var cur=plexSeasons.find(function(s){return s.season_number==sai});if(cur&&cur.episode_count&&ep>cur.episode_count){var nx=plexSeasons.find(function(s){return s.season_number==sai+1});if(nx){sai++;ep=1;}else{ep=cur.episode_count;}}}
-  item.episode=ep;item.saison=sai;item.updatedAtLocal=Date.now();item.needsSync=true;
+  item.episode=ep;item.saison=sai;item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
   for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
   dbPut(item,function(){sfx('next');render();document.getElementById('plexProgVal').textContent='S'+pad(sai)+' E'+pad(ep);toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
 }
 function closePlex(){document.getElementById('plexMbk').classList.remove('on');plexData=null;}
 document.getElementById('plexMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closePlex();}});
+
+/* Marquer l'episode suivant vu en un clic, directement depuis une carte (sans ouvrir
+   la fiche détail). Pas de connaissance du nombre d'episodes par saison ici (pas de
+   fetch TMDB) : avance simplement dans la saison en cours, comme la saisie manuelle. */
+function quickNextEp(id,ev){
+  if(ev){ev.stopPropagation();ev.preventDefault();}
+  var item=memDB.find(function(i){return i.id==id;});
+  if(!item||item.type=='film')return;
+  item.episode=(item.episode||0)+1;
+  if(!item.saison)item.saison=1;
+  item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
+  for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
+  dbPut(item,function(){sfx('next');render();toast('S'+pad(item.saison)+' E'+pad(item.episode)+' - '+item.title,'nfo');});
+}
 
 /* ===== SESSION 11 : PROFIL DE GOÛT LOCAL (scoring recommandations) =====
    Le profil est recalculé à la volée depuis memDB (pas de store IndexedDB dédié :
@@ -1430,7 +1446,20 @@ function checkAir(item){
   tf(TB+'/tv/'+item.tmdbId+'?language=fr-FR').then(function(d){
     var changed=false;
     if(d.next_episode_to_air&&d.next_episode_to_air.air_date){item.nextAir=d.next_episode_to_air.air_date;changed=true;}
-    if(d.last_episode_to_air&&item.status=='encours'&&d.last_episode_to_air.episode_number>(item.episode||0)){item.hasNewEp=true;changed=true;}
+    var last=d.last_episode_to_air,isNew=false;
+    if(last&&item.status=='encours'){
+      var userSeason=item.saison||1,userEp=item.episode||0;
+      var lastSeason=last.season_number||1;
+      /* Comparer saison+episode, pas juste le numero d'episode dans sa saison :
+         S02E10 n'est pas "plus loin" que S01E05 juste parce que 10>5. */
+      var isAhead=lastSeason>userSeason||(lastSeason===userSeason&&last.episode_number>userEp);
+      var daysSinceAir=last.air_date?Math.floor((Date.now()-new Date(last.air_date+'T00:00:00').getTime())/86400000):Infinity;
+      /* "Nouvel episode" seulement si recent (<=45 jours) : au-dela, c'est du retard
+         de visionnage sur un episode deja ancien (serie terminee depuis des annees
+         par ex.), pas une sortie a signaler. */
+      isNew=isAhead&&daysSinceAir<=45;
+    }
+    if(item.hasNewEp!==isNew){item.hasNewEp=isNew;changed=true;}
     if(changed){for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}dbPut(item,function(){});}
   }).catch(function(){});
 }
