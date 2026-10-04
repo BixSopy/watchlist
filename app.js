@@ -418,6 +418,13 @@ function renderHero(){
 
 function render(){
   renderHero();
+  var total0=memDB.filter(function(i){return !i.deleted}).length,ec0=memDB.filter(function(i){return i.status=='encours'&&!i.deleted}).length,te0=memDB.filter(function(i){return i.status=='termine'&&!i.deleted}).length;
+  document.getElementById('hstats').innerHTML='<div class="pill"><b>'+total0+'</b> titres</div><div class="pill">En cours <b>'+ec0+'</b></div><div class="pill">Termines <b>'+te0+'</b></div>';
+  if(activeTab==='discover'){
+    document.getElementById('mc').innerHTML='';
+    if(typeof updateStatsFooter==='function')updateStatsFooter();
+    return;
+  }
   sortBy=document.getElementById('sortSel').value;
   var tab=activeTab,stat=activeStat,q=fq;
   var items=getItems(tab,stat,q);
@@ -454,8 +461,6 @@ function render(){
 
   if(!html)html=memDB.length==0?'<div class="empty-state"><div class="empty-state-icon">🎬</div><p>Ta watchlist est vide</p><small>Appuie sur <strong style="color:var(--accent)">N</strong> ou clique sur Ajouter pour commencer</small></div>':'<div class="empty-state"><div class="empty-state-icon">🔍</div><p>Aucun résultat</p><small>Essaie un autre filtre ou terme de recherche</small></div>';
   document.getElementById('mc').innerHTML=html;
-  var total=memDB.filter(function(i){return !i.deleted}).length,ec2=memDB.filter(function(i){return i.status=='encours'&&!i.deleted}).length,te=memDB.filter(function(i){return i.status=='termine'&&!i.deleted}).length;
-  document.getElementById('hstats').innerHTML='<div class="pill"><b>'+total+'</b> titres</div><div class="pill">En cours <b>'+ec2+'</b></div><div class="pill">Termines <b>'+te+'</b></div>';
   if(typeof updateStatsFooter==='function')updateStatsFooter();
 }
 
@@ -659,7 +664,23 @@ function loadDiscovery(tab){
     });
   });
 }
-function switchTab(btn){sfx('click');document.querySelectorAll('.ntab').forEach(function(b){b.classList.remove('on')});btn.classList.add('on');activeTab=btn.dataset.tab;render();loadDiscovery(activeTab);}
+var discoverCat='all';
+function switchTab(btn){
+  sfx('click');
+  document.querySelectorAll('.ntab').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');
+  activeTab=btn.dataset.tab;
+  document.body.classList.toggle('view-discover',activeTab==='discover');
+  render();
+  if(activeTab==='discover')loadDiscovery(discoverCat);
+}
+function switchDiscoverCat(btn){
+  sfx('click');
+  document.querySelectorAll('#discoverCatPills .stab').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');
+  discoverCat=btn.dataset.dc;
+  loadDiscovery(discoverCat);
+}
 
 /* Session 11B : actions Réglages > Recommandations */
 function resetDismissedRecos(){
@@ -2248,7 +2269,7 @@ compactOn=localStorage.getItem('wl_cpt')=='1';
 try{dismissed=JSON.parse(localStorage.getItem('wl_dis')||'[]');}catch(e){dismissed=[];}
 loadSettings();applySettings();
 document.addEventListener('click',function u(){getAC();document.removeEventListener('click',u);},{once:true});
-openDB(function(){render();loadRecos();loadDiscovery(activeTab);setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);});
+openDB(function(){render();loadRecos();setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);});
 /* ResizeObserver : recalcul card size si fenêtre redimensionnée */
 if(typeof ResizeObserver!=='undefined'){
   var _drRO=new ResizeObserver(function(){_calcDrCardSize();});
