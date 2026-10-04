@@ -26,7 +26,7 @@ function fnBody(src, name) {
 
 test('la loupe du header est bien non cliquable en elle-même (le clic tombe sur la barre)', () => {
   assert.match(html, /\.search-bar>svg\{[^}]*pointer-events:none/);
-  assert.match(html, /<div class="search-bar"[^>]*>\s*<svg[\s\S]*?<input[^>]*id="tmdbSearchInput"/);
+  assert.match(html, /<div class="search-bar[^"]*"[^>]*>\s*<svg[\s\S]*?<input[^>]*id="tmdbSearchInput"/);
 });
 
 test('un tap sur la barre de recherche (loupe comprise) ouvre la modale', () => {
