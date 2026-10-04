@@ -385,7 +385,39 @@ function secHtml(label,items,statusClass){
   if(rem>0)h+='<div class="load-more-wrap"><button class="load-more-btn" onclick="loadMoreSec(\''+secId+'\',this)">Charger plus \xb7 '+rem+' autre'+(rem>1?'s':'')+'</button><span class="load-more-count">'+blocks.length+' au total</span></div>';
   return h+'</div>';
 }
+/* Hero cinematique : met en avant le titre "en cours" le plus recemment touche.
+   Masque s'il n'y en a aucun. Le fond (backdrop TMDB) n'est refetch que si le
+   titre en avant change — pas a chaque render(). */
+var _heroItemId=null;
+function renderHero(){
+  var band=document.getElementById('heroBand');
+  if(!band)return;
+  var candidates=memDB.filter(function(i){return !i.deleted&&i.status=='encours'&&i.tmdbId;});
+  if(!candidates.length){band.classList.remove('on');_heroItemId=null;return;}
+  candidates.sort(function(a,b){return(b.updatedAtLocal||b.addedAt||0)-(a.updatedAtLocal||a.addedAt||0);});
+  var item=candidates[0];
+  band.classList.add('on');
+  document.getElementById('heroTitle').textContent=item.title;
+  var typeLbl=item.type==='film'?'Film':item.type==='anime'?'Anime':'Serie';
+  var epT=(item.saison&&item.episode)?('S'+pad(item.saison)+' E'+pad(item.episode)):'';
+  document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
+  document.getElementById('heroBtnPlay').onclick=function(){sfx('click');openPlex(item.id);};
+  document.getElementById('heroBtnInfo').onclick=function(){sfx('click');openPlex(item.id);};
+  if(_heroItemId===item.id)return;
+  _heroItemId=item.id;
+  var bg=document.getElementById('heroBg');
+  bg.classList.remove('loaded');
+  var kind=item.tmdbType||(item.type==='film'?'movie':'tv');
+  tf(TB+'/'+kind+'/'+item.tmdbId+'?language=fr-FR&append_to_response=images').then(function(det){
+    if(_heroItemId!==item.id)return;
+    var imgs=(det.images&&det.images.backdrops)||[];
+    var path=imgs.length?imgs[0].file_path:(det.backdrop_path||null);
+    if(path){bg.style.backgroundImage='url("'+IB+'w1280'+path+'")';bg.classList.add('loaded');}
+  }).catch(function(){});
+}
+
 function render(){
+  renderHero();
   sortBy=document.getElementById('sortSel').value;
   var tab=activeTab,stat=activeStat,q=fq;
   var items=getItems(tab,stat,q);

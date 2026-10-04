@@ -674,6 +674,63 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
 .bento-tile .bt-val.a{color:var(--accent)}
 .bento-tile .bt-sub{font-size:11px;color:var(--text3);margin-top:4px}
 @media (max-width:560px){.bento-stats{grid-template-columns:repeat(2,1fr)}.bento-tile.big{grid-column:span 2;grid-row:span 1}}
+
+/* ===== Session 15 : Hero cinematique + nav flottante Liquid Glass =====
+   Recette Liquid Glass sobre et cross-browser : blur + saturate + un seul liseré
+   lumineux en haut (specular) + ombre portee. Pas de refraction SVG (Chromium-only,
+   invisible sur Safari/Firefox) — juste ce qui marche partout et reste discret. */
+.liquid-glass{
+  background:rgba(255,255,255,.055);
+  backdrop-filter:blur(22px) saturate(170%);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -1px 0 rgba(255,255,255,.03),0 18px 46px rgba(0,0,0,.45);
+}
+
+/* HERO — bandeau cinematique au-dessus du contenu, affiche le titre "en cours" le
+   plus recent. Masque s'il n'y a aucun titre en cours (renderHero() dans app.js). */
+.hero-band{position:relative;height:320px;overflow:hidden;flex-shrink:0;display:none}
+.hero-band.on{display:block}
+.hero-band-bg{position:absolute;inset:-6%;
+  background:radial-gradient(ellipse 60% 55% at 22% 28%,rgba(92,200,255,.28),transparent 62%),
+             radial-gradient(ellipse 55% 60% at 82% 72%,rgba(139,92,246,.24),transparent 60%),
+             linear-gradient(140deg,#161a24,#0a0a0c 72%);
+  filter:blur(3px) saturate(1.25);transform:scale(1.04);
+}
+.hero-band-img{position:absolute;inset:-6%;background-size:cover;background-position:center;
+  filter:blur(3px) saturate(1.2) brightness(.82);transform:scale(1.04);
+  opacity:0;transition:opacity .6s ease}
+.hero-band-img.loaded{opacity:1}
+.hero-band-fade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,12,.05) 0%,rgba(10,10,12,.6) 68%,var(--bg) 100%)}
+.hero-band-content{position:absolute;left:48px;bottom:34px;max-width:580px;z-index:2}
+.hero-badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);background:rgba(92,200,255,.14);border:1px solid rgba(92,200,255,.3);padding:4px 11px;border-radius:20px;margin-bottom:13px}
+.hero-title{font-family:'Nunito',sans-serif;font-size:40px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:8px;line-height:1.05;text-shadow:0 4px 22px rgba(0,0,0,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-meta{font-size:13.5px;color:rgba(255,255,255,.72);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.hero-score{color:#ffd166;font-weight:600}
+.hero-actions{display:flex;gap:10px}
+.hero-btn{padding:12px 20px;border-radius:14px;font-size:13px;font-weight:700;border:none;cursor:pointer;color:#fff;font-family:'IBM Plex Sans',sans-serif;display:inline-flex;align-items:center;gap:7px;transition:var(--tr-slow)}
+.hero-btn svg{width:14px;height:14px}
+.hero-btn.primary{background:var(--accent);color:#000}
+.hero-btn.primary:hover{background:#7ad4ff}
+.hero-btn.liquid-glass:hover{background:rgba(255,255,255,.1)}
+
+/* NAV flottante — ilot Liquid Glass detache du hero, au lieu d'une barre pleine largeur.
+   Chevauche le bas du hero quand il est visible (marge negative), sinon reste en place. */
+.nav.floating{margin:20px 24px 26px;padding:9px 12px;border-radius:22px;position:relative;z-index:5}
+.hero-band.on + .nav.floating{margin-top:-30px}
+.nav.floating .ntab{background:transparent}
+.nav.floating .ntab:hover{background:rgba(255,255,255,.08)}
+.nav.floating .nav-right{border-bottom:none;padding:0}
+.nav.floating .add-btn{border-radius:14px}
+@media (max-width:768px){
+  .hero-band{height:230px}
+  .hero-band-content{left:20px;bottom:20px;max-width:88%}
+  .hero-title{font-size:27px}
+  .hero-meta{font-size:12px;margin-bottom:12px}
+  .hero-btn{padding:10px 16px;font-size:12px}
+  .nav.floating{margin:14px 14px 0;border-radius:16px}
+  .hero-band.on + .nav.floating{margin-top:-18px}
+}
 </style>
 <!-- Theme color -->
 <meta name="theme-color" content="#0a0a0c">
@@ -741,7 +798,21 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
     </div>
   </aside>
   <div class="main">
-    <div class="nav">
+    <div class="hero-band" id="heroBand">
+      <div class="hero-band-bg"></div>
+      <div class="hero-band-img" id="heroBg"></div>
+      <div class="hero-band-fade"></div>
+      <div class="hero-band-content">
+        <div class="hero-badge">Reprendre</div>
+        <div class="hero-title" id="heroTitle"></div>
+        <div class="hero-meta" id="heroMeta"></div>
+        <div class="hero-actions">
+          <button class="hero-btn primary" id="heroBtnPlay"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>Reprendre</button>
+          <button class="hero-btn liquid-glass" id="heroBtnInfo">Details</button>
+        </div>
+      </div>
+    </div>
+    <div class="nav floating liquid-glass">
       <button class="ntab on" data-tab="all" onmouseenter="sfx('hover')" onclick="switchTab(this)">Tout</button>
       <button class="ntab" data-tab="film" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127916;</span>Films</button>
       <button class="ntab" data-tab="serie" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#128250;</span>Series</button>
