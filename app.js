@@ -1101,7 +1101,10 @@ var WL_SETTINGS_DEFAULTS={
   wl_reco_limit:'15',
   wl_suivi_providers:'1',
   wl_reminders_global:'1',
-  wl_glass:'40'
+  wl_glass:'40',
+  wl_grain:'50',
+  wl_aurora:'100',
+  wl_glow_border:'1'
 };
 var WL_RECO_SPEEDS={
   slow:{duration:2100,pause:700},
@@ -1135,6 +1138,11 @@ function applySettings(){
   document.body.classList.toggle('suivi-providers-off',wlSettings.wl_suivi_providers==='0');
   /* Transparence du verre (0-100%) sur les pop-up */
   applyGlass(parseInt(wlSettings.wl_glass,10));
+  /* Grain filmique + aurora (0-100%) */
+  applyGrain(parseInt(wlSettings.wl_grain,10));
+  applyAurora(parseInt(wlSettings.wl_aurora,10));
+  /* Lueur animee au survol des cartes */
+  document.body.classList.toggle('glow-off',wlSettings.wl_glow_border==='0');
 }
 /* 0% = panneaux pleins (pas de flou) ; 100% = très translucide. Les 4 variables sont
    lues par le CSS des pop-up (modales, menu, fiche détail, recherche, dossiers). */
@@ -1145,6 +1153,18 @@ function applyGlass(pct){
   root.setProperty('--glass-panel-blur',Math.round(t*44)+'px');
   root.setProperty('--glass-backdrop-bg','rgba(8,9,11,'+(0.90-t*0.52).toFixed(2)+')');
   root.setProperty('--glass-backdrop-blur',Math.round(t*18)+'px');
+}
+/* 0% = pas de grain ; 100% = grain marque (deux fois l'intensite par defaut).
+   Lu par body::after (overlay SVG plein ecran, voir index.html). */
+function applyGrain(pct){
+  var t=Math.max(0,Math.min(100,pct||0))/100;
+  document.documentElement.style.setProperty('--grain-opacity',(t*0.07).toFixed(3));
+}
+/* 0% = aurora invisible ; 100% = intensite de reference des taches de couleur.
+   Multiplicateur applique a chaque .aurora-blob (voir index.html). */
+function applyAurora(pct){
+  var t=Math.max(0,Math.min(100,pct||0))/100;
+  document.documentElement.style.setProperty('--aurora-opacity',t.toFixed(2));
 }
 
 
@@ -1984,7 +2004,13 @@ function openStats(){
   if(compat.length>=3){var d=compat.map(function(p){return p.mine-p.tmdb;});var avg=d.reduce(function(a,b){return a+b},0)/d.length;var r=Math.abs(avg).toFixed(1);cHtml=avg>0.5?'Tu notes en moyenne <b>+'+r+' points</b> au-dessus de TMDB. Tu es genereux.':avg<-0.5?'Tu notes en moyenne <b>-'+r+' points</b> en dessous de TMDB. Tu es severe.':'Tes notes sont alignees avec TMDB (ecart <b>'+r+' pt</b>).';}else{cHtml='Note au moins 3 titres pour voir ton profil.';}
   function bar(l,v,m){var p=m?Math.round((v/m)*100):0;return '<div class="bar-row"><div class="bar-lbl">'+l+'</div><div class="bar-track"><div class="bar-fill" style="width:'+p+'%"></div></div><div class="bar-val">'+v+'</div></div>';}
   var mT=Math.max(byT.film,byT.serie,byT.anime,1),mS=Math.max(byS.avoir,byS.encours,byS.termine,1);
-  var html='<div class="stats-grid"><div class="stat-card"><div class="stat-lbl">Total</div><div class="stat-val a">'+total+'</div></div><div class="stat-card"><div class="stat-lbl">Ma note moy.</div><div class="stat-val">'+(avgM?avgM.toFixed(1):'-')+'</div></div><div class="stat-card"><div class="stat-lbl">Temps total</div><div class="stat-val">'+estH+'h</div></div><div class="stat-card"><div class="stat-lbl">Reste a voir</div><div class="stat-val">'+avoirH+'h</div></div></div>';
+  var html='<div class="bento-stats">'
+    +'<div class="bento-tile big accent"><div class="bt-lbl">Total titres</div><div class="bt-val a">'+total+'</div><div class="bt-sub">'+byT.film+' films &bull; '+byT.serie+' series &bull; '+byT.anime+' anime</div></div>'
+    +'<div class="bento-tile"><div class="bt-lbl">Ma note moy.</div><div class="bt-val">'+(avgM?avgM.toFixed(1):'-')+'</div></div>'
+    +'<div class="bento-tile"><div class="bt-lbl">Temps total</div><div class="bt-val">'+estH+'h</div></div>'
+    +'<div class="bento-tile"><div class="bt-lbl">Reste a voir</div><div class="bt-val">'+avoirH+'h</div></div>'
+    +'<div class="bento-tile"><div class="bt-lbl">En cours</div><div class="bt-val">'+byS.encours+'</div></div>'
+    +'</div>';
   html+='<div class="stat-sec"><div class="stat-sec-title">Par type</div>'+bar('Films',byT.film,mT)+bar('Series',byT.serie,mT)+bar('Anime',byT.anime,mT)+'</div>';
   html+='<div class="stat-sec"><div class="stat-sec-title">Par statut</div>'+bar('A voir',byS.avoir,mS)+bar('En cours',byS.encours,mS)+bar('Termine',byS.termine,mS)+'</div>';
   html+='<div class="stat-sec"><div class="stat-sec-title">Compatibilite TMDB</div><div class="compat-box">'+cHtml+'</div></div>';
@@ -2080,9 +2106,11 @@ function _onSettingRange(key,val){
   saveSetting(key,val);
   var lbl=document.getElementById('_rangeVal_'+key);if(lbl)lbl.textContent=val+'%';
   if(key==='wl_glass')applyGlass(parseInt(val,10));
+  if(key==='wl_grain')applyGrain(parseInt(val,10));
+  if(key==='wl_aurora')applyAurora(parseInt(val,10));
 }
 function _onSettingChanged(key,val){
-  if(key==='wl_grid_cols'||key==='wl_card_ratings'||key==='wl_card_badges'||key==='wl_suivi_providers'){
+  if(key==='wl_grid_cols'||key==='wl_card_ratings'||key==='wl_card_badges'||key==='wl_suivi_providers'||key==='wl_glow_border'){
     applySettings();
   }
   if(key==='wl_reco_autoscroll'){
@@ -2106,6 +2134,9 @@ function renderSettingsMenu(){
   html+=_selectRow('Notes sur les cartes','wl_card_ratings',[{v:'both',l:'Les deux'},{v:'my',l:'Ma note seulement'},{v:'tmdb',l:'TMDB seulement'},{v:'off',l:'Masquer'}],wlSettings.wl_card_ratings);
   html+=_selectRow('Badges de cartes','wl_card_badges',[{v:'full',l:'Complets'},{v:'off',l:'Masquer'}],wlSettings.wl_card_badges);
   html+=_rangeRow('Transparence des pop-up','0% = panneaux pleins, 100% = très translucide','wl_glass',wlSettings.wl_glass);
+  html+=_rangeRow('Grain filmique','Texture subtile sur le fond. 0% = désactivé.','wl_grain',wlSettings.wl_grain);
+  html+=_rangeRow('Aurora','Taches de couleur animées en arrière-plan. 0% = désactivé.','wl_aurora',wlSettings.wl_aurora);
+  html+=_toggleRow('Lueur au survol','Anneau dégradé animé sur les cartes et affiches.','wl_glow_border',wlSettings.wl_glow_border==='1');
   html+='</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">Recommandations</div>';
   html+=_toggleRow('Défilement automatique','','wl_reco_autoscroll',wlSettings.wl_reco_autoscroll==='1');

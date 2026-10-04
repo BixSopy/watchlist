@@ -29,7 +29,10 @@
   /* Verre des pop-up — valeurs par défaut (réglage "Transparence" à 40%),
      recalculées en JS par applyGlass() dès que la page charge */
   --glass-panel-bg:rgba(16,16,19,.78);--glass-panel-blur:18px;
-  --glass-backdrop-bg:rgba(8,9,11,.69);--glass-backdrop-blur:7px
+  --glass-backdrop-bg:rgba(8,9,11,.69);--glass-backdrop-blur:7px;
+  /* Grain / Aurora — valeurs par défaut (réglages à 50%/100%), recalculées
+     en JS par applyGrain()/applyAurora() dès que la page charge */
+  --grain-opacity:.035;--aurora-opacity:1
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
@@ -618,6 +621,59 @@ body.suivi-providers-off .suivi-providers{display:none}
   .ntab{font-size:14px;padding:12px 9px}
   .hbtn{width:28px;height:28px}
 }
+
+/* ===== Session 14 : Grain + Aurora + bordures animees + stats bento =====
+   Intensites pilotees par --grain-opacity/--aurora-opacity (reglages Apparence),
+   recalculees par applyGrain()/applyAurora() dans app.js. */
+/* Grain filmique : overlay plein ecran, filtre SVG inline (zero asset, data: deja
+   autorise par la CSP img-src). Opacite 0 = invisible, le body::after reste dans le DOM. */
+body::after{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  opacity:var(--grain-opacity);mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* Aurora : taches de couleur floues et tres lentes, derriere le contenu (z-index
+   negatif = sous .content/.sidebar qui n'ont pas de fond opaque propre, mais sous
+   .hdr/.sidebar qui eux sont opaques donc les blobs ne les traversent jamais) */
+.aurora-bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.aurora-blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:var(--aurora-opacity);transition:opacity .4s}
+.aurora-blob.b1{width:560px;height:560px;background:radial-gradient(circle,rgba(92,200,255,.28),transparent 70%);top:-180px;left:-120px;animation:auroraDrift1 19s ease-in-out infinite alternate}
+.aurora-blob.b2{width:460px;height:460px;background:radial-gradient(circle,rgba(139,92,246,.22),transparent 70%);top:28%;right:-140px;animation:auroraDrift2 23s ease-in-out infinite alternate}
+.aurora-blob.b3{width:420px;height:420px;background:radial-gradient(circle,rgba(75,232,122,.14),transparent 70%);bottom:-160px;left:32%;animation:auroraDrift3 21s ease-in-out infinite alternate}
+@keyframes auroraDrift1{from{transform:translate(0,0) scale(1)}to{transform:translate(60px,40px) scale(1.1)}}
+@keyframes auroraDrift2{from{transform:translate(0,0) scale(1)}to{transform:translate(-50px,30px) scale(1.08)}}
+@keyframes auroraDrift3{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,-40px) scale(1.12)}}
+@media (prefers-reduced-motion: reduce){.aurora-blob{animation:none}}
+
+/* Bordure degradee animee au survol — cartes grille + bande En cours + rangees Discover.
+   Desactivable via le reglage "Lueur au survol" (body.glow-off). */
+@property --rot{syntax:'<angle>';inherits:false;initial-value:0deg}
+.card,.ec-card,.dr-card .dr-poster-wrap{position:relative}
+.card::before,.ec-card::before,.dr-card .dr-poster-wrap::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;
+  background:conic-gradient(from var(--rot),transparent 0deg,transparent 260deg,var(--accent) 300deg,#8b5cf6 320deg,transparent 345deg);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity .25s;pointer-events:none;z-index:4;
+  animation:rotBorder 5s linear infinite;animation-play-state:paused;
+}
+.card:hover::before,.ec-card:hover::before,.dr-card:hover .dr-poster-wrap::before{opacity:1;animation-play-state:running}
+body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-card .dr-poster-wrap::before{display:none}
+@keyframes rotBorder{to{--rot:360deg}}
+@media (prefers-reduced-motion: reduce){.card::before,.ec-card::before,.dr-card .dr-poster-wrap::before{animation:none}}
+
+/* Stats en bento : tuiles de tailles variees plutot qu'une liste plate */
+.bento-stats{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:minmax(86px,auto);gap:10px;margin-bottom:20px}
+.bento-tile{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;justify-content:center;transition:border-color var(--tr-slow),transform var(--tr-slow)}
+.bento-tile:hover{border-color:rgba(92,200,255,.25);transform:translateY(-2px)}
+.bento-tile.big{grid-column:span 2;grid-row:span 2;justify-content:flex-end}
+.bento-tile.accent{background:linear-gradient(135deg,rgba(92,200,255,.14),rgba(92,200,255,.03));border-color:rgba(92,200,255,.25)}
+.bento-tile .bt-lbl{font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.bento-tile .bt-val{font-size:26px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--text)}
+.bento-tile.big .bt-val{font-size:42px}
+.bento-tile .bt-val.a{color:var(--accent)}
+.bento-tile .bt-sub{font-size:11px;color:var(--text3);margin-top:4px}
+@media (max-width:560px){.bento-stats{grid-template-columns:repeat(2,1fr)}.bento-tile.big{grid-column:span 2;grid-row:span 1}}
 </style>
 <!-- Theme color -->
 <meta name="theme-color" content="#0a0a0c">
@@ -628,6 +684,7 @@ body.suivi-providers-off .suivi-providers{display:none}
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Watchlist">
 </head><body>
+<div class="aurora-bg" aria-hidden="true"><div class="aurora-blob b1"></div><div class="aurora-blob b2"></div><div class="aurora-blob b3"></div></div>
 <header class="hdr">
   <button class="hbtn sb-toggle" onclick="toggleSidebar()" title="Recommandations" aria-label="Ouvrir les recommandations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></button>
   <div class="logo">watch<em>list</em><sub>pierre</sub></div>
