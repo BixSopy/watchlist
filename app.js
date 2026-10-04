@@ -1092,7 +1092,8 @@ var WL_SETTINGS_DEFAULTS={
   wl_reco_pause_hover:'1',
   wl_reco_limit:'15',
   wl_suivi_providers:'1',
-  wl_reminders_global:'1'
+  wl_reminders_global:'1',
+  wl_glass:'40'
 };
 var WL_RECO_SPEEDS={
   slow:{duration:2100,pause:700},
@@ -1124,6 +1125,18 @@ function applySettings(){
   document.body.classList.add('badges-'+(wlSettings.wl_card_badges==='off'?'off':'full'));
   /* Suivi providers */
   document.body.classList.toggle('suivi-providers-off',wlSettings.wl_suivi_providers==='0');
+  /* Transparence du verre (0-100%) sur les pop-up */
+  applyGlass(parseInt(wlSettings.wl_glass,10));
+}
+/* 0% = panneaux pleins (pas de flou) ; 100% = très translucide. Les 4 variables sont
+   lues par le CSS des pop-up (modales, menu, fiche détail, recherche, dossiers). */
+function applyGlass(pct){
+  var t=Math.max(0,Math.min(100,pct||0))/100;
+  var root=document.documentElement.style;
+  root.setProperty('--glass-panel-bg','rgba(16,16,19,'+(1-t*0.55).toFixed(2)+')');
+  root.setProperty('--glass-panel-blur',Math.round(t*44)+'px');
+  root.setProperty('--glass-backdrop-bg','rgba(8,9,11,'+(0.90-t*0.52).toFixed(2)+')');
+  root.setProperty('--glass-backdrop-blur',Math.round(t*18)+'px');
 }
 
 
@@ -2026,6 +2039,9 @@ function _selectRow(label,key,options,current){
   var opts=options.map(function(o){return '<option value="'+o.v+'"'+(o.v===current?' selected':'')+'>'+o.l+'</option>';}).join('');
   return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div></div><div class="setting-control"><select class="settings-select" onchange="_onSettingSelect(\''+key+'\',this.value)">'+opts+'</select></div></div>';
 }
+function _rangeRow(label,hint,key,value){
+  return '<div class="setting-row setting-row-col"><div class="setting-copy" style="display:flex;justify-content:space-between;align-items:baseline"><div class="setting-label">'+label+'</div><div class="setting-hint" id="_rangeVal_'+key+'" style="margin:0">'+value+'%</div></div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'<input type="range" class="settings-range" min="0" max="100" step="5" value="'+value+'" oninput="_onSettingRange(\''+key+'\',this.value)"></div>';
+}
 function _onSettingToggle(key,el){
   var newVal=(wlSettings[key]==='1')?'0':'1';
   saveSetting(key,newVal);
@@ -2035,6 +2051,12 @@ function _onSettingToggle(key,el){
 function _onSettingSelect(key,val){
   saveSetting(key,val);
   _onSettingChanged(key,val);
+}
+function _onSettingRange(key,val){
+  /* Pas de sfx ici : oninput se déclenche en continu pendant qu'on glisse le curseur */
+  saveSetting(key,val);
+  var lbl=document.getElementById('_rangeVal_'+key);if(lbl)lbl.textContent=val+'%';
+  if(key==='wl_glass')applyGlass(parseInt(val,10));
 }
 function _onSettingChanged(key,val){
   if(key==='wl_grid_cols'||key==='wl_card_ratings'||key==='wl_card_badges'||key==='wl_suivi_providers'){
@@ -2060,6 +2082,7 @@ function renderSettingsMenu(){
   html+=_selectRow('Grille watchlist','wl_grid_cols',[{v:'auto',l:'Automatique'},{v:'4',l:'4 colonnes'},{v:'5',l:'5 colonnes'},{v:'6',l:'6 colonnes'},{v:'7',l:'7 colonnes'}],wlSettings.wl_grid_cols);
   html+=_selectRow('Notes sur les cartes','wl_card_ratings',[{v:'both',l:'Les deux'},{v:'my',l:'Ma note seulement'},{v:'tmdb',l:'TMDB seulement'},{v:'off',l:'Masquer'}],wlSettings.wl_card_ratings);
   html+=_selectRow('Badges de cartes','wl_card_badges',[{v:'full',l:'Complets'},{v:'off',l:'Masquer'}],wlSettings.wl_card_badges);
+  html+=_rangeRow('Transparence des pop-up','0% = panneaux pleins, 100% = très translucide','wl_glass',wlSettings.wl_glass);
   html+='</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">Recommandations</div>';
   html+=_toggleRow('Défilement automatique','','wl_reco_autoscroll',wlSettings.wl_reco_autoscroll==='1');
