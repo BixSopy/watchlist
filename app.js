@@ -1866,16 +1866,30 @@ function supabaseToLocal(row){
 }
 
 /* --- Auth UI --- */
+var authMode='login';
 function openAuthModal(){
   sfx('click');
+  authMode='login';
   document.getElementById('authMbk').classList.add('on');
   refreshAuthModalView();
 }
 function closeAuthModal(){document.getElementById('authMbk').classList.remove('on');}
 document.getElementById('authMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closeAuthModal();}});
 
-/* Inscription retirée de l'interface : compte unique, créé depuis le tableau de bord Supabase
-   (et inscriptions désactivées côté Supabase). */
+function switchAuthTab(mode){
+  if(authMode===mode)return;
+  sfx('click');
+  authMode=mode;
+  document.getElementById('authTabLogin').classList.toggle('on',mode==='login');
+  document.getElementById('authTabSignup').classList.toggle('on',mode==='signup');
+  document.getElementById('authPasswordConfirmField').style.display=mode==='signup'?'block':'none';
+  document.getElementById('authPassword').setAttribute('autocomplete',mode==='signup'?'new-password':'current-password');
+  document.getElementById('authSubmitBtn').textContent=mode==='signup'?'Creer mon compte':'Se connecter';
+  document.getElementById('authLocalNote').innerHTML=mode==='signup'
+    ?'La creation de compte est libre et gratuite : email + mot de passe suffisent.<br>Tes donnees sont isolees des autres comptes.'
+    :'Sans connexion, ta liste reste locale et le catalogue TMDB (recherche, recommandations) est desactive.<br>Se connecter active le catalogue et la synchronisation multi-appareils.';
+  showAuthMsg('');
+}
 
 function refreshAuthModalView(){
   var out=document.getElementById('authLoggedOutView'),inn=document.getElementById('authLoggedInView');
@@ -1893,7 +1907,7 @@ function refreshAuthModalView(){
 
 function showAuthMsg(msg,kind){
   var m=document.getElementById('authMsg');
-  m.textContent=msg;m.className='auth-msg on '+(kind||'err');
+  m.textContent=msg;m.className='auth-msg'+(msg?' on '+(kind||'err'):'');
 }
 
 function submitAuth(){
@@ -1904,12 +1918,28 @@ function submitAuth(){
   sfx('click');
   var btn=document.getElementById('authSubmitBtn');btn.disabled=true;
   var after=function(){btn.disabled=false;};
-  supa.auth.signInWithPassword({email:email,password:pass}).then(function(res){
-    after();
-    if(res.error){showAuthMsg(res.error.message);return;}
-    toast('Connecte','ok');
-    refreshAuthModalView();
-  }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
+  if(authMode==='signup'){
+    var confirm=document.getElementById('authPasswordConfirm').value||'';
+    if(pass.length<6){after();showAuthMsg('Mot de passe trop court (6 caracteres minimum)');return;}
+    if(pass!==confirm){after();showAuthMsg('Les mots de passe ne correspondent pas');return;}
+    supa.auth.signUp({email:email,password:pass}).then(function(res){
+      after();
+      if(res.error){showAuthMsg(res.error.message);return;}
+      if(res.data&&res.data.session){
+        toast('Compte cree','ok');
+        refreshAuthModalView();
+      }else{
+        showAuthMsg('Compte cree. Verifie ta boite mail pour confirmer avant de te connecter.','ok');
+      }
+    }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
+  }else{
+    supa.auth.signInWithPassword({email:email,password:pass}).then(function(res){
+      after();
+      if(res.error){showAuthMsg(res.error.message);return;}
+      toast('Connecte','ok');
+      refreshAuthModalView();
+    }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
+  }
 }
 
 function signOutUser(){
