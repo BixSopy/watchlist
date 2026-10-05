@@ -743,9 +743,10 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
 .hero-btn.liquid-glass:hover{background:rgba(255,255,255,.1)}
 
 /* NAV flottante — ilot Liquid Glass detache du hero, au lieu d'une barre pleine largeur.
-   Chevauche le bas du hero quand il est visible (marge negative), sinon reste en place. */
+   Espace net sous le hero quand il est visible, pour ne pas coller les boutons Reprendre
+   a la rangee d'onglets (etait une marge negative qui les faisait se chevaucher). */
 .nav.floating{margin:14px 24px 18px;padding:7px 10px;border-radius:22px;position:relative;z-index:5;flex-wrap:wrap;row-gap:6px}
-.hero-band.on + .nav.floating{margin-top:-30px}
+.hero-band.on + .nav.floating{margin-top:40px}
 .nav.floating .ntab{background:transparent}
 .nav.floating .ntab:hover{background:rgba(255,255,255,.08)}
 .nav.floating .nav-right{border-bottom:none;padding:0}
@@ -757,7 +758,7 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
   .hero-meta{font-size:12px;margin-bottom:10px}
   .hero-btn{padding:9px 15px;font-size:12px}
   .nav.floating{margin:10px 14px 0;border-radius:16px;padding:5px 8px}
-  .hero-band.on + .nav.floating{margin-top:-14px}
+  .hero-band.on + .nav.floating{margin-top:22px}
 }
 
 /* ===== Session 16 : motion ressort + retour tactile =====
