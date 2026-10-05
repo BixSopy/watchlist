@@ -10,8 +10,13 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+/* app.js a été découpé en modules (js/01-*.js … js/19-*.js, Session 19) : on reconstitue
+   le même script global en concaténant les fichiers dans l'ordre où index.html les charge,
+   pour que les tests restent indépendants du découpage en fichiers. */
+const app = Array.from(html.matchAll(/<script src="(js\/[^"]+\.js)">/g))
+  .map(function(m) { return fs.readFileSync(path.join(__dirname, '..', m[1]), 'utf8'); })
+  .join('\n');
 
 function fnBody(src, name) {
   const start = src.indexOf('function ' + name + '(');

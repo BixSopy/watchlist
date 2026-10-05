@@ -3,7 +3,7 @@
  * satisfaire le critère d'installabilité PWA de Chrome/Android (présence d'un écouteur
  * "fetch" actif) sans jamais servir une réponse mise en cache — chaque requête part donc
  * toujours au réseau comme si ce fichier n'existait pas. C'est voulu : l'app n'a pas de
- * build local (index.html/app.js sont servis tels quels par Vercel), donc tout cache
+ * build local (index.html/js/*.js sont servis tels quels par Vercel), donc tout cache
  * introduirait un risque de version figée après un déploiement.
  */
 self.addEventListener('install', function (e) {

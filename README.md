@@ -31,7 +31,7 @@ Suivi perso pour films, séries, anime avec aesthetic OLED dark inspiré de Plex
   les polices sont servies depuis `fonts/`.
 - En-têtes de sécurité dans `vercel.json` (CSP stricte, `Referrer-Policy: no-referrer`,
   `Permissions-Policy`, `frame-ancestors 'none'`…).
-- `.vercelignore` (liste blanche) : seuls `index.html`, `app.js`, `api/`, `vendor/` et `fonts/` sont publiés.
+- `.vercelignore` (liste blanche) : seuls `index.html`, `js/`, `api/`, `vendor/` et `fonts/` sont publiés.
 - Inscription désactivée dans l'interface (compte unique).
 
 ## 💻 Usage local
@@ -87,4 +87,4 @@ Variables d'environnement Vercel (Production **et** Preview) :
 | `SUPABASE_URL` | non | URL du projet Supabase (valeur par défaut : celle de l'app) |
 | `ALLOWED_EMAILS` | non | Liste d'emails autorisés, séparés par des virgules |
 
-Côté client (`app.js`) : `TB='/api/tmdb'` (proxy), `IB='https://image.tmdb.org/t/p/'` (images, direct).
+Côté client (`js/01-config.js`) : `TB='/api/tmdb'` (proxy), `IB='https://image.tmdb.org/t/p/'` (images, direct).
