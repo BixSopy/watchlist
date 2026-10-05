@@ -117,7 +117,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .search-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 22px;background:rgba(10,10,12,.96);border-top:1px solid var(--border);backdrop-filter:blur(12px);flex-shrink:0}
 .search-counter{font-size:13px;color:var(--text2);font-weight:600}
 .search-empty{padding:32px;text-align:center;color:var(--text3);border:1px dashed var(--border2);border-radius:12px;background:var(--bg3)}
-.opt-menu{display:none !important;position:fixed;top:76px;right:12px;width:330px;max-width:calc(100vw - 24px);max-height:calc(100vh - 100px);background:var(--glass-panel-bg);backdrop-filter:blur(var(--glass-panel-blur)) saturate(1.5);-webkit-backdrop-filter:blur(var(--glass-panel-blur)) saturate(1.5);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-lg);box-shadow:var(--shadow-modal);z-index:100;overflow-y:auto;overflow-x:hidden;animation:scaleIn .15s ease;padding:6px}
+.opt-menu{display:none !important;position:fixed;top:76px;right:12px;width:330px;max-width:calc(100vw - 24px);max-height:calc(100vh - 100px);background:rgba(16,16,19,.94);backdrop-filter:blur(var(--glass-panel-blur)) saturate(1.5);-webkit-backdrop-filter:blur(var(--glass-panel-blur)) saturate(1.5);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-lg);box-shadow:var(--shadow-modal);z-index:100;overflow-y:auto;overflow-x:hidden;animation:scaleIn .15s ease;padding:6px}
 .opt-menu.on{display:flex !important;flex-direction:column}
 .opt-btn{width:100%;padding:11px 12px;margin-bottom:1px;border:none;background:transparent;color:var(--text2);text-align:left;font-size:13px;cursor:pointer;transition:background var(--tr-fast),color var(--tr-fast);border-radius:10px;display:flex;align-items:center;gap:10px;font-family:'Inter',sans-serif}
 .opt-btn:hover{background:rgba(255,255,255,.07);color:var(--text)}
@@ -275,6 +275,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 /* NAV */
 .nav{display:flex;align-items:center;padding:10px 0;border-bottom:none;background:transparent;gap:8px;flex-shrink:0;padding-left:28px}
+.ntabs-scroll{display:flex;align-items:center;gap:8px}
 .ntab{font-family:'Inter',sans-serif;font-size:21px;font-weight:900;padding:12px 24px;cursor:pointer;color:var(--text2);border:none;border-radius:999px;background:transparent;transition:var(--tr-slow);letter-spacing:-.4px;white-space:nowrap;position:relative;display:inline-flex;align-items:center;gap:9px}
 .ntab-ic{font-size:18px;line-height:1;opacity:.85}
 .ntab:hover{color:var(--text);background:var(--bg3)}
@@ -584,8 +585,12 @@ body.suivi-providers-off .suivi-providers{display:none}
   .logo{font-size:18px}
   .logo-mark{width:18px;height:18px}
   .search-bar{width:100%;min-width:0;padding-left:38px}
+  .toast-wrap{left:14px;right:14px;bottom:14px;align-items:stretch}
+  .toast{max-width:none}
   .nav{padding-left:14px;flex-wrap:wrap}
-  .ntab{font-size:15px;padding:13px 12px}
+  .ntabs-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  .ntabs-scroll::-webkit-scrollbar{height:0}
+  .ntab{font-size:15px;padding:13px 12px;flex-shrink:0;scroll-snap-align:start}
   .nav-right{margin-left:0;width:100%;padding:0 14px 12px;overflow-x:auto;gap:6px}
   .nav-right::-webkit-scrollbar{height:0}
   .srch{width:130px}
@@ -875,11 +880,13 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <div class="hero-dots" id="heroDots"></div>
     </div>
     <div class="nav floating liquid-glass">
-      <button class="ntab on" data-tab="all" onmouseenter="sfx('hover')" onclick="switchTab(this)">Tout</button>
-      <button class="ntab" data-tab="film" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127916;</span>Films</button>
-      <button class="ntab" data-tab="serie" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#128250;</span>Series</button>
-      <button class="ntab" data-tab="anime" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127884;</span>Anime</button>
-      <button class="ntab" data-tab="discover" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#129517;</span>Decouvrir</button>
+      <div class="ntabs-scroll">
+        <button class="ntab on" data-tab="all" onmouseenter="sfx('hover')" onclick="switchTab(this)">Tout</button>
+        <button class="ntab" data-tab="film" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127916;</span>Films</button>
+        <button class="ntab" data-tab="serie" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#128250;</span>Series</button>
+        <button class="ntab" data-tab="anime" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127884;</span>Anime</button>
+        <button class="ntab" data-tab="discover" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#129517;</span>Decouvrir</button>
+      </div>
       <div class="nav-right">
         <button class="add-btn" onmouseenter="sfx('hover')" onclick="sfx('click');openAdd()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Ajouter
