@@ -43,6 +43,10 @@ function _selectRow(label,key,options,current){
 function _rangeRow(label,hint,key,value){
   return '<div class="setting-row setting-row-col"><div class="setting-copy" style="display:flex;justify-content:space-between;align-items:baseline"><div class="setting-label">'+label+'</div><div class="setting-hint" id="_rangeVal_'+key+'" style="margin:0">'+value+'%</div></div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'<input type="range" class="settings-range" min="0" max="100" step="5" value="'+value+'" oninput="_onSettingRange(\''+key+'\',this.value)"></div>';
 }
+/* Raccourcis clavier (voir js/18-bootstrap.js) — informatif, aucune action au clic. */
+function _kbdRow(key,label){
+  return '<div class="kbd-row"><div class="setting-label">'+label+'</div><div class="kbd-key">'+key+'</div></div>';
+}
 function _onSettingToggle(key,el){
   var newVal=(wlSettings[key]==='1')?'0':'1';
   saveSetting(key,newVal);
@@ -105,6 +109,15 @@ function renderSettingsMenu(){
   html+='</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">Données</div>';
   html+='<div class="settings-action-row" onclick="openAuthModal();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">Compte &amp; synchronisation</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
+  html+='</div><div class="opt-sep"></div>';
+  html+='<div class="settings-section"><div class="settings-section-title">Raccourcis clavier</div>';
+  html+=_kbdRow('N','Ajouter un titre');
+  html+=_kbdRow('F','Rechercher dans la liste');
+  html+=_kbdRow('S','Statistiques');
+  html+=_kbdRow('C','Mode compact');
+  html+=_kbdRow('M','Sons d\'interface');
+  html+=_kbdRow('Échap','Fermer la fenêtre ouverte');
+  html+='<div class="setting-hint" style="margin-top:4px">Inactifs pendant la saisie dans un champ.</div>';
   html+='</div>';
   body.innerHTML=html;
   enhanceAllSelects(body);
