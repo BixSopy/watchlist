@@ -1,6 +1,7 @@
 name: Release app de bureau (Windows)
 
-# Se déclenche en poussant un tag "desktop-vX.Y.Z" (ex: git tag desktop-v1.0.0 && git push origin desktop-v1.0.0).
+# Se déclenche en poussant un tag "desktop-vX.Y.Z" (ex: git tag desktop-v1.0.0 && git push origin desktop-v1.0.0),
+# ou manuellement (Actions -> ce workflow -> Run workflow, en renseignant "version").
 # Construit l'installateur Windows (NSIS + MSI) via Tauri, crée une Release GitHub (dépôt privé)
 # et y attache latest.json (signé) pour l'auto-update. La distribution publique passe ensuite par
 # /api/releases (proxy Vercel), car les assets d'une release privée ne sont pas accessibles sans auth.
@@ -8,7 +9,11 @@ on:
   push:
     tags:
       - 'desktop-v*'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version a publier (ex: 1.0.0), sans le prefixe desktop-v'
+        required: true
 
 permissions:
   contents: write
@@ -22,6 +27,16 @@ jobs:
       - name: Installer Rust stable
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Determiner le tag de release
+        id: tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=desktop-v${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Construire et publier (Tauri)
         uses: tauri-apps/tauri-action@v1
         env:
@@ -29,8 +44,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
           projectPath: desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Watchlist ${{ github.ref_name }}'
+          tagName: ${{ steps.tag.outputs.name }}
+          releaseName: 'Watchlist ${{ steps.tag.outputs.name }}'
           releaseBody: 'Installateur Windows (MSI/NSIS) avec mise à jour automatique.'
           releaseDraft: false
           prerelease: false
