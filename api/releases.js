@@ -63,13 +63,18 @@ async function latestRelease() {
   return data;
 }
 
-function platformsFilenames(manifest) {
+/* tauri-action émet des URLs d'asset au format API GitHub
+   (.../repos/OWNER/REPO/releases/assets/<id>), pas le format "download/TAG/<filename>"
+   qu'on pourrait attendre — on extrait donc l'id numérique directement, jamais le nom
+   de fichier (qui n'apparaît pas dans cette forme d'URL). */
+function platformsAssetIds(manifest) {
   const out = [];
   const platforms = manifest && manifest.platforms;
   if (!platforms) return out;
   for (const key of Object.keys(platforms)) {
     const u = platforms[key] && platforms[key].url;
-    if (typeof u === 'string') out.push({ key, filename: u.split('/').pop() });
+    const m = typeof u === 'string' && u.match(/\/releases\/assets\/(\d+)(?:[/?].*)?$/);
+    if (m) out.push({ key, id: Number(m[1]) });
   }
   return out;
 }
@@ -88,8 +93,8 @@ async function handleManifest(req, res) {
   try { manifest = await r.response.json(); } catch (e) { return fail(res, 502, 'bad_manifest', 'Manifeste illisible'); }
 
   const host = 'https://' + (req.headers.host || 'watchlist-omega-three.vercel.app');
-  for (const { key, filename } of platformsFilenames(manifest)) {
-    const asset = assets.find((a) => a.name === filename);
+  for (const { key, id } of platformsAssetIds(manifest)) {
+    const asset = assets.find((a) => a.id === id);
     if (asset) manifest.platforms[key].url = host + '/api/releases?f=asset&id=' + asset.id;
   }
 

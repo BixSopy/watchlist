@@ -24,7 +24,7 @@ const FAKE_RELEASE = {
     { id: 222, name: 'Watchlist_1.0.0_x64-setup.exe', url: 'https://api.github.com/repos/BixSopy/watchlist/releases/assets/222', content_type: 'application/octet-stream' },
   ],
 };
-const FAKE_MANIFEST = { version: '1.0.0', platforms: { 'windows-x86_64': { signature: 'sig', url: 'https://github.com/BixSopy/watchlist/releases/download/desktop-v1.0.0/Watchlist_1.0.0_x64-setup.exe' } } };
+const FAKE_MANIFEST = { version: '1.0.0', platforms: { 'windows-x86_64': { signature: 'sig', url: 'https://api.github.com/repos/BixSopy/watchlist/releases/assets/222' } } };
 
 const calls = [];
 let upstream = { status: 200, body: { id: 603, title: 'Matrix' } };
