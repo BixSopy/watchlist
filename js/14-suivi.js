@@ -101,10 +101,11 @@ function fetchFilmRelease(item){
 function fetchNextAirDate(item){
   var afterTvmaze=function(){
     tf(TB+'/tv/'+item.tmdbId+'?language=fr-FR').then(function(d){
-      if(d.next_episode_to_air&&d.next_episode_to_air.air_date){
-        item.nextAirDate=d.next_episode_to_air.air_date;
-        item.nextAir=d.next_episode_to_air.air_date;
-      }
+      /* Pas de prochain episode programme (serie terminee/annulee, ou pause entre saisons) :
+         on efface une eventuelle ancienne date, sinon elle reste figee pour toujours et
+         remonte comme "nouvel episode sorti" (ex. une serie finie depuis des annees). */
+      item.nextAirDate=(d.next_episode_to_air&&d.next_episode_to_air.air_date)||null;
+      item.nextAir=item.nextAirDate;
       item.lastEpisodeCheck=Date.now();
       persistSuiviItem(item);
       renderSuivi();
@@ -146,13 +147,14 @@ function suiviStatusFor(item){
   if(isNaN(d.getTime()))return null;
   var diffDays=Math.round((d-today)/86400000);
   if(diffDays>7)return null;
-  if(item.type=='film'){
-    /* Film déjà sorti : rien à signaler (avant, tout film « À voir » sorti depuis des années
-       apparaissait comme « Nouvel episode sorti ») */
-    if(diffDays<0)return null;
-    if(diffDays===0)return{cls:'new',text:'&#10003; Sortie aujourd\'hui',tomorrow:false};
-  }else if(diffDays<=0){
-    return{cls:'new',text:'&#10003; Nouvel episode sorti',tomorrow:false};
+  /* Date déjà passée (hier ou avant) : rien à signaler, que ce soit un film ou une série —
+     sinon une date figée (ex. serie terminee des annees plus tot) reste affichee indefiniment
+     comme "nouveaute" a chaque chargement. */
+  if(diffDays<0)return null;
+  if(diffDays===0){
+    return item.type=='film'
+      ?{cls:'new',text:'&#10003; Sortie aujourd\'hui',tomorrow:false}
+      :{cls:'new',text:'&#10003; Nouvel episode sorti',tomorrow:false};
   }
   var dd=pad(d.getDate()),mm=pad(d.getMonth()+1),yyyy=d.getFullYear();
   return{cls:'soon',text:'&#9200; Sortie prevue le '+dd+'/'+mm+'/'+yyyy,tomorrow:diffDays===1};
