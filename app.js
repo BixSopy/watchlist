@@ -412,14 +412,18 @@ function renderHero(){
 /* Pause au survol vérifiée en temps réel via :hover à chaque tick, plutôt qu'un flag
    figé par mouseenter/mouseleave : un mouseleave qui ne se déclenche jamais (curseur
    immobile pendant qu'une modale recouvre le bandeau, ex. clic sur "Reprendre") bloquait
-   sinon le balayage indéfiniment même une fois le curseur réellement sorti. */
+   sinon le balayage indéfiniment même une fois le curseur réellement sorti.
+   Zone de pause volontairement restreinte au bloc titre/boutons (.hero-band-content),
+   pas tout le bandeau (320px de haut sur toute la largeur) : sinon un curseur simplement
+   posé dans cette grande zone — très probable juste sous la barre de recherche/les onglets —
+   suspendait le balayage en permanence sans qu'on ait l'impression de "survoler" quoi que ce soit. */
 function _scheduleHeroRotate(){
   clearTimeout(_heroTimer);
   if(_heroItems.length<2)return;
   if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   _heroTimer=setTimeout(function tick(){
-    var band=document.getElementById('heroBand');
-    if(band&&band.matches(':hover')){_heroTimer=setTimeout(tick,1000);return;}
+    var content=document.querySelector('#heroBand .hero-band-content');
+    if(content&&content.matches(':hover')){_heroTimer=setTimeout(tick,1000);return;}
     _heroIdx=(_heroIdx+1)%_heroItems.length;
     _showHeroItem(_heroIdx);
     _scheduleHeroRotate();
