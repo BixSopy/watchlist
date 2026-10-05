@@ -281,14 +281,15 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 
 /* NAV */
-.nav{display:flex;align-items:center;padding:10px 0;border-bottom:none;background:transparent;gap:8px;flex-shrink:0;padding-left:28px}
-.ntabs-scroll{display:flex;align-items:center;gap:8px}
-.ntab{font-family:'Inter',sans-serif;font-size:21px;font-weight:900;padding:12px 24px;cursor:pointer;color:var(--text2);border:none;border-radius:999px;background:transparent;transition:var(--tr-slow);letter-spacing:-.4px;white-space:nowrap;position:relative;display:inline-flex;align-items:center;gap:9px}
-.ntab-ic{font-size:18px;line-height:1;opacity:.85}
+.nav{display:flex;align-items:center;padding:6px 0;border-bottom:none;background:transparent;gap:6px;flex-shrink:0;padding-left:22px}
+.ntabs-scroll{display:flex;align-items:center;gap:4px}
+.ntab{font-family:'Inter',sans-serif;font-size:14.5px;font-weight:700;padding:8px 16px;cursor:pointer;color:var(--text2);border:none;border-radius:999px;background:transparent;transition:var(--tr-slow);letter-spacing:-.2px;white-space:nowrap;position:relative;display:inline-flex;align-items:center;gap:7px}
+.ntab-ic{font-size:14px;line-height:1;opacity:.85}
 .ntab:hover{color:var(--text);background:var(--bg3)}
-.ntab.on{color:#000;background:var(--accent);box-shadow:0 6px 20px rgba(92,200,255,.3)}
+.ntab.on{color:#000;background:var(--accent);box-shadow:0 4px 14px rgba(92,200,255,.28)}
 .ntab.on .ntab-ic{opacity:1}
-.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:13px 28px 13px 0;border-bottom:1px solid var(--border)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:9px 22px 9px 0;border-bottom:1px solid var(--border)}
+.csel.stat-sel-mobile{display:none}
 .add-btn{display:flex;align-items:center;gap:6px;background:var(--accent);color:#000;border:none;padding:8px 14px;border-radius:var(--r-md);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:var(--tr-slow);white-space:nowrap}
 .add-btn:hover{background:#7ad4ff;box-shadow:0 4px 16px rgba(92,200,255,.25)}.add-btn svg{width:13px;height:13px}
 .stabs{display:flex;gap:3px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px}
@@ -594,13 +595,19 @@ body.suivi-providers-off .suivi-providers{display:none}
   .search-bar{width:100%;min-width:0;padding-left:38px}
   .toast-wrap{left:14px;right:14px;bottom:14px;align-items:stretch}
   .toast{max-width:none}
-  .nav{padding-left:14px;flex-wrap:wrap}
-  .ntabs-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
-  .ntabs-scroll::-webkit-scrollbar{height:0}
-  .ntab{font-size:15px;padding:13px 12px;flex-shrink:0;scroll-snap-align:start}
-  .nav-right{margin-left:0;width:100%;padding:0 14px 12px;overflow-x:auto;gap:6px}
+  .nav{padding-left:10px;flex-wrap:wrap;gap:0;padding-top:8px;padding-bottom:0;background:transparent;border:none;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+  .nav.floating{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border:none;padding:0 10px}
+  .ntab[data-tab="all"]{display:none}
+  .ntabs-scroll{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ntab{font-size:15px;padding:14px 10px;justify-content:center;background:rgba(255,255,255,.055);backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);border:1px solid rgba(255,255,255,.12);border-radius:16px}
+  .ntab.on{border-color:transparent}
+  .nav.floating .nav-right{margin-left:0;width:100%;margin-top:10px;padding:10px 0 8px;overflow-x:visible;gap:8px;justify-content:flex-start;background:rgba(255,255,255,.03);border-radius:16px;border-top:none;border-bottom:none}
   .nav-right::-webkit-scrollbar{height:0}
-  .srch{width:130px}
+  .add-btn{flex-shrink:0;padding:13px 18px;font-size:14px;border-radius:14px}
+  .csel.stat-sel-mobile,.sort-sel{margin-left:0}
+  .stabs{display:none}
+  .csel.stat-sel-mobile{display:inline-flex;flex-shrink:0}
+  .srch{width:120px;flex-shrink:0}
   .srch input:focus{width:130px}
   .content{padding:14px}
   .sec-title{font-size:22px}
@@ -737,20 +744,20 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
 
 /* NAV flottante — ilot Liquid Glass detache du hero, au lieu d'une barre pleine largeur.
    Chevauche le bas du hero quand il est visible (marge negative), sinon reste en place. */
-.nav.floating{margin:20px 24px 26px;padding:9px 12px;border-radius:22px;position:relative;z-index:5;flex-wrap:wrap;row-gap:8px}
+.nav.floating{margin:14px 24px 18px;padding:7px 10px;border-radius:22px;position:relative;z-index:5;flex-wrap:wrap;row-gap:6px}
 .hero-band.on + .nav.floating{margin-top:-30px}
 .nav.floating .ntab{background:transparent}
 .nav.floating .ntab:hover{background:rgba(255,255,255,.08)}
 .nav.floating .nav-right{border-bottom:none;padding:0}
 .nav.floating .add-btn{border-radius:14px}
 @media (max-width:768px){
-  .hero-band{height:230px}
-  .hero-band-content{left:20px;bottom:20px;max-width:88%}
-  .hero-title{font-size:27px}
-  .hero-meta{font-size:12px;margin-bottom:12px}
-  .hero-btn{padding:10px 16px;font-size:12px}
-  .nav.floating{margin:14px 14px 0;border-radius:16px}
-  .hero-band.on + .nav.floating{margin-top:-18px}
+  .hero-band{height:200px}
+  .hero-band-content{left:20px;bottom:16px;max-width:88%}
+  .hero-title{font-size:25px}
+  .hero-meta{font-size:12px;margin-bottom:10px}
+  .hero-btn{padding:9px 15px;font-size:12px}
+  .nav.floating{margin:10px 14px 0;border-radius:16px;padding:5px 8px}
+  .hero-band.on + .nav.floating{margin-top:-14px}
 }
 
 /* ===== Session 16 : motion ressort + retour tactile =====
@@ -896,7 +903,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       </div>
       <div class="nav-right">
         <button class="add-btn" onmouseenter="sfx('hover')" onclick="sfx('click');openAdd()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Ajouter
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span class="add-btn-lbl">Ajouter</span>
         </button>
         <div class="stabs" id="stabs">
           <button class="stab on" data-s="all" onmouseenter="sfx('hover')">Tous</button>
@@ -904,6 +911,12 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
           <button class="stab" data-s="encours" onmouseenter="sfx('hover')">En cours</button>
           <button class="stab" data-s="termine" onmouseenter="sfx('hover')">Termine</button>
         </div>
+        <select class="stat-sel-mobile" id="statSelMobile" onchange="document.querySelector('.stab[data-s=\''+this.value+'\']').click()">
+          <option value="all">Tous</option>
+          <option value="avoir">A voir</option>
+          <option value="encours">En cours</option>
+          <option value="termine">Termine</option>
+        </select>
         <select class="sort-sel" id="sortSel" onchange="render()">
           <option value="date">Date</option>
           <option value="title">A-Z</option>

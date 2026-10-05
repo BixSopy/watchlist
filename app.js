@@ -739,7 +739,7 @@ function clearDiscoveryCache(){
   toast('Catalogue actualisé.');
 }
 
-document.getElementById('stabs').addEventListener('click',function(e){var b=e.target.closest('.stab');if(!b)return;sfx('click');document.querySelectorAll('.stab').forEach(function(x){x.classList.remove('on')});b.classList.add('on');activeStat=b.dataset.s;render();});
+document.getElementById('stabs').addEventListener('click',function(e){var b=e.target.closest('.stab');if(!b)return;sfx('click');document.querySelectorAll('.stab').forEach(function(x){x.classList.remove('on')});b.classList.add('on');activeStat=b.dataset.s;var m=document.getElementById('statSelMobile');if(m)m.value=activeStat;render();});
 document.getElementById('sortSel').addEventListener('change',render);
 document.getElementById('qinput').addEventListener('input',function(e){fq=e.target.value;render();});
 
