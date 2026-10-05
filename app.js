@@ -2412,6 +2412,15 @@ try{dismissed=JSON.parse(localStorage.getItem('wl_dis')||'[]');}catch(e){dismiss
 loadSettings();applySettings();
 document.addEventListener('click',function u(){getAC();document.removeEventListener('click',u);},{once:true});
 openDB(function(){render();loadRecos();setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);enhanceAllSelects(document);setTimeout(function(){detectCollections(true);},6000);});
+
+/* PWA : enregistre un service worker volontairement sans cache (voir sw.js), uniquement
+   pour satisfaire le critère d'installabilité de Chrome/Android ("Ajouter à l'écran
+   d'accueil"). N'affecte jamais la fraîcheur des requêtes. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 /* ResizeObserver : recalcul card size si fenêtre redimensionnée */
 if(typeof ResizeObserver!=='undefined'){
   var _drRO=new ResizeObserver(function(){_calcDrCardSize();});

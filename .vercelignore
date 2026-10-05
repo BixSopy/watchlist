@@ -5,6 +5,9 @@
 !api
 !vendor
 !fonts
+!icons
 !index.html
 !app.js
 !vercel.json
+!manifest.json
+!sw.js
