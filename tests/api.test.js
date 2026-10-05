@@ -17,6 +17,15 @@ process.env.OMDB_API_KEY = FAKE_OMDB;
 process.env.SUPABASE_ANON_KEY = FAKE_ANON;
 process.env.SUPABASE_URL = 'https://example.supabase.co';
 
+const FAKE_GH_TOKEN = 'fakeghtoken_0123456789';
+const FAKE_RELEASE = {
+  assets: [
+    { id: 111, name: 'latest.json', url: 'https://api.github.com/repos/BixSopy/watchlist/releases/assets/111', content_type: 'application/json' },
+    { id: 222, name: 'Watchlist_1.0.0_x64-setup.exe', url: 'https://api.github.com/repos/BixSopy/watchlist/releases/assets/222', content_type: 'application/octet-stream' },
+  ],
+};
+const FAKE_MANIFEST = { version: '1.0.0', platforms: { 'windows-x86_64': { signature: 'sig', url: 'https://github.com/BixSopy/watchlist/releases/download/desktop-v1.0.0/Watchlist_1.0.0_x64-setup.exe' } } };
+
 const calls = [];
 let upstream = { status: 200, body: { id: 603, title: 'Matrix' } };
 global.fetch = async (url, opts) => {
@@ -29,15 +38,25 @@ global.fetch = async (url, opts) => {
     if (h.Authorization === 'Bearer ' + OTHER) return resp(200, { id: 'u2', email: 'autre@example.com' });
     return resp(401, { msg: 'bad jwt' });
   }
+  if (u === 'https://api.github.com/repos/BixSopy/watchlist/releases/latest') {
+    const h = (opts && opts.headers) || {};
+    if (h.Authorization !== 'Bearer ' + FAKE_GH_TOKEN) return resp(401, { message: 'Bad credentials' });
+    return resp(200, FAKE_RELEASE);
+  }
+  if (u === 'https://api.github.com/repos/BixSopy/watchlist/releases/assets/111') return resp(200, FAKE_MANIFEST);
+  if (u === 'https://api.github.com/repos/BixSopy/watchlist/releases/assets/222') {
+    return { status: 200, ok: true, arrayBuffer: async () => Buffer.from('binaire-factice') };
+  }
   return resp(upstream.status, upstream.body);
 };
 function resp(status, body) {
   const text = typeof body === 'string' ? body : JSON.stringify(body);
-  return { status, ok: status >= 200 && status < 300, text: async () => text, json: async () => JSON.parse(text) };
+  return { status, ok: status >= 200 && status < 300, text: async () => text, json: async () => JSON.parse(text), arrayBuffer: async () => Buffer.from(text) };
 }
 
 const tmdb = require('../api/tmdb');
 const omdb = require('../api/omdb');
+const releases = require('../api/releases');
 const common = require('../api/_lib/common');
 
 function call(handler, { method = 'GET', url, token } = {}) {
@@ -60,7 +79,7 @@ function noLeak(out) {
   assert.ok(!all.includes(FAKE_OMDB), 'clé OMDb dans la réponse');
   assert.ok(!all.includes(FAKE_ANON), 'clé anon dans la réponse');
 }
-function reset() { common._authCache.clear(); tmdb._cache.clear(); omdb._cache.clear(); common._buckets.clear(); calls.length = 0; delete process.env.ALLOWED_EMAILS; upstream = { status: 200, body: { id: 603, title: 'Matrix' } }; }
+function reset() { common._authCache.clear(); tmdb._cache.clear(); omdb._cache.clear(); common._buckets.clear(); releases._cache.clear(); releases._buckets.clear(); calls.length = 0; delete process.env.ALLOWED_EMAILS; process.env.GITHUB_TOKEN = FAKE_GH_TOKEN; upstream = { status: 200, body: { id: 603, title: 'Matrix' } }; }
 
 test('401 sans jeton', async () => {
   reset();
@@ -185,4 +204,51 @@ test('OMDb : format de i contrôlé, champs filtrés, erreurs de clé non relay�
   noLeak(out);
   out = await call(omdb, { url: '/api/omdb?i=tt0133093' });
   assert.strictEqual(out.statusCode, 401);
+});
+
+test('releases : manifest réécrit, aucune URL github.com ni token exposés', async () => {
+  reset();
+  const out = await call(releases, { url: '/api/releases?f=manifest' });
+  assert.strictEqual(out.statusCode, 200);
+  const m = JSON.parse(out.body);
+  assert.strictEqual(m.platforms['windows-x86_64'].url, 'https://watchlist-omega-three.vercel.app/api/releases?f=asset&id=222');
+  assert.ok(!out.body.includes('github.com'), 'aucune URL github.com directe');
+  assert.ok(!out.body.includes(FAKE_GH_TOKEN), 'token non exposé');
+});
+
+test('releases : téléchargement d’un asset de la dernière release', async () => {
+  reset();
+  const out = await call(releases, { url: '/api/releases?f=asset&id=222' });
+  assert.strictEqual(out.statusCode, 200);
+  assert.strictEqual(out.headers['content-type'], 'application/octet-stream');
+  assert.match(out.headers['content-disposition'], /Watchlist_1\.0\.0_x64-setup\.exe/);
+});
+
+test('releases : id hors de la dernière release refusé (404)', async () => {
+  reset();
+  const out = await call(releases, { url: '/api/releases?f=asset&id=999' });
+  assert.strictEqual(out.statusCode, 404);
+});
+
+test('releases : paramètre f manquant ou invalide (400), id non numérique (400)', async () => {
+  reset();
+  let out = await call(releases, { url: '/api/releases' });
+  assert.strictEqual(out.statusCode, 400);
+  out = await call(releases, { url: '/api/releases?f=autre' });
+  assert.strictEqual(out.statusCode, 400);
+  out = await call(releases, { url: '/api/releases?f=asset&id=abc' });
+  assert.strictEqual(out.statusCode, 400);
+});
+
+test('releases : 500 si GITHUB_TOKEN absent côté serveur', async () => {
+  reset();
+  delete process.env.GITHUB_TOKEN;
+  const out = await call(releases, { url: '/api/releases?f=manifest' });
+  assert.strictEqual(out.statusCode, 500);
+});
+
+test('releases : 405 sur POST', async () => {
+  reset();
+  const out = await call(releases, { method: 'POST', url: '/api/releases?f=manifest' });
+  assert.strictEqual(out.statusCode, 405);
 });

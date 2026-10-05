@@ -1,0 +1,37 @@
+name: Release app de bureau (Windows)
+
+# Se déclenche en poussant un tag "desktop-vX.Y.Z" (ex: git tag desktop-v1.0.0 && git push origin desktop-v1.0.0).
+# Construit l'installateur Windows (NSIS + MSI) via Tauri, crée une Release GitHub (dépôt privé)
+# et y attache latest.json (signé) pour l'auto-update. La distribution publique passe ensuite par
+# /api/releases (proxy Vercel), car les assets d'une release privée ne sont pas accessibles sans auth.
+on:
+  push:
+    tags:
+      - 'desktop-v*'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Construire et publier (Tauri)
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        with:
+          projectPath: desktop
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Watchlist ${{ github.ref_name }}'
+          releaseBody: 'Installateur Windows (MSI/NSIS) avec mise à jour automatique.'
+          releaseDraft: false
+          prerelease: false
+          uploadUpdaterJson: true
