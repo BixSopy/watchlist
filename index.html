@@ -76,9 +76,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .search-bar input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-size:14.5px;font-family:'Inter',sans-serif}
 .search-bar input::placeholder{color:var(--text3)}
 /* SEARCH MODAL */
-.search-modal{display:none;position:fixed;inset:0;z-index:2500;background:var(--glass-backdrop-bg);backdrop-filter:blur(var(--glass-backdrop-blur));padding:18px}
-.search-modal.on{display:flex;align-items:stretch;animation:fadeIn .16s ease}
-.search-modal-wrap{width:100%;background:var(--glass-panel-bg);backdrop-filter:blur(var(--glass-panel-blur)) saturate(1.5);-webkit-backdrop-filter:blur(var(--glass-panel-blur)) saturate(1.5);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-xl);box-shadow:var(--shadow-modal);display:flex;flex-direction:column;overflow:hidden}
+.search-modal{display:none;position:fixed;inset:0;z-index:2500;background:var(--glass-backdrop-bg);backdrop-filter:blur(var(--glass-backdrop-blur));padding:8vh 18px 18px}
+.search-modal.on{display:flex;align-items:flex-start;justify-content:center;animation:fadeIn .16s ease}
+.search-modal-wrap{width:100%;max-width:760px;max-height:calc(100vh - 8vh - 18px);background:var(--glass-panel-bg);backdrop-filter:blur(var(--glass-panel-blur)) saturate(1.5);-webkit-backdrop-filter:blur(var(--glass-panel-blur)) saturate(1.5);border:1px solid rgba(255,255,255,.09);border-radius:var(--r-xl);box-shadow:var(--shadow-modal);display:flex;flex-direction:column;overflow:hidden}
 .search-modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
 .search-modal-sub{font-size:12px;color:var(--text3);margin-top:3px}
 .search-modal-toolbar{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -362,9 +362,10 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .stars.locked::after{content:'Passe en cours/terminé pour noter';position:absolute;left:0;top:100%;margin-top:3px;font-size:10px;color:var(--text3);white-space:nowrap}
 
 /* SEARCH FILTERS */
-.search-filter-row{display:flex;gap:8px;padding:8px 22px 12px;flex-shrink:0}
-.sf-sel{flex:1;min-width:0}
+.search-filter-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:8px 22px 14px;flex-shrink:0}
+.sf-sel{min-width:0}
 .sf-sel:focus{border-color:var(--accent);color:var(--text)}
+.search-filter-row .csel-btn{padding:11px 13px;font-size:13.5px;border-radius:11px}
 
 /* EN COURS STRIP */
 .ec-strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
@@ -612,10 +613,10 @@ body.suivi-providers-off .suivi-providers{display:none}
   .plex-body{padding:16px 16px 22px}
   .frow{grid-template-columns:1fr}
   .search-modal{padding:0}
-  .search-modal-wrap{border-radius:0}
+  .search-modal-wrap{border-radius:0;max-width:100%;max-height:100vh}
   .search-results{grid-template-columns:1fr}
   .search-modal-toolbar{flex-wrap:wrap;gap:8px;padding:10px 14px}
-  .search-filter-row{flex-wrap:wrap;padding:8px 14px 10px}
+  .search-filter-row{grid-template-columns:repeat(2,1fr);padding:8px 14px 10px}
   .folder-mbk{padding:0}
   .folder-wrap{width:100%;max-height:100%;height:100%;border-radius:0}
 }
@@ -1092,6 +1093,25 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
         <option value="">Tous types</option>
         <option value="movie">Films</option>
         <option value="tv">Séries / Anime</option>
+      </select>
+      <select class="sf-sel" id="sfGenre" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+        <option value="">Tous genres</option>
+        <option value="action">Action</option>
+        <option value="animation">Animation</option>
+        <option value="aventure">Aventure</option>
+        <option value="comedie">Comédie</option>
+        <option value="crime">Crime</option>
+        <option value="documentaire">Documentaire</option>
+        <option value="drame">Drame</option>
+        <option value="famille">Famille</option>
+        <option value="fantastique">Fantastique</option>
+        <option value="guerre">Guerre</option>
+        <option value="horreur">Horreur</option>
+        <option value="mystere">Mystère</option>
+        <option value="romance">Romance</option>
+        <option value="scifi">Science-Fiction</option>
+        <option value="thriller">Thriller</option>
+        <option value="western">Western</option>
       </select>
       <select class="sf-sel" id="sfSort" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
         <option value="">Pertinence</option>

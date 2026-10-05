@@ -2383,7 +2383,7 @@ function enhanceSelect(sel){
   function onDocClick(e){if(!wrap.contains(e.target))close();}
   btn.onclick=function(e){e.stopPropagation();isOpen()?close():open();};
   btn.onkeydown=function(e){
-    if(e.key==='Escape'){close();return;}
+    if(e.key==='Escape'){if(isOpen()){e.stopPropagation();close();}return;}
     if(e.key==='Enter'||e.key===' '){e.preventDefault();isOpen()?close():open();return;}
     if(e.key==='ArrowDown'||e.key==='ArrowUp'){
       e.preventDefault();
@@ -2436,7 +2436,7 @@ function _normSR(r){
   return{key:r.media_type+'-'+r.id,tmdbId:r.id,tmdbType:r.media_type,type:_mediaAppType(r.media_type,r),
     title:(isM?r.title:r.name)||'Sans titre',year:(isM?(r.release_date||''):(r.first_air_date||'')).slice(0,4),
     poster:r.poster_path||null,overview:r.overview||'',score:r.vote_average?r.vote_average.toFixed(1):null,
-    genreIds:r.genre_ids||[]};
+    popularity:r.popularity||0,genreIds:r.genre_ids||[]};
 }
 function _inList(id){return !!memDB.find(function(i){return i.tmdbId==id;});}
 function _inDismissed(id){return dismissed.indexOf(id)>-1;}
@@ -2555,12 +2555,14 @@ function _parseStructuredQuery(q){
   }
   return{genreIds:genreIds,year:year,minScore:minScore,mtypes:mtypes,textQuery:textParts.join(' ').trim()};
 }
-/* Discover TMDB filtré à partir d'une requête structurée, résultats classés par profil de goût */
-function _discoverStructured(parsed,page){
+/* Discover TMDB filtré à partir d'une requête structurée. Sans tri explicite (sortBy omis,
+   cas de l'astuce texte « Action 2020 ★4+ ») : classé par profil de goût. Avec tri explicite
+   (menu Tri du modal) : on respecte ce choix et on ne ré-ordonne pas par profil. */
+function _discoverStructured(parsed,page,sortBy){
   var calls=[];
   parsed.mtypes.forEach(function(mt){
     var gids=parsed.genreIds[mt]||[];
-    var params='?language=fr-FR&page='+page+'&sort_by=popularity.desc';
+    var params='?language=fr-FR&page='+page+'&sort_by='+(sortBy||'popularity.desc');
     if(gids.length)params+='&with_genres='+gids.join(',');
     if(parsed.year)params+=(mt==='movie'?'&primary_release_date.gte=':'&first_air_date.gte=')+parsed.year+'-01-01';
     if(parsed.minScore)params+='&vote_average.gte='+parsed.minScore;
@@ -2577,27 +2579,63 @@ function _discoverStructured(parsed,page){
         merged.push(_normSR(Object.assign({},x,{media_type:r.mt})));
       });
     });
-    merged=_sortByProfile(merged,computeTasteProfile()).slice(0,20);
+    if(sortBy){
+      merged.sort(function(a,b){
+        if(sortBy==='vote_average.desc')return(parseFloat(b.score)||0)-(parseFloat(a.score)||0);
+        if(sortBy==='primary_release_date.desc')return(b.year||'').localeCompare(a.year||'');
+        return(b.popularity||0)-(a.popularity||0);
+      });
+    }else{
+      merged=_sortByProfile(merged,computeTasteProfile());
+    }
+    merged=merged.slice(0,20);
     return{results:merged,page:page,total_pages:totalPages,total_results:totalResults||merged.length};
   });
 }
+/* Parcours par genre explicite (menu Genre du modal), sans texte libre : types sans
+   correspondance TMDB pour ce genre (ex. Horreur n'existe pas côté séries) sont ignorés. */
+function _discoverByGenre(genreKey,typeFilter,sortFilter,yearFilter,page){
+  var g=GENRE_MAP[genreKey];
+  if(!g)return Promise.resolve({results:[],page:1,total_pages:1,total_results:0});
+  var mtypes=(typeFilter?[typeFilter]:['movie','tv']).filter(function(mt){return g[mt];});
+  if(!mtypes.length)return Promise.resolve({results:[],page:1,total_pages:1,total_results:0});
+  var parsed={genreIds:{movie:g.movie?[g.movie]:[],tv:g.tv?[g.tv]:[]},year:yearFilter||null,minScore:null,mtypes:mtypes,textQuery:''};
+  return _discoverStructured(parsed,page,sortFilter||null);
+}
+/* Un résultat correspond au genre choisi si son genre_ids contient l'id TMDB du genre pour
+   SON type (movie/tv ont des ids différents, et certains genres n'existent que pour l'un
+   des deux — ex. Horreur n'a pas d'équivalent séries sur TMDB, auquel cas aucun résultat
+   tv ne peut jamais correspondre, ce qui est la réalité du catalogue, pas un bug). */
+function _matchesGenre(genreKey,mediaType,genreIds){
+  if(!genreKey)return true;
+  var g=GENRE_MAP[genreKey];if(!g)return true;
+  var gid=mediaType==='movie'?g.movie:g.tv;
+  if(!gid)return false;
+  return(genreIds||[]).indexOf(gid)>=0;
+}
 function _searchTMDB(q,page){
   q=(q||'').trim();page=page||1;
-  if(q.length<2)return Promise.resolve({results:[],page:1,total_pages:1,total_results:0});
   var sfType=document.getElementById('sfType');
+  var sfGenre=document.getElementById('sfGenre');
   var sfSort=document.getElementById('sfSort');
   var sfYear=document.getElementById('sfYear');
   var typeFilter=sfType?sfType.value:'';
+  var genreFilter=sfGenre?sfGenre.value:'';
   var sortFilter=sfSort?sfSort.value:'';
   var yearFilter=sfYear?sfYear.value:'';
+  /* Pas de texte : uniquement exploitable si un genre est choisi (parcours /discover) */
+  if(q.length<2){
+    if(!genreFilter)return Promise.resolve({results:[],page:1,total_pages:1,total_results:0});
+    return _discoverByGenre(genreFilter,typeFilter,sortFilter,yearFilter,page);
+  }
   /* Requête structurée ("Action 2020 ★4+") : uniquement si aucun filtre manuel n'est déjà
      actif, pour ne jamais entrer en conflit avec les sélecteurs existants du modal. */
-  if(!typeFilter&&!sortFilter&&!yearFilter){
+  if(!typeFilter&&!genreFilter&&!sortFilter&&!yearFilter){
     var parsed=_parseStructuredQuery(q);
     if(parsed)return _discoverStructured(parsed,page);
   }
   /* Type + tri : recherche texte sur /search/{type} (TMDB /discover n'a pas de filtre texte),
-     filtre d'année et tri appliqués côté client sur la page de résultats */
+     filtre d'année, de genre et tri appliqués côté client sur la page de résultats */
   if(typeFilter&&sortFilter){
     var ep=typeFilter==='movie'?'/search/movie':'/search/tv';
     var params='?language=fr-FR&page='+page+'&include_adult=false&query='+encodeURIComponent(q);
@@ -2608,6 +2646,7 @@ function _searchTMDB(q,page){
       var rows=(data.results||[]).filter(function(r){
         if(!(r.title||r.name)||_inDismissed(r.id))return false;
         if(yearFilter){var yr=parseInt(dateOf(r).slice(0,4));if(!(yr>=parseInt(yearFilter)))return false;}
+        if(!_matchesGenre(genreFilter,mtype,r.genre_ids))return false;
         return true;
       });
       rows.sort(function(a,b){
@@ -2621,17 +2660,27 @@ function _searchTMDB(q,page){
       return{results:list,page:data.page||1,total_pages:Math.max(1,Math.min(data.total_pages||1,50)),total_results:data.total_results||list.length};
     });
   }
-  /* Sinon search/multi standard + filtre type côté client si demandé */
+  /* Sinon search/multi standard + filtres type/genre/année/tri appliqués côté client */
   var url=TB+'/search/multi?language=fr-FR&query='+encodeURIComponent(q)+'&page='+page+'&include_adult=false';
   return tf(url).then(function(data){
-    var list=(data.results||[]).filter(function(r){
+    var rows=(data.results||[]).filter(function(r){
       if(!(r.media_type==='movie'||r.media_type==='tv'))return false;
       if(!(r.title||r.name))return false;
       if(_inDismissed(r.id))return false;
       if(typeFilter&&r.media_type!==typeFilter)return false;
       if(yearFilter){var yr=(r.media_type==='movie'?(r.release_date||''):(r.first_air_date||'')).slice(0,4);if(parseInt(yr)<parseInt(yearFilter))return false;}
+      if(!_matchesGenre(genreFilter,r.media_type,r.genre_ids))return false;
       return true;
-    }).slice(0,20).map(_normSR);
+    });
+    if(sortFilter){
+      rows.sort(function(a,b){
+        var dateOf=function(r){return(r.media_type==='movie'?r.release_date:r.first_air_date)||'';};
+        if(sortFilter==='vote_average.desc')return(b.vote_average||0)-(a.vote_average||0);
+        if(sortFilter==='primary_release_date.desc')return dateOf(b).localeCompare(dateOf(a));
+        return(b.popularity||0)-(a.popularity||0);
+      });
+    }
+    var list=rows.slice(0,20).map(_normSR);
     return{results:list,page:data.page||1,total_pages:Math.max(1,Math.min(data.total_pages||1,50)),total_results:data.total_results||list.length};
   });
 }
@@ -2670,8 +2719,10 @@ function addSelectedBatch(){
 
 function _runSearch(query,page){
   var q=(query||'').trim();searchState.query=q;searchState.page=page||1;searchState.token++;var tok=searchState.token;
-  if(q.length<2){searchState.results=[];searchState.totalPages=1;_stateText('Tape au moins 2 caractères');_renderSR([]);return;}
-  _setSearchLoad(true);_stateText('Recherche de "'+q+'"…');
+  var sfGenre=document.getElementById('sfGenre');
+  var genreOnly=q.length<2&&sfGenre&&sfGenre.value;
+  if(q.length<2&&!genreOnly){searchState.results=[];searchState.totalPages=1;_stateText('Tape au moins 2 caractères');_renderSR([]);return;}
+  _setSearchLoad(true);_stateText(genreOnly?'Parcours en cours…':'Recherche de "'+q+'"…');
   _searchTMDB(q,searchState.page).then(function(res){
     if(tok!==searchState.token)return;
     searchState.results=res.results||[];searchState.page=res.page||1;searchState.totalPages=res.total_pages||1;
