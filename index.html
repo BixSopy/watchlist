@@ -41,9 +41,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .hdr{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;height:68px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:20px}
 .hdr-left{display:flex;align-items:center;gap:20px;justify-self:start;min-width:0}
 .hdr-right{display:flex;align-items:center;gap:10px;justify-self:end}
-.logo{font-family:'Inter',sans-serif;font-size:22px;font-weight:900;letter-spacing:-.5px;color:#fff;white-space:nowrap}
+.logo{font-family:'Inter',sans-serif;font-size:22px;font-weight:900;letter-spacing:-.5px;color:#fff;white-space:nowrap;display:flex;align-items:center;gap:8px}
 .logo em{color:var(--accent);font-style:normal}
-.logo sub{font-weight:400;color:var(--text2);font-size:15px;margin-left:3px;vertical-align:baseline}
+.logo-mark{width:22px;height:22px;flex:none}
 .hstats{display:flex;gap:10px;margin-left:auto;align-items:center}
 .pill{font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:20px}
 .pill b{color:var(--text);font-weight:600}
@@ -581,7 +581,7 @@ body.suivi-providers-off .suivi-providers{display:none}
 @media (max-width:768px){
   .hdr{padding:0 14px;column-gap:10px;grid-template-columns:auto 1fr auto}
   .logo{font-size:18px}
-  .logo sub{display:none}
+  .logo-mark{width:18px;height:18px}
   .search-bar{width:100%;min-width:0;padding-left:38px}
   .nav{padding-left:14px;flex-wrap:wrap}
   .ntab{font-size:15px;padding:13px 12px}
@@ -802,7 +802,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 <header class="hdr">
   <div class="hdr-left">
     <button class="hbtn sb-toggle" onclick="toggleSidebar()" title="Recommandations" aria-label="Ouvrir les recommandations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></button>
-    <div class="logo">watch<em>list</em><sub>pierre</sub></div>
+    <div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" style="fill:var(--accent)"/><path d="M9 7.3 17 12 9 16.7z" style="fill:#06070a"/></svg>watch<em>list</em></div>
   </div>
   <div class="search-bar liquid-glass" role="search">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>

@@ -389,8 +389,7 @@ function secHtml(label,items,statusClass){
    automatique s'il y en a plusieurs, comme un carrousel). Masque s'il n'y en a aucun
    pour cet onglet. Le fond (backdrop TMDB) n'est refetch que si le titre en avant
    change — pas a chaque render(). */
-var _heroItemId=null,_heroItems=[],_heroIdx=0,_heroTimer=null,_heroPaused=false;
-var _heroBandBound=false;
+var _heroItemId=null,_heroItems=[],_heroIdx=0,_heroTimer=null;
 function _heroCandidates(){
   var tab=activeTab;
   return memDB.filter(function(i){
@@ -402,11 +401,6 @@ function _heroCandidates(){
 function renderHero(){
   var band=document.getElementById('heroBand');
   if(!band)return;
-  if(!_heroBandBound){
-    _heroBandBound=true;
-    band.addEventListener('mouseenter',function(){_heroPaused=true;});
-    band.addEventListener('mouseleave',function(){_heroPaused=false;_scheduleHeroRotate();});
-  }
   _heroItems=_heroCandidates();
   clearTimeout(_heroTimer);
   if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;document.getElementById('heroDots').innerHTML='';return;}
@@ -415,11 +409,17 @@ function renderHero(){
   _showHeroItem(_heroIdx);
   _scheduleHeroRotate();
 }
+/* Pause au survol vérifiée en temps réel via :hover à chaque tick, plutôt qu'un flag
+   figé par mouseenter/mouseleave : un mouseleave qui ne se déclenche jamais (curseur
+   immobile pendant qu'une modale recouvre le bandeau, ex. clic sur "Reprendre") bloquait
+   sinon le balayage indéfiniment même une fois le curseur réellement sorti. */
 function _scheduleHeroRotate(){
   clearTimeout(_heroTimer);
-  if(_heroItems.length<2||_heroPaused)return;
+  if(_heroItems.length<2)return;
   if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  _heroTimer=setTimeout(function(){
+  _heroTimer=setTimeout(function tick(){
+    var band=document.getElementById('heroBand');
+    if(band&&band.matches(':hover')){_heroTimer=setTimeout(tick,1000);return;}
     _heroIdx=(_heroIdx+1)%_heroItems.length;
     _showHeroItem(_heroIdx);
     _scheduleHeroRotate();
