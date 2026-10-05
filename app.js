@@ -420,7 +420,6 @@ function renderHero(){
 function _scheduleHeroRotate(){
   clearTimeout(_heroTimer);
   if(_heroItems.length<2)return;
-  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   _heroTimer=setTimeout(function tick(){
     var content=document.querySelector('#heroBand .hero-band-content');
     if(content&&content.matches(':hover')){_heroTimer=setTimeout(tick,1000);return;}
