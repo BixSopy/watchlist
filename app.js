@@ -161,8 +161,8 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'
 /* Argument de chaîne sûr dans un attribut onclick="f(...)" : littéral JS (JSON) puis échappement HTML */
 function jsArg(s){return esc(JSON.stringify(String(s==null?'':s)));}
 function icon(t){return t=='film'?'&#127916;':t=='serie'?'&#128250;':'&#127884;';}
-function tbadge(t){var c={film:'bf',serie:'bs',anime:'ba'}[t]||'bf';var l={film:'Film',serie:'Serie',anime:'Anime'}[t]||t;return '<span class="badge '+c+'">'+l+'</span>';}
-function sbadge(s){var c={avoir:'bav',encours:'bec',termine:'bte',todo:'btd'}[s]||'bav';var l={avoir:'A voir',encours:'En cours',termine:'Terminé',todo:'À qualifier'}[s]||s;return '<span class="badge '+c+'">'+l+'</span>';}
+function tbadge(t){var c={film:'bf',serie:'bs',anime:'ba'}[t]||'bf';var l={film:'Film',serie:'Série',anime:'Anime'}[t]||t;return '<span class="badge '+c+'">'+l+'</span>';}
+function sbadge(s){var c={avoir:'bav',encours:'bec',termine:'bte',todo:'btd'}[s]||'bav';var l={avoir:'À voir',encours:'En cours',termine:'Terminé',todo:'À qualifier'}[s]||s;return '<span class="badge '+c+'">'+l+'</span>';}
 function starsvg(f){if(f)return '<svg viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="currentColor"/></svg>';return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>';}
 
 /* Journalisation minimale : code et message seulement (jamais d'objet complet, de jeton ni de donnée perso) */
@@ -306,7 +306,7 @@ function cardHtml(item,idx){
   var newep=item.hasNewEp?'<div class="card-newep">Nouvel ep</div>':'';
   var todof=(item.status==='todo'||item.needsConfig)?'<div class="card-todo-flag" title="À qualifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>':'';
   var id=item.id;var delay=idx*0.02;
-  var nextBtn=(item.status=='encours'&&item.type!='film')?'<div class="ibtn" onclick="quickNextEp('+jsArg(id)+',event)" title="Episode suivant vu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>':'';
+  var nextBtn=(item.status=='encours'&&item.type!='film')?'<div class="ibtn" onclick="quickNextEp('+jsArg(id)+',event)" title="Épisode suivant vu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>':'';
   return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(id)+')">'+newep+todof+po+ph+'<div class="cact">'+nextBtn+'<div class="ibtn" onclick="event.stopPropagation();sfx(\'click\');openEdit('+jsArg(id)+')" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del" onclick="event.stopPropagation();delEntry('+jsArg(id)+')" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(item.title)+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
 }
 
@@ -432,7 +432,7 @@ function _heroGoTo(i){_heroIdx=i;_showHeroItem(i);_scheduleHeroRotate();}
 function _showHeroItem(idx){
   var item=_heroItems[idx];if(!item)return;
   document.getElementById('heroTitle').textContent=item.title;
-  var typeLbl=item.type==='film'?'Film':item.type==='anime'?'Anime':'Serie';
+  var typeLbl=item.type==='film'?'Film':item.type==='anime'?'Anime':'Série';
   var epT=(item.saison&&item.episode)?('S'+pad(item.saison)+' E'+pad(item.episode)):'';
   document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
   document.getElementById('heroBtnPlay').onclick=function(){sfx('click');openPlex(item.id);};
@@ -455,7 +455,7 @@ function _showHeroItem(idx){
 function render(){
   renderHero();
   var total0=memDB.filter(function(i){return !i.deleted}).length,ec0=memDB.filter(function(i){return i.status=='encours'&&!i.deleted}).length,te0=memDB.filter(function(i){return i.status=='termine'&&!i.deleted}).length;
-  document.getElementById('hstats').innerHTML='<div class="pill"><b>'+total0+'</b> titres</div><div class="pill">En cours <b>'+ec0+'</b></div><div class="pill">Termines <b>'+te0+'</b></div>';
+  document.getElementById('hstats').innerHTML='<div class="pill"><b>'+total0+'</b> titres</div><div class="pill">En cours <b>'+ec0+'</b></div><div class="pill">Terminés <b>'+te0+'</b></div>';
   if(activeTab==='discover'){
     document.getElementById('mc').innerHTML='';
     if(typeof updateStatsFooter==='function')updateStatsFooter();
@@ -476,19 +476,19 @@ function render(){
         var epT=(item.saison&&item.episode)?'S'+pad(item.saison)+' E'+pad(item.episode):'En cours';
         var pct=0;if(item.totalEp&&item.totalEp>0&&item.episode)pct=Math.min(100,Math.round((item.episode/item.totalEp)*100));
         var pb=item.totalEp?'<div class="pbar"><div class="pbar-fill" style="width:'+pct+'%"></div></div>':'';
-        var nextBtn=item.type!='film'?'<button class="ec-next" title="Episode suivant vu" onclick="quickNextEp('+jsArg(item.id)+',event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>':'';
+        var nextBtn=item.type!='film'?'<button class="ec-next" title="Épisode suivant vu" onclick="quickNextEp('+jsArg(item.id)+',event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>':'';
         html+='<div class="ec-card" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(item.id)+')">'+po+ph+nextBtn+'<div class="ec-body"><div class="ec-title">'+esc(item.title)+'</div><div class="ec-ep">'+epT+'</div>'+pb+'</div></div>';
       });
       html+='</div></div>';
     }
     if(stat=='all'){
       /* "En cours" a déjà sa bande dédiée ci-dessus : on évite de le répéter en grille complète */
-      html+=secHtml('A voir',items.filter(function(i){return i.status=='avoir'||i.status=='todo'}),'sec-status-avoir');
-      html+=secHtml('Termines',items.filter(function(i){return i.status=='termine'}),'sec-status-termine');
+      html+=secHtml('À voir',items.filter(function(i){return i.status=='avoir'||i.status=='todo'}),'sec-status-avoir');
+      html+=secHtml('Terminés',items.filter(function(i){return i.status=='termine'}),'sec-status-termine');
     }
-    else{html+=secHtml(stat=='avoir'?'A voir':stat=='encours'?'En cours':'Termines',items,STATUS_SEC_CLASS[stat]);}
+    else{html+=secHtml(stat=='avoir'?'À voir':stat=='encours'?'En cours':'Terminés',items,STATUS_SEC_CLASS[stat]);}
   } else {
-    var secs=[{s:'encours',l:'En cours',c:'sec-status-encours'},{s:'avoir',l:'A voir',c:'sec-status-avoir'},{s:'termine',l:'Termines',c:'sec-status-termine'}];
+    var secs=[{s:'encours',l:'En cours',c:'sec-status-encours'},{s:'avoir',l:'À voir',c:'sec-status-avoir'},{s:'termine',l:'Terminés',c:'sec-status-termine'}];
     secs.forEach(function(sec){
       var si=stat=='all'?items.filter(function(i){return i.status==sec.s}):(sec.s==stat?items:[]);
       if(si.length)html+=secHtml(sec.l,si,sec.c);
@@ -757,7 +757,7 @@ function doSearch(q){
     tdd.innerHTML=res.map(function(r,i){
       var isM=r.media_type=='movie';var title=isM?r.title:r.name;var year=isM?(r.release_date||'').slice(0,4):(r.first_air_date||'').slice(0,4);
       var th=r.poster_path?'<img class="ddth" src=\"'+IB+'w92'+esc(r.poster_path)+'\" alt="" loading="lazy">':'<div class="ddph">'+icon(isM?'film':'serie')+'</div>';
-      return '<div class="ddi"><div class="ddi-main" data-idx="'+i+'">'+th+'<div><div class="ddn">'+esc(title)+'</div><div class="dds">'+(isM?'Film':'Serie/Anime')+(year?' - '+year:'')+'</div></div></div><div class="dd-ibtn" data-idx="'+i+'" data-act="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div></div>';
+      return '<div class="ddi"><div class="ddi-main" data-idx="'+i+'">'+th+'<div><div class="ddn">'+esc(title)+'</div><div class="dds">'+(isM?'Film':'Série/Anime')+(year?' - '+year:'')+'</div></div></div><div class="dd-ibtn" data-idx="'+i+'" data-act="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div></div>';
     }).join('');
     tdd._res=res;tdd.classList.add('on');
   }).catch(function(){spin.classList.remove('on');});
@@ -773,7 +773,7 @@ tdd.addEventListener('click',function(e){
   var isM=r.media_type=='movie';var title=isM?r.title:r.name;var year=isM?(r.release_date||'').slice(0,4):(r.first_air_date||'').slice(0,4);
   selTmdb={tmdbId:r.id,tmdbType:r.media_type,title:title,year:year,poster:r.poster_path||null,overview:r.overview||'',tmdbScore:r.vote_average?r.vote_average.toFixed(1):null};
   document.getElementById('sptitle').textContent=title;
-  document.getElementById('spmeta').textContent=(isM?'Film':'Serie/Anime')+(year?' - '+year:'')+(r.vote_average?' - '+r.vote_average.toFixed(1):'');
+  document.getElementById('spmeta').textContent=(isM?'Film':'Série/Anime')+(year?' - '+year:'')+(r.vote_average?' - '+r.vote_average.toFixed(1):'');
   var im=document.getElementById('spimg');if(r.poster_path){im.src=IB+'w92'+r.poster_path;im.style.display='block';}else{im.style.display='none';}
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
   document.getElementById('ftmdb').value=selTmdb.tmdbScore||'';document.getElementById('fyear').value=year||'';
@@ -829,7 +829,7 @@ function openEdit(id){
   document.getElementById('mtitle').textContent='Modifier';document.getElementById('sbtn').textContent='Enregistrer';
   selTmdb={tmdbId:item.tmdbId,tmdbType:item.tmdbType,title:item.title,year:item.year,poster:item.poster,overview:item.overview,tmdbScore:item.tmdbScore};
   document.getElementById('sptitle').textContent=item.title;
-  document.getElementById('spmeta').textContent=(item.type=='film'?'Film':'Serie/Anime')+(item.year?' - '+item.year:'');
+  document.getElementById('spmeta').textContent=(item.type=='film'?'Film':'Série/Anime')+(item.year?' - '+item.year:'');
   var im=document.getElementById('spimg');if(item.poster){im.src=IB+'w92'+item.poster;im.style.display='block';}else{im.style.display='none';}
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
   document.getElementById('ftype').value=item.type;document.getElementById('fstat').value=item.status;
@@ -1494,7 +1494,7 @@ function recoAddDirect(d){
   editId=null;myRate=0;
   document.getElementById('mtitle').textContent='Ajouter un titre';document.getElementById('sbtn').textContent='Ajouter';
   document.getElementById('sptitle').textContent=d.title;
-  document.getElementById('spmeta').textContent=(d.type=='movie'?'Film':'Serie/Anime')+(d.year?' - '+d.year:'');
+  document.getElementById('spmeta').textContent=(d.type=='movie'?'Film':'Série/Anime')+(d.year?' - '+d.year:'');
   var im=document.getElementById('spimg');if(d.poster){im.src=IB+'w92'+d.poster;im.style.display='block';}else{im.style.display='none';}
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
   document.getElementById('ftmdb').value=d.score||'';document.getElementById('fyear').value=d.year||'';
@@ -1929,7 +1929,7 @@ function submitAuth(){
       after();
       if(res.error){showAuthMsg(res.error.message);return;}
       if(res.data&&res.data.session){
-        toast('Compte cree','ok');
+        toast('Compte créé','ok');
         refreshAuthModalView();
       }else{
         showAuthMsg('Compte cree. Verifie ta boite mail pour confirmer avant de te connecter.','ok');
@@ -1939,7 +1939,7 @@ function submitAuth(){
     supa.auth.signInWithPassword({email:email,password:pass}).then(function(res){
       after();
       if(res.error){showAuthMsg(res.error.message);return;}
-      toast('Connecte','ok');
+      toast('Connecté','ok');
       refreshAuthModalView();
     }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
   }
@@ -1948,7 +1948,7 @@ function submitAuth(){
 function signOutUser(){
   if(!supa)return;
   supa.auth.signOut().then(function(){
-    toast('Deconnecte','nfo');
+    toast('Déconnecté','nfo');
     closeAuthModal();
   });
 }
@@ -2153,14 +2153,14 @@ function openStats(){
   function bar(l,v,m){var p=m?Math.round((v/m)*100):0;return '<div class="bar-row"><div class="bar-lbl">'+l+'</div><div class="bar-track"><div class="bar-fill" style="width:'+p+'%"></div></div><div class="bar-val">'+v+'</div></div>';}
   var mT=Math.max(byT.film,byT.serie,byT.anime,1),mS=Math.max(byS.avoir,byS.encours,byS.termine,1);
   var html='<div class="bento-stats">'
-    +'<div class="bento-tile big accent"><div class="bt-lbl">Total titres</div><div class="bt-val a">'+total+'</div><div class="bt-sub">'+byT.film+' films &bull; '+byT.serie+' series &bull; '+byT.anime+' anime</div></div>'
+    +'<div class="bento-tile big accent"><div class="bt-lbl">Total titres</div><div class="bt-val a">'+total+'</div><div class="bt-sub">'+byT.film+' films &bull; '+byT.serie+' séries &bull; '+byT.anime+' anime</div></div>'
     +'<div class="bento-tile"><div class="bt-lbl">Ma note moy.</div><div class="bt-val">'+(avgM?avgM.toFixed(1):'-')+'</div></div>'
     +'<div class="bento-tile"><div class="bt-lbl">Temps total</div><div class="bt-val">'+estH+'h</div></div>'
     +'<div class="bento-tile"><div class="bt-lbl">Reste a voir</div><div class="bt-val">'+avoirH+'h</div></div>'
     +'<div class="bento-tile"><div class="bt-lbl">En cours</div><div class="bt-val">'+byS.encours+'</div></div>'
     +'</div>';
-  html+='<div class="stat-sec"><div class="stat-sec-title">Par type</div>'+bar('Films',byT.film,mT)+bar('Series',byT.serie,mT)+bar('Anime',byT.anime,mT)+'</div>';
-  html+='<div class="stat-sec"><div class="stat-sec-title">Par statut</div>'+bar('A voir',byS.avoir,mS)+bar('En cours',byS.encours,mS)+bar('Termine',byS.termine,mS)+'</div>';
+  html+='<div class="stat-sec"><div class="stat-sec-title">Par type</div>'+bar('Films',byT.film,mT)+bar('Séries',byT.serie,mT)+bar('Anime',byT.anime,mT)+'</div>';
+  html+='<div class="stat-sec"><div class="stat-sec-title">Par statut</div>'+bar('À voir',byS.avoir,mS)+bar('En cours',byS.encours,mS)+bar('Terminé',byS.termine,mS)+'</div>';
   html+='<div class="stat-sec"><div class="stat-sec-title">Compatibilite TMDB</div><div class="compat-box">'+cHtml+'</div></div>';
   document.getElementById('statsContent').innerHTML=html;document.getElementById('statsMbk').classList.add('on');
 }

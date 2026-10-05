@@ -898,9 +898,9 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <div class="ntabs-scroll">
         <button class="ntab on" data-tab="all" onmouseenter="sfx('hover')" onclick="switchTab(this)">Tout</button>
         <button class="ntab" data-tab="film" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127916;</span>Films</button>
-        <button class="ntab" data-tab="serie" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#128250;</span>Series</button>
+        <button class="ntab" data-tab="serie" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#128250;</span>Séries</button>
         <button class="ntab" data-tab="anime" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127884;</span>Anime</button>
-        <button class="ntab" data-tab="discover" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#129517;</span>Decouvrir</button>
+        <button class="ntab" data-tab="discover" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#129517;</span>Découvrir</button>
       </div>
       <div class="nav-right">
         <button class="add-btn" onmouseenter="sfx('hover')" onclick="sfx('click');openAdd()">
@@ -908,15 +908,15 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
         </button>
         <div class="stabs" id="stabs">
           <button class="stab on" data-s="all" onmouseenter="sfx('hover')">Tous</button>
-          <button class="stab" data-s="avoir" onmouseenter="sfx('hover')">A voir</button>
+          <button class="stab" data-s="avoir" onmouseenter="sfx('hover')">À voir</button>
           <button class="stab" data-s="encours" onmouseenter="sfx('hover')">En cours</button>
-          <button class="stab" data-s="termine" onmouseenter="sfx('hover')">Termine</button>
+          <button class="stab" data-s="termine" onmouseenter="sfx('hover')">Terminé</button>
         </div>
         <select class="stat-sel-mobile" id="statSelMobile" onchange="document.querySelector('.stab[data-s=\''+this.value+'\']').click()">
           <option value="all">Tous</option>
-          <option value="avoir">A voir</option>
+          <option value="avoir">À voir</option>
           <option value="encours">En cours</option>
-          <option value="termine">Termine</option>
+          <option value="termine">Terminé</option>
         </select>
         <select class="sort-sel" id="sortSel" onchange="render()">
           <option value="date">Date</option>
@@ -940,7 +940,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <div class="discover-cat-pills" id="discoverCatPills">
         <button class="stab on" data-dc="all" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Tout</button>
         <button class="stab" data-dc="film" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Films</button>
-        <button class="stab" data-dc="serie" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Series</button>
+        <button class="stab" data-dc="serie" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Séries</button>
         <button class="stab" data-dc="anime" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Anime</button>
       </div>
       <div id="discoverSection" class="discover-section"></div>
@@ -954,7 +954,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
   <div class="modal-add">
     <div class="mtitle" id="mtitle">Ajouter un titre</div>
     <div class="swrap" id="swrap">
-      <input type="text" id="tinput" placeholder="Rechercher un film, serie, anime..." autocomplete="off">
+      <input type="text" id="tinput" placeholder="Rechercher un film, série, anime..." autocomplete="off">
       <div class="spin" id="spin"></div>
       <div class="dd" id="tdd"></div>
     </div>
@@ -964,8 +964,8 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <button class="spclear" onclick="clearSel()">x</button>
     </div>
     <div class="frow">
-      <div class="field"><label>Type</label><select id="ftype"><option value="film">Film</option><option value="serie">Serie</option><option value="anime">Anime</option></select></div>
-      <div class="field"><label>Statut</label><select id="fstat"><option value="avoir">A voir</option><option value="encours">En cours</option><option value="termine">Termine</option></select></div>
+      <div class="field"><label>Type</label><select id="ftype"><option value="film">Film</option><option value="serie">Série</option><option value="anime">Anime</option></select></div>
+      <div class="field"><label>Statut</label><select id="fstat"><option value="avoir">À voir</option><option value="encours">En cours</option><option value="termine">Terminé</option></select></div>
     </div>
     <div class="field" id="agField" style="display:none"><label>Genre Anime</label><select id="fanimegenre"><option value="shonen">Shonen</option><option value="seinen">Seinen</option><option value="shojo">Shojo</option><option value="slice">Slice of Life</option><option value="isekai">Isekai</option><option value="autre">Autre</option></select></div>
     <div class="ept" id="ept">
