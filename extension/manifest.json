@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Watchlist Ciné — Suivi auto",
   "version": "0.1.0",
-  "description": "Marque automatiquement ta progression dans Watchlist Ciné Premium pendant que tu regardes sur Netflix.",
+  "description": "Marque automatiquement ta progression dans Watchlist Ciné Premium pendant que tu regardes (Netflix + diagnostic sur Prime Video/Disney+/Max/Crunchyroll).",
   "icons": { "16": "icons/icon.png", "48": "icons/icon.png", "128": "icons/icon.png" },
   "action": { "default_popup": "options.html", "default_icon": "icons/icon.png" },
   "options_page": "options.html",
@@ -19,6 +19,30 @@
     {
       "matches": ["https://www.netflix.com/watch/*"],
       "js": ["content/netflix-bridge.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.primevideo.com/*", "https://www.amazon.com/gp/video/*"],
+      "js": ["content/_common-main.js", "content/primevideo-main.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.disneyplus.com/*"],
+      "js": ["content/_common-main.js", "content/disneyplus-main.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://play.max.com/*", "https://play.hbomax.com/*"],
+      "js": ["content/_common-main.js", "content/max-main.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.crunchyroll.com/*"],
+      "js": ["content/_common-main.js", "content/crunchyroll-main.js"],
+      "world": "MAIN",
       "run_at": "document_idle"
     }
   ]
