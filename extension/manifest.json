@@ -12,7 +12,13 @@
   "content_scripts": [
     {
       "matches": ["https://www.netflix.com/watch/*"],
-      "js": ["content/netflix.js"],
+      "js": ["content/netflix-main.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.netflix.com/watch/*"],
+      "js": ["content/netflix-bridge.js"],
       "run_at": "document_idle"
     }
   ]

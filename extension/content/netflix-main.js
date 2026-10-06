@@ -11,6 +11,13 @@
  *    épisode+titre d'épisode sans séparateur (ex. "DAHMERE3Faire un Dahmer") : on isole
  *    le nom de la série en coupant sur "S<saison>E<épisode>" ou "E<épisode>", dont on
  *    connaît déjà les valeurs exactes via falcorCache.
+ *
+ * MONDE D'EXÉCUTION (important) : ce script tourne dans le "monde MAIN" (déclaré dans
+ * manifest.json via "world":"MAIN"), c'est-à-dire directement dans le contexte JS de la
+ * page Netflix — seul moyen d'accéder à window.netflix (un content script "isolé"
+ * classique a sa propre copie de window et ne le voit jamais, même si le DOM est partagé).
+ * Contrepartie : pas d'accès à chrome.runtime ici, donc on relaie via window.postMessage
+ * vers content/netflix-bridge.js (lui en monde isolé), qui parle à l'extension.
  */
 
 function getActive() {
@@ -52,10 +59,8 @@ function getShowTitle(info) {
 
 var lastKey = null;
 function send(title, season, episode) {
-  chrome.runtime.sendMessage(
-    { type: 'wl_watched', title: title, season: season, episode: episode },
-    function (res) { console.log('[WL] reponse background :', res); }
-  );
+  console.log('[WL] envoi vers le relai (netflix-bridge.js) :', title, season, episode);
+  window.postMessage({ __wl: true, title: title, season: season, episode: episode }, '*');
 }
 
 function check() {
@@ -85,4 +90,4 @@ function check() {
 }
 
 setTimeout(check, 3000);
-setInterval(check, 20000);
+setInterval(check, 5000);
