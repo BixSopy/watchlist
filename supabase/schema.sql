@@ -2,8 +2,9 @@
 -- Watchlist Ciné Premium — schéma PostgreSQL Supabase (état cible)
 -- Projet : batfulcvvquffgfeppcx (eu-central-1, Postgres 17)
 --
--- Reflète la base après la migration
--- supabase/migrations/20260925151457_nettoyage_et_securite.sql.
+-- Reflète la base après les migrations
+-- supabase/migrations/20260925151457_nettoyage_et_securite.sql et
+-- supabase/migrations/20261006000550_plex_webhook_token_and_mark_watched.sql.
 -- Sert de référence pour recréer le projet ; ne pas exécuter sur la base existante.
 -- Tables : profiles, watchlist_items, keep_alive. Aucun reste de laco-app
 -- (pas de tasks, notifications, events, notification_preferences, entries).
@@ -40,6 +41,7 @@ create table public.profiles (
   is_manager   boolean default true,
   created_at   timestamptz default now(),
   updated_at   timestamptz default now(),
+  plex_webhook_token text unique,               -- jeton webhook Tautulli -> mark_watched_by_token()
   constraint profiles_account_id_key unique (account_id)
 );
 
@@ -107,6 +109,63 @@ create table public.keep_alive (
   id        uuid primary key default extensions.uuid_generate_v4(),
   pinged_at timestamptz default now()
 );
+
+-- -----------------------------------------------------------------------------
+-- FONCTION : mark_watched_by_token — webhook Plex/Tautulli (Session 19)
+-- Appelée hors session utilisateur (pas de JWT), authentifiée par un jeton
+-- stocké sur le profil. SECURITY DEFINER borné à ce lookup + update ciblé.
+-- -----------------------------------------------------------------------------
+create or replace function public.mark_watched_by_token(
+  p_token text,
+  p_tmdb_id integer,
+  p_season integer,
+  p_episode integer
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_profile_id uuid;
+  v_updated integer;
+begin
+  if p_token is null or p_token = '' or p_tmdb_id is null then
+    return false;
+  end if;
+
+  select id into v_profile_id from public.profiles where plex_webhook_token = p_token;
+  if v_profile_id is null then
+    return false;
+  end if;
+
+  if p_season is not null and p_episode is not null then
+    update public.watchlist_items
+    set saison = p_season,
+        episode = p_episode,
+        status = case when status in ('avoir','todo') then 'encours' else status end
+    where profile_id = v_profile_id
+      and tmdb_id = p_tmdb_id
+      and deleted = false
+      and (saison is null or episode is null
+           or p_season > saison
+           or (p_season = saison and p_episode >= episode));
+  else
+    update public.watchlist_items
+    set status = 'termine'
+    where profile_id = v_profile_id
+      and tmdb_id = p_tmdb_id
+      and deleted = false
+      and status <> 'termine';
+  end if;
+
+  get diagnostics v_updated = row_count;
+  return v_updated > 0;
+end;
+$$;
+
+revoke all on function public.mark_watched_by_token(text, integer, integer, integer) from public;
+grant execute on function public.mark_watched_by_token(text, integer, integer, integer) to anon, authenticated;
 
 -- -----------------------------------------------------------------------------
 -- Row Level Security

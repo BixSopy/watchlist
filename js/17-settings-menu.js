@@ -47,6 +47,52 @@ function _rangeRow(label,hint,key,value){
 function _kbdRow(key,label){
   return '<div class="kbd-row"><div class="setting-label">'+label+'</div><div class="kbd-key">'+key+'</div></div>';
 }
+/* Bloc copiable (URL/en-têtes/gabarit JSON à coller dans Tautulli) */
+function _webhookCodeField(id,label,text){
+  return '<div class="webhook-field"><div class="webhook-field-lbl">'+label+'</div><div class="webhook-code-row">'+
+    '<div class="webhook-code" id="'+id+'">'+esc(text)+'</div>'+
+    '<button type="button" class="webhook-copy-btn" onclick="copyWebhookText(\''+id+'\')">Copier</button>'+
+    '</div></div>';
+}
+function copyWebhookText(id){
+  var el=document.getElementById(id);if(!el)return;
+  var text=el.textContent;
+  (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(function(){
+    sfx('click');toast('Copié');
+  }).catch(function(){toast('Copie impossible — sélectionne le texte manuellement','err');});
+}
+/* Section "Suivi Plex" (Session 19) : jeton webhook pour Tautulli -> mark_watched_by_token() */
+function _plexWebhookSection(){
+  var html='<div class="settings-section"><div class="settings-section-title">Suivi Plex (via Tautulli)</div>';
+  if(!supa||!authProfileId){
+    html+='<div class="setting-hint">Connecte-toi (menu Compte) pour activer la mise à jour automatique depuis ta bibliothèque Plex.</div>';
+    html+='</div>';
+    return html;
+  }
+  if(!_plexWebhookTokenLoaded){
+    html+='<div class="setting-hint">Chargement...</div></div>';
+    loadPlexWebhookToken(function(){renderSettingsMenu();});
+    return html;
+  }
+  if(!plexWebhookToken){
+    html+='<div class="setting-hint">Génère une URL webhook à coller dans Tautulli : chaque épisode/film vu dans Plex mettra à jour ta watchlist automatiquement.</div>';
+    html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">Générer mon URL webhook</div></div>';
+    html+='</div>';
+    return html;
+  }
+  var rpcUrl=SUPA_URL+'/rest/v1/rpc/mark_watched_by_token';
+  var headers=JSON.stringify({apikey:SUPA_KEY},null,0);
+  var bodyEp=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:'{season_num}',p_episode:'{episode_num}'},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
+  var bodyFilm=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:null,p_episode:null},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
+  html+='<div class="setting-hint">Dans Tautulli : Notifications &rsaquo; Ajouter &rsaquo; Webhook. Méthode <b>POST</b>, déclencheur <b>Watched</b>.</div>';
+  html+=_webhookCodeField('whUrl','URL',rpcUrl);
+  html+=_webhookCodeField('whHeaders','En-têtes JSON',headers);
+  html+=_webhookCodeField('whBodyEp','Données JSON — pour les séries/anime (condition : Media Type = Episode)',bodyEp);
+  html+=_webhookCodeField('whBodyFilm','Données JSON — pour les films, agent séparé (condition : Media Type = Movie)',bodyFilm);
+  html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">Régénérer (invalide l\'URL actuelle)</div></div>';
+  html+='</div>';
+  return html;
+}
 function _onSettingToggle(key,el){
   var newVal=(wlSettings[key]==='1')?'0':'1';
   saveSetting(key,newVal);
@@ -107,6 +153,7 @@ function renderSettingsMenu(){
   html+=_toggleRow('Afficher les plateformes','','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
   html+=_toggleRow('Rappels navigateur','Les rappels individuels restent conservés.','wl_reminders_global',wlSettings.wl_reminders_global==='1');
   html+='</div><div class="opt-sep"></div>';
+  html+=_plexWebhookSection()+'<div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">Données</div>';
   html+='<div class="settings-action-row" onclick="openAuthModal();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">Compte &amp; synchronisation</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
   html+='</div><div class="opt-sep"></div>';
