@@ -61,11 +61,16 @@ function copyWebhookText(id){
     sfx('click');toast('Copié');
   }).catch(function(){toast('Copie impossible — sélectionne le texte manuellement','err');});
 }
-/* Section "Suivi Plex" (Session 19) : jeton webhook pour Tautulli -> mark_watched_by_token() */
+/* Section "Suivi auto" (Session 19) : un seul jeton, utilisé par l'extension navigateur
+ * ET par Tautulli (Plex) -> mark_watched_by_token()/mark_watched_by_title(). Le détail
+ * technique Tautulli (URL/en-têtes/gabarits) est replié par défaut : la plupart des gens
+ * n'utilisent que l'extension, qui n'a besoin que du jeton tout seul. */
+var _plexWebhookAdvancedOpen=false;
+function togglePlexWebhookAdvanced(){_plexWebhookAdvancedOpen=!_plexWebhookAdvancedOpen;sfx('click');renderSettingsMenu();}
 function _plexWebhookSection(){
-  var html='<div class="settings-section"><div class="settings-section-title">Suivi Plex (via Tautulli)</div>';
+  var html='<div class="settings-section"><div class="settings-section-title">Suivi auto (Netflix, Plex...)</div>';
   if(!supa||!authProfileId){
-    html+='<div class="setting-hint">Connecte-toi (menu Compte) pour activer la mise à jour automatique depuis ta bibliothèque Plex.</div>';
+    html+='<div class="setting-hint">Connecte-toi (menu Compte) pour activer la mise à jour automatique de ta progression.</div>';
     html+='</div>';
     return html;
   }
@@ -75,22 +80,26 @@ function _plexWebhookSection(){
     return html;
   }
   if(!plexWebhookToken){
-    html+='<div class="setting-hint">Génère une URL webhook à coller dans Tautulli : chaque épisode/film vu dans Plex mettra à jour ta watchlist automatiquement.</div>';
-    html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">Générer mon URL webhook</div></div>';
+    html+='<div class="setting-hint">Génère un jeton : colle-le dans l\'extension navigateur (Netflix) ou dans Tautulli (Plex) pour que ta progression se mette à jour toute seule pendant que tu regardes.</div>';
+    html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">Générer mon jeton</div></div>';
     html+='</div>';
     return html;
   }
-  var rpcUrl=SUPA_URL+'/rest/v1/rpc/mark_watched_by_token';
-  var headers=JSON.stringify({apikey:SUPA_KEY},null,0);
-  var bodyEp=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:'{season_num}',p_episode:'{episode_num}'},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
-  var bodyFilm=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:null,p_episode:null},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
-  html+=_webhookCodeField('whToken','Jeton — à coller dans l\'extension navigateur (popup &rsaquo; champ Jeton)',plexWebhookToken);
-  html+='<div class="setting-hint">Pour Tautulli (Notifications &rsaquo; Ajouter &rsaquo; Webhook, méthode <b>POST</b>, déclencheur <b>Watched</b>) :</div>';
-  html+=_webhookCodeField('whUrl','URL',rpcUrl);
-  html+=_webhookCodeField('whHeaders','En-têtes JSON',headers);
-  html+=_webhookCodeField('whBodyEp','Données JSON — pour les séries/anime (condition : Media Type = Episode)',bodyEp);
-  html+=_webhookCodeField('whBodyFilm','Données JSON — pour les films, agent séparé (condition : Media Type = Movie)',bodyFilm);
-  html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">Régénérer (invalide l\'URL actuelle)</div></div>';
+  html+=_webhookCodeField('whToken','Ton jeton',plexWebhookToken);
+  html+='<div class="setting-hint">Colle-le dans le popup de l\'extension navigateur (icône dans la barre d\'outils, champ « Jeton »). Un seul jeton pour tout — extension et Tautulli.</div>';
+  html+='<div class="settings-action-row" onclick="togglePlexWebhookAdvanced()"><div class="setting-label">'+(_plexWebhookAdvancedOpen?'Masquer':'Config avancée Tautulli (Plex)')+'</div></div>';
+  if(_plexWebhookAdvancedOpen){
+    var rpcUrl=SUPA_URL+'/rest/v1/rpc/mark_watched_by_token';
+    var headers=JSON.stringify({apikey:SUPA_KEY},null,0);
+    var bodyEp=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:'{season_num}',p_episode:'{episode_num}'},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
+    var bodyFilm=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:null,p_episode:null},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
+    html+='<div class="setting-hint">Dans Tautulli (Notifications &rsaquo; Ajouter &rsaquo; Webhook, méthode <b>POST</b>, déclencheur <b>Watched</b>) :</div>';
+    html+=_webhookCodeField('whUrl','URL',rpcUrl);
+    html+=_webhookCodeField('whHeaders','En-têtes JSON',headers);
+    html+=_webhookCodeField('whBodyEp','Données JSON — séries/anime (condition : Media Type = Episode)',bodyEp);
+    html+=_webhookCodeField('whBodyFilm','Données JSON — films, agent séparé (condition : Media Type = Movie)',bodyFilm);
+  }
+  html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">Régénérer (invalide le jeton actuel)</div></div>';
   html+='</div>';
   return html;
 }
