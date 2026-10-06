@@ -84,7 +84,8 @@ function _plexWebhookSection(){
   var headers=JSON.stringify({apikey:SUPA_KEY},null,0);
   var bodyEp=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:'{season_num}',p_episode:'{episode_num}'},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
   var bodyFilm=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:null,p_episode:null},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
-  html+='<div class="setting-hint">Dans Tautulli : Notifications &rsaquo; Ajouter &rsaquo; Webhook. Méthode <b>POST</b>, déclencheur <b>Watched</b>.</div>';
+  html+=_webhookCodeField('whToken','Jeton — à coller dans l\'extension navigateur (popup &rsaquo; champ Jeton)',plexWebhookToken);
+  html+='<div class="setting-hint">Pour Tautulli (Notifications &rsaquo; Ajouter &rsaquo; Webhook, méthode <b>POST</b>, déclencheur <b>Watched</b>) :</div>';
   html+=_webhookCodeField('whUrl','URL',rpcUrl);
   html+=_webhookCodeField('whHeaders','En-têtes JSON',headers);
   html+=_webhookCodeField('whBodyEp','Données JSON — pour les séries/anime (condition : Media Type = Episode)',bodyEp);
