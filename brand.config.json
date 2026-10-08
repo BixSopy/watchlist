@@ -11,15 +11,15 @@
   "baseUrl": "https://cinepisode.com",
   "$comment_baseUrl": "Domaine de production (origine https, sans « / » final). Utilisé dans les textes, les balises Open Graph et les instructions ; l'app elle-même fonctionne sur n'importe quel domaine (tout est en chemins relatifs).",
   "domains": {
-    "$comment": "Redirections générées dans vercel.json UNIQUEMENT si redirects=true. Ne passer à true qu'une fois le domaine de baseUrl acheté, rattaché au projet Vercel et servi en HTTPS. www → domaine principal se règle aussi (plus simplement) dans Vercel › Domains.",
+    "$comment": "Redirections générées dans vercel.json UNIQUEMENT si redirects=true. www → domaine principal est déjà fait par Vercel (Domains). À n'activer que pour rediriger aussi les anciens domaines (legacyHosts).",
     "redirects": false,
-    "www": true,
+    "www": false,
     "legacyHosts": [
       "watchlist-omega-three.vercel.app"
     ]
   },
-  "indexable": false,
-  "$comment_indexable": "false = noindex (meta robots + en-tête X-Robots-Tag de vercel.json). Passer à true pour laisser les moteurs de recherche indexer l'app et les pages légales.",
+  "indexable": true,
+  "$comment_indexable": "true = pages indexables sur le domaine de baseUrl uniquement (meta robots index + canonical, robots.txt, sitemap.xml) ; X-Robots-Tag noindex reste envoyé sur tout autre hôte (previews, *.vercel.app) et sur /api/. false = noindex partout.",
   "contactEmail": "contact@cinepisode.com",
   "senderName": "Cinepisode",
   "senderEmail": "noreply@cinepisode.com",

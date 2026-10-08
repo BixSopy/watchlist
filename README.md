@@ -1,8 +1,8 @@
 # Cinepisode
 
 Suivi perso pour films, séries, anime avec aesthetic OLED dark inspiré de Plex.
-Service gratuit, sans publicité, ouvert à tous : https://cinepisode.com (domaine en cours
-d'achat ; l'app reste servie sur https://watchlist-omega-three.vercel.app).
+Service gratuit, sans publicité, ouvert à tous : https://cinepisode.com (l'ancienne adresse
+https://watchlist-omega-three.vercel.app continue de fonctionner).
 
 > Le dépôt garde son nom `watchlist` ; le nom public, le domaine, les couleurs et le logo se
 > règlent dans **un seul fichier** : [`brand.config.json`](brand.config.json) (voir
@@ -43,9 +43,13 @@ d'achat ; l'app reste servie sur https://watchlist-omega-three.vercel.app).
   et seulement si `TURNSTILE_SITE_KEY` est définie.
 - En-têtes dans `vercel.json` : CSP stricte (Turnstile seul autorisé en `script-src` /
   `frame-src`), `Referrer-Policy: strict-origin` (Turnstile a besoin de l'origine),
-  `Permissions-Policy`, `frame-ancestors 'none'`, HSTS, `noindex` tant que
-  `brand.config.json › indexable` vaut `false`.
-- `.vercelignore` (liste blanche) : seuls `index.html`, les deux pages légales, `js/`, `api/`,
+  `Permissions-Policy`, `frame-ancestors 'none'`, HSTS.
+- Indexation (`brand.config.json › indexable: true`) : l'accueil et les pages légales sont
+  indexables **uniquement sur `cinepisode.com`** (meta robots `index`, `canonical`,
+  `robots.txt`, `sitemap.xml`) ; `X-Robots-Tag: noindex` reste envoyé sur tout autre hôte
+  (previews, `*.vercel.app`) et sur `/api/`.
+- `.vercelignore` (liste blanche) : seuls `index.html`, les deux pages légales, `robots.txt`,
+  `sitemap.xml`, `js/`, `api/`,
   `vendor/`, `fonts/`, `icons/`, `manifest.json`, `sw.js` et `vercel.json` sont publiés.
 - Proxy `/api` : session Supabase obligatoire **et email confirmé**, liste blanche de chemins
   et paramètres, quotas quotidiens par compte (`consume_api_quota`, voir la migration
@@ -94,7 +98,7 @@ scripts/email-previews.sh           # aperçus PNG des emails (Go + Chrome), dan
 Tout ce qui identifie l'app est dans [`brand.config.json`](brand.config.json) : nom
 (`name`, `shortName`, `wordmark`), slogan, domaine de production (`baseUrl`), adresses
 (`contactEmail`, `senderEmail`, `senderName`), couleurs, chemins du logo et des icônes,
-polices, indexation, redirections de domaine (`domains`).
+polices, indexation (`indexable`), redirections de domaine (`domains`).
 
 Pour renommer l'app, changer de domaine, de couleurs ou de logo :
 
@@ -103,7 +107,8 @@ Pour renommer l'app, changer de domaine, de couleurs ou de logo :
 2. Lancer `node scripts/build-brand.mjs`. Il régénère `js/00-brand.js`, `manifest.json`, les
    blocs `<!--brand:…-->` / `/*brand:css*/` d'`index.html` (titre, balises Open Graph, couleurs
    CSS, logo, pied de page), `confidentialite.html`, `conditions.html`, `vercel.json`
-   (`X-Robots-Tag`, redirections) et les gabarits d'emails `supabase/templates/*.html` +
+   (`X-Robots-Tag` par hôte, redirections), `robots.txt`, `sitemap.xml` et les gabarits
+   d'emails `supabase/templates/*.html` +
    `subjects.json`.
 3. Recoller les gabarits et sujets dans Supabase (voir ci-dessous) et `scripts/email-previews.sh`
    pour vérifier le rendu.
@@ -170,14 +175,14 @@ Secret keys) ; garder les autres. Redéployer.
 - *Attack Protection* : « Enable Captcha protection », fournisseur **Turnstile**, coller la
   **clé secrète** Turnstile. ⚠️ Seulement une fois `TURNSTILE_SITE_KEY` déployée, sinon plus
   personne ne peut se connecter.
-- *URL Configuration* : Site URL = `https://watchlist-omega-three.vercel.app` (puis
-  `https://cinepisode.com` après l'achat, voir plus bas) ; Redirect URLs :
+- *URL Configuration* : Site URL = `https://cinepisode.com` ; Redirect URLs :
+  `https://cinepisode.com/**`, `https://www.cinepisode.com/**`,
   `https://watchlist-omega-three.vercel.app/**` et, pour tester les previews,
   `https://*-pierre-unbekand-s-projects.vercel.app/**`.
 - *Emails › SMTP Settings* : SMTP personnalisé **obligatoire** (le SMTP intégré n'envoie
   qu'aux membres de l'équipe Supabase, ~2 emails/heure). Resend exige un domaine vérifié qu'on
-  possède : impossible avec `vercel.app`, donc à faire après l'achat de `cinepisode.com`
-  (voir plus bas). Ensuite *Rate Limits* : « emails envoyés » à 30/h ou plus.
+  possède (impossible avec `vercel.app`) : voir « Domaine cinepisode.com » plus bas.
+  Ensuite *Rate Limits* : « emails envoyés » à 30/h ou plus.
 - *Emails › Templates* : pour chaque modèle, coller le contenu de `supabase/templates/<fichier>.html`
   et le sujet indiqué dans `supabase/templates/subjects.json` :
   Confirm sign up = `confirmation`, Invite user = `invite`, Magic link = `magic_link`,
@@ -189,12 +194,13 @@ Secret keys) ; garder les autres. Redéployer.
 **5. Vérifier** : créer un compte avec une adresse perso, recevoir l'email, cliquer, chercher un
 titre, supprimer le compte.
 
-## 🛒 Après l'achat de cinepisode.com (checklist)
+## 🛒 Domaine cinepisode.com (checklist)
 
-1. **Vercel › projet `prj_FnDTFQQIs17MYUdwon10sPbndXQu` › Settings › Domains** : ajouter
-   `cinepisode.com` (production) et `www.cinepisode.com` réglé sur « Redirect to
-   cinepisode.com » (308). Garder `watchlist-omega-three.vercel.app` (l'app de bureau et
-   d'anciens favoris l'utilisent ; elle continue de fonctionner telle quelle).
+1. ✅ **Fait (08/10/2026)** — Vercel › projet `prj_FnDTFQQIs17MYUdwon10sPbndXQu` › Domains :
+   `cinepisode.com` sert l'app, `www.cinepisode.com` redirige vers l'apex (307 ; « 308
+   permanent » est préférable pour le référencement, réglable dans Domains ›
+   www.cinepisode.com › Edit). Vérifier que le certificat HTTPS de `www` est bien émis.
+   `watchlist-omega-three.vercel.app` reste attaché (app de bureau, anciens favoris).
 2. **Supabase › Authentication › URL Configuration** : Site URL = `https://cinepisode.com` ;
    Redirect URLs : ajouter `https://cinepisode.com/**` et `https://www.cinepisode.com/**`
    (garder `https://watchlist-omega-three.vercel.app/**` et celle des previews).
@@ -219,10 +225,13 @@ titre, supprimer le compte.
 6. **Cloudflare Turnstile** : vérifier que `cinepisode.com` et `www.cinepisode.com` figurent
    dans les hostnames du widget.
 7. **Proxy `/api`** : rien à faire (pas de liste d'origines ; la CSP utilise `'self'`).
+   **Référencement** (facultatif) : Google Search Console › ajouter `cinepisode.com`
+   (vérification par enregistrement TXT dans Vercel DNS) et soumettre
+   `https://cinepisode.com/sitemap.xml`.
 8. **Facultatif, plus tard** : rediriger l'ancien domaine vers le nouveau en passant
    `domains.redirects` à `true` dans `brand.config.json` puis `node scripts/build-brand.mjs`
-   (ajoute dans `vercel.json` www → cinepisode.com et `watchlist-omega-three.vercel.app` →
-   cinepisode.com, sauf `/api/` pour l'app de bureau). ⚠️ Les listes enregistrées seulement
+   (ajoute dans `vercel.json` `watchlist-omega-three.vercel.app` → cinepisode.com, sauf
+   `/api/` pour l'app de bureau ; www est déjà redirigé par Vercel). ⚠️ Les listes enregistrées seulement
    sur l'appareil (sans compte) restent attachées à l'ancien domaine : prévenir les
    utilisateurs de se connecter (synchro) ou d'exporter avant d'activer la redirection.
    L'app de bureau (`desktop/src-tauri/tauri.conf.json`) pointe toujours sur l'ancienne

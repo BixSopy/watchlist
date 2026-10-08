@@ -1,0 +1,5 @@
+# Fichier généré par scripts/build-brand.mjs depuis brand.config.json — ne pas modifier à la main.
+User-agent: *
+Disallow: /api/
+
+Sitemap: https://cinepisode.com/sitemap.xml

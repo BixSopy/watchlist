@@ -11,13 +11,14 @@ const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'
 const ALLOWED = fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8').split('\n')
   .map(l => l.trim()).filter(l => l.startsWith('!')).map(l => l.slice(1));
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json',
-  '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json' };
+  '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml', '.webmanifest': 'application/manifest+json' };
 
-function headersFor(urlPath) {
+function headersFor(urlPath, host) {
   const out = {};
+  const hostOk = (conds, want) => (conds || []).every(c => c.type !== 'host' || (c.value === host) === want);
   for (const rule of vercel.headers) {
     const re = new RegExp('^' + rule.source.replace(/\(\.\*\)/g, '(.*)') + '$');
-    if (re.test(urlPath)) for (const h of rule.headers) out[h.key] = h.value;
+    if (re.test(urlPath) && hostOk(rule.has, true) && hostOk(rule.missing, false)) for (const h of rule.headers) out[h.key] = h.value;
   }
   if (out['Content-Security-Policy']) out['Content-Security-Policy'] = out['Content-Security-Policy'].replace(/;\s*upgrade-insecure-requests/, '');
   delete out['Strict-Transport-Security'];
@@ -30,7 +31,7 @@ export function startServer({ config = { turnstileSiteKey: '', signupsOpen: true
     const u = new URL(req.url, 'http://localhost');
     let p = decodeURIComponent(u.pathname);
     const send = (status, body, type, extra = {}) => {
-      res.writeHead(status, { 'Content-Type': type, ...headersFor(u.pathname), ...extra });
+      res.writeHead(status, { 'Content-Type': type, ...headersFor(u.pathname, String(req.headers.host || '').replace(/:\d+$/, '')), ...extra });
       res.end(body);
     };
     if (p.startsWith('/api/')) {

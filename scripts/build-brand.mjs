@@ -149,6 +149,7 @@ function buildLegal(out) {
     const { meta, body } = parseSource(read('branding/legal/' + name + '.html'));
     out[name + '.html'] = '<!-- ' + GENERATED + ' -->\n' + fill(layout, {
       title: escHtml(meta.title), updated: escHtml(meta.updated), robots,
+      canonical: brand.indexable ? `\n<link rel="canonical" href="${escHtml(brand.baseUrl + '/' + name)}">` : '',
       logoSvg: logoSvg(), editorLine: editorLine(),
       content: fill(body, { editorLine: editorLine() }),
     });
@@ -223,10 +224,30 @@ function buildApp(out) {
   html = html.replace(cssRe, () => '/*brand:css*/' + cssVars + '/*/brand:css*/');
   out['index.html'] = html;
 
+  /* Indexation : X-Robots-Tag noindex partout si indexable=false ; sinon seulement hors du
+     domaine de production (previews, *.vercel.app) et sur /api/. Les balises meta robots
+     disent « index » : l'en-tête noindex, plus restrictif, l'emporte sur les autres hôtes. */
   const vercel = JSON.parse(read('vercel.json'));
-  for (const h of vercel.headers) for (const kv of h.headers) {
-    if (kv.key === 'X-Robots-Tag') kv.value = brand.indexable ? 'index, follow' : 'noindex, nofollow, noarchive';
+  const NOINDEX = 'noindex, nofollow, noarchive';
+  const prodHost = new URL(brand.baseUrl).hostname;
+  vercel.headers = vercel.headers.filter(h => !(h.headers.length === 1 && h.headers[0].key === 'X-Robots-Tag'));
+  const main = vercel.headers.find(h => h.source === '/(.*)' && !h.has && !h.missing);
+  main.headers = main.headers.filter(kv => kv.key !== 'X-Robots-Tag');
+  if (!brand.indexable) {
+    main.headers.push({ key: 'X-Robots-Tag', value: NOINDEX });
+  } else {
+    const at = vercel.headers.indexOf(main) + 1;
+    vercel.headers.splice(at, 0,
+      { source: '/(.*)', missing: [{ type: 'host', value: prodHost }], headers: [{ key: 'X-Robots-Tag', value: NOINDEX }] },
+      { source: '/api/(.*)', headers: [{ key: 'X-Robots-Tag', value: NOINDEX }] });
   }
+  /* robots.txt + sitemap.xml (pages publiques seulement) */
+  out['robots.txt'] = '# ' + GENERATED + '\nUser-agent: *\n' +
+    (brand.indexable ? 'Disallow: /api/\n\nSitemap: ' + brand.baseUrl + '/sitemap.xml\n' : 'Disallow: /\n');
+  out['sitemap.xml'] = '<?xml version="1.0" encoding="UTF-8"?>\n<!-- ' + GENERATED + ' -->\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    ['/', '/confidentialite', '/conditions'].map(u => '  <url><loc>' + escHtml(brand.baseUrl + u) + '</loc></url>\n').join('') +
+    '</urlset>\n';
   /* Redirections de domaine (désactivées tant que domains.redirects=false) */
   const dm = brand.domains || {};
   const apex = new URL(brand.baseUrl).hostname;

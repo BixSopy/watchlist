@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fichier généré par scripts/build-brand.mjs depuis brand.config.json — ne pas modifier à la main. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://cinepisode.com/</loc></url>
+  <url><loc>https://cinepisode.com/confidentialite</loc></url>
+  <url><loc>https://cinepisode.com/conditions</loc></url>
+</urlset>

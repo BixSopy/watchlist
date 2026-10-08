@@ -198,6 +198,18 @@ test('mobile : modal lisible et catalogue verrouillé sans compte', async t => {
   assert.deepEqual(problems, []);
 });
 
+test('indexation : noindex hors du domaine de production, robots.txt et sitemap.xml servis', async t => {
+  const { page } = await newPage(t);
+  const r = await page.goto(server.url + '/');
+  assert.match(r.headers()['x-robots-tag'] || '', /noindex/, 'preview / autre hôte : noindex');
+  const robots = await page.request.get(server.url + '/robots.txt');
+  assert.equal(robots.status(), 200);
+  assert.match(await robots.text(), /Sitemap: https:\/\/cinepisode\.com\/sitemap\.xml/);
+  const sm = await page.request.get(server.url + '/sitemap.xml');
+  assert.equal(sm.status(), 200);
+  assert.match(await sm.text(), /<loc>https:\/\/cinepisode\.com\/confidentialite<\/loc>/);
+});
+
 test('pages légales servies avec l’attribution TMDB', async t => {
   const { page, problems } = await newPage(t);
   for (const p of ['/confidentialite', '/conditions']) {

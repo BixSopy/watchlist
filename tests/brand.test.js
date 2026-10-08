@@ -87,3 +87,26 @@ test('CSP : Turnstile autorisé, rien d\'autre d\'ouvert ; redirections de domai
   const ignore = read('.vercelignore');
   for (const f of ['confidentialite.html', 'conditions.html']) assert.match(ignore, new RegExp('^!' + f.replace('.', '\\.') + '$', 'm'));
 });
+
+test('indexation : pages publiques indexables sur le domaine de production seulement', () => {
+  const vercel = JSON.parse(read('vercel.json'));
+  const host = new URL(brand.baseUrl).hostname;
+  const main = vercel.headers.find(h => h.source === '/(.*)' && !h.missing && !h.has);
+  if (!brand.indexable) {
+    assert.match(main.headers.find(h => h.key === 'X-Robots-Tag').value, /noindex/);
+    assert.match(read('robots.txt'), /Disallow: \/$/m);
+    return;
+  }
+  assert.ok(!main.headers.some(h => h.key === 'X-Robots-Tag'), 'pas de noindex global');
+  const other = vercel.headers.find(h => h.missing && h.missing.some(c => c.type === 'host' && c.value === host));
+  assert.ok(other, 'noindex sur les autres hôtes (previews, vercel.app)');
+  assert.match(other.headers.find(h => h.key === 'X-Robots-Tag').value, /noindex/);
+  assert.match(vercel.headers.find(h => h.source === '/api/(.*)' && h.headers.some(k => k.key === 'X-Robots-Tag')).headers[0].value, /noindex/);
+  assert.match(read('index.html'), /<meta name="robots" content="index,follow">/);
+  assert.match(read('index.html'), new RegExp('<link rel="canonical" href="' + brand.baseUrl + '/">'));
+  assert.match(read('robots.txt'), new RegExp('Sitemap: ' + brand.baseUrl + '/sitemap.xml'));
+  assert.match(read('robots.txt'), /Disallow: \/api\//);
+  for (const u of ['/', '/confidentialite', '/conditions']) assert.ok(read('sitemap.xml').includes('<loc>' + brand.baseUrl + u + '</loc>'), u);
+  const ignore = read('.vercelignore');
+  for (const f of ['robots.txt', 'sitemap.xml']) assert.match(ignore, new RegExp('^!' + f.replace('.', '\\.') + '$', 'm'));
+});
