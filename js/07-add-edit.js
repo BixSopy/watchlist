@@ -96,6 +96,41 @@ document.getElementById('fstat').addEventListener('change',_updateStarsLock);
 function closeAdd(){document.getElementById('addMbk').classList.remove('on');tdd.classList.remove('on');}
 document.getElementById('addMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closeAdd();}});
 
+/* Fiche d'un titre, même forme pour l'ajout manuel, l'édition et l'onglet « Détectés »
+   sel : fiche TMDB choisie ; f : champs saisis ; ex : titre existant (édition) ou rien */
+function makeEntry(sel,f,ex,id){
+  return{id:id||uid(),type:f.type,status:f.status,myRating:f.myRating||0,animeGenre:f.animeGenre||'',
+    saison:f.saison,episode:f.episode,totalEp:f.totalEp,
+    tags:f.tags||[],addedAt:ex?ex.addedAt:Date.now(),
+    tmdbId:sel.tmdbId,tmdbType:sel.tmdbType,title:sel.title,year:sel.year,
+    poster:sel.poster,overview:sel.overview,tmdbScore:sel.tmdbScore,
+    hasNewEp:ex?ex.hasNewEp:false,nextAir:ex?ex.nextAir:null,
+    collectionId:f.collectionId||null,collectionName:f.collectionName||null,
+    supaId:ex?ex.supaId:null,deleted:false,updatedAtLocal:Date.now(),needsSync:true,
+    reminderEnabled:ex?ex.reminderEnabled:false,nextAirDate:ex?ex.nextAirDate:null,
+    lastEpisodeCheck:ex?ex.lastEpisodeCheck:null,tvmazeId:ex?ex.tvmazeId:null,
+    streamingProviders:ex?ex.streamingProviders:null,genreIds:ex?ex.genreIds:null,
+    omdbRatings:ex?ex.omdbRatings:null,kitsuRating:ex?ex.kitsuRating:null,
+    collectionChecked:ex?ex.collectionChecked:false,tmdbCollectionId:ex?ex.tmdbCollectionId:null};
+}
+/* Ajout sans formulaire (onglet « Détectés ») : mêmes suites qu'un ajout manuel
+   (genre d'anime, recommandations, Discovery, prochains épisodes) */
+function addEntryFromTmdb(sel,f){
+  var entry=makeEntry(sel,f,null,null);
+  memDB.unshift(entry);
+  if(entry.type=='anime'&&!entry.animeGenre&&sel.tmdbId){detectAnimeGenre(sel.tmdbId,function(g){entry.animeGenre=g;dbPut(entry,function(){});});}
+  dbPut(entry,function(){_removeFromDiscoverUI(entry.tmdbId);if(entry.type!='film'&&sel.tmdbId)checkAir(entry);});
+  return entry;
+}
+/* Nouvelle progression d'un titre existant (statut, saison, épisode), comme un passage d'épisode */
+function updateEntryProgress(id,f){
+  var item=memDB.find(function(i){return i.id==id;});if(!item)return null;
+  item.status=f.status;item.saison=f.saison;item.episode=f.episode;
+  item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
+  dbPut(item,function(){});
+  return item;
+}
+
 /* SAVE/DELETE */
 function saveEntry(){
   if(!selTmdb){sfx('err');toast(t('add.selectTitle'),'err');return;}
@@ -112,19 +147,9 @@ function saveEntry(){
   var sagaRaw=(document.getElementById('fsaga').value||'').trim();
   var collName=sagaRaw||null;
   var collId=collName?collName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''):null;
-  var entry={id:editId||uid(),type:type,status:status,myRating:myRate,animeGenre:ag,
+  var entry=makeEntry(selTmdb,{type:type,status:status,myRating:myRate,animeGenre:ag,
     saison:showEp?sai:null,episode:showEp?epi:null,totalEp:showEp?totep:(ex?ex.totalEp:null),
-    tags:curTags.slice(),addedAt:ex?ex.addedAt:Date.now(),
-    tmdbId:selTmdb.tmdbId,tmdbType:selTmdb.tmdbType,title:selTmdb.title,year:selTmdb.year,
-    poster:selTmdb.poster,overview:selTmdb.overview,tmdbScore:selTmdb.tmdbScore,
-    hasNewEp:ex?ex.hasNewEp:false,nextAir:ex?ex.nextAir:null,
-    collectionId:collId,collectionName:collName,
-    supaId:ex?ex.supaId:null,deleted:false,updatedAtLocal:Date.now(),needsSync:true,
-    reminderEnabled:ex?ex.reminderEnabled:false,nextAirDate:ex?ex.nextAirDate:null,
-    lastEpisodeCheck:ex?ex.lastEpisodeCheck:null,tvmazeId:ex?ex.tvmazeId:null,
-    streamingProviders:ex?ex.streamingProviders:null,genreIds:ex?ex.genreIds:null,
-    omdbRatings:ex?ex.omdbRatings:null,kitsuRating:ex?ex.kitsuRating:null,
-    collectionChecked:ex?ex.collectionChecked:false,tmdbCollectionId:ex?ex.tmdbCollectionId:null};
+    tags:curTags.slice(),collectionId:collId,collectionName:collName},ex,editId);
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}
   dbPut(entry,function(){render();loadRecos();if(!editId)_removeFromDiscoverUI(entry.tmdbId);if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast(t(editId?'add.updated':'add.added',{title:entry.title}));closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});

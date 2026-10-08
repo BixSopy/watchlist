@@ -23,7 +23,18 @@
   #last.err{border-color:#6b2020}
   button.secondary{background:#17171c;border:1px solid #2a2a33;color:#e8e8ec;margin-top:0}
   button.secondary:hover{background:#1e1e23}
-  #detectedCount{color:#5ac8fa;font-weight:600}
+  .filebtn{display:block;margin-top:8px;text-align:center;background:#17171c;border:1px solid #2a2a33;border-radius:8px;color:#e8e8ec;padding:9px;font-size:13px;cursor:pointer}
+  .filebtn:hover{background:#1e1e23}
+  .filebtn.disabled{opacity:.5;pointer-events:none}
+  .hint{font-size:11px;margin:6px 0 0}
+  #importStatus{margin-top:10px;font-size:12px;line-height:1.5;background:#17171c;border:1px solid #2a2a33;border-radius:8px;padding:8px 10px}
+  #importStatus:empty{display:none}
+  #importStatus.ok{border-color:#1f5f3a}
+  #importStatus.err{border-color:#6b2020;color:#ff9a9a}
+  .bar{height:4px;background:#2a2a33;border-radius:2px;margin-top:6px;overflow:hidden}
+  .bar>span{display:block;height:100%;background:#2a66ff;width:0;transition:width .3s}
+  #openDetected{margin-top:8px}
+  button:disabled{opacity:.5;cursor:default}
   p.spaced{margin-top:14px}
 </style>
 </head>
@@ -37,9 +48,14 @@
   <div id="status"></div>
   <h2 data-msg="lastTitle"></h2>
   <div id="last" aria-live="polite"></div>
-  <h2 data-msg="detectedTitle"></h2>
-  <p data-msg="detectedIntro"></p>
-  <button id="openDetected" class="secondary"><span data-msg="openDetected"></span> <span id="detectedCount"></span></button>
+  <h2 data-msg="historyTitle"></h2>
+  <p data-msg="historyIntro"></p>
+  <button id="importNetflix" class="secondary" data-msg="importNetflix"></button>
+  <label id="csvLabel" class="filebtn" for="csvFile"><span data-msg="importCsv"></span></label>
+  <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+  <p class="hint" data-msg="importCsvHint"></p>
+  <div id="importStatus" aria-live="polite"></div>
+  <button id="openDetected" class="secondary" data-msg="openDetected"></button>
   <p class="spaced" data-msg="coverage"></p>
   <a href="https://cinepisode.com" target="_blank" rel="noopener" data-msg="openApp"></a>
   <script src="options.js"></script>

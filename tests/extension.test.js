@@ -76,10 +76,12 @@ test('relai Netflix : seuls les messages de la même fenêtre, de netflix.com et
 function serviceWorker({ token = 'tok', responses = [] } = {}) {
   let onMessage;
   const fetches = [];
+  const tabsCreated = [];
   const store = token ? { wlToken: token } : {};
   const ctx = {
     chrome: {
-      runtime: { id: 'ext-id', onMessage: { addListener: fn => { onMessage = fn; } } },
+      runtime: { id: 'ext-id', getURL: p => 'chrome-extension://ext-id/' + p, onMessage: { addListener: fn => { onMessage = fn; } } },
+      tabs: { create: (o) => { tabsCreated.push(o.url); } },
       storage: { local: {
         get: (k, cb) => cb(Object.fromEntries(k.filter(x => x in store).map(x => [x, store[x]]))),
         set: (o, cb) => { Object.assign(store, JSON.parse(JSON.stringify(o))); if (cb) cb(); },
@@ -91,13 +93,15 @@ function serviceWorker({ token = 'tok', responses = [] } = {}) {
       if (next === 'network') return Promise.reject(new TypeError('Failed to fetch'));
       return Promise.resolve({ ok: next.status >= 200 && next.status < 300, status: next.status, json: () => Promise.resolve(next.data) });
     },
-    URL, Date, Number, JSON, Promise, Object,
+    URL, Date, Number, JSON, Promise, Object, Math, isFinite,
+    importScripts: (...files) => files.forEach(f => vm.runInContext(read('extension/' + f), ctx)),
   };
+  ctx.self = ctx;
   vm.createContext(ctx);
   vm.runInContext(read('extension/background.js'), ctx);
   const call = (msg, sender = { id: 'ext-id', tab: { id: 1 }, url: 'https://www.netflix.com/watch/123' }) =>
     new Promise(res => { const r = onMessage(msg, sender, res); if (r !== true) setTimeout(() => res(undefined), 5); });
-  return { call, fetches, store };
+  return { call, fetches, store, tabsCreated };
 }
 const EP = { type: 'wl_watched', kind: 'episode', title: 'Dark', season: 2, episode: 3 };
 
@@ -291,26 +295,30 @@ function popup(wlLast, lang = 'fr') {
     });
   };
   const el = () => {
-    const e = { className: '', children: [], _text: '', get main() { return e.children.length ? e.children[0].textContent : e._text; }, appendChild: c => e.children.push(c), addEventListener: () => {} };
+    const e = { className: '', children: [], _text: '', style: {}, disabled: false, classList: { toggle: () => {} }, get main() { return e.children.length ? e.children[0].textContent : e._text; }, appendChild: c => e.children.push(c), addEventListener: () => {} };
     Object.defineProperty(e, 'textContent', { get: () => e._text + e.children.map(c => c.textContent).join(' | '), set: v => { e._text = v; e.children = []; } });
     return e;
   };
-  const els = { token: el(), save: el(), status: el(), last: el() };
-  let onChanged;
+  const els = { token: el(), save: el(), status: el(), last: el(), importNetflix: el(), csvFile: el(), csvLabel: el(), importStatus: el(), openDetected: el() };
+  const listeners = [];
+  const onChanged = (changes, area) => listeners.forEach(fn => fn(changes, area));
   const store = { wlToken: 'tok', wlLast };
   const ctx = {
     document: { documentElement: {}, title: '', querySelectorAll: () => [], getElementById: id => els[id],
       createElement: () => el(), createTextNode: t => ({ textContent: t }) },
     chrome: {
       i18n: { getMessage, getUILanguage: () => lang },
+      runtime: { sendMessage: (m, cb) => cb && cb({ ok: true }) },
+      tabs: { create: () => {} },
       storage: { local: { get: (k, cb) => cb(store), set: (o, cb) => cb && cb(), remove: (k, cb) => cb && cb() },
-        onChanged: { addListener: fn => { onChanged = fn; } } },
+        onChanged: { addListener: fn => { listeners.push(fn); } } },
     },
     Date, Number, String,
   };
   vm.createContext(ctx);
   vm.runInContext(read('extension/options.js'), ctx);
-  return { last: els.last, update: v => onChanged({ wlLast: { newValue: v } }, 'local') };
+  return { last: els.last, importStatus: els.importStatus, importNetflix: els.importNetflix,
+    update: v => onChanged({ wlLast: { newValue: v } }, 'local'), updateImport: v => onChanged({ wlImport: { newValue: v } }, 'local') };
 }
 
 test('fenêtre : dernière détection et réponse du serveur en français clair', () => {
@@ -356,16 +364,77 @@ test('fenêtre : chaque statut a un texte dans les deux langues, sans marqueur $
   assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.5.0');
 });
 
-test('service worker : détections sans correspondance gardées pour la page « Titres détectés » (wlLive, sans le jeton)', async () => {
-  const { call, store } = serviceWorker({ token: 'jeton-secret-42', responses: [
+test('service worker : détections en direct sans correspondance envoyées à l\'onglet « Détectés » (extension_push_detections)', async () => {
+  const { call, fetches, store } = serviceWorker({ token: 'jeton-secret-42', responses: [
     { status: 200, data: { status: 'not_found', title: '1899', season: 1, episode: 1 } },
+    { status: 200, data: { status: 'ok', inserted: 1, updated: 0, unchanged: 0, invalid: 0 } },
     { status: 200, data: { status: 'updated', title: 'Dark', season: 2, episode: 4 } },
     { status: 200, data: { status: 'ambiguous', title: 'Lupin', season: 1, episode: 2, count: 2 } },
+    { status: 200, data: { status: 'ok', inserted: 1, updated: 0, unchanged: 0, invalid: 0 } },
   ] });
   await call({ ...EP, title: '1899', season: 1, episode: 1 });
+  await new Promise((r) => setTimeout(r, 5));
   await call({ ...EP, episode: 4 });
   await call({ ...EP, title: 'Lupin', season: 1, episode: 2 });
   await new Promise((r) => setTimeout(r, 10));
-  assert.deepStrictEqual(store.wlLive.map((l) => [l.title, l.status, l.season, l.episode]), [['1899', 'not_found', 1, 1], ['Lupin', 'ambiguous', 1, 2]]);
-  assert.ok(!JSON.stringify(store.wlLive).includes('jeton-secret-42'));
+  const pushes = fetches.filter(f => /extension_push_detections$/.test(f.url));
+  assert.strictEqual(pushes.length, 2, 'mis à jour : rien envoyé à « Détectés »');
+  assert.deepStrictEqual(pushes.map(f => f.body.p_items.map(i => [i.source, i.title, i.type, i.season, i.episode])),
+    [[['live', '1899', 'show', 1, 1]], [['live', 'Lupin', 'show', 1, 2]]]);
+  assert.ok(pushes.every(f => typeof f.body.p_items[0].watched_at === 'number' && f.body.p_token === 'jeton-secret-42'));
+  assert.strictEqual(store.wlLive, undefined, 'plus de liste locale wlLive');
+});
+
+/* --- Import de l'historique (service worker) --- */
+const PAGE = { id: 'ext-id', url: 'chrome-extension://ext-id/options.html' };
+const CSV = 'Title,Date\n"Dark: Season 1: Secrets",01/10/2026\n"Dark: Season 1: Lies",02/10/2026\n"Inception",03/10/2026\n';
+async function waitFor(fn) { for (let i = 0; i < 100; i++) { if (fn()) return; await new Promise(r => setTimeout(r, 5)); } throw new Error('délai'); }
+
+test('import CSV : expéditeur vérifié (page de l\'extension), détections envoyées par lot, onglet « Détectés » ouvert', async () => {
+  const sw = serviceWorker({ token: 'jeton-secret-42', responses: [{ status: 200, data: { status: 'ok', inserted: 2, updated: 0, unchanged: 0, invalid: 0 } }] });
+  assert.strictEqual((await sw.call({ type: 'wl_import_csv', text: CSV }, { id: 'ext-id', tab: { id: 1 }, url: 'https://www.netflix.com/watch/1' })).reason, 'sender');
+  assert.strictEqual((await sw.call({ type: 'wl_import_csv', text: CSV }, { id: 'autre', url: 'chrome-extension://autre/options.html' })).reason, 'sender');
+  assert.strictEqual((await sw.call({ type: 'wl_import_csv', text: '' }, PAGE)).reason, 'csv');
+  assert.strictEqual(sw.fetches.length, 0);
+  const r = await sw.call({ type: 'wl_import_csv', text: CSV }, PAGE);
+  assert.strictEqual(r.started, true);
+  await waitFor(() => sw.store.wlImport && sw.store.wlImport.state === 'done');
+  assert.strictEqual(sw.fetches.length, 1);
+  assert.match(sw.fetches[0].url, /\/rest\/v1\/rpc\/extension_push_detections$/);
+  const items = sw.fetches[0].body.p_items;
+  assert.deepStrictEqual(items.map(i => [i.source, i.title, i.type, i.season, i.episode]),
+    [['netflix_csv', 'Dark', 'show', 1, 2], ['netflix_csv', 'Inception', 'movie', null, null]]);
+  assert.deepStrictEqual(Object.keys(items[0]).sort(), ['episode', 'progress_pct', 'season', 'source', 'title', 'type', 'watched_at']);
+  assert.deepStrictEqual({ ...sw.store.wlImport.sent }, { inserted: 2, updated: 0, unchanged: 0, invalid: 0 });
+  assert.ok(!JSON.stringify(sw.store.wlImport).includes('jeton-secret-42'));
+  assert.deepStrictEqual(sw.tabsCreated, ['https://cinepisode.com/#detectes']);
+});
+
+test('import CSV : jeton invalide, plafond et absence de jeton signalés ; rien d\'ouvert', async () => {
+  for (const [data, err] of [[{ status: 'invalid_token' }, 'invalid_token'], [{ status: 'limit', limit: 20000 }, 'limit'], [{ message: 'boom' }, 'server_error']]) {
+    const sw = serviceWorker({ responses: [{ status: 200, data }] });
+    await sw.call({ type: 'wl_import_csv', text: CSV }, PAGE);
+    await waitFor(() => sw.store.wlImport && sw.store.wlImport.state === 'error');
+    assert.strictEqual(sw.store.wlImport.error, err);
+    assert.deepStrictEqual(sw.tabsCreated, []);
+  }
+  const none = serviceWorker({ token: null });
+  assert.strictEqual((await none.call({ type: 'wl_import_csv', text: CSV }, PAGE)).reason, 'no_token');
+  assert.strictEqual(none.store.wlImport.error, 'no_token');
+});
+
+test('fenêtre : avancement et résultat de l\'import en français clair', () => {
+  const p = popup(null);
+  p.updateImport({ state: 'running', step: 'history', pages: 3, items: 250, at: Date.now() });
+  assert.match(p.importStatus.textContent, /^Lecture de l'historique : 250 visionnages \(3 pages\)/);
+  assert.strictEqual(p.importNetflix.disabled, true);
+  p.updateImport({ state: 'running', step: 'history', pages: 3, items: 250, at: Date.now() - 11 * 60 * 1000 });
+  assert.strictEqual(p.importNetflix.disabled, false, 'import arrêté depuis 10 min : boutons réactivés');
+  p.updateImport({ state: 'done', titles: 42, sent: { inserted: 40, updated: 2, unchanged: 0, invalid: 0 }, at: Date.now() });
+  assert.match(p.importStatus.textContent, /^42 titres envoyés \(40 nouveaux, 2 plus récents\)\. .*« Détectés »/);
+  p.updateImport({ state: 'done', titles: 42, sent: { inserted: 0, updated: 0, unchanged: 42, invalid: 0 }, at: Date.now() });
+  assert.strictEqual(p.importStatus.textContent, 'Rien de nouveau depuis le dernier import.');
+  p.updateImport({ state: 'error', error: 'netflix_auth', at: Date.now() });
+  assert.match(p.importStatus.textContent, /^Connecte-toi à Netflix/);
+  assert.strictEqual(p.importStatus.className, 'err');
 });

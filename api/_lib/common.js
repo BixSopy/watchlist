@@ -43,8 +43,7 @@ function send(res, status, body, cacheControl) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  /* Extension (jeton dans X-Cinepisode-Token) : la réponse dépend aussi de cet en-tête */
-  res.setHeader('Vary', res.wlVaryToken ? 'Authorization, X-Cinepisode-Token' : 'Authorization');
+  res.setHeader('Vary', 'Authorization');
   res.setHeader('Cache-Control', status === 200 && cacheControl ? cacheControl : 'no-store');
   res.end(typeof body === 'string' ? body : JSON.stringify(body));
 }
@@ -265,56 +264,6 @@ async function guard(req, res) {
   return auth;
 }
 
-/* ---- Extension navigateur : jeton de suivi (profiles.plex_webhook_token) au lieu d'une session ----
- * L'extension n'a pas de session Supabase : elle s'authentifie avec le jeton de suivi de
- * l'utilisateur (48 caractères hexadécimaux), envoyé dans l'en-tête X-Cinepisode-Token. La RPC
- * consume_api_quota_by_token() vérifie le jeton ET compte le quota du propriétaire en un seul appel.
- * Contrairement au quota des sessions, PAS de mode dégradé : si la RPC ne répond pas, la requête
- * est refusée (c'est elle qui authentifie). */
-const EXT_TOKEN_RE = /^[0-9a-f]{48}$/;
-function extensionToken(req) {
-  const h = req.headers && (req.headers['x-cinepisode-token'] || req.headers['X-Cinepisode-Token']);
-  return typeof h === 'string' && EXT_TOKEN_RE.test(h) ? h : null;
-}
-/* Clé de rafale sans garder le jeton en clair en mémoire */
-function tokenKey(token) {
-  return 'ext:' + require('node:crypto').createHash('sha256').update(token).digest('hex').slice(0, 24);
-}
-/* Renvoie { allowed:true } | { allowed:false, scope:'invalid_token'|'user'|'global', retryAfter } | { unavailable:true } */
-async function consumeQuotaByToken(token, bucket, cost) {
-  let r;
-  try {
-    r = await fetch(supabaseUrl() + '/rest/v1/rpc/consume_api_quota_by_token', {
-      method: 'POST',
-      headers: { apikey: process.env.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ p_token: token, p_bucket: bucket, p_cost: cost || 1 }),
-      signal: timeoutSignal(SUPABASE_TIMEOUT_MS),
-    });
-  } catch (e) {
-    return { unavailable: true };
-  }
-  if (!r.ok) return { unavailable: true };
-  let data;
-  try { data = await r.json(); } catch (e) { return { unavailable: true }; }
-  if (data && data.allowed === true) return { allowed: true };
-  if (data && data.allowed === false) {
-    const scope = data.scope === 'global' ? 'global' : data.scope === 'user' ? 'user' : 'invalid_token';
-    return { allowed: false, scope: scope, retryAfter: secondsUntilUtcMidnight() };
-  }
-  return { unavailable: true };
-}
-/* Garde de l'extension : méthode, jeton, rafales, quota. Renvoie true si la requête peut continuer. */
-async function guardExtension(req, res, token, bucket) {
-  if (req.method !== 'GET') { res.setHeader('Allow', 'GET'); fail(res, 405, 'method_not_allowed', 'GET uniquement'); return false; }
-  if (!process.env.SUPABASE_ANON_KEY) { fail(res, 500, 'server_config', 'Configuration serveur incomplète'); return false; }
-  if (rateLimited(tokenKey(token))) { fail(res, 429, 'rate_limited', 'Trop de requêtes, réessaie dans une minute', 60); return false; }
-  const q = await consumeQuotaByToken(token, bucket, 1);
-  if (q.unavailable) { fail(res, 503, 'auth_unavailable', 'Vérification du jeton indisponible', 10); return false; }
-  if (!q.allowed && q.scope === 'invalid_token') { fail(res, 401, 'invalid_token', 'Jeton invalide : génère un nouveau jeton dans Cinepisode'); return false; }
-  if (!q.allowed) { failQuota(res, q, 'du catalogue'); return false; }
-  return true;
-}
-
 /* Refus de quota → réponse 429 explicite (le client affiche un message dédié) */
 function failQuota(res, q, label) {
   const msg = q.scope === 'global'
@@ -326,6 +275,6 @@ function failQuota(res, q, label) {
 module.exports = {
   send, fail, failQuota, makeCache, verifySession, guard, queryParams, bearerToken,
   consumeQuota, sharedCacheGet, sharedCachePut, secondsUntilUtcMidnight, serviceKey,
-  supabaseUrl, timeoutSignal, UPSTREAM_TIMEOUT_MS, extensionToken, consumeQuotaByToken, guardExtension,
+  supabaseUrl, timeoutSignal, UPSTREAM_TIMEOUT_MS,
   _authCache: authCache, _buckets: buckets, _quotaDenied: quotaDenied, _quotaState: quotaState,
 };

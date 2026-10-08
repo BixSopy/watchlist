@@ -206,9 +206,12 @@ function switchTab(btn){
   btn.classList.add('on');
   activeTab=btn.dataset.tab;
   document.body.classList.toggle('view-discover',activeTab==='discover');
+  var wasDetected=document.body.classList.contains('view-detected');
+  document.body.classList.toggle('view-detected',activeTab==='detectes');
   _heroIdx=0;
   render();
   if(activeTab==='discover')loadDiscovery(discoverCat);
+  if(activeTab==='detectes')onDetectedTabShown();else if(wasDetected)onDetectedTabHidden();
 }
 function switchDiscoverCat(btn){
   sfx('click');

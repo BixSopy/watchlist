@@ -6,50 +6,25 @@
   "version": "0.5.0",
   "description": "__MSG_extDescription__",
   "homepage_url": "https://cinepisode.com",
-  "icons": {
-    "16": "icons/icon.png",
-    "48": "icons/icon.png",
-    "128": "icons/icon.png"
-  },
-  "action": {
-    "default_popup": "options.html",
-    "default_icon": "icons/icon.png",
-    "default_title": "__MSG_extName__"
-  },
+  "icons": { "16": "icons/icon.png", "48": "icons/icon.png", "128": "icons/icon.png" },
+  "action": { "default_popup": "options.html", "default_icon": "icons/icon.png", "default_title": "__MSG_extName__" },
   "options_page": "options.html",
-  "permissions": [
-    "storage",
-    "scripting"
-  ],
-  "host_permissions": [
-    "https://batfulcvvquffgfeppcx.supabase.co/*",
-    "https://www.netflix.com/*",
-    "https://cinepisode.com/*"
-  ],
+  "permissions": ["storage", "scripting"],
+  "host_permissions": ["https://batfulcvvquffgfeppcx.supabase.co/*", "https://www.netflix.com/*"],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://image.tmdb.org; font-src 'self'; connect-src https://batfulcvvquffgfeppcx.supabase.co https://cinepisode.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://batfulcvvquffgfeppcx.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
   },
-  "background": {
-    "service_worker": "background.js"
-  },
+  "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
-      "matches": [
-        "https://www.netflix.com/watch/*"
-      ],
-      "js": [
-        "content/netflix-main.js"
-      ],
+      "matches": ["https://www.netflix.com/watch/*"],
+      "js": ["content/netflix-main.js"],
       "world": "MAIN",
       "run_at": "document_idle"
     },
     {
-      "matches": [
-        "https://www.netflix.com/watch/*"
-      ],
-      "js": [
-        "content/netflix-bridge.js"
-      ],
+      "matches": ["https://www.netflix.com/watch/*"],
+      "js": ["content/netflix-bridge.js"],
       "run_at": "document_idle"
     }
   ]

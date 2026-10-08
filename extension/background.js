@@ -5,8 +5,15 @@
  *
  * Le résultat de la dernière détection est gardé dans chrome.storage.local (clé wlLast, jamais le
  * jeton) pour que la fenêtre de l'extension l'affiche en clair (« Mis à jour : Dark S2E3 »...).
- * Les détections sans correspondance vont aussi dans wlLive (page « Titres détectés », 0.5.0).
+ *
+ * 0.5.0 : import de l'historique (bouton de la fenêtre de l'extension). Le service worker lit
+ * l'historique Netflix dans un onglet netflix.com, ou le fichier CSV transmis par la fenêtre,
+ * regroupe par titre (lib/import.js) et envoie les détections à extension_push_detections().
+ * Les détections en direct sans correspondance (« pas dans ta liste », « plusieurs titres ») sont
+ * envoyées de la même façon. Tout se choisit ensuite dans l'onglet « Détectés » de Cinepisode.
  * Rien n'est envoyé ailleurs qu'à Supabase. */
+importScripts('lib/import.js');
+var I = self.CinepisodeImport;
 var SUPA_URL = 'https://batfulcvvquffgfeppcx.supabase.co';
 var SUPA_KEY = 'sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
 /* Pages d'où une détection peut venir (mêmes origines que content_scripts dans manifest.json) */
@@ -76,26 +83,10 @@ function remember(det, result) {
     last.season = result.season; last.episode = result.episode;
   }
   try { chrome.storage.local.set({ wlLast: last }); } catch (e) { /* stockage indisponible : rien à afficher */ }
-  if (det && (result.status === 'not_found' || result.status === 'ambiguous')) rememberLive(last);
 }
 
-/* Détection sans correspondance (« pas dans ta liste », « plusieurs titres ») : gardée localement
- * (clé wlLive, 200 au plus, jamais le jeton) pour la page « Titres détectés », où l'utilisateur peut
- * l'ajouter à sa liste ou l'ignorer. Rien n'est envoyé ailleurs. */
-var LIVE_MAX = 200;
-function rememberLive(last) {
-  try {
-    chrome.storage.local.get(['wlLive'], function (res) {
-      var live = Array.isArray(res && res.wlLive) ? res.wlLive : [];
-      live.push({ at: last.at, kind: last.kind, title: last.title, season: last.season, episode: last.episode, status: last.status });
-      if (live.length > LIVE_MAX) live = live.slice(live.length - LIVE_MAX);
-      chrome.storage.local.set({ wlLive: live });
-    });
-  } catch (e) { /* stockage indisponible */ }
-}
-
-function rpc(body) {
-  return fetch(SUPA_URL + '/rest/v1/rpc/mark_watched_by_title', {
+function rpc(body, name) {
+  return fetch(SUPA_URL + '/rest/v1/rpc/' + (name || 'mark_watched_by_title'), {
     method: 'POST',
     headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -114,7 +105,9 @@ function markWatched(token, det) {
 }
 
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-  if (!msg || typeof msg !== 'object' || msg.type !== 'wl_watched') return;
+  if (!msg || typeof msg !== 'object') return;
+  if (msg.type === 'wl_import_netflix' || msg.type === 'wl_import_csv') return onImportMessage(msg, sender, sendResponse);
+  if (msg.type !== 'wl_watched') return;
   if (!trustedSender(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
   var det = validDetection(msg);
   if (!det) { remember(null, { status: 'invalid_detection' }); sendResponse({ ok: false, reason: 'invalid' }); return; }
@@ -130,6 +123,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       var result = out.r.ok ? interpret(out.data) : { status: 'server_error' };
       if (out.r.ok) lastSent = { key: key, at: Date.now() };
       remember(det, result);
+      /* Pas dans la liste / plusieurs titres : envoyé à l'onglet « Détectés » de Cinepisode */
+      if (result.status === 'not_found' || result.status === 'ambiguous') pushLive(token, det);
       sendResponse({ ok: out.r.ok, status: result.status });
     }).catch(function () {
       remember(det, { status: 'network' });
@@ -138,3 +133,181 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   });
   return true; /* réponse asynchrone */
 });
+
+/* ======================= Import de l'historique (0.5.0) ======================= */
+var NETFLIX_ORIGIN = 'https://www.netflix.com';
+var DETECTED_URL = 'https://cinepisode.com/#detectes';
+var CSV_MAX_CHARS = 20 * 1024 * 1024;
+var importRunning = false;
+
+/* Message venu d'une page de cette extension (fenêtre de l'extension / page d'options) */
+function trustedExtensionPage(sender) {
+  var base = chrome.runtime.getURL('');
+  return !!sender && sender.id === chrome.runtime.id && typeof sender.url === 'string' && sender.url.indexOf(base) === 0;
+}
+
+/* État de l'import, affiché par la fenêtre de l'extension (clé wlImport, jamais le jeton) */
+function setImportState(patch) {
+  return new Promise(function (resolve) {
+    chrome.storage.local.get(['wlImport'], function (res) {
+      var cur = (res && res.wlImport && typeof res.wlImport === 'object') ? res.wlImport : {};
+      var next = Object.assign({}, cur, patch, { at: Date.now() });
+      chrome.storage.local.set({ wlImport: next }, function () { resolve(next); });
+    });
+  });
+}
+function storageGet(keys) { return new Promise(function (resolve) { chrome.storage.local.get(keys, function (r) { resolve(r || {}); }); }); }
+
+/* Envoi des détections, par lots de 1 000 (limite de la RPC) */
+async function pushDetections(token, items, onProgress) {
+  var sum = { inserted: 0, updated: 0, unchanged: 0, invalid: 0 };
+  var chunks = I.chunkItems(items, I.PUSH_MAX);
+  for (var i = 0; i < chunks.length; i++) {
+    var out = await rpc({ p_token: token, p_items: chunks[i] }, 'extension_push_detections');
+    var data = out.data;
+    if (data && data.status === 'invalid_token') { var e = new Error('invalid_token'); e.code = 'invalid_token'; throw e; }
+    if (data && data.status === 'limit') { var e2 = new Error('limit'); e2.code = 'limit'; throw e2; }
+    if (!out.r.ok || !data || data.status !== 'ok') { var e3 = new Error('server'); e3.code = 'server_error'; throw e3; }
+    sum.inserted += data.inserted | 0; sum.updated += data.updated | 0; sum.unchanged += data.unchanged | 0; sum.invalid += data.invalid | 0;
+    if (onProgress) onProgress(i + 1, chunks.length);
+  }
+  return sum;
+}
+function pushLive(token, det) {
+  var item = I.pushItemFromLive(det, Date.now());
+  if (!item) return;
+  rpc({ p_token: token, p_items: [item] }, 'extension_push_detections').catch(function () { /* hors ligne : rien */ });
+}
+
+/* ---------- Onglet Netflix : relai de requêtes même origine (cookies Netflix de ce navigateur) ---------- */
+/* Exécutée DANS l'onglet netflix.com (monde isolé de l'extension) : simple fetch même origine.
+ * Refuse toute autre adresse. Le résultat ne revient qu'au service worker. */
+function netflixRelayFetch(url, opts) {
+  if (typeof url !== 'string' || url.indexOf('https://www.netflix.com/') !== 0) return Promise.resolve({ status: 0, body: '' });
+  opts = opts || {};
+  return fetch(url, { method: opts.method === 'POST' ? 'POST' : 'GET', headers: opts.headers || {}, body: opts.method === 'POST' ? opts.body : undefined,
+    credentials: 'include', redirect: 'follow' })
+    .then(function (r) {
+      return r.text().then(function (text) { return { status: r.status, body: text.length > 8 * 1024 * 1024 ? '' : text }; });
+    })
+    .catch(function () { return { status: 0, body: '' }; });
+}
+/* Exécutée DANS l'onglet netflix.com (monde de la page) : identifiant du profil actif */
+function netflixReadSession() {
+  try {
+    var d = window.netflix.reactContext.models.userInfo.data;
+    return { userGuid: d.userGuid || null, profileName: d.name || null };
+  } catch (e) { return null; }
+}
+function waitTabComplete(tabId, timeoutMs) {
+  return new Promise(function (resolve, reject) {
+    var done = false;
+    function finish(ok) { if (done) return; done = true; chrome.tabs.onUpdated.removeListener(onUpd); clearTimeout(timer); ok ? resolve() : reject(new Error('timeout')); }
+    function onUpd(id, info) { if (id === tabId && info.status === 'complete') finish(true); }
+    var timer = setTimeout(function () { finish(false); }, timeoutMs);
+    chrome.tabs.onUpdated.addListener(onUpd);
+    chrome.tabs.get(tabId, function (tab) { if (!chrome.runtime.lastError && tab && tab.status === 'complete') finish(true); });
+  });
+}
+/* Onglet netflix.com existant, sinon ouvert en arrière-plan sur /browse */
+function netflixTab() {
+  return new Promise(function (resolve, reject) {
+    chrome.tabs.query({ url: NETFLIX_ORIGIN + '/*' }, function (tabs) {
+      if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
+      var ready = (tabs || []).filter(function (tb) { return tb.status === 'complete'; });
+      if (ready.length) return resolve(ready[0].id);
+      if (tabs && tabs.length) return waitTabComplete(tabs[0].id, 30000).then(function () { resolve(tabs[0].id); }, reject);
+      chrome.tabs.create({ url: NETFLIX_ORIGIN + '/browse', active: false }, function (tab) {
+        if (chrome.runtime.lastError || !tab) return reject(new Error((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'tab'));
+        waitTabComplete(tab.id, 45000).then(function () { setTimeout(function () { resolve(tab.id); }, 1500); }, reject);
+      });
+    });
+  });
+}
+function inTab(tabId, func, args, world) {
+  return chrome.scripting.executeScript({ target: { tabId: tabId }, func: func, args: args || [], world: world || 'ISOLATED' })
+    .then(function (res) { return res && res[0] ? res[0].result : null; });
+}
+
+function openDetected() { try { chrome.tabs.create({ url: DETECTED_URL, active: true }); } catch (e) { /* rien */ } }
+
+async function runNetflixImport(token) {
+  await setImportState({ state: 'running', source: 'netflix', step: 'tab', pages: 0, items: 0, done: 0, total: 0, error: null, sent: null, truncated: false, metaFailed: false, profile: null });
+  var tabId;
+  try { tabId = await netflixTab(); } catch (e) { await setImportState({ state: 'error', error: 'netflix_tab' }); return; }
+  await setImportState({ step: 'session' });
+  var session = null;
+  try { session = await inTab(tabId, netflixReadSession, [], 'MAIN'); } catch (e) { session = null; }
+  if (!session || !session.userGuid) {
+    var page = await inTab(tabId, netflixRelayFetch, [NETFLIX_ORIGIN + '/browse', { method: 'GET' }]).catch(function () { return null; });
+    session = page && page.status === 200 ? I.extractNetflixSession(page.body) : null;
+  }
+  var fetchFn = function (url, opts) { return inTab(tabId, netflixRelayFetch, [url, opts]); };
+  var meta = (await storageGet(['wlImportMeta'])).wlImportMeta || {};
+  var since = typeof meta.netflixLastMs === 'number' ? meta.netflixLastMs - 3 * 86400000 : null;
+  var hist;
+  try {
+    hist = await I.fetchNetflixHistory(fetchFn, session, { sinceMs: since,
+      onProgress: function (p, n) { setImportState({ step: 'history', pages: p, items: n }); } });
+  } catch (e) {
+    await setImportState({ state: 'error', error: e && (e.code === 'netflix_auth' || e.code === 'netflix_parse') ? 'netflix_auth' : 'netflix_http' });
+    return;
+  }
+  var shows = hist.items.filter(function (g) { return g.kind === 'show'; });
+  var metaRes = await I.fetchNetflixMetadata(fetchFn, shows, function (i, n) {
+    if (i % 5 === 0) setImportState({ step: 'meta', done: i, total: n });
+  });
+  var items = I.pushItemsFromGroups(hist.items, 'netflix');
+  await setImportState({ step: 'push', done: 0, total: items.length });
+  var sent;
+  try {
+    sent = await pushDetections(token, items, function (d, n) { setImportState({ done: d, total: n }); });
+  } catch (e) {
+    await setImportState({ state: 'error', error: (e && e.code) || 'network' });
+    return;
+  }
+  meta.netflixLastMs = I.latestDate(hist.items, meta.netflixLastMs);
+  meta.netflixLastAt = Date.now();
+  chrome.storage.local.set({ wlImportMeta: meta });
+  await setImportState({ state: 'done', step: 'done', titles: items.length, sent: sent, truncated: hist.truncated,
+    metaFailed: !!metaRes.failed, profile: session && session.profileName ? String(session.profileName).slice(0, 60) : null });
+  if (sent.inserted + sent.updated > 0) openDetected();
+}
+
+async function runCsvImport(token, text) {
+  await setImportState({ state: 'running', source: 'netflix_csv', step: 'parse', pages: 0, items: 0, done: 0, total: 0, error: null, sent: null, truncated: false, metaFailed: false, profile: null });
+  var parsed = I.parseNetflixCsv(text);
+  if (parsed.error || !parsed.items.length) { await setImportState({ state: 'error', error: 'csv' }); return; }
+  var items = I.pushItemsFromGroups(parsed.items, 'netflix_csv');
+  await setImportState({ step: 'push', done: 0, total: items.length });
+  var sent;
+  try {
+    sent = await pushDetections(token, items, function (d, n) { setImportState({ done: d, total: n }); });
+  } catch (e) {
+    await setImportState({ state: 'error', error: (e && e.code) || 'network' });
+    return;
+  }
+  var meta = (await storageGet(['wlImportMeta'])).wlImportMeta || {};
+  meta.csvLastAt = Date.now();
+  chrome.storage.local.set({ wlImportMeta: meta });
+  await setImportState({ state: 'done', step: 'done', titles: items.length, sent: sent });
+  if (sent.inserted + sent.updated > 0) openDetected();
+}
+
+function onImportMessage(msg, sender, sendResponse) {
+  if (!trustedExtensionPage(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
+  if (importRunning) { sendResponse({ ok: false, reason: 'busy' }); return; }
+  if (msg.type === 'wl_import_csv' && (typeof msg.text !== 'string' || !msg.text || msg.text.length > CSV_MAX_CHARS)) {
+    sendResponse({ ok: false, reason: 'csv' }); return;
+  }
+  chrome.storage.local.get(['wlToken'], function (res) {
+    var token = res.wlToken;
+    if (!token) { setImportState({ state: 'error', error: 'no_token' }); sendResponse({ ok: false, reason: 'no_token' }); return; }
+    importRunning = true;
+    sendResponse({ ok: true, started: true });
+    var job = msg.type === 'wl_import_csv' ? runCsvImport(token, msg.text) : runNetflixImport(token);
+    job.catch(function () { return setImportState({ state: 'error', error: 'network' }); })
+      .then(function () { importRunning = false; });
+  });
+  return true;
+}

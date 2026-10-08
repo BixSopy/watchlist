@@ -11,64 +11,64 @@ console : le titre regardé n'a pas à y apparaître.
 Install: `chrome://extensions` → Developer mode → Load unpacked → `extension/`, then paste the
 token from Cinepisode (Settings › Auto-tracking (Netflix, Plex...) › Generate my token).*
 
-## Historique et titres détectés (0.5.0)
+## Historique et onglet « Détectés » (0.5.0)
 
-Bouton « Ouvrir la page des titres détectés » dans la fenêtre de l'extension : une page de
-l'extension (`import.html`, onglet à part) qui rassemble tout ce qui a été détecté :
+L'extension **ne fait que détecter et envoyer** ; le tri se fait dans Cinepisode, onglet
+« Détectés » (`https://cinepisode.com/#detectes`, `js/21-detected.js`). Dans la fenêtre de
+l'extension (section « Historique ») :
 
-- **l'historique Netflix** (« Importer mon historique Netflix ») : lu dans un onglet `netflix.com`
+- **« Importer mon historique Netflix »** : lu par le service worker dans un onglet `netflix.com`
   de ce navigateur (ouvert en arrière-plan s'il n'y en a pas), avec ta session Netflix, profil
   actif. Endpoint `api/aui/pathEvaluator` (`["aui","viewingActivity",page,100]`), puis une fiche
   par série (`nq/website/memberapi/release/metadata`, repli `api/shakti/mre/metadata`) pour les
-  numéros exacts de saison et d'épisode. Un épisode commencé mais pas fini (position connue
-  < 80 %) n'est pas compté. Réimport : seuls les visionnages plus récents que le dernier import
-  sont relus ;
-- **le fichier CSV Netflix** (`NetflixViewingHistory.csv`, Compte › Profil › Activité de
-  visionnage › « Télécharger tout »), lu dans la page : formats français et anglais
+  numéros exacts de saison et d'épisode. Réimport : seuls les visionnages plus récents que le
+  dernier import (moins 3 jours) sont relus. La progression s'affiche dans la fenêtre (elle
+  peut être fermée pendant l'import) ;
+- **« Importer le fichier CSV Netflix »** (`NetflixViewingHistory.csv`, Compte › Profil ›
+  Activité de visionnage › « Télécharger tout »), 20 Mo au plus : formats français et anglais
   (« Série : Saison 2 : Titre », « Show: Season 2: Title », « Série limitée », « Partie 2 »...).
-  Le CSV ne donne pas les numéros d'épisode : on compte les épisodes différents vus dans la
-  saison la plus avancée (affiché « ≈ ») ;
+  Le CSV ne donne pas les numéros d'épisode : on compte les épisodes différents vus dans la saison
+  la plus avancée (affiché « ≈ » dans l'onglet). Depuis la petite fenêtre, le choix du fichier
+  ouvre la page de l'extension dans un onglet (la fenêtre se fermerait pendant le choix) ;
 - **les détections en direct** restées sans correspondance (« Pas dans ta liste », « Plusieurs
-  titres ») : gardées localement (`wlLive`, 200 au plus) par le service worker.
+  titres ») sont envoyées de la même façon (source `live`).
 
-Chaque titre apparaît une seule fois (clé = titre normalisé + film/série, quelle que soit la
-source), avec des filtres « Nouveaux », « Mises à jour », « Ambigus », « Déjà à jour », des cases à
-cocher, « Tout sélectionner », « Ignorer » (définitif) et « Appliquer la sélection ».
+Envoi : RPC `extension_push_detections(p_token, p_items)` (migration
+`20261008160000_titres_detectes.sql`), par lots de 1 000. **Une ligne par titre** (épisode le
+plus avancé), avec seulement : source (`netflix`, `netflix_csv`, `live` ; `crunchyroll` et `prime`
+prévus), titre, film/série, saison, épisode, date du visionnage, pourcentage vu. Aucun identifiant
+Netflix, aucun nom de profil. Le serveur normalise le titre, dédoublonne (même titre + saison +
+épisode : le visionnage le plus récent gagne) et garde « Ignoré » définitif pour ce titre.
+L'onglet « Détectés » s'ouvre à la fin si quelque chose de nouveau est arrivé.
 
-- **Mise à jour** : le titre est dans ta liste (même correspondance exacte que
-  `mark_watched_by_title`, ou même fiche TMDB) et la progression avance : coché par défaut.
-- **Nouveau** : absent de ta liste ; son nom est cherché sur TMDB via le proxy de cinepisode.com
-  (jeton dans l'en-tête `X-Cinepisode-Token`, même quota quotidien que le site). Coché par défaut
-  seulement si une fiche ressort sans ambiguïté ; sinon une liste déroulante propose les
-  candidats. Série ajoutée « en cours » au dernier épisode vu, ou « terminée » si c'est le dernier
-  épisode d'une série finie (d'après TMDB) ; film ajouté « terminé ». Mêmes champs qu'un ajout
-  manuel (fiche TMDB, affiche, année, note, résumé, genre anime).
-- **Ambigu** : plusieurs titres de ta liste portent ce nom (tu choisis lequel), ou plusieurs
-  fiches TMDB possibles.
+Dans l'onglet « Détectés » (connecté, session Supabase, RLS) : un groupe par titre (toutes
+sources), filtres « Nouveaux », « Mises à jour », « Ambigus », cases à cocher, « Tout
+sélectionner », « Ajouter la sélection », « Tout ajouter », « Ignorer », « Tout effacer », badge du
+nombre de titres en attente. Recherche TMDB par le proxy habituel du site (quota du compte),
+ajouts et mises à jour par le code d'ajout normal (`makeEntry`, `js/07-add-edit.js`) : les titres
+ajoutés sont identiques à un ajout manuel et partent à la synchro comme d'habitude. La
+progression ne fait qu'avancer ; série « en cours » au dernier épisode vu, ou « terminée » si
+c'est le dernier épisode d'une série finie (TMDB) ; film « terminé ».
 
-**Rien n'est écrit dans Cinepisode avant le clic sur « Appliquer »**, qui appelle
-`extension_apply_import()` (migration `20261008150000_import_historique.sql`) avec seulement les
-lignes cochées. Les titres ajoutés ou mis à jour apparaissent dans l'app à la synchronisation
-suivante (30 s maximum).
-
-Vie privée : l'historique Netflix (dates, liste complète) reste dans ce navigateur
-(`chrome.storage.local`, clés `wlDetected`, `wlImportMeta`). Partent du navigateur : la lecture de
-ta liste (jeton), le **nom** des titres absents de ta liste (recherche TMDB via cinepisode.com),
-et, au clic sur « Appliquer », les changements cochés.
+Vie privée : les titres détectés sont stockés dans Supabase (`public.detected_media`), lisibles et
+modifiables seulement par leur propriétaire (RLS) ; aucune insertion directe depuis un client, seule
+la RPC à jeton écrit. Un compte supprimé efface ses détections (cascade). L'extension garde
+localement le jeton, la dernière détection et l'état de l'import (`wlImport`, `wlImportMeta` : date
+du dernier import, jamais le jeton ni la liste des titres).
 
 ### Permissions (0.5.0)
 
 | Permission | Pourquoi |
 |---|---|
-| `storage` | jeton, dernière détection, titres détectés (local) |
+| `storage` | jeton, dernière détection, état de l'import |
 | `scripting` | lire l'historique dans l'onglet `netflix.com` (requêtes même origine, au clic seulement) |
 | `https://www.netflix.com/*` | idem (avant : seulement `netflix.com/watch/*` pour la détection en direct) |
-| `https://cinepisode.com/*` | recherche TMDB des titres absents de la liste, via le proxy du site (clé TMDB côté serveur) |
-| `https://batfulcvvquffgfeppcx.supabase.co/*` | inchangé : lecture de la liste et enregistrement |
+| `https://batfulcvvquffgfeppcx.supabase.co/*` | inchangé : marquage en direct et envoi des détections |
 
-Pas de permission `tabs`, `history` ni `cookies`. Pages de l'extension sous CSP stricte
-(`script-src 'self'`, `connect-src` limité à Supabase et cinepisode.com, `img-src` à
-image.tmdb.org), aucun script en ligne, aucun `innerHTML`.
+Pas d'accès à `cinepisode.com` (l'onglet « Détectés » est simplement ouvert pour toi, sans
+permission), pas de permission `tabs`, `history` ni `cookies`, aucun appel TMDB depuis
+l'extension. Page de l'extension sous CSP stricte (`script-src 'self'`, `connect-src` limité à
+Supabase, `img-src 'self'`), aucun script en ligne, aucun `innerHTML`.
 
 ### Crédit
 
@@ -89,8 +89,6 @@ adresses des fiches) s'inspire de [Universal Trakt Scrobbler](https://github.com
 > AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 > DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Polices : IBM Plex Sans (SIL Open Font License, `fonts/OFL-ibm-plex.txt`), comme sur le site.
 
 ## Couverture par plateforme
 

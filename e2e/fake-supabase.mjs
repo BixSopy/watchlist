@@ -14,7 +14,7 @@ function jwt(user) {
 export async function installFakeSupabase(page, opts = {}) {
   const db = {
     users: [{ id: '11111111-1111-4111-8111-111111111111', email: 'pierre@exemple.fr', password: 'Correct-Horse-42', confirmed: true }],
-    profiles: [], items: [], calls: [], deleted: false, ...opts,
+    profiles: [], items: [], detected: [], calls: [], deleted: false, ...opts,
   };
   const userJson = u => ({ id: u.id, aud: 'authenticated', role: 'authenticated', email: u.email,
     email_confirmed_at: u.confirmed ? '2026-10-01T10:00:00Z' : null, confirmed_at: u.confirmed ? '2026-10-01T10:00:00Z' : null,
@@ -84,6 +84,37 @@ export async function installFakeSupabase(page, opts = {}) {
       return ok(route, rows);
     }
     if (p === '/rest/v1/watchlist_items') return ok(route, req.method() === 'GET' ? db.items : []);
+    /* Titres détectés (onglet « Détectés ») : RLS simulée = lignes du compte connecté ; filtres eq / in, offset / limit */
+    if (p === '/rest/v1/detected_media') {
+      const usr = current(req);
+      if (!usr) return err(route, 401, '42501', 'permission denied');
+      const sp = u.searchParams;
+      const match = r => {
+        if (r.user_id !== usr.id) return false;
+        for (const [k, v] of sp) {
+          if (['select', 'order', 'offset', 'limit'].includes(k)) continue;
+          if (v.startsWith('eq.') && String(r[k]) !== v.slice(3)) return false;
+          if (v.startsWith('in.(') && !v.slice(4, -1).split(',').map(x => x.replace(/^"|"$/g, '')).includes(String(r[k]))) return false;
+        }
+        return true;
+      };
+      if (req.method() === 'GET') {
+        const rows = db.detected.filter(match).sort((a, b) => (a.id < b.id ? -1 : 1));
+        const off = +(sp.get('offset') || 0), lim = sp.has('limit') ? +sp.get('limit') : rows.length;
+        return ok(route, rows.slice(off, off + lim).map(({ user_id, ...r }) => r));
+      }
+      if (req.method() === 'PATCH') {
+        const keys = Object.keys(body || {});
+        if (keys.some(k => k !== 'state')) return err(route, 403, '42501', 'permission denied for table detected_media');
+        db.detected.filter(match).forEach(r => { r.state = body.state; });
+        return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
+      }
+      if (req.method() === 'DELETE') {
+        db.detected = db.detected.filter(r => !match(r));
+        return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
+      }
+      return err(route, 403, '42501', 'permission denied for table detected_media');
+    }
     if (p === '/rest/v1/rpc/delete_my_account') {
       const usr = current(req);
       db.users = db.users.filter(x => x !== usr); db.profiles = db.profiles.filter(x => x.account_id !== usr.id); db.deleted = true;

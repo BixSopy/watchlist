@@ -1,9 +1,13 @@
 'use strict';
 /*
  * Import de l'historique de visionnage (extension Cinepisode 0.5.0).
- * Tout reste dans le navigateur : lecture de l'historique Netflix, lecture du fichier CSV Netflix,
- * correspondance avec la liste Cinepisode, choix des fiches TMDB. Rien n'est envoyé à Cinepisode
- * tant que l'utilisateur n'a pas coché puis cliqué sur « Appliquer ».
+ * L'extension lit l'historique Netflix (dans l'onglet netflix.com, avec la session de ce
+ * navigateur) ou le fichier CSV Netflix, regroupe par titre (dernier épisode vu) et envoie ces
+ * détections à Cinepisode (extension_push_detections). La correspondance avec la liste, la
+ * recherche TMDB et l'ajout se font ensuite dans l'onglet « Détectés » du site, où l'utilisateur
+ * choisit ce qui est ajouté ou mis à jour.
+ * Envoyé par titre : nom, film/série, dernier épisode vu, date du dernier visionnage, pourcentage
+ * vu. Rien d'autre (pas d'identifiant Netflix, pas de liste d'épisodes, pas de profil).
  *
  * Référence pour la lecture de l'historique Netflix : Universal Trakt Scrobbler (MIT,
  * Copyright (c) 2020 trakt-tools, github.com/trakt-tools/universal-trakt-scrobbler) — l'endpoint
@@ -18,25 +22,14 @@
 var NF_HISTORY_PAGE_SIZE = 100;   /* taille d'une page de l'historique Netflix */
 var NF_HISTORY_MAX_PAGES = 200;   /* 20 000 éléments maximum (au-delà : import tronqué, signalé) */
 var NF_METADATA_MAX = 400;        /* nombre maximum d'appels de métadonnées par import */
-var TMDB_SEARCH_MAX = 150;        /* recherches TMDB maximum par import (quota quotidien : 4 000) */
-var APPLY_UPDATES_MAX = 500;      /* taille d'un lot d'application (limites de la RPC) */
-var APPLY_INSERTS_MAX = 200;
-var STORAGE_MAX = 3000;           /* éléments gardés dans la page « Détectés » */
-var MATCH_MIN = 0.86;             /* ressemblance minimale pour retenir un candidat TMDB */
-var MATCH_GAP = 0.06;             /* écart minimal avec le 2e candidat pour être « sans ambiguïté » */
+var PUSH_MAX = 1000;              /* éléments par appel à extension_push_detections (limite de la RPC) */
 
-var ANIME_GENRES = ['shonen', 'seinen', 'shojo', 'isekai', 'slice', 'autre'];
-var KW_SHONEN = ['shonen', 'shounen', 'superpower', 'martial arts', 'ninja', 'pirate', 'demon slayer', 'dragon ball'];
-var KW_SEINEN = ['seinen', 'psychological', 'thriller', 'berserk', 'vinland', 'mature', 'gore'];
-var KW_SHOJO = ['shojo', 'shoujo', 'romance', 'magical girl', 'fruits basket'];
-var KW_ISEKAI = ['isekai', 'another world', 'reincarnation', 'transported', 'summoned to'];
-var KW_SLICE = ['slice of life', 'daily life', 'school life', 'coming of age', 'moe', 'everyday'];
-
-/* Sources (colonne « source » de la page Détectés ; les futures plateformes s'y ajoutent) :
+/* Sources (colonne « source » de public.detected_media ; crunchyroll et prime viendront s'y ajouter) :
  * netflix (historique lu sur netflix.com), netflix_csv (fichier CSV), live (détection en direct). */
-var SOURCES = ['netflix', 'netflix_csv', 'live'];
+var SOURCES = ['netflix', 'netflix_csv', 'crunchyroll', 'prime', 'live'];
 
-/* ---------- Normalisation des titres (identique à public.normalize_title_for_match) ---------- */
+/* ---------- Normalisation des titres (identique à public.normalize_title_for_match ; sert ici à
+ * regrouper les lignes du CSV, le serveur recalcule la sienne) ---------- */
 var NF_ACCENT_FROM = 'ÀÁÂÃÄÅĀĂĄÇĆĈĊČĎĐÈÉÊËĒĔĖĘĚĜĞĠĢĤĦÌÍÎÏĨĪĬĮİĴĶĹĻĽĿŁÑŃŅŇÒÓÔÕÖØŌŎŐŔŖŘŚŜŞŠŢŤŦÙÚÛÜŨŪŬŮŰŲŴÝŸŶŹŻŽ'
   + 'àáâãäåāăąçćĉċčďđèéêëēĕėęěĝğġģĥħìíîïĩīĭįıĵķĺļľŀłñńņňòóôõöøōŏőŕŗřśŝşšţťŧùúûüũūŭůűųŵýÿŷźżž';
 var NF_ACCENT_TO = 'AAAAAAAAACCCCCDDEEEEEEEEEGGGGHHIIIIIIIIIJKLLLLLNNNNOOOOOOOOORRRSSSSTTTUUUUUUUUUUWYYYZZZ'
@@ -174,6 +167,11 @@ function isPartial(it) {
   return typeof it.bookmarkMs === 'number' && typeof it.durationMs === 'number' && it.durationMs > 0
     && it.bookmarkMs > 0 && it.bookmarkMs / it.durationMs < EPISODE_DONE_RATIO;
 }
+/* Pourcentage vu (0-100) quand la position et la durée sont connues, sinon null */
+function percentWatched(it) {
+  if (typeof it.bookmarkMs !== 'number' || typeof it.durationMs !== 'number' || it.durationMs <= 0 || it.bookmarkMs <= 0) return null;
+  return Math.max(0, Math.min(100, Math.round(100 * it.bookmarkMs / it.durationMs)));
+}
 /* Regroupe l'historique par série (ou par film) : on ne garde que la position la plus avancée,
  * et la date la plus récente (sert au réimport : seuls les éléments plus récents sont relus). */
 function aggregateHistory(items) {
@@ -184,12 +182,12 @@ function aggregateHistory(items) {
     var key = it.seriesId ? 'show:' + it.seriesId : 'movie:' + it.movieId;
     var g = byKey[key];
     if (!g) { g = byKey[key] = { key: key, kind: it.seriesId ? 'show' : 'movie', seriesId: it.seriesId,
-      title: it.seriesTitle || it.title, altTitles: [], year: '', episodes: [], dateMs: null, progress: null }; order.push(key); }
+      title: it.seriesTitle || it.title, altTitles: [], year: '', episodes: [], dateMs: null, progress: null, pct: null }; order.push(key); }
     if (it.dateMs && (g.dateMs === null || it.dateMs > g.dateMs)) g.dateMs = it.dateMs;
-    if (g.kind === 'movie') continue;
+    if (g.kind === 'movie') { if (g.pct === null) g.pct = percentWatched(it); continue; } /* historique du plus récent au plus ancien */
     var seen = false;
     for (var j = 0; j < g.episodes.length; j++) if (g.episodes[j].movieId === it.movieId) { seen = true; break; }
-    if (!seen) g.episodes.push({ movieId: it.movieId, dateMs: it.dateMs, partial: isPartial(it) });
+    if (!seen) g.episodes.push({ movieId: it.movieId, dateMs: it.dateMs, partial: isPartial(it), pct: percentWatched(it) });
   }
   var out = [];
   for (var k = 0; k < order.length; k++) out.push(byKey[order[k]]);
@@ -210,9 +208,10 @@ function applyMetadata(group, meta) {
     if (group.episodes[i].partial) continue; /* commencé, pas fini : ne compte pas comme vu */
     group.episodes[i].season = loc.season;
     group.episodes[i].episode = loc.episode;
-    if (!best || loc.season > best.season || (loc.season === best.season && loc.episode > best.episode)) best = loc;
+    if (!best || loc.season > best.season || (loc.season === best.season && loc.episode > best.episode)) best = { season: loc.season, episode: loc.episode, pct: group.episodes[i].pct };
   }
   group.progress = best ? { season: best.season, episode: best.episode } : null;
+  group.pct = best ? (best.pct === undefined ? null : best.pct) : null;
   group.hiddenNumbers = meta.hiddenNumbers === true && !best;
   return group;
 }
@@ -224,7 +223,7 @@ function applyMetadata(group, meta) {
  *   « Chernobyl: Limited Series: 1:23:45 », « Lupin : Partie 2 : Chapitre 6 », « Inception » (film).
  * Le CSV ne donne PAS le numéro de l'épisode, seulement son titre : on compte les épisodes
  * différents vus dans la saison la plus avancée (exact si la saison a été regardée dans l'ordre),
- * et la fiche est marquée « approx » dans la page. */
+ * marqué « approx » (le site affiche « ≈ » pour la source netflix_csv). */
 function parseCsv(text) {
   if (typeof text !== 'string') return [];
   var rows = [];
@@ -358,360 +357,51 @@ function parseNetflixCsv(text) {
   return { items: items, error: null };
 }
 
-/* ---------- Correspondance avec la liste Cinepisode ---------- */
-function groupNorms(group) {
-  var out = [];
-  var titles = [group.title].concat(group.altTitles || []);
-  for (var i = 0; i < titles.length; i++) { var n = normalizeTitle(titles[i]); if (n && out.indexOf(n) < 0) out.push(n); }
-  return out;
-}
-function findListMatches(group, listItems) {
-  var norms = groupNorms(group);
-  var matches = [];
-  for (var i = 0; i < listItems.length; i++) {
-    var it = listItems[i];
-    if (!it || !it.norm || norms.indexOf(it.norm) < 0) continue;
-    var typeOk = group.kind === 'movie' ? it.type === 'film' : (it.type === 'serie' || it.type === 'anime');
-    if (typeOk) matches.push(it);
-  }
-  return matches;
-}
-/* La progression proposée va-t-elle plus loin que celle enregistrée ? (film : pas encore terminé) */
-function progressMovesForward(item, progress) {
-  if (!progress) return item.type === 'film' ? item.status !== 'termine' : false;
-  if (item.season === null || item.season === undefined || item.episode === null || item.episode === undefined) return true;
-  if (progress.season > item.season) return true;
-  if (progress.season === item.season && progress.episode > item.episode) return true;
-  return progress.season === item.season && progress.episode === item.episode && (item.status === 'avoir' || item.status === 'todo');
-}
-
-/* ---------- Recherche TMDB : score de ressemblance et choix du candidat ---------- */
-function levenshtein(a, b) {
-  if (a === b) return 0;
-  if (!a.length || !b.length) return Math.max(a.length, b.length);
-  var prev = new Array(b.length + 1);
-  var cur = new Array(b.length + 1);
-  for (var j = 0; j <= b.length; j++) prev[j] = j;
-  for (var i = 1; i <= a.length; i++) {
-    cur[0] = i;
-    for (var k = 1; k <= b.length; k++) {
-      var cost = a.charAt(i - 1) === b.charAt(k - 1) ? 0 : 1;
-      cur[k] = Math.min(cur[k - 1] + 1, prev[k] + 1, prev[k - 1] + cost);
-    }
-    var tmp = prev; prev = cur; cur = tmp;
-  }
-  return prev[b.length];
-}
-/* 0..1 : égalité des titres normalisés, avec bonus année et malus de popularité faible */
-function similarity(group, candidate) {
-  var as = groupNorms(group);
-  var bs = [normalizeTitle(candidate.title), normalizeTitle(candidate.originalTitle || '')].filter(Boolean);
-  var score = 0;
-  for (var i = 0; i < as.length; i++) for (var j = 0; j < bs.length; j++) {
-    var a = as[i], b = bs[j];
-    var sc = a === b ? 1 : 1 - levenshtein(a, b) / Math.max(a.length, b.length);
-    if (sc > score) score = sc;
-  }
-  if (!score) return 0;
-  if (group.year && candidate.year) {
-    var dy = Math.abs(+candidate.year - +group.year);
-    score += dy === 0 ? 0.05 : dy === 1 ? 0 : -0.12;
-  }
-  return Math.max(0, Math.min(1, score));
-}
-/* Candidats TMDB classés (type attendu uniquement), avec leur score */
-function rankCandidates(group, tmdbResults) {
-  var wantMovie = group.kind === 'movie';
-  var out = [];
-  for (var i = 0; i < (tmdbResults || []).length; i++) {
-    var r = tmdbResults[i];
-    var isMovie = r.media_type === 'movie' || (!r.media_type && r.title && !r.name);
-    if (wantMovie !== !!isMovie) continue;
-    var title = (isMovie ? r.title : r.name) || '';
-    var date = (isMovie ? r.release_date : r.first_air_date) || '';
-    var candidate = { tmdbId: r.id, tmdbType: isMovie ? 'movie' : 'tv', title: title,
-      originalTitle: (isMovie ? r.original_title : r.original_name) || '',
-      year: String(date).slice(0, 4), poster: r.poster_path || null, overview: r.overview || '',
-      score: typeof r.vote_average === 'number' ? Math.round(r.vote_average * 10) / 10 : null,
-      popularity: r.popularity || 0, genreIds: r.genre_ids || [], originCountry: r.origin_country || [] };
-    candidate.match = similarity(group, candidate);
-    if (candidate.match >= MATCH_MIN && candidate.tmdbId) out.push(candidate);
-  }
-  out.sort(function (x, y) { return y.match - x.match || y.popularity - x.popularity; });
-  return out.slice(0, 5);
-}
-/* Sans ambiguïté : un seul candidat, un candidat nettement plus ressemblant, ou (titres identiques)
- * un candidat bien plus connu que les homonymes (popularité TMDB 5 fois supérieure). */
-function isUnambiguous(ranked) {
-  if (!ranked.length) return false;
-  if (ranked.length === 1) return true;
-  if (ranked[0].match - ranked[1].match >= MATCH_GAP) return true;
-  return ranked[0].match >= 0.99 && ranked[0].popularity >= 5 * Math.max(ranked[1].popularity, 0.5);
-}
-
-/* ---------- Genre anime (mêmes mots-clés que le site, js/04-tmdb-api.js) ---------- */
-function detectAnimeGenreFromKeywords(names) {
-  var all = (names || []).join(' ').toLowerCase();
-  function has(list) { for (var i = 0; i < list.length; i++) if (all.indexOf(list[i]) >= 0) return true; return false; }
-  if (has(KW_ISEKAI)) return 'isekai';
-  if (has(KW_SLICE)) return 'slice';
-  if (has(KW_SHOJO)) return 'shojo';
-  if (has(KW_SEINEN)) return 'seinen';
-  if (has(KW_SHONEN)) return 'shonen';
-  if (all.indexOf('action') >= 0 || all.indexOf('adventure') >= 0) return 'shonen';
-  return 'autre';
-}
-/* Le site classe en anime une série dont le titre ou le résumé contient « anime » ; on ajoute
- * les genres TMDB animation (16) + origine JP, qui rattrapent la plupart des anime. */
-function isAnimeCandidate(candidate) {
-  var text = ((candidate.title || '') + ' ' + (candidate.overview || '')).toLowerCase();
-  if (text.indexOf('anime') >= 0) return true;
-  var genres = candidate.genreIds || [];
-  var jp = (candidate.originCountry || []).indexOf('JP') >= 0;
-  return genres.indexOf(16) >= 0 && jp;
-}
-
-/* ---------- Série terminée ? (dernier épisode vu = dernier épisode diffusé selon TMDB) ---------- */
-function isSeriesFinished(progress, tmdbDetails) {
-  if (!progress || !tmdbDetails) return false;
-  var seasons = Array.isArray(tmdbDetails.seasons) ? tmdbDetails.seasons : [];
-  var regular = [];
-  for (var i = 0; i < seasons.length; i++) if (seasons[i] && seasons[i].season_number > 0) regular.push(seasons[i]);
-  if (!regular.length) return false;
-  regular.sort(function (a, b) { return a.season_number - b.season_number; });
-  var last = regular[regular.length - 1];
-  if (!last.episode_count || progress.season !== last.season_number || progress.episode < last.episode_count) return false;
-  /* Série encore en production : le dernier épisode diffusé n'est pas la fin */
-  if (tmdbDetails.status && tmdbDetails.status !== 'Ended' && tmdbDetails.status !== 'Canceled') return false;
-  if (tmdbDetails.in_production === true) return false;
-  return true;
-}
-
-/* ---------- Construction des fiches de la page « Détectés » ---------- */
-var SOURCES_LABEL = { netflix: 'netflix', netflix_csv: 'netflix_csv', live: 'live' };
-function newDetected(partial) {
+/* ---------- Ce qui est envoyé à Cinepisode (extension_push_detections) ---------- */
+/* Groupe (historique Netflix ou CSV) -> élément envoyé : {source, title, type, season, episode,
+ * watched_at, progress_pct}. Série sans numéro connu (collection Netflix, fiche illisible) :
+ * envoyée sans saison/épisode, le site ne proposera pas de progression inventée. */
+function pushItemFromGroup(group, source) {
+  if (!group || typeof group.title !== 'string' || !group.title.trim()) return null;
+  if (SOURCES.indexOf(source) < 0) return null;
+  var isShow = group.kind === 'show';
+  var p = isShow && group.progress && Number.isInteger(group.progress.season) && Number.isInteger(group.progress.episode) ? group.progress : null;
   return {
-    key: partial.key,                 /* identifiant stable (déduplication) */
-    source: SOURCES_LABEL[partial.source] || 'netflix',
-    kind: partial.kind,               /* 'show' | 'movie' */
-    title: partial.title,
-    altTitles: Array.isArray(partial.altTitles) ? partial.altTitles.slice(0, 3) : [],
-    year: partial.year || '',
-    dateMs: partial.dateMs || null,   /* visionnage le plus récent (réimport incrémental) */
-    progress: partial.progress || null, /* {season, episode} ou null */
-    hiddenNumbers: partial.hiddenNumbers === true,
-    list: partial.list || null,       /* {state:'update'|'ambiguous'|'unchanged', matches:[{id,title,type,status,season,episode}]} */
-    tmdb: partial.tmdb || null,       /* {state:'unambiguous'|'ambiguous'|'none', candidates:[...]} */
-    firstSeen: partial.firstSeen || Date.now(),
+    source: source,
+    title: group.title.trim().slice(0, 300),
+    type: isShow ? 'show' : 'movie',
+    season: p ? p.season : null,
+    episode: p ? p.episode : null,
+    watched_at: typeof group.dateMs === 'number' && isFinite(group.dateMs) && group.dateMs > 0 ? group.dateMs : null,
+    progress_pct: typeof group.pct === 'number' && group.pct >= 0 && group.pct <= 100 ? group.pct : null,
   };
 }
-/* Groupe d'historique + liste Cinepisode -> fiche (sans TMDB : fait ensuite pour les titres absents) */
-function detectedFromGroup(group, listItems, source) {
-  var matches = findListMatches(group, listItems);
-  var base = { key: detectedKey(group.kind, group.title) || (source + ':' + group.key), source: source, kind: group.kind, title: group.title, altTitles: group.altTitles,
-    year: group.year, dateMs: group.dateMs, progress: group.progress || null, hiddenNumbers: group.hiddenNumbers === true };
-  if (matches.length > 1) {
-    base.list = { state: 'ambiguous', matches: matches.map(compactMatch) };
-    return newDetected(base);
-  }
-  if (matches.length === 1) {
-    var m = matches[0];
-    base.list = { state: progressMovesForward(m, group.kind === 'movie' ? null : group.progress) ? 'update' : 'unchanged',
-      matches: [compactMatch(m)] };
-    return newDetected(base);
-  }
-  base.tmdb = { state: 'pending', candidates: [] };
-  return newDetected(base);
-}
-function compactMatch(m) {
-  return { id: m.id, title: m.title, type: m.type, status: m.status,
-    poster: typeof m.poster_path === 'string' && /^\/[A-Za-z0-9_.-]{1,200}$/.test(m.poster_path) ? m.poster_path : null,
-    season: m.season === undefined ? null : m.season, episode: m.episode === undefined ? null : m.episode };
-}
-/* Résultat TMDB -> complète la fiche (appelé seulement pour les titres absents de la liste) */
-function applyTmdbResults(detected, tmdbResults) {
-  var ranked = rankCandidates(detected, tmdbResults);
-  detected.tmdb = { state: ranked.length === 0 ? 'none' : isUnambiguous(ranked) ? 'unambiguous' : 'ambiguous',
-    candidates: ranked.slice(0, isUnambiguous(ranked) ? 1 : 4).map(function (c) { return { tmdbId: c.tmdbId, tmdbType: c.tmdbType, title: c.title,
-      originalTitle: c.originalTitle, popularity: c.popularity,
-      year: c.year, poster: c.poster, overview: (c.overview || '').slice(0, 300), score: c.score,
-      genreIds: c.genreIds, originCountry: c.originCountry, match: Math.round(c.match * 1000) / 1000 }; }) };
-  return detected;
-}
-
-/* Titre absent par son nom mais présent par sa fiche TMDB (titre traduit différemment dans la
- * liste) : devient une mise à jour du titre existant au lieu d'un doublon. */
-function linkByTmdbId(detected, listItems, candidateIndex) {
-  if (detected.list || !detected.tmdb || !detected.tmdb.candidates.length) return detected;
-  if (candidateIndex === -1) return detected; /* candidat pas encore choisi */
-  var c = detected.tmdb.candidates[candidateIndex || 0];
-  if (!c) return detected;
-  for (var i = 0; i < listItems.length; i++) {
-    var it = listItems[i];
-    if (it && it.tmdb_id === c.tmdbId && it.tmdb_type === c.tmdbType) {
-      var typeOk = detected.kind === 'movie' ? it.type === 'film' : (it.type === 'serie' || it.type === 'anime');
-      if (!typeOk) continue;
-      detected.list = { state: progressMovesForward(it, detected.kind === 'movie' ? null : detected.progress) ? 'update' : 'unchanged',
-        matches: [compactMatch(it)], viaTmdb: true };
-      return detected;
-    }
-  }
-  return detected;
-}
-
-/* Recalcule l'état d'une fiche par rapport à la liste actuelle (la liste a pu changer depuis) */
-function refreshAgainstList(d, listItems) {
-  var group = { title: d.title, altTitles: d.altTitles || [], kind: d.kind, progress: d.progress };
-  var matches = findListMatches(group, listItems);
-  d.list = null;
-  if (matches.length > 1) d.list = { state: 'ambiguous', matches: matches.map(compactMatch) };
-  else if (matches.length === 1) {
-    d.list = { state: progressMovesForward(matches[0], d.kind === 'movie' ? null : d.progress) ? 'update' : 'unchanged',
-      matches: [compactMatch(matches[0])] };
-  } else {
-    if (!d.tmdb) d.tmdb = { state: 'pending', candidates: [] };
-    linkByTmdbId(d, listItems, d.tmdb.state === 'unambiguous' ? 0 : -1);
-  }
-  return d;
-}
-
-/* Case cochée par défaut ? Uniquement quand il n'y a aucun choix à faire. */
-function defaultChecked(d) {
-  if (d.list && d.list.state === 'update') return true;
-  if (!d.list && d.tmdb && d.tmdb.state === 'unambiguous' && (d.kind === 'movie' || d.progress)) return true;
-  return false;
-}
-/* Famille d'affichage pour les filtres de la page */
-function detectedFilter(d) {
-  if (d.list && d.list.state === 'ambiguous') return 'ambiguous';
-  if (d.list && d.list.state === 'update') return 'updates';
-  if (d.list && d.list.state === 'unchanged') return 'unchanged';
-  if (d.tmdb && d.tmdb.state === 'ambiguous') return 'ambiguous';
-  if (d.tmdb && d.tmdb.state === 'pending') return 'pending';
-  return 'new'; /* unambiguous, none, ou pas encore cherché */
-}
-
-/* ---------- Ce qui part dans « Appliquer » (rien d'autre n'est envoyé) ---------- */
-/* Sélection : {checked: bool, candidate: indice du candidat TMDB choisi ou null} */
-function buildApplyPayload(detected, selection) {
-  var out = { updates: [], inserts: [] };
-  var seenIds = {};
-  var seenTmdb = {};
-  for (var i = 0; i < detected.length; i++) {
-    var d = detected[i];
-    var sel = selection[d.key];
-    if (!sel || !sel.checked) continue;
-    if (d.list && d.list.state === 'update' && d.list.matches.length === 1) {
-      var m = d.list.matches[0];
-      if (seenIds[m.id]) continue;
-      if (d.kind === 'movie') { out.updates.push({ id: m.id, kind: 'movie' }); seenIds[m.id] = true; }
-      else if (d.progress) { out.updates.push({ id: m.id, kind: 'episode', season: d.progress.season, episode: d.progress.episode }); seenIds[m.id] = true; }
-      continue;
-    }
-    if (d.list && d.list.state === 'ambiguous' && sel.target) {
-      /* Plusieurs titres de la liste portent ce nom : l'utilisateur a choisi lequel mettre à jour */
-      var target = null;
-      for (var t = 0; t < d.list.matches.length; t++) if (d.list.matches[t].id === sel.target) target = d.list.matches[t];
-      if (!target || seenIds[target.id]) continue;
-      if (d.kind === 'movie') out.updates.push({ id: target.id, kind: 'movie' });
-      else if (d.progress) out.updates.push({ id: target.id, kind: 'episode', season: d.progress.season, episode: d.progress.episode });
-      else continue;
-      seenIds[target.id] = true;
-      continue;
-    }
-    if (d.list) continue; /* ambigu sans choix, ou inchangé : rien à écrire */
-    var idx = sel.candidate === undefined || sel.candidate === null ? 0 : sel.candidate;
-    var c = d.tmdb && d.tmdb.candidates[idx];
-    if (!c) continue;
-    var tmdbKey = c.tmdbType + ':' + c.tmdbId;
-    if (seenTmdb[tmdbKey]) continue;
-    seenTmdb[tmdbKey] = true;
-    var isMovie = c.tmdbType === 'movie';
-    var anime = !isMovie && isAnimeCandidate(c);
-    var finished = !isMovie && d.finished === true;
-    var entry = { tmdb_id: c.tmdbId, tmdb_type: c.tmdbType, type: isMovie ? 'film' : anime ? 'anime' : 'serie',
-      status: isMovie || finished ? 'termine' : 'encours', title: c.title.slice(0, 500), year: /^\d{4}$/.test(c.year || '') ? c.year : '',
-      poster_path: typeof c.poster === 'string' && /^\/[A-Za-z0-9_.-]{1,200}$/.test(c.poster) ? c.poster : null,
-      overview: (c.overview || '').slice(0, 10000), tmdb_score: typeof c.score === 'number' && c.score >= 0 && c.score <= 10 ? c.score : null };
-    if (!isMovie) {
-      if (!d.progress) continue; /* série sans saison/épisode connue : on n'invente pas de progression */
-      entry.saison = d.progress.season; entry.episode = d.progress.episode;
-      if (anime) entry.anime_genre = ANIME_GENRES.indexOf(d.animeGenre) >= 0 ? d.animeGenre : 'autre';
-    }
-    out.inserts.push(entry);
-  }
-  return out;
-}
-/* Découpe le payload en lots acceptés par la RPC */
-function chunkPayload(payload) {
-  var chunks = [];
-  var u = payload.updates, ins = payload.inserts, ui = 0, ii = 0;
-  while (ui < u.length || ii < ins.length) {
-    chunks.push({ updates: u.slice(ui, ui + APPLY_UPDATES_MAX), inserts: ins.slice(ii, ii + APPLY_INSERTS_MAX) });
-    ui += APPLY_UPDATES_MAX; ii += APPLY_INSERTS_MAX;
-  }
-  return chunks;
-}
-
-/* ---------- Détections en direct (marquage pendant la lecture) qui n'ont pas abouti ---------- */
-function detectedFromLive(last) {
-  if (!last || (last.status !== 'not_found' && last.status !== 'ambiguous')) return null;
-  if (typeof last.title !== 'string' || !last.title.trim()) return null;
-  var kind = last.kind === 'movie' ? 'movie' : 'show';
-  var progress = kind === 'show' && Number.isInteger(last.season) && Number.isInteger(last.episode)
-    ? { season: last.season, episode: last.episode } : null;
-  if (kind === 'show' && !progress) return null;
-  var norm = normalizeTitle(last.title.trim());
-  if (!norm) return null;
-  return newDetected({ key: detectedKey(kind, last.title.trim()), source: 'live', kind: kind, title: last.title.trim().slice(0, 300),
-    progress: progress, dateMs: typeof last.at === 'number' ? last.at : null,
-    tmdb: { state: 'pending', candidates: [] } });
-}
-
-/* ---------- Fusion dans la liste locale ----------
- * Clé indépendante de la source (« show:dark », « movie:inception ») : un même titre vu dans
- * l'historique, le CSV et en direct ne forme qu'une ligne. On garde la position la plus avancée,
- * la date la plus récente, et les résultats TMDB déjà obtenus. « Ignorer » est définitif ; un titre
- * déjà appliqué ne revient que si un visionnage plus récent apparaît. */
-function furthest(a, b) {
-  if (!a) return b || null;
-  if (!b) return a;
-  if (b.season > a.season || (b.season === a.season && b.episode > a.episode)) return b;
-  if (b.season === a.season && b.episode === a.episode && a.approx && !b.approx) return b;
-  return a;
-}
-function mergeDetected(existing, incoming) {
-  var byKey = {};
-  var order = [];
-  for (var i = 0; i < existing.length; i++) { byKey[existing[i].key] = existing[i]; order.push(existing[i].key); }
-  for (var j = 0; j < incoming.length; j++) {
-    var inc = incoming[j];
-    var prev = byKey[inc.key];
-    if (!prev) { byKey[inc.key] = inc; order.push(inc.key); continue; }
-    if (prev.dismissed) continue;
-    var newer = inc.dateMs && (!prev.dateMs || inc.dateMs > prev.dateMs);
-    if (prev.applied && !newer) continue;
-    var merged = prev.applied ? inc : prev;
-    merged.applied = false;
-    merged.progress = furthest(prev.applied ? null : prev.progress, inc.progress);
-    merged.dateMs = prev.dateMs && inc.dateMs ? Math.max(prev.dateMs, inc.dateMs) : (inc.dateMs || prev.dateMs || null);
-    merged.source = newer ? inc.source : prev.source;
-    merged.year = prev.year || inc.year || '';
-    merged.firstSeen = prev.firstSeen || inc.firstSeen;
-    var alts = (prev.altTitles || []).concat(inc.altTitles || []);
-    merged.altTitles = alts.filter(function (a, k) { return alts.indexOf(a) === k && normalizeTitle(a) !== normalizeTitle(merged.title); }).slice(0, 3);
-    if (prev.tmdb && prev.tmdb.state !== 'pending') merged.tmdb = prev.tmdb;
-    merged.hiddenNumbers = !merged.progress && (prev.hiddenNumbers || inc.hiddenNumbers);
-    byKey[inc.key] = merged;
-  }
+function pushItemsFromGroups(groups, source) {
   var out = [];
-  for (var k = 0; k < order.length && out.length < STORAGE_MAX; k++) out.push(byKey[order[k]]);
+  for (var i = 0; i < (groups || []).length; i++) { var it = pushItemFromGroup(groups[i], source); if (it) out.push(it); }
   return out;
 }
-/* Clé de déduplication d'une fiche */
-function detectedKey(kind, title) {
-  var n = normalizeTitle(title);
-  return n ? (kind === 'movie' ? 'movie:' : 'show:') + n : null;
+/* Détection en direct restée sans correspondance (« pas dans ta liste », « plusieurs titres ») */
+function pushItemFromLive(det, atMs) {
+  if (!det || typeof det.title !== 'string' || !det.title.trim()) return null;
+  var isShow = det.kind === 'episode';
+  if (isShow && !(Number.isInteger(det.season) && Number.isInteger(det.episode))) return null;
+  return { source: 'live', title: det.title.trim().slice(0, 300), type: isShow ? 'show' : 'movie',
+    season: isShow ? det.season : null, episode: isShow ? det.episode : null,
+    watched_at: typeof atMs === 'number' ? atMs : null, progress_pct: null };
+}
+/* Lots acceptés par la RPC (1 000 éléments au plus) */
+function chunkItems(items, size) {
+  var n = size || PUSH_MAX;
+  var out = [];
+  for (var i = 0; i < items.length; i += n) out.push(items.slice(i, i + n));
+  return out;
+}
+/* Date la plus récente d'un import (sert au réimport incrémental) */
+function latestDate(groups, previous) {
+  var m = typeof previous === 'number' ? previous : 0;
+  for (var i = 0; i < (groups || []).length; i++) if (groups[i].dateMs && groups[i].dateMs > m) m = groups[i].dateMs;
+  return m || null;
 }
 
 /* ---------- Orchestration (fetch injecté : testable, et exécuté dans l'onglet Netflix) ---------- */
@@ -769,24 +459,16 @@ async function fetchNetflixMetadata(fetchFn, groups, onProgress) {
 
 var CinepisodeImport = {
   NF_HISTORY_PAGE_SIZE: NF_HISTORY_PAGE_SIZE, NF_HISTORY_MAX_PAGES: NF_HISTORY_MAX_PAGES,
-  NF_METADATA_MAX: NF_METADATA_MAX, TMDB_SEARCH_MAX: TMDB_SEARCH_MAX,
-  APPLY_UPDATES_MAX: APPLY_UPDATES_MAX, APPLY_INSERTS_MAX: APPLY_INSERTS_MAX, STORAGE_MAX: STORAGE_MAX,
-  SOURCES: SOURCES, ANIME_GENRES: ANIME_GENRES,
+  NF_METADATA_MAX: NF_METADATA_MAX, PUSH_MAX: PUSH_MAX, SOURCES: SOURCES,
   normalizeTitle: normalizeTitle, decodeJsString: decodeJsString, extractNetflixSession: extractNetflixSession,
   netflixHistoryRequest: netflixHistoryRequest, parseNetflixHistoryItem: parseNetflixHistoryItem,
   parseNetflixHistoryPage: parseNetflixHistoryPage, netflixMetadataUrls: netflixMetadataUrls,
   parseNetflixMetadata: parseNetflixMetadata, locateEpisode: locateEpisode,
-  aggregateHistory: aggregateHistory, applyMetadata: applyMetadata,
-  parseCsv: parseCsv, parseDateFlexible: parseDateFlexible, parseCsvTitle: parseCsvTitle, parseNetflixCsv: parseNetflixCsv,
-  findListMatches: findListMatches, progressMovesForward: progressMovesForward,
-  similarity: similarity, rankCandidates: rankCandidates, isUnambiguous: isUnambiguous,
-  detectAnimeGenreFromKeywords: detectAnimeGenreFromKeywords, isAnimeCandidate: isAnimeCandidate,
-  isSeriesFinished: isSeriesFinished,
-  detectedFromGroup: detectedFromGroup, applyTmdbResults: applyTmdbResults, detectedFromLive: detectedFromLive,
-  linkByTmdbId: linkByTmdbId, refreshAgainstList: refreshAgainstList, guessDateOrder: guessDateOrder, isPartial: isPartial,
-  defaultChecked: defaultChecked, detectedFilter: detectedFilter,
-  buildApplyPayload: buildApplyPayload, chunkPayload: chunkPayload, mergeDetected: mergeDetected,
-  detectedKey: detectedKey, furthest: furthest,
+  isPartial: isPartial, percentWatched: percentWatched, aggregateHistory: aggregateHistory, applyMetadata: applyMetadata,
+  parseCsv: parseCsv, guessDateOrder: guessDateOrder, parseDateFlexible: parseDateFlexible, parseCsvTitle: parseCsvTitle,
+  parseNetflixCsv: parseNetflixCsv,
+  pushItemFromGroup: pushItemFromGroup, pushItemsFromGroups: pushItemsFromGroups, pushItemFromLive: pushItemFromLive,
+  chunkItems: chunkItems, latestDate: latestDate,
   fetchNetflixHistory: fetchNetflixHistory, fetchNetflixMetadata: fetchNetflixMetadata,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = CinepisodeImport;
