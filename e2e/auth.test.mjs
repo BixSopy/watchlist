@@ -124,6 +124,13 @@ test('mot de passe oublié → lien reçu (token_hash) → nouveau mot de passe'
   await page.fill('#authPassword', 'Nouveau-Secret-2026!');
   await page.fill('#authPasswordConfirm', 'Nouveau-Secret-2026!');
   await shot(page, '06-nouveau-mot-de-passe');
+  // Champs remplis : ni un clic à côté, ni Échap, ni un clic commencé dans un champ ne ferment la fenêtre
+  await page.mouse.click(10, 10);
+  await page.keyboard.press('Escape');
+  const box = await page.locator('#authPasswordConfirm').boundingBox();
+  await page.mouse.move(box.x + 20, box.y + box.height / 2); await page.mouse.down(); await page.mouse.move(5, 400); await page.mouse.up();
+  assert.equal(await page.locator('#authMbk').evaluate(m => m.classList.contains('on')), true, 'la fenêtre reste ouverte');
+  await title(page).filter({ hasText: 'Choisis un nouveau mot de passe' }).waitFor();
   // Un gestionnaire de mots de passe qui « valide » à notre place (envoi simulé) est ignoré
   await page.evaluate(() => {
     const f = document.querySelector('#authView form');
