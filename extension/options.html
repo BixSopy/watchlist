@@ -21,6 +21,10 @@
   #last.ok{border-color:#1f5f3a}
   #last.warn{border-color:#6b5414}
   #last.err{border-color:#6b2020}
+  button.secondary{background:#17171c;border:1px solid #2a2a33;color:#e8e8ec;margin-top:0}
+  button.secondary:hover{background:#1e1e23}
+  #detectedCount{color:#5ac8fa;font-weight:600}
+  p.spaced{margin-top:14px}
 </style>
 </head>
 <body>
@@ -33,7 +37,10 @@
   <div id="status"></div>
   <h2 data-msg="lastTitle"></h2>
   <div id="last" aria-live="polite"></div>
-  <p style="margin-top:14px" data-msg="coverage"></p>
+  <h2 data-msg="detectedTitle"></h2>
+  <p data-msg="detectedIntro"></p>
+  <button id="openDetected" class="secondary"><span data-msg="openDetected"></span> <span id="detectedCount"></span></button>
+  <p class="spaced" data-msg="coverage"></p>
   <a href="https://cinepisode.com" target="_blank" rel="noopener" data-msg="openApp"></a>
   <script src="options.js"></script>
 </body>

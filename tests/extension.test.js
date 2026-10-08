@@ -353,5 +353,19 @@ test('fenêtre : chaque statut a un texte dans les deux langues, sans marqueur $
       for (const [, name] of msgs[k].message.matchAll(/\$(\w+)\$/g)) assert.ok(msgs[k].placeholders && msgs[k].placeholders[name.toLowerCase()], l + ' ' + k + ' : ' + name);
     }
   }
-  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.4.0');
+  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.5.0');
+});
+
+test('service worker : détections sans correspondance gardées pour la page « Titres détectés » (wlLive, sans le jeton)', async () => {
+  const { call, store } = serviceWorker({ token: 'jeton-secret-42', responses: [
+    { status: 200, data: { status: 'not_found', title: '1899', season: 1, episode: 1 } },
+    { status: 200, data: { status: 'updated', title: 'Dark', season: 2, episode: 4 } },
+    { status: 200, data: { status: 'ambiguous', title: 'Lupin', season: 1, episode: 2, count: 2 } },
+  ] });
+  await call({ ...EP, title: '1899', season: 1, episode: 1 });
+  await call({ ...EP, episode: 4 });
+  await call({ ...EP, title: 'Lupin', season: 1, episode: 2 });
+  await new Promise((r) => setTimeout(r, 10));
+  assert.deepStrictEqual(store.wlLive.map((l) => [l.title, l.status, l.season, l.episode]), [['1899', 'not_found', 1, 1], ['Lupin', 'ambiguous', 1, 2]]);
+  assert.ok(!JSON.stringify(store.wlLive).includes('jeton-secret-42'));
 });

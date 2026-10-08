@@ -5,6 +5,7 @@
  *
  * Le résultat de la dernière détection est gardé dans chrome.storage.local (clé wlLast, jamais le
  * jeton) pour que la fenêtre de l'extension l'affiche en clair (« Mis à jour : Dark S2E3 »...).
+ * Les détections sans correspondance vont aussi dans wlLive (page « Titres détectés », 0.5.0).
  * Rien n'est envoyé ailleurs qu'à Supabase. */
 var SUPA_URL = 'https://batfulcvvquffgfeppcx.supabase.co';
 var SUPA_KEY = 'sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
@@ -75,6 +76,22 @@ function remember(det, result) {
     last.season = result.season; last.episode = result.episode;
   }
   try { chrome.storage.local.set({ wlLast: last }); } catch (e) { /* stockage indisponible : rien à afficher */ }
+  if (det && (result.status === 'not_found' || result.status === 'ambiguous')) rememberLive(last);
+}
+
+/* Détection sans correspondance (« pas dans ta liste », « plusieurs titres ») : gardée localement
+ * (clé wlLive, 200 au plus, jamais le jeton) pour la page « Titres détectés », où l'utilisateur peut
+ * l'ajouter à sa liste ou l'ignorer. Rien n'est envoyé ailleurs. */
+var LIVE_MAX = 200;
+function rememberLive(last) {
+  try {
+    chrome.storage.local.get(['wlLive'], function (res) {
+      var live = Array.isArray(res && res.wlLive) ? res.wlLive : [];
+      live.push({ at: last.at, kind: last.kind, title: last.title, season: last.season, episode: last.episode, status: last.status });
+      if (live.length > LIVE_MAX) live = live.slice(live.length - LIVE_MAX);
+      chrome.storage.local.set({ wlLive: live });
+    });
+  } catch (e) { /* stockage indisponible */ }
 }
 
 function rpc(body) {

@@ -93,3 +93,19 @@ saveBtn.addEventListener('click', function () {
     });
   });
 });
+
+/* Page « Titres détectés » (import de l'historique, CSV, détections sans correspondance) */
+var openDetectedBtn = document.getElementById('openDetected');
+var detectedCountEl = document.getElementById('detectedCount');
+if (openDetectedBtn) {
+function renderDetectedCount(detected, live) {
+  if (!detectedCountEl) return;
+  var n = (Array.isArray(detected) ? detected.filter(function (d) { return d && !d.dismissed && !d.applied && !(d.list && d.list.state === 'unchanged'); }).length : 0)
+    + (Array.isArray(live) ? live.length : 0);
+  detectedCountEl.textContent = n > 0 ? '(' + n + ')' : '';
+}
+chrome.storage.local.get(['wlDetected', 'wlLive'], function (res) { renderDetectedCount(res.wlDetected, res.wlLive); });
+openDetectedBtn.addEventListener('click', function () {
+  chrome.tabs.create({ url: chrome.runtime.getURL('import.html') });
+});
+}

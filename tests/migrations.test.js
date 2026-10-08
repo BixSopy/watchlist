@@ -23,3 +23,8 @@ test('schema.sql contient la migration d\'ouverture publique', () => {
   const schema = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'schema.sql'), 'utf8');
   for (const s of ['consume_api_quota', 'delete_my_account', 'api_cache', 'watchlist_items_tailles_check']) assert.ok(schema.includes(s), s);
 });
+
+test('schema.sql contient la migration d\'import de l\'historique (extension 0.5.0)', () => {
+  const schema = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'schema.sql'), 'utf8');
+  for (const s of ['extension_list_titles', 'extension_apply_import', 'consume_api_quota_by_token', 'extension_profile_for_token']) assert.ok(schema.includes(s), s);
+});

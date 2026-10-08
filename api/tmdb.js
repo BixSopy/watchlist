@@ -7,8 +7,14 @@
  * - quota quotidien par compte (bucket « tmdb », chaque requête compte, cache compris :
  *   c'est le nombre d'appels au proxy qu'on limite, pas seulement les appels à TMDB) ;
  * - cache mémoire partagé entre utilisateurs (données TMDB publiques), borné à ~40 Mo.
+ *
+ * Extension navigateur (import de l'historique Netflix) : sans session Supabase, elle envoie le
+ * jeton de suivi dans l'en-tête X-Cinepisode-Token. Seuls la recherche (film/série) et les fiches
+ * film/série/saison sont alors accessibles ; même quota quotidien que le site, compté sur le
+ * compte du propriétaire du jeton (RPC consume_api_quota_by_token, sans mode dégradé).
  */
-const { send, fail, failQuota, makeCache, guard, queryParams, consumeQuota, timeoutSignal, UPSTREAM_TIMEOUT_MS } = require('./_lib/common');
+const { send, fail, failQuota, makeCache, guard, queryParams, consumeQuota, timeoutSignal, UPSTREAM_TIMEOUT_MS,
+  bearerToken, extensionToken, guardExtension } = require('./_lib/common');
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 
@@ -21,6 +27,13 @@ const ROUTES = [
   { re: /^\/search\/(multi|movie|tv)$/, ttl: 15 * 60 },
   { re: /^\/trending\/(all|movie|tv)\/(day|week)$/, ttl: 3600 },
   { re: /^\/discover\/(movie|tv)$/, ttl: 3600 },
+];
+
+/* Chemins accessibles avec le jeton de l'extension (sous-ensemble de ROUTES) */
+const EXTENSION_ROUTES = [
+  /^\/search\/(movie|tv)$/,
+  /^\/(movie|tv)\/\d{1,9}$/,
+  /^\/tv\/\d{1,9}\/season\/\d{1,4}$/,
 ];
 
 /* Paramètres autorisés et leur format */
@@ -42,6 +55,8 @@ const PARAMS = {
   with_origin_country: /^[A-Z]{2}$/,
   'primary_release_date.gte': /^\d{4}-\d{2}-\d{2}$/,
   'first_air_date.gte': /^\d{4}-\d{2}-\d{2}$/,
+  year: /^(18|19|20)\d{2}$/,
+  first_air_date_year: /^(18|19|20)\d{2}$/,
 };
 
 const cache = makeCache(3000, 40 * 1024 * 1024);
@@ -65,8 +80,13 @@ function buildUpstream(params) {
 }
 
 async function handler(req, res) {
-  const auth = await guard(req, res);
-  if (!auth) return;
+  /* Extension : jeton de suivi, seulement si aucune session n'est envoyée */
+  const extToken = !bearerToken(req) ? extensionToken(req) : null;
+  let auth = null;
+  if (!extToken) {
+    auth = await guard(req, res);
+    if (!auth) return;
+  }
 
   const key = process.env.TMDB_API_KEY;
   if (!key) return fail(res, 500, 'server_config', 'Configuration serveur incomplète');
@@ -75,8 +95,14 @@ async function handler(req, res) {
   if (up.error === 'path') return fail(res, 400, 'path_not_allowed', 'Chemin non autorisé');
   if (up.error === 'param') return fail(res, 400, 'bad_param', 'Paramètre invalide : ' + up.name);
 
-  const q = await consumeQuota(auth, 'tmdb', 1);
-  if (!q.allowed) return failQuota(res, q, 'du catalogue');
+  if (extToken) {
+    if (req.method === 'GET' && !EXTENSION_ROUTES.some((re) => re.test(up.path))) return fail(res, 400, 'path_not_allowed', 'Chemin non autorisé');
+    if (!(await guardExtension(req, res, extToken, 'tmdb'))) return;
+    res.wlVaryToken = true;
+  } else {
+    const q = await consumeQuota(auth, 'tmdb', 1);
+    if (!q.allowed) return failQuota(res, q, 'du catalogue');
+  }
 
   const cacheKey = up.path + '?' + up.query;
   const browserCache = 'private, max-age=' + Math.min(up.ttl, 3600);

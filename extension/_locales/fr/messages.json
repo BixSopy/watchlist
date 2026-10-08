@@ -4,7 +4,7 @@
     "description": "Nom de l'extension"
   },
   "extDescription": {
-    "message": "Met à jour ta progression dans Cinepisode pendant que tu regardes Netflix."
+    "message": "Met à jour ta progression dans Cinepisode pendant que tu regardes Netflix, et importe ton historique Netflix."
   },
   "optionsTitle": {
     "message": "Cinepisode — Suivi auto"
@@ -140,5 +140,14 @@
         "example": "Dark S2E3"
       }
     }
+  },
+  "detectedTitle": {
+    "message": "Historique et titres détectés"
+  },
+  "detectedIntro": {
+    "message": "Importe ton historique Netflix (ou le fichier CSV) et retrouve les titres détectés qui ne sont pas encore dans ta liste. Tu choisis ce qui est ajouté ou mis à jour."
+  },
+  "openDetected": {
+    "message": "Ouvrir la page des titres détectés"
   }
 }

@@ -11,6 +11,87 @@ console : le titre regardé n'a pas à y apparaître.
 Install: `chrome://extensions` → Developer mode → Load unpacked → `extension/`, then paste the
 token from Cinepisode (Settings › Auto-tracking (Netflix, Plex...) › Generate my token).*
 
+## Historique et titres détectés (0.5.0)
+
+Bouton « Ouvrir la page des titres détectés » dans la fenêtre de l'extension : une page de
+l'extension (`import.html`, onglet à part) qui rassemble tout ce qui a été détecté :
+
+- **l'historique Netflix** (« Importer mon historique Netflix ») : lu dans un onglet `netflix.com`
+  de ce navigateur (ouvert en arrière-plan s'il n'y en a pas), avec ta session Netflix, profil
+  actif. Endpoint `api/aui/pathEvaluator` (`["aui","viewingActivity",page,100]`), puis une fiche
+  par série (`nq/website/memberapi/release/metadata`, repli `api/shakti/mre/metadata`) pour les
+  numéros exacts de saison et d'épisode. Un épisode commencé mais pas fini (position connue
+  < 80 %) n'est pas compté. Réimport : seuls les visionnages plus récents que le dernier import
+  sont relus ;
+- **le fichier CSV Netflix** (`NetflixViewingHistory.csv`, Compte › Profil › Activité de
+  visionnage › « Télécharger tout »), lu dans la page : formats français et anglais
+  (« Série : Saison 2 : Titre », « Show: Season 2: Title », « Série limitée », « Partie 2 »...).
+  Le CSV ne donne pas les numéros d'épisode : on compte les épisodes différents vus dans la
+  saison la plus avancée (affiché « ≈ ») ;
+- **les détections en direct** restées sans correspondance (« Pas dans ta liste », « Plusieurs
+  titres ») : gardées localement (`wlLive`, 200 au plus) par le service worker.
+
+Chaque titre apparaît une seule fois (clé = titre normalisé + film/série, quelle que soit la
+source), avec des filtres « Nouveaux », « Mises à jour », « Ambigus », « Déjà à jour », des cases à
+cocher, « Tout sélectionner », « Ignorer » (définitif) et « Appliquer la sélection ».
+
+- **Mise à jour** : le titre est dans ta liste (même correspondance exacte que
+  `mark_watched_by_title`, ou même fiche TMDB) et la progression avance : coché par défaut.
+- **Nouveau** : absent de ta liste ; son nom est cherché sur TMDB via le proxy de cinepisode.com
+  (jeton dans l'en-tête `X-Cinepisode-Token`, même quota quotidien que le site). Coché par défaut
+  seulement si une fiche ressort sans ambiguïté ; sinon une liste déroulante propose les
+  candidats. Série ajoutée « en cours » au dernier épisode vu, ou « terminée » si c'est le dernier
+  épisode d'une série finie (d'après TMDB) ; film ajouté « terminé ». Mêmes champs qu'un ajout
+  manuel (fiche TMDB, affiche, année, note, résumé, genre anime).
+- **Ambigu** : plusieurs titres de ta liste portent ce nom (tu choisis lequel), ou plusieurs
+  fiches TMDB possibles.
+
+**Rien n'est écrit dans Cinepisode avant le clic sur « Appliquer »**, qui appelle
+`extension_apply_import()` (migration `20261008150000_import_historique.sql`) avec seulement les
+lignes cochées. Les titres ajoutés ou mis à jour apparaissent dans l'app à la synchronisation
+suivante (30 s maximum).
+
+Vie privée : l'historique Netflix (dates, liste complète) reste dans ce navigateur
+(`chrome.storage.local`, clés `wlDetected`, `wlImportMeta`). Partent du navigateur : la lecture de
+ta liste (jeton), le **nom** des titres absents de ta liste (recherche TMDB via cinepisode.com),
+et, au clic sur « Appliquer », les changements cochés.
+
+### Permissions (0.5.0)
+
+| Permission | Pourquoi |
+|---|---|
+| `storage` | jeton, dernière détection, titres détectés (local) |
+| `scripting` | lire l'historique dans l'onglet `netflix.com` (requêtes même origine, au clic seulement) |
+| `https://www.netflix.com/*` | idem (avant : seulement `netflix.com/watch/*` pour la détection en direct) |
+| `https://cinepisode.com/*` | recherche TMDB des titres absents de la liste, via le proxy du site (clé TMDB côté serveur) |
+| `https://batfulcvvquffgfeppcx.supabase.co/*` | inchangé : lecture de la liste et enregistrement |
+
+Pas de permission `tabs`, `history` ni `cookies`. Pages de l'extension sous CSP stricte
+(`script-src 'self'`, `connect-src` limité à Supabase et cinepisode.com, `img-src` à
+image.tmdb.org), aucun script en ligne, aucun `innerHTML`.
+
+### Crédit
+
+La façon de lire l'historique Netflix (endpoint `aui/pathEvaluator`, structure des éléments,
+adresses des fiches) s'inspire de [Universal Trakt Scrobbler](https://github.com/trakt-tools/universal-trakt-scrobbler)
+(`src/services/netflix/NetflixApi.ts`). Le code de `lib/import.js` est réécrit pour Cinepisode.
+
+> MIT License — Copyright (c) 2020 trakt-tools
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+> and associated documentation files (the "Software"), to deal in the Software without
+> restriction, including without limitation the rights to use, copy, modify, merge, publish,
+> distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+> Software is furnished to do so, subject to the following conditions: The above copyright notice
+> and this permission notice shall be included in all copies or substantial portions of the
+> Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+> INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+> AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+> DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Polices : IBM Plex Sans (SIL Open Font License, `fonts/OFL-ibm-plex.txt`), comme sur le site.
+
 ## Couverture par plateforme
 
 | Plateforme | État |
