@@ -112,6 +112,7 @@ uiOn('heroGoTo',function(el,e,i){sfx('click');_heroGoTo(i);});
 uiOn('drScrollRow',function(el,e,id,dir){drScrollRow(id,dir);});
 uiOn('openPlexRecoCard',function(el){sfx('open');openPlexReco(getCardData(el));});
 uiOn('toggleSuivi',function(){toggleSuiviSection();});
+uiOn('suiviToggleAll',function(){sfx('click');suiviToggleAll();});
 uiOn('toggleReminder',function(el,e,id){e.stopPropagation();toggleReminder(_uiId(id));});
 /* Recommandations */
 uiOn('refreshRecos',function(){sfx('click');_preserveContentScroll(function(){cache={};seenRecos=[];loadRecos();});});

@@ -15,6 +15,16 @@ function getItems(tab,stat,q){
   return items;
 }
 
+/* Pourcentage d'une série en cours DANS SA SAISON ACTUELLE — jamais item.totalEp (nombre
+   d'épisodes de la série ENTIÈRE, utilisé ailleurs pour les stats) : diviser l'épisode de la
+   saison par le total de la série donnait un pourcentage incohérent (ex. S05E10 d'une série de
+   62 épisodes). seasonEpCount n'est fiable que pour la saison seasonEpCountSeason (mis à jour par
+   quickNextEp/nextEpPlex/fillPlexDetails) ; sinon, pas de pourcentage plutôt qu'un faux. */
+function _seasonProgressPct(item){
+  if(item.status!='encours'||!item.episode)return null;
+  if(!item.seasonEpCount||item.seasonEpCount<=0||item.seasonEpCountSeason!==item.saison)return null;
+  return Math.min(100,Math.round((item.episode/item.seasonEpCount)*100));
+}
 function cardHtml(item,idx){
   var po=item.poster?'<img class="card-poster" src=\"'+IB+'w342'+esc(item.poster)+'\" loading="lazy" alt="" data-hide-broken>':'';
   var ph='<div class="card-ph" '+(item.poster?'style="display:none"':'')+'>'+icon(item.type)+'</div>';
@@ -22,7 +32,8 @@ function cardHtml(item,idx){
   var sc=item.tmdbScore?'<div class="crating"><svg viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="currentColor"/></svg>'+parseFloat(item.tmdbScore).toFixed(1)+'</div>':'';
   var mr=item.myRating?'<div class="cmyr">'+item.myRating+'/10</div>':'';
   var prog='';
-  if(item.status=='encours'&&item.totalEp&&item.totalEp>0&&item.episode){var pct=Math.min(100,Math.round((item.episode/item.totalEp)*100));prog='<div class="cprog"><div class="cprog-bar"><div class="cprog-fill" style="width:'+pct+'%"></div></div><div class="cprog-lbl">'+item.episode+'/'+item.totalEp+' ep ('+pct+'%)</div></div>';}
+  var cpct=_seasonProgressPct(item);
+  if(cpct!=null)prog='<div class="cprog"><div class="cprog-bar"><div class="cprog-fill" style="width:'+cpct+'%"></div></div><div class="cprog-lbl">'+item.episode+'/'+item.seasonEpCount+' ep ('+cpct+'%)</div></div>';
   var newep=item.hasNewEp?'<div class="card-newep">'+esc(t('card.newEp'))+'</div>':'';
   var todof=(item.status==='todo'||item.needsConfig)?'<div class="card-todo-flag" title="'+esc(t('status.todo'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>':'';
   var id=item.id;var delay=idx*0.02;
@@ -220,8 +231,8 @@ function render(opts){
         var po=item.poster?'<img class="ec-poster" src=\"'+IB+'w185'+esc(item.poster)+'\" alt="" loading="lazy" data-hide-broken>':'';
         var ph='<div class="ec-poster-ph" '+(item.poster?'style="display:none"':'')+'>'+icon(item.type)+'</div>';
         var epT=(item.saison&&item.episode)?'S'+pad(item.saison)+' E'+pad(item.episode):t('status.encours');
-        var pct=0;if(item.totalEp&&item.totalEp>0&&item.episode)pct=Math.min(100,Math.round((item.episode/item.totalEp)*100));
-        var pb=item.totalEp?'<div class="pbar"><div class="pbar-fill" style="width:'+pct+'%"></div></div>':'';
+        var epct=_seasonProgressPct(item);
+        var pb=epct!=null?'<div class="pbar"><div class="pbar-fill" style="width:'+epct+'%"></div></div>':'';
         var nextBtn=item.type!='film'?'<button class="ec-next" title="'+esc(t('card.nextEp'))+'" '+uiAct('quickNextEp',[item.id])+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>':'';
         html+='<div class="ec-card" data-sfx-hover'+uiAct('openPlex',[item.id])+'>'+po+ph+nextBtn+'<div class="ec-body"><div class="ec-title">'+esc(item.title)+'</div><div class="ec-ep">'+epT+'</div>'+pb+'</div></div>';
       });

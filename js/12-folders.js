@@ -124,7 +124,7 @@ function recoAddDirect(d){
   var im=document.getElementById('spimg');if(d.poster){im.src=IB+'w92'+d.poster;im.style.display='block';}else{im.style.display='none';}
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
   document.getElementById('ftmdb').value=d.score||'';document.getElementById('fyear').value=d.year||'';
-  document.getElementById('ftype').value=d.type=='movie'?'film':'serie';document.getElementById('fstat').value='avoir';
+  setSelVal('ftype',d.type=='movie'?'film':'serie');setSelVal('fstat','avoir');
   document.getElementById('fsai').value=1;document.getElementById('fepi').value=1;document.getElementById('ftotep').value=0;
   document.getElementById('ept').classList.remove('on');document.getElementById('agField').style.display='none';
   buildStars(0);buildTags([]);
