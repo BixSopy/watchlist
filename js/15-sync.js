@@ -280,5 +280,7 @@ function updateSyncStatusUI(state){
   else if(state=='syncing'){dot.className='sync-dot syncing';txt.textContent=t('sync.syncing');}
   else if(state=='offline'){dot.className='sync-dot offline';txt.textContent=t('sync.offline');}
   else{dot.className='sync-dot synced';txt.textContent=t('sync.synced');}
+  /* Onglet « Détectés » (js/21-detected.js) : visible avec un compte, rechargé après une synchro */
+  if(typeof onDetectedAuthState==='function')onDetectedAuthState(state);
 }
 

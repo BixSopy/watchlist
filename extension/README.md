@@ -11,6 +11,85 @@ console : le titre regardé n'a pas à y apparaître.
 Install: `chrome://extensions` → Developer mode → Load unpacked → `extension/`, then paste the
 token from Cinepisode (Settings › Auto-tracking (Netflix, Plex...) › Generate my token).*
 
+## Historique et onglet « Détectés » (0.5.0)
+
+L'extension **ne fait que détecter et envoyer** ; le tri se fait dans Cinepisode, onglet
+« Détectés » (`https://cinepisode.com/#detectes`, `js/21-detected.js`). Dans la fenêtre de
+l'extension (section « Historique ») :
+
+- **« Importer mon historique Netflix »** : lu par le service worker dans un onglet `netflix.com`
+  de ce navigateur (ouvert en arrière-plan s'il n'y en a pas), avec ta session Netflix, profil
+  actif. Endpoint `api/aui/pathEvaluator` (`["aui","viewingActivity",page,100]`), puis une fiche
+  par série (`nq/website/memberapi/release/metadata`, repli `api/shakti/mre/metadata`) pour les
+  numéros exacts de saison et d'épisode. Réimport : seuls les visionnages plus récents que le
+  dernier import (moins 3 jours) sont relus. La progression s'affiche dans la fenêtre (elle
+  peut être fermée pendant l'import) ;
+- **« Importer le fichier CSV Netflix »** (`NetflixViewingHistory.csv`, Compte › Profil ›
+  Activité de visionnage › « Télécharger tout »), 20 Mo au plus : formats français et anglais
+  (« Série : Saison 2 : Titre », « Show: Season 2: Title », « Série limitée », « Partie 2 »...).
+  Le CSV ne donne pas les numéros d'épisode : on compte les épisodes différents vus dans la saison
+  la plus avancée (affiché « ≈ » dans l'onglet). Depuis la petite fenêtre, le choix du fichier
+  ouvre la page de l'extension dans un onglet (la fenêtre se fermerait pendant le choix) ;
+- **les détections en direct** restées sans correspondance (« Pas dans ta liste », « Plusieurs
+  titres ») sont envoyées de la même façon (source `live`).
+
+Envoi : RPC `extension_push_detections(p_token, p_items)` (migration
+`20261008160000_titres_detectes.sql`), par lots de 1 000. **Une ligne par titre** (épisode le
+plus avancé), avec seulement : source (`netflix`, `netflix_csv`, `live` ; `crunchyroll` et `prime`
+prévus), titre, film/série, saison, épisode, date du visionnage, pourcentage vu. Aucun identifiant
+Netflix, aucun nom de profil. Le serveur normalise le titre, dédoublonne (même titre + saison +
+épisode : le visionnage le plus récent gagne) et garde « Ignoré » définitif pour ce titre.
+L'onglet « Détectés » s'ouvre à la fin si quelque chose de nouveau est arrivé.
+
+Dans l'onglet « Détectés » (connecté, session Supabase, RLS) : un groupe par titre (toutes
+sources), filtres « Nouveaux », « Mises à jour », « Ambigus », cases à cocher, « Tout
+sélectionner », « Ajouter la sélection », « Tout ajouter », « Ignorer », « Tout effacer », badge du
+nombre de titres en attente. Recherche TMDB par le proxy habituel du site (quota du compte),
+ajouts et mises à jour par le code d'ajout normal (`makeEntry`, `js/07-add-edit.js`) : les titres
+ajoutés sont identiques à un ajout manuel et partent à la synchro comme d'habitude. La
+progression ne fait qu'avancer ; série « en cours » au dernier épisode vu, ou « terminée » si
+c'est le dernier épisode d'une série finie (TMDB) ; film « terminé ».
+
+Vie privée : les titres détectés sont stockés dans Supabase (`public.detected_media`), lisibles et
+modifiables seulement par leur propriétaire (RLS) ; aucune insertion directe depuis un client, seule
+la RPC à jeton écrit. Un compte supprimé efface ses détections (cascade). L'extension garde
+localement le jeton, la dernière détection et l'état de l'import (`wlImport`, `wlImportMeta` : date
+du dernier import, jamais le jeton ni la liste des titres).
+
+### Permissions (0.5.0)
+
+| Permission | Pourquoi |
+|---|---|
+| `storage` | jeton, dernière détection, état de l'import |
+| `scripting` | lire l'historique dans l'onglet `netflix.com` (requêtes même origine, au clic seulement) |
+| `https://www.netflix.com/*` | idem (avant : seulement `netflix.com/watch/*` pour la détection en direct) |
+| `https://batfulcvvquffgfeppcx.supabase.co/*` | inchangé : marquage en direct et envoi des détections |
+
+Pas d'accès à `cinepisode.com` (l'onglet « Détectés » est simplement ouvert pour toi, sans
+permission), pas de permission `tabs`, `history` ni `cookies`, aucun appel TMDB depuis
+l'extension. Page de l'extension sous CSP stricte (`script-src 'self'`, `connect-src` limité à
+Supabase, `img-src 'self'`), aucun script en ligne, aucun `innerHTML`.
+
+### Crédit
+
+La façon de lire l'historique Netflix (endpoint `aui/pathEvaluator`, structure des éléments,
+adresses des fiches) s'inspire de [Universal Trakt Scrobbler](https://github.com/trakt-tools/universal-trakt-scrobbler)
+(`src/services/netflix/NetflixApi.ts`). Le code de `lib/import.js` est réécrit pour Cinepisode.
+
+> MIT License — Copyright (c) 2020 trakt-tools
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+> and associated documentation files (the "Software"), to deal in the Software without
+> restriction, including without limitation the rights to use, copy, modify, merge, publish,
+> distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+> Software is furnished to do so, subject to the following conditions: The above copyright notice
+> and this permission notice shall be included in all copies or substantial portions of the
+> Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+> INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+> AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+> DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 ## Couverture par plateforme
 
 | Plateforme | État |

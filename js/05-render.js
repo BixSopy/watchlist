@@ -115,7 +115,7 @@ function _heroCandidates(){
   return memDB.filter(function(i){
     if(i.deleted||i.status!=='encours'||!i.tmdbId)return false;
     if(tab==='film'||tab==='serie'||tab==='anime')return i.type===tab;
-    return true;/* 'all' et 'discover' : toutes les series/anime/films en cours */
+    return true;/* 'all', 'discover' et 'detectes' : toutes les series/anime/films en cours */
   }).sort(function(a,b){return(b.updatedAtLocal||b.addedAt||0)-(a.updatedAtLocal||a.addedAt||0);});
 }
 function renderHero(){
@@ -176,7 +176,7 @@ function render(){
   renderHero();
   var total0=memDB.filter(function(i){return !i.deleted}).length,ec0=memDB.filter(function(i){return i.status=='encours'&&!i.deleted}).length,te0=memDB.filter(function(i){return i.status=='termine'&&!i.deleted}).length;
   document.getElementById('hstats').innerHTML='<div class="pill">'+tn('pill.titles',total0,{n:'<b>'+fmtNum(total0)+'</b>'})+'</div><div class="pill">'+esc(t('status.encours'))+' <b>'+fmtNum(ec0)+'</b></div><div class="pill">'+esc(t('sec.termines'))+' <b>'+fmtNum(te0)+'</b></div>';
-  if(activeTab==='discover'){
+  if(activeTab==='discover'||activeTab==='detectes'){
     document.getElementById('mc').innerHTML='';
     if(typeof updateStatsFooter==='function')updateStatsFooter();
     return;

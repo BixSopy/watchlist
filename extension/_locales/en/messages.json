@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extDescription": {
-    "message": "Updates your Cinepisode progress while you watch Netflix."
+    "message": "Updates your progress in Cinepisode while you watch Netflix, and imports your Netflix history into the “Detected” tab."
   },
   "optionsTitle": {
     "message": "Cinepisode — Auto tracking"
@@ -140,5 +140,118 @@
         "example": "Dark S2E3"
       }
     }
+  },
+  "historyTitle": {
+    "message": "History"
+  },
+  "historyIntro": {
+    "message": "Import your Netflix history (or the Netflix CSV file): detected titles show up in Cinepisode's “Detected” tab, where you choose what gets added or updated. Nothing in your list changes before that."
+  },
+  "importNetflix": {
+    "message": "Import my Netflix history"
+  },
+  "importCsv": {
+    "message": "Import the Netflix CSV file"
+  },
+  "importCsvHint": {
+    "message": "File: netflix.com › Account › Profile › Viewing activity › “Download all”."
+  },
+  "openDetected": {
+    "message": "See detected titles in Cinepisode"
+  },
+  "importStepTab": {
+    "message": "Opening Netflix…"
+  },
+  "importStepSession": {
+    "message": "Reading the Netflix profile…"
+  },
+  "importStepHistory": {
+    "message": "Reading history: $N$ views ($P$ pages)…",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "p": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepMeta": {
+    "message": "Episode numbers: $D$ / $T$ shows…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepParse": {
+    "message": "Reading the file…"
+  },
+  "importStepPush": {
+    "message": "Sending to Cinepisode…"
+  },
+  "importDone": {
+    "message": "$N$ titles sent ($NEW$ new, $UPD$ more recent). Choose what to add in Cinepisode's “Detected” tab.",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "new": {
+        "content": "$2"
+      },
+      "upd": {
+        "content": "$3"
+      }
+    }
+  },
+  "importNothing": {
+    "message": "Nothing new since the last import."
+  },
+  "importTruncated": {
+    "message": " Very long history: only the 20,000 most recent views were read."
+  },
+  "importMetaFailed": {
+    "message": " Some episode numbers could not be read."
+  },
+  "importLast": {
+    "message": "Last Netflix import: $WHEN$",
+    "placeholders": {
+      "when": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoToken": {
+    "message": "Save your token above first."
+  },
+  "importErrToken": {
+    "message": "Invalid token: generate a new one in Cinepisode and paste it above."
+  },
+  "importErrNetflixTab": {
+    "message": "Could not open Netflix in this browser."
+  },
+  "importErrNetflixAuth": {
+    "message": "Sign in to Netflix in this browser (and pick your profile), then try again."
+  },
+  "importErrNetflix": {
+    "message": "Netflix answered unexpectedly. Try again later, or import the CSV file."
+  },
+  "importErrCsv": {
+    "message": "Unreadable file: pick NetflixViewingHistory.csv (20 MB max)."
+  },
+  "importErrLimit": {
+    "message": "Too many detected titles waiting: sort them out in Cinepisode's “Detected” tab."
+  },
+  "importErrServer": {
+    "message": "Cinepisode server error. Try again later."
+  },
+  "importErrNetwork": {
+    "message": "Cinepisode unreachable (connection?)."
+  },
+  "importBusy": {
+    "message": "An import is already running."
   }
 }

@@ -8,7 +8,10 @@
 -- supabase/migrations/20261006054213_mark_watched_by_title.sql,
 -- supabase/migrations/20261008100000_ouverture_publique.sql (quotas, cache, suppression
 -- de compte, garde-fous de taille ; recopiée telle quelle en fin de fichier) et
--- supabase/migrations/20261008120000_mark_watched_fiable.sql (correspondance par titre fiable).
+-- supabase/migrations/20261008120000_mark_watched_fiable.sql (correspondance par titre fiable) et
+-- supabase/migrations/20261008150000_import_historique.sql et
+-- supabase/migrations/20261008160000_titres_detectes.sql (titres détectés par l'extension, onglet
+-- « Détectés » ; recopiées telles quelles en fin de fichier).
 -- Sert de référence pour recréer le projet ; ne pas exécuter sur la base existante.
 -- Tables : profiles, watchlist_items, keep_alive, api_quota_limits, api_usage,
 -- api_usage_global, api_cache. Aucun reste de laco-app
@@ -627,3 +630,551 @@ commit;
 --   select conname from pg_constraint where conname like '%tailles_check';
 -- Ajuster un quota : update public.api_quota_limits set per_user_daily = 6000 where bucket = 'tmdb';
 -- -----------------------------------------------------------------------------
+
+-- =============================================================================
+-- MIGRATION 20261008150000_import_historique.sql (recopiée telle quelle)
+-- =============================================================================
+-- Extension navigateur 0.5.0 : import de l'historique Netflix (et du fichier CSV Netflix).
+--
+-- Principe (vie privée) : l'historique Netflix ne quitte jamais le navigateur. L'extension
+-- récupère la liste des titres de l'utilisateur (titre normalisé, type, progression, tmdb_id),
+-- fait la correspondance elle-même, montre un aperçu, et n'envoie à Supabase QUE les
+-- changements que l'utilisateur a cochés puis validés (« Appliquer ») : identifiant du titre +
+-- saison/épisode, ou fiche TMDB d'un nouveau titre à ajouter. Pas de dates de visionnage,
+-- pas de liste complète de ce qui a été regardé.
+--
+-- Trois fonctions, toutes authentifiées par le jeton de suivi (profiles.plex_webhook_token, le
+-- même que Tautulli et l'extension), SECURITY DEFINER, search_path figé, bornées au profil du
+-- jeton, exécutables par anon et authenticated. Le jeton est vérifié en un seul endroit,
+-- extension_profile_for_token() (non appelable par les clients) : le jour où l'extension aura un
+-- jeton par appareil (appairage sans copier-coller), seule cette fonction changera.
+--
+--  1. extension_list_titles(p_token) : titres non supprimés du profil (5 000 max) avec leur titre
+--     normalisé (public.normalize_title_for_match) pour la correspondance côté extension.
+--  2. extension_apply_import(p_token, p_updates, p_inserts) : applique un lot.
+--       - p_updates : tableau (500 max) de {id, kind: 'episode'|'movie', season, episode}.
+--         Mêmes règles que mark_watched_by_title : un épisode ne touche qu'une série/un anime,
+--         un film qu'un film ; la progression n'avance que vers l'avant ; « à voir »/« à faire »
+--         passe « en cours » ; un film passe « terminé ». Propriété revérifiée ligne par ligne.
+--       - p_inserts : tableau (200 max) de nouveaux titres (fiche TMDB) : {tmdb_id, tmdb_type,
+--         type, status: 'encours'|'termine', title, year, poster_path, overview, tmdb_score,
+--         saison, episode, anime_genre}. Rien n'est ajouté si le même tmdb_id (même type TMDB)
+--         est déjà dans la liste (non supprimé) : résultat « duplicate ».
+--       - résultat par élément : updated | already_up_to_date | not_found | invalid, et
+--         inserted | duplicate | invalid.
+--  3. consume_api_quota_by_token(p_token, p_bucket, p_cost) : même quota quotidien que
+--     consume_api_quota() (bucket « tmdb », compte du propriétaire du jeton), utilisé par le proxy
+--     /api/tmdb quand l'extension cherche sur TMDB les titres absents de la liste. Le proxy
+--     refuse la requête si cette fonction ne répond pas (pas de mode dégradé pour le jeton).
+--
+-- Aucune nouvelle table. Rejouable sans erreur (idempotente).
+
+-- ---------------------------------------------------------------------------------------------
+-- 0. Couche d'authentification de l'extension (un seul endroit à changer)
+--    Aujourd'hui : jeton de suivi du profil (profiles.plex_webhook_token, 48 caractères hexa).
+--    Plus tard (appairage par appareil, révocable) : seule cette fonction changera.
+--    Non appelable directement par les clients.
+-- ---------------------------------------------------------------------------------------------
+create or replace function public.extension_profile_for_token(p_token text)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id from public.profiles p
+  where p_token ~ '^[0-9a-f]{48}$' and p.plex_webhook_token = p_token
+  limit 1
+$$;
+
+revoke all on function public.extension_profile_for_token(text) from public;
+revoke all on function public.extension_profile_for_token(text) from anon, authenticated;
+
+-- ---------------------------------------------------------------------------------------------
+-- 1. Titres de la liste, pour la correspondance côté extension
+-- ---------------------------------------------------------------------------------------------
+create or replace function public.extension_list_titles(p_token text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_profile_id uuid;
+  v_items jsonb;
+begin
+  v_profile_id := public.extension_profile_for_token(p_token);
+  if v_profile_id is null then
+    return jsonb_build_object('status', 'invalid_token');
+  end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'id', w.id,
+           'title', w.title,
+           'norm', public.normalize_title_for_match(w.title),
+           'type', w.type,
+           'status', w.status,
+           'season', w.saison,
+           'episode', w.episode,
+           'tmdb_id', w.tmdb_id,
+           'tmdb_type', w.tmdb_type,
+           'year', w.year,
+           'poster_path', w.poster_path
+         ) order by w.added_at desc), '[]'::jsonb)
+    into v_items
+  from (
+    select * from public.watchlist_items
+    where profile_id = v_profile_id and deleted = false
+    order by added_at desc
+    limit 5000
+  ) w;
+
+  return jsonb_build_object('status', 'ok', 'items', v_items);
+end;
+$$;
+
+revoke all on function public.extension_list_titles(text) from public;
+grant execute on function public.extension_list_titles(text) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------------------------
+-- 2. Application d'un lot validé par l'utilisateur
+-- ---------------------------------------------------------------------------------------------
+create or replace function public.extension_apply_import(
+  p_token text,
+  p_updates jsonb default '[]'::jsonb,
+  p_inserts jsonb default '[]'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_profile_id uuid;
+  v_u jsonb;
+  v_i jsonb;
+  v_id uuid;
+  v_kind text;
+  v_season integer;
+  v_episode integer;
+  v_rows integer;
+  v_out_u jsonb := '[]'::jsonb;
+  v_out_i jsonb := '[]'::jsonb;
+  v_tmdb_id integer;
+  v_tmdb_type text;
+  v_type text;
+  v_status text;
+  v_title text;
+  v_year text;
+  v_poster text;
+  v_overview text;
+  v_score double precision;
+  v_genre text;
+  v_new_id uuid;
+begin
+  v_profile_id := public.extension_profile_for_token(p_token);
+  if v_profile_id is null then
+    return jsonb_build_object('status', 'invalid_token');
+  end if;
+
+  p_updates := coalesce(p_updates, '[]'::jsonb);
+  p_inserts := coalesce(p_inserts, '[]'::jsonb);
+  if jsonb_typeof(p_updates) <> 'array' or jsonb_typeof(p_inserts) <> 'array'
+     or jsonb_array_length(p_updates) > 500 or jsonb_array_length(p_inserts) > 200 then
+    return jsonb_build_object('status', 'invalid_input');
+  end if;
+
+  -- ---------- Mises à jour de titres existants ----------
+  for v_u in select value from jsonb_array_elements(p_updates) loop
+    begin
+      if jsonb_typeof(v_u) <> 'object' or jsonb_typeof(v_u -> 'id') <> 'string' then
+        raise exception using errcode = '22023';
+      end if;
+      v_id := (v_u ->> 'id')::uuid;
+      v_kind := coalesce(v_u ->> 'kind', '');
+      v_season := case when jsonb_typeof(v_u -> 'season') = 'number' then (v_u ->> 'season')::integer end;
+      v_episode := case when jsonb_typeof(v_u -> 'episode') = 'number' then (v_u ->> 'episode')::integer end;
+      if v_kind = 'episode' then
+        if v_season is null or v_episode is null or v_season < 0 or v_episode < 0
+           or v_season > 100000 or v_episode > 100000 then
+          raise exception using errcode = '22023';
+        end if;
+      elsif v_kind <> 'movie' then
+        raise exception using errcode = '22023';
+      end if;
+    exception when others then
+      v_out_u := v_out_u || jsonb_build_object('id', v_u -> 'id', 'result', 'invalid');
+      continue;
+    end;
+
+    -- Propriété et type revérifiés : le titre doit appartenir au profil du jeton
+    if not exists (select 1 from public.watchlist_items w
+                   where w.id = v_id and w.profile_id = v_profile_id and w.deleted = false
+                     and (case when v_kind = 'episode' then w.type in ('serie', 'anime') else w.type = 'film' end)) then
+      v_out_u := v_out_u || jsonb_build_object('id', v_id, 'result', 'not_found');
+      continue;
+    end if;
+
+    if v_kind = 'episode' then
+      update public.watchlist_items
+      set saison = v_season,
+          episode = v_episode,
+          status = case when status in ('avoir', 'todo') then 'encours' else status end
+      where id = v_id and profile_id = v_profile_id
+        and (saison is null or episode is null
+             or v_season > saison
+             or (v_season = saison and v_episode > episode)
+             or (v_season = saison and v_episode = episode and status in ('avoir', 'todo')));
+    else
+      update public.watchlist_items
+      set status = 'termine'
+      where id = v_id and profile_id = v_profile_id and status <> 'termine';
+    end if;
+    get diagnostics v_rows = row_count;
+    v_out_u := v_out_u || jsonb_build_object('id', v_id,
+      'result', case when v_rows > 0 then 'updated' else 'already_up_to_date' end);
+  end loop;
+
+  -- ---------- Nouveaux titres (fiche TMDB) ----------
+  for v_i in select value from jsonb_array_elements(p_inserts) loop
+    begin
+      if jsonb_typeof(v_i) <> 'object' or jsonb_typeof(v_i -> 'tmdb_id') <> 'number' then
+        raise exception using errcode = '22023';
+      end if;
+      v_tmdb_id := (v_i ->> 'tmdb_id')::integer;
+      v_tmdb_type := coalesce(v_i ->> 'tmdb_type', '');
+      v_type := coalesce(v_i ->> 'type', '');
+      v_status := coalesce(v_i ->> 'status', '');
+      v_title := btrim(coalesce(v_i ->> 'title', ''));
+      v_year := nullif(btrim(coalesce(v_i ->> 'year', '')), '');
+      v_poster := nullif(v_i ->> 'poster_path', '');
+      v_overview := coalesce(v_i ->> 'overview', '');
+      v_score := case when jsonb_typeof(v_i -> 'tmdb_score') = 'number' then (v_i ->> 'tmdb_score')::double precision end;
+      v_genre := nullif(v_i ->> 'anime_genre', '');
+      v_season := case when jsonb_typeof(v_i -> 'saison') = 'number' then (v_i ->> 'saison')::integer end;
+      v_episode := case when jsonb_typeof(v_i -> 'episode') = 'number' then (v_i ->> 'episode')::integer end;
+
+      if v_tmdb_id is null or v_tmdb_id <= 0
+         or v_title = '' or length(v_title) > 500
+         or (v_year is not null and v_year !~ '^[0-9]{4}$')
+         or (v_poster is not null and v_poster !~ '^/[A-Za-z0-9_.-]{1,200}$')
+         or length(v_overview) > 10000
+         or (v_score is not null and (v_score < 0 or v_score > 10))
+         or v_status not in ('encours', 'termine')
+         or (v_genre is not null and v_genre not in ('shonen', 'seinen', 'shojo', 'isekai', 'slice', 'autre')) then
+        raise exception using errcode = '22023';
+      end if;
+      if v_tmdb_type = 'movie' then
+        -- Film : terminé, sans saison/épisode ni genre anime
+        if v_type <> 'film' or v_status <> 'termine' or v_season is not null or v_episode is not null or v_genre is not null then
+          raise exception using errcode = '22023';
+        end if;
+      elsif v_tmdb_type = 'tv' then
+        if v_type not in ('serie', 'anime') or v_season is null or v_episode is null
+           or v_season < 0 or v_episode < 0 or v_season > 100000 or v_episode > 100000
+           or (v_type = 'serie' and v_genre is not null) then
+          raise exception using errcode = '22023';
+        end if;
+      else
+        raise exception using errcode = '22023';
+      end if;
+    exception when others then
+      v_out_i := v_out_i || jsonb_build_object('tmdb_id', v_i -> 'tmdb_id', 'result', 'invalid');
+      continue;
+    end;
+
+    -- Pas de doublon : même fiche TMDB déjà dans la liste (y compris ajoutée plus haut dans ce lot)
+    if exists (select 1 from public.watchlist_items w
+               where w.profile_id = v_profile_id and w.deleted = false
+                 and w.tmdb_id = v_tmdb_id and w.tmdb_type = v_tmdb_type) then
+      v_out_i := v_out_i || jsonb_build_object('tmdb_id', v_tmdb_id, 'result', 'duplicate');
+      continue;
+    end if;
+
+    insert into public.watchlist_items (local_id, profile_id, tmdb_id, tmdb_type, type, status, title, year,
+                                        poster_path, tmdb_score, overview, tags, saison, episode, total_ep,
+                                        anime_genre, has_new_ep, deleted)
+    values ('nf' || replace(gen_random_uuid()::text, '-', ''), v_profile_id, v_tmdb_id, v_tmdb_type, v_type,
+            v_status, v_title, coalesce(v_year, ''), v_poster, v_score, v_overview, '{}', v_season, v_episode, null,
+            v_genre, false, false)
+    returning id into v_new_id;
+    v_out_i := v_out_i || jsonb_build_object('tmdb_id', v_tmdb_id, 'result', 'inserted', 'id', v_new_id);
+  end loop;
+
+  return jsonb_build_object('status', 'ok', 'updates', v_out_u, 'inserts', v_out_i);
+end;
+$$;
+
+revoke all on function public.extension_apply_import(text, jsonb, jsonb) from public;
+grant execute on function public.extension_apply_import(text, jsonb, jsonb) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------------------------
+-- 3. Quota TMDB du propriétaire du jeton (proxy /api/tmdb appelé par l'extension)
+-- ---------------------------------------------------------------------------------------------
+create or replace function public.consume_api_quota_by_token(p_token text, p_bucket text, p_cost integer default 1)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid    uuid;
+  v_day    date := (now() at time zone 'utc')::date;
+  v_lim    public.api_quota_limits%rowtype;
+  v_user   integer;
+  v_global integer;
+begin
+  select p.account_id into v_uid from public.profiles p where p.id = public.extension_profile_for_token(p_token);
+  if v_uid is null then
+    return jsonb_build_object('allowed', false, 'scope', 'invalid_token');
+  end if;
+  if p_cost is null or p_cost < 1 or p_cost > 100 then
+    raise exception 'coût invalide' using errcode = '22023';
+  end if;
+  select * into v_lim from public.api_quota_limits where bucket = p_bucket;
+  if not found then
+    raise exception 'quota inconnu' using errcode = '22023';
+  end if;
+
+  insert into public.api_usage as u (account_id, day, bucket, count)
+  values (v_uid, v_day, p_bucket, p_cost)
+  on conflict (account_id, day, bucket)
+    do update set count = u.count + excluded.count
+    where u.count < v_lim.per_user_daily
+  returning u.count into v_user;
+
+  if v_user is null or v_user > v_lim.per_user_daily then
+    return jsonb_build_object('allowed', false, 'scope', 'user', 'limit', v_lim.per_user_daily);
+  end if;
+
+  if v_lim.global_daily is not null then
+    insert into public.api_usage_global as g (day, bucket, count)
+    values (v_day, p_bucket, p_cost)
+    on conflict (day, bucket)
+      do update set count = g.count + excluded.count
+      where g.count < v_lim.global_daily
+    returning g.count into v_global;
+    if v_global is null or v_global > v_lim.global_daily then
+      return jsonb_build_object('allowed', false, 'scope', 'global', 'limit', v_lim.global_daily);
+    end if;
+  end if;
+
+  return jsonb_build_object('allowed', true, 'used', v_user, 'limit', v_lim.per_user_daily);
+end;
+$$;
+
+revoke all on function public.consume_api_quota_by_token(text, text, integer) from public;
+grant execute on function public.consume_api_quota_by_token(text, text, integer) to anon, authenticated;
+
+notify pgrst, 'reload schema';
+
+-- =============================================================================
+-- MIGRATION 20261008160000_titres_detectes.sql (recopiée telle quelle)
+-- =============================================================================
+-- Titres détectés par l'extension (historique Netflix, fichier CSV Netflix, détection en direct ;
+-- plus tard Crunchyroll et Prime), affichés dans l'onglet « Détectés » de Cinepisode.
+--
+-- Nouveau fonctionnement (remplace l'aperçu dans une page de l'extension) :
+--   1. l'extension lit l'historique (dans le navigateur), regroupe par titre et envoie ce qu'elle a
+--      détecté avec extension_push_detections(p_token, p_items) : titre, film/série, dernier
+--      épisode vu, date, pourcentage vu. Rien d'autre (pas d'identifiant Netflix, pas de liste
+--      d'épisodes) ;
+--   2. Cinepisode (session de l'utilisateur, RLS) lit ses détections, fait la correspondance avec
+--      la liste, cherche les nouveaux titres sur TMDB (proxy habituel, quota du compte) et ajoute
+--      ou met à jour les titres choisis avec le code d'ajout normal du site ;
+--   3. chaque détection passe ensuite à « added » ou « ignored », ou est effacée.
+--
+-- Table public.detected_media :
+--   - une ligne par (compte, film/série, titre normalisé, saison, épisode) : une même détection
+--     renvoyée plusieurs fois ne crée pas de doublon, on garde la date de visionnage la plus récente ;
+--   - RLS : le propriétaire (auth.uid() = user_id) peut lire, changer l'état (colonne state
+--     seulement) et effacer ses lignes ; personne ne peut en insérer directement : seule la
+--     fonction à jeton extension_push_detections() écrit (1 000 éléments par appel au plus,
+--     20 000 lignes par compte au plus) ;
+--   - un titre ignoré le reste : une nouvelle détection du même titre arrive directement « ignored ».
+--
+-- Le jeton reste vérifié en un seul endroit : extension_profile_for_token() (migration
+-- 20261008150000), à remplacer le jour où l'extension aura un jeton par appareil.
+--
+-- Surface réduite : les fonctions de la migration 20261008150000 qui servaient à l'ancienne page
+-- de l'extension (extension_list_titles, extension_apply_import, consume_api_quota_by_token)
+-- sont supprimées. Les recherches TMDB se font désormais depuis le site avec la session.
+--
+-- Rejouable sans erreur (idempotente).
+
+-- ---------------------------------------------------------------------------------------------
+-- 1. Table
+-- ---------------------------------------------------------------------------------------------
+create table if not exists public.detected_media (
+  id               uuid primary key default gen_random_uuid(),
+  user_id          uuid not null references auth.users(id) on delete cascade,
+  source           text not null check (source in ('netflix', 'netflix_csv', 'crunchyroll', 'prime', 'live')),
+  raw_title        text not null check (length(raw_title) between 1 and 500),
+  normalized_title text not null check (length(normalized_title) between 1 and 500),
+  media_type       text not null check (media_type in ('movie', 'show')),
+  season           integer check (season is null or season between 0 and 100000),
+  episode          integer check (episode is null or episode between 0 and 100000),
+  watched_at       timestamptz,
+  progress_pct     smallint check (progress_pct is null or progress_pct between 0 and 100),
+  state            text not null default 'pending' check (state in ('pending', 'added', 'ignored')),
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now(),
+  check (media_type = 'show' or (season is null and episode is null))
+);
+
+-- Clé indépendante de la source : la même détection venue de Netflix puis du CSV = une seule ligne
+create unique index if not exists detected_media_cle
+  on public.detected_media (user_id, media_type, normalized_title, coalesce(season, -1), coalesce(episode, -1));
+create index if not exists detected_media_user_state on public.detected_media (user_id, state);
+
+drop trigger if exists tr_detected_media_updated_at on public.detected_media;
+create trigger tr_detected_media_updated_at
+  before update on public.detected_media
+  for each row execute function public.update_timestamp();
+
+-- ---------------------------------------------------------------------------------------------
+-- 2. RLS et droits : lecture / changement d'état / effacement par le propriétaire uniquement
+-- ---------------------------------------------------------------------------------------------
+alter table public.detected_media enable row level security;
+
+drop policy if exists "detected_media select owner" on public.detected_media;
+drop policy if exists "detected_media update owner" on public.detected_media;
+drop policy if exists "detected_media delete owner" on public.detected_media;
+create policy "detected_media select owner" on public.detected_media
+  for select to authenticated using ((select auth.uid()) = user_id);
+create policy "detected_media update owner" on public.detected_media
+  for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "detected_media delete owner" on public.detected_media
+  for delete to authenticated using ((select auth.uid()) = user_id);
+
+revoke all on table public.detected_media from public, anon, authenticated;
+grant select, delete on table public.detected_media to authenticated;
+grant update (state) on table public.detected_media to authenticated;
+
+-- ---------------------------------------------------------------------------------------------
+-- 3. Envoi des détections par l'extension (jeton de suivi)
+--    p_items : tableau (1 000 max) de
+--      {source, title, type: 'movie'|'show', season, episode, watched_at (ms), progress_pct}
+--    Résultat : {status:'ok', inserted, updated, unchanged, invalid} | invalid_token | invalid_input | limit
+-- ---------------------------------------------------------------------------------------------
+create or replace function public.extension_push_detections(p_token text, p_items jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_profile_id uuid;
+  v_user_id uuid;
+  v_it jsonb;
+  v_source text;
+  v_title text;
+  v_norm text;
+  v_type text;
+  v_season integer;
+  v_episode integer;
+  v_watched timestamptz;
+  v_pct smallint;
+  v_state text;
+  v_inserted boolean;
+  v_n_ins integer := 0;
+  v_n_upd integer := 0;
+  v_n_same integer := 0;
+  v_n_bad integer := 0;
+begin
+  v_profile_id := public.extension_profile_for_token(p_token);
+  if v_profile_id is null then
+    return jsonb_build_object('status', 'invalid_token');
+  end if;
+  select p.account_id into v_user_id from public.profiles p where p.id = v_profile_id;
+  if v_user_id is null then
+    return jsonb_build_object('status', 'invalid_token');
+  end if;
+
+  if p_items is null or jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) > 1000 then
+    return jsonb_build_object('status', 'invalid_input');
+  end if;
+  if (select count(*) from public.detected_media d where d.user_id = v_user_id) + jsonb_array_length(p_items) > 20000 then
+    return jsonb_build_object('status', 'limit', 'limit', 20000);
+  end if;
+
+  for v_it in select value from jsonb_array_elements(p_items) loop
+    begin
+      if jsonb_typeof(v_it) <> 'object' or jsonb_typeof(v_it -> 'title') <> 'string' then
+        raise exception using errcode = '22023';
+      end if;
+      v_source := coalesce(v_it ->> 'source', '');
+      v_title := btrim(v_it ->> 'title');
+      v_type := coalesce(v_it ->> 'type', '');
+      v_season := case when jsonb_typeof(v_it -> 'season') = 'number' then (v_it ->> 'season')::integer end;
+      v_episode := case when jsonb_typeof(v_it -> 'episode') = 'number' then (v_it ->> 'episode')::integer end;
+      v_watched := case when jsonb_typeof(v_it -> 'watched_at') = 'number'
+                        then to_timestamp((v_it ->> 'watched_at')::double precision / 1000.0) end;
+      v_pct := case when jsonb_typeof(v_it -> 'progress_pct') = 'number'
+                    then round((v_it ->> 'progress_pct')::numeric)::smallint end;
+      if v_source not in ('netflix', 'netflix_csv', 'crunchyroll', 'prime', 'live')
+         or v_title = '' or length(v_title) > 500
+         or v_type not in ('movie', 'show')
+         or (v_type = 'movie' and (v_season is not null or v_episode is not null))
+         or (v_season is not null and (v_season < 0 or v_season > 100000))
+         or (v_episode is not null and (v_episode < 0 or v_episode > 100000))
+         or (v_pct is not null and (v_pct < 0 or v_pct > 100)) then
+        raise exception using errcode = '22023';
+      end if;
+      -- Date hors bornes (avant 2000 ou dans le futur) : ignorée, la détection reste valable
+      if v_watched is not null and (v_watched < '2000-01-01'::timestamptz or v_watched > now() + interval '1 day') then
+        v_watched := null;
+      end if;
+      v_norm := public.normalize_title_for_match(v_title);
+      if v_norm is null or v_norm = '' or length(v_norm) > 500 then
+        raise exception using errcode = '22023';
+      end if;
+    exception when others then
+      v_n_bad := v_n_bad + 1;
+      continue;
+    end;
+
+    -- Titre déjà ignoré par l'utilisateur : il le reste
+    v_state := case when exists (select 1 from public.detected_media d
+                                 where d.user_id = v_user_id and d.media_type = v_type
+                                   and d.normalized_title = v_norm and d.state = 'ignored')
+                    then 'ignored' else 'pending' end;
+
+    v_inserted := null;
+    insert into public.detected_media as d (user_id, source, raw_title, normalized_title, media_type,
+                                            season, episode, watched_at, progress_pct, state)
+    values (v_user_id, v_source, v_title, v_norm, v_type, v_season, v_episode, v_watched, v_pct, v_state)
+    on conflict (user_id, media_type, normalized_title, coalesce(season, -1), coalesce(episode, -1))
+    do update set source = excluded.source,
+                  raw_title = excluded.raw_title,
+                  watched_at = excluded.watched_at,
+                  progress_pct = excluded.progress_pct
+      where excluded.watched_at is not null and (d.watched_at is null or excluded.watched_at > d.watched_at)
+    returning (xmax = 0) into v_inserted;
+
+    if v_inserted is null then
+      v_n_same := v_n_same + 1;
+    elsif v_inserted then
+      v_n_ins := v_n_ins + 1;
+    else
+      v_n_upd := v_n_upd + 1;
+    end if;
+  end loop;
+
+  return jsonb_build_object('status', 'ok', 'inserted', v_n_ins, 'updated', v_n_upd,
+                            'unchanged', v_n_same, 'invalid', v_n_bad);
+end;
+$$;
+
+revoke all on function public.extension_push_detections(text, jsonb) from public;
+grant execute on function public.extension_push_detections(text, jsonb) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------------------------
+-- 4. Fonctions de l'ancienne page de l'extension, devenues inutiles
+-- ---------------------------------------------------------------------------------------------
+drop function if exists public.extension_list_titles(text);
+drop function if exists public.extension_apply_import(text, jsonb, jsonb);
+drop function if exists public.consume_api_quota_by_token(text, text, integer);
+
+notify pgrst, 'reload schema';

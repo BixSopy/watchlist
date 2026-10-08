@@ -23,3 +23,12 @@ test('schema.sql contient la migration d\'ouverture publique', () => {
   const schema = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'schema.sql'), 'utf8');
   for (const s of ['consume_api_quota', 'delete_my_account', 'api_cache', 'watchlist_items_tailles_check']) assert.ok(schema.includes(s), s);
 });
+
+test('schema.sql contient les migrations de l\'extension 0.5.0 (titres détectés)', () => {
+  const schema = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'schema.sql'), 'utf8');
+  for (const s of ['extension_profile_for_token', 'create table if not exists public.detected_media', 'extension_push_detections',
+    'drop function if exists public.extension_list_titles(text)', 'drop function if exists public.consume_api_quota_by_token(text, text, integer)']) assert.ok(schema.includes(s), s);
+  /* les fonctions supprimées ne sont recréées par rien après leur suppression */
+  const dropped = schema.lastIndexOf('drop function if exists public.extension_apply_import');
+  assert.ok(dropped > schema.lastIndexOf('function public.extension_apply_import('));
+});
