@@ -71,10 +71,24 @@ footer a{color:#9a9aa3}
   <tr><td>Your list: titles, type, status, progress (season/episode), ratings, tags, collections, TMDB identifiers</td><td>Sync your list across your devices</td><td>Supabase (database), Frankfurt (EU)</td></tr>
   <tr><td>Your interface language</td><td>Send you account emails in your language</td><td>Supabase (Auth), Frankfurt (EU)</td></tr>
   <tr><td>Auto-tracking token (if you generate one)</td><td>Let the browser extension or Tautulli/Plex update your progress</td><td>Supabase, Frankfurt (EU)</td></tr>
+  <tr><td>Titles detected by the browser extension (if you use it): title, movie or series, season, episode, date and percentage watched, source</td><td>Show them in your private “Detected” tab so you can add them to your list</td><td>Supabase, Frankfurt (EU)</td></tr>
   <tr><td>Catalog usage counters (number of requests per day)</td><td>Enforce daily quotas and prevent abuse</td><td>Supabase, Frankfurt (EU); deleted automatically after a few days</td></tr>
   <tr><td>IP address, browser, request timestamps (technical logs)</td><td>Security, abuse prevention, troubleshooting</td><td>Vercel and Supabase logs, short retention according to their plans</td></tr>
 </table>
 <p class="muted">Legal bases: performance of the service you request by creating an account (Article 6(1)(b) GDPR) and our legitimate interest in securing the service (Article 6(1)(f)) for logs, the CAPTCHA and quotas.</p>
+
+<h2>Browser extension “Cinepisode — Auto tracking”</h2>
+<p>The extension is optional. It works only on netflix.com and sends data only to Cinepisode's server (Supabase, Frankfurt, EU), using the personal token you paste into it.</p>
+<ul>
+  <li><strong>While you watch Netflix</strong>, it reads the title, season, episode and playback position of the video being played. When you have really watched 80% of an episode (or the end credits start; 90% for a movie), it sends the title, type, season and episode to update your progress in your list. If the title isn't in your list, it goes to your “Detected” tab instead.</li>
+  <li><strong>When you click “Import my Netflix history”</strong>, it reads your viewing activity in a netflix.com tab, using the Netflix session already open in your browser, or reads the Netflix CSV file you choose. Nothing is read from your history without this click.</li>
+  <li><strong>What is sent</strong>, for each title and nothing more: the title, movie or series, the last season and episode watched, the date watched, the percentage watched (when known) and where it was detected (Netflix, Netflix file or live).</li>
+  <li><strong>Never read or sent:</strong> your Netflix password and cookies. <strong>Never sent:</strong> your Netflix account or profile identifier and your profile name. The profile identifier is read in the Netflix tab only to request your history from Netflix.</li>
+  <li><strong>Kept by the extension</strong>, in your browser only: your token, the last detection, and the status and date of the last import. Removing the extension deletes them.</li>
+  <li><strong>Stored in your account:</strong> the detected titles, shown in your private “Detected” tab, visible and editable only by you (Row Level Security). Pending titles stay until you add, ignore or clear them (“Clear all” deletes every pending title). Titles you have added or ignored are kept with that status, so they are not suggested again. Deleting your account erases all of them.</li>
+</ul>
+<p>The extension contains no analytics, no advertising and no tracker, and contacts no server other than netflix.com and Cinepisode's server.</p>
+<p><strong>Limited Use.</strong> The use of information received from the extension adheres to the <a href="https://developer.chrome.com/docs/webstore/program-policies/" rel="noopener">Chrome Web Store User Data Policy</a>, including the Limited Use requirements. This data is used only to update your list and fill your “Detected” tab. It is never sold, never used for advertising, profiling or creditworthiness, never shared with third parties, and nobody reads it except with your consent (for example when you ask for support), for security, or when required by law.</p>
 
 <h2>Storage in your browser</h2>
 <p>Cinepisode uses <strong>no advertising or audience-measurement cookies</strong>. Your browser keeps your list (IndexedDB), your settings, your language and your sign-in session (localStorage). These are strictly necessary for the service to work and therefore don't require consent. You can delete them from your browser settings or when you delete your account.</p>
@@ -96,6 +110,7 @@ footer a{color:#9a9aa3}
 
 <h2>Retention periods</h2>
 <ul>
+  <li>Detected titles: pending ones until you add, ignore or clear them; added or ignored ones as long as your account exists.</li>
   <li>Account and list: as long as your account exists. Deleting your account immediately and permanently erases this data from our database.</li>
   <li>Quota counters: a few days.</li>
   <li>Technical logs: according to the periods applied by Vercel and Supabase (from a few hours to a few days).</li>
@@ -104,9 +119,9 @@ footer a{color:#9a9aa3}
 <h2>Your rights</h2>
 <p>You have the rights of access, rectification, erasure, portability, restriction and objection. Directly in the app (Account menu):</p>
 <ul>
-  <li><strong>Export my data</strong>: downloads a JSON file with your account and your whole list;</li>
+  <li><strong>Export my data</strong>: downloads a JSON file with your account, your whole list and your detected titles;</li>
   <li><strong>Change email address or password</strong>;</li>
-  <li><strong>Delete my account</strong>: erases your account, your synced list, your counters and your tracking token.</li>
+  <li><strong>Delete my account</strong>: erases your account, your synced list, your detected titles, your counters and your tracking token.</li>
 </ul>
 <p>For any other request: <a href="mailto:contact@cinepisode.com">contact@cinepisode.com</a>. You can also lodge a complaint with the French data protection authority, the <a href="https://www.cnil.fr/en/complaints" rel="noopener">CNIL</a>, or with the supervisory authority of your country of residence.</p>
 

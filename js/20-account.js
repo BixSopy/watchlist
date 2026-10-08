@@ -776,6 +776,18 @@ function exportAccountData(btn){
     return next();
   }).then(function(rows){
     out.watchlist_items=rows;
+    /* Titres détectés par l'extension (onglet « Détectés »), tous états confondus ; RLS : ceux du compte */
+    var det=[],dp=0,dsize=1000;
+    function nextDet(){
+      return supa.from('detected_media').select('id,source,raw_title,normalized_title,media_type,season,episode,watched_at,progress_pct,state,created_at,updated_at')
+        .order('id',{ascending:true}).range(dp*dsize,dp*dsize+dsize-1).then(function(r3){
+          if(r3.error)throw r3.error;det=det.concat(r3.data||[]);
+          if((r3.data||[]).length===dsize&&dp<30){dp++;return nextDet();}
+          return det;
+        });
+    }
+    return nextDet().then(function(d){out.detected_media=d;return rows;});
+  }).then(function(rows){
     out.local_device_copy={count:memDB.length,entries:memDB};
     var blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     var a=document.createElement('a'),d=new Date();

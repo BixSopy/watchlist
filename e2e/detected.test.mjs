@@ -234,6 +234,22 @@ test('Détectés : interface en anglais', async t => {
   assert.deepEqual(problems, []);
 });
 
+test('Exporter mes données : inclut les titres détectés du compte (tous états), jamais ceux d\'un autre compte', async t => {
+  const { page, problems } = await newPage(t);
+  await page.goto(server.url + '/');
+  await login(page);
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.evaluate(() => exportAccountData())]);
+  const out = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
+  assert.ok(Array.isArray(out.detected_media), 'clé detected_media présente');
+  const titles = out.detected_media.map(r => r.raw_title);
+  assert.equal(out.detected_media.length, 9, 'les 9 lignes du compte');
+  assert.ok(titles.includes('Dark Matter'), 'les titres ignorés sont exportés aussi');
+  assert.ok(!titles.includes('Secret'), 'aucune ligne d\'un autre compte');
+  assert.ok(out.detected_media.every(r => !('user_id' in r)));
+  assert.ok(Array.isArray(out.watchlist_items) && out.account && out.account.email === 'pierre@exemple.fr');
+  assert.deepEqual(problems, []);
+});
+
 test('Détectés : pastilles Crunchyroll / Prime Video ; saison Crunchyroll à vérifier (pas cochée d\'office)', async t => {
   const { page, problems } = await newPage(t, { detected: [
     { raw_title: 'JUJUTSU KAISEN', normalized_title: 'jujutsu kaisen', season: 2, episode: 5, source: 'crunchyroll', progress_pct: 100 },

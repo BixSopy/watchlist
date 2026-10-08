@@ -71,10 +71,24 @@ footer a{color:#9a9aa3}
   <tr><td>Ta liste&nbsp;: titres, type, statut, progression (saison/épisode), notes, tags, sagas, identifiants TMDB</td><td>Synchroniser ta liste entre tes appareils</td><td>Supabase (base de données), Francfort (UE)</td></tr>
   <tr><td>Langue de l'interface</td><td>T'envoyer les emails de compte dans ta langue</td><td>Supabase (Auth), Francfort (UE)</td></tr>
   <tr><td>Jeton de suivi automatique (si tu en génères un)</td><td>Permettre à l'extension navigateur ou à Tautulli/Plex de mettre à jour ta progression</td><td>Supabase, Francfort (UE)</td></tr>
+  <tr><td>Titres détectés par l'extension navigateur (si tu l'utilises)&nbsp;: titre, film ou série, saison, épisode, date et pourcentage regardé, origine</td><td>Les afficher dans ton onglet privé « Détectés » pour que tu les ajoutes à ta liste</td><td>Supabase, Francfort (UE)</td></tr>
   <tr><td>Compteurs d'utilisation du catalogue (nombre de requêtes par jour)</td><td>Appliquer les quotas quotidiens et empêcher les abus</td><td>Supabase, Francfort (UE)&nbsp;; effacés automatiquement après quelques jours</td></tr>
   <tr><td>Adresse IP, navigateur, horodatage des requêtes (journaux techniques)</td><td>Sécurité, limitation des abus, diagnostic des pannes</td><td>Journaux de Vercel et de Supabase, conservation courte selon leurs offres</td></tr>
 </table>
 <p class="muted">Bases légales&nbsp;: l'exécution du service que tu demandes en créant un compte (article 6.1.b du RGPD) et notre intérêt légitime à sécuriser le service (article 6.1.f) pour les journaux, le CAPTCHA et les quotas.</p>
+
+<h2>Extension navigateur « Cinepisode — Suivi auto »</h2>
+<p>L'extension est facultative. Elle ne fonctionne que sur netflix.com et n'envoie des données qu'au serveur de Cinepisode (Supabase, Francfort, UE), avec le jeton personnel que tu y colles.</p>
+<ul>
+  <li><strong>Pendant que tu regardes Netflix</strong>, elle lit le titre, la saison, l'épisode et la position de lecture de la vidéo en cours. Quand tu as réellement regardé 80&nbsp;% d'un épisode (ou dès le générique de fin&nbsp;; 90&nbsp;% pour un film), elle envoie le titre, le type, la saison et l'épisode pour mettre à jour ta progression. Si le titre n'est pas dans ta liste, il arrive dans ton onglet « Détectés ».</li>
+  <li><strong>Quand tu cliques sur « Importer mon historique Netflix »</strong>, elle lit ton activité de visionnage dans un onglet netflix.com, avec la session Netflix déjà ouverte dans ton navigateur, ou lit le fichier CSV Netflix que tu choisis. Rien n'est lu dans ton historique sans ce clic.</li>
+  <li><strong>Ce qui est envoyé</strong>, pour chaque titre et rien de plus&nbsp;: le titre, film ou série, la dernière saison et le dernier épisode vus, la date, le pourcentage regardé (quand il est connu) et l'origine de la détection (Netflix, fichier Netflix ou en direct).</li>
+  <li><strong>Jamais lus ni envoyés&nbsp;:</strong> ton mot de passe et tes cookies Netflix. <strong>Jamais envoyés&nbsp;:</strong> l'identifiant de ton compte ou de ton profil Netflix et le nom de ton profil. L'identifiant du profil n'est lu dans l'onglet Netflix que pour demander ton historique à Netflix.</li>
+  <li><strong>Gardé par l'extension</strong>, dans ton navigateur uniquement&nbsp;: ton jeton, la dernière détection, ainsi que l'état et la date du dernier import. Désinstaller l'extension les efface.</li>
+  <li><strong>Gardé dans ton compte&nbsp;:</strong> les titres détectés, affichés dans ton onglet privé « Détectés », visibles et modifiables par toi seul (Row Level Security). Les titres en attente restent jusqu'à ce que tu les ajoutes, les ignores ou les effaces (« Tout effacer » supprime tous les titres en attente). Les titres ajoutés ou ignorés sont gardés avec cet état, pour ne plus t'être proposés. Supprimer ton compte les efface tous.</li>
+</ul>
+<p>L'extension ne contient ni statistiques, ni publicité, ni traceur, et ne contacte aucun autre serveur que netflix.com et celui de Cinepisode.</p>
+<p><strong>Utilisation limitée.</strong> L'utilisation des informations reçues de l'extension respecte le <a href="https://developer.chrome.com/docs/webstore/program-policies/" rel="noopener">règlement du Chrome Web Store sur les données des utilisateurs</a>, y compris les exigences d'utilisation limitée («&nbsp;Limited Use&nbsp;»). Ces données servent uniquement à mettre à jour ta liste et à remplir ton onglet « Détectés ». Elles ne sont jamais vendues, jamais utilisées pour de la publicité, du profilage ou l'évaluation de ta solvabilité, jamais partagées avec des tiers, et personne ne les lit, sauf avec ton accord (par exemple quand tu demandes de l'aide), pour la sécurité ou si la loi l'exige.</p>
 
 <h2>Stockage dans ton navigateur</h2>
 <p>Cinepisode n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages, ta langue et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
@@ -96,6 +110,7 @@ footer a{color:#9a9aa3}
 
 <h2>Durées de conservation</h2>
 <ul>
+  <li>Titres détectés&nbsp;: ceux en attente jusqu'à ce que tu les ajoutes, les ignores ou les effaces&nbsp;; ceux ajoutés ou ignorés tant que ton compte existe.</li>
   <li>Compte et liste&nbsp;: tant que ton compte existe. La suppression du compte efface immédiatement et définitivement ces données de notre base.</li>
   <li>Compteurs de quotas&nbsp;: quelques jours.</li>
   <li>Journaux techniques&nbsp;: selon les durées appliquées par Vercel et Supabase (de quelques heures à quelques jours).</li>
@@ -104,9 +119,9 @@ footer a{color:#9a9aa3}
 <h2>Tes droits</h2>
 <p>Tu disposes des droits d'accès, de rectification, d'effacement, de portabilité, de limitation et d'opposition. Directement dans l'app (menu Compte)&nbsp;:</p>
 <ul>
-  <li><strong>Exporter mes données</strong>&nbsp;: télécharge un fichier JSON avec ton compte et toute ta liste&nbsp;;</li>
+  <li><strong>Exporter mes données</strong>&nbsp;: télécharge un fichier JSON avec ton compte, toute ta liste et tes titres détectés&nbsp;;</li>
   <li><strong>Changer d'adresse email ou de mot de passe</strong>&nbsp;;</li>
-  <li><strong>Supprimer mon compte</strong>&nbsp;: efface ton compte, ta liste synchronisée, tes compteurs et ton jeton de suivi.</li>
+  <li><strong>Supprimer mon compte</strong>&nbsp;: efface ton compte, ta liste synchronisée, tes titres détectés, tes compteurs et ton jeton de suivi.</li>
 </ul>
 <p>Pour toute autre demande&nbsp;: <a href="mailto:contact@cinepisode.com">contact@cinepisode.com</a>. Tu peux aussi adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" rel="noopener">CNIL</a>.</p>
 
