@@ -60,3 +60,17 @@ test('app de bureau : fenêtre et mises à jour sur l\'adresse de brand.config.j
   assert.strictEqual(conf.identifier, 'com.watchlistcine.app');
   assert.match(read('.github/workflows/desktop-release.yml'), new RegExp("releaseName: '" + brand.name + ' '));
 });
+
+test('workflows GitHub : actions épinglées sur un commit, aucune entrée interpolée dans un script', () => {
+  for (const f of fs.readdirSync(path.join(ROOT, '.github/workflows'))) {
+    const y = read('.github/workflows/' + f);
+    for (const m of y.matchAll(/uses:\s*([^\s#]+)/g)) assert.match(m[1], /@[0-9a-f]{40}$/, f + ' : ' + m[1] + ' non épinglée');
+    assert.doesNotMatch(y, /pull_request_target/, f);
+    assert.match(y, /^permissions:/m, f + ' : permissions explicites');
+    /* dans un bloc run:, ${{ … }} serait interprété par le shell (injection) */
+    for (const block of y.split(/\n\s*- (?:name|uses):/)) {
+      const run = block.split(/\n\s*run: \|/)[1];
+      if (run) assert.doesNotMatch(run, /\$\{\{/, f + ' : ${{ }} dans un script run');
+    }
+  }
+});

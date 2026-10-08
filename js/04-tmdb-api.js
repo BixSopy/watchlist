@@ -128,5 +128,5 @@ function getTrailer(type,id,sn,cb){
     }else{cb(v[0].key);}
   }).catch(function(){cb(null)});
 }
-function openYT(key){if(key)window.open('https://www.youtube.com/watch?v='+key,'_blank');}
+function openYT(key){if(key)window.open('https://www.youtube.com/watch?v='+encodeURIComponent(key),'_blank','noopener');}
 

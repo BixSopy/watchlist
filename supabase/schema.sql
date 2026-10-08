@@ -113,6 +113,10 @@ create table public.keep_alive (
   id        uuid primary key default extensions.uuid_generate_v4(),
   pinged_at timestamptz default now()
 );
+-- Au plus une ligne par heure : l'insertion est ouverte à anon (clé publique), sans cette
+-- limite n'importe qui pourrait remplir la base (migration 20261008100000, section 6).
+create unique index keep_alive_une_par_heure
+  on public.keep_alive ((date_trunc('hour', pinged_at at time zone 'utc')));
 
 -- -----------------------------------------------------------------------------
 -- FONCTION : mark_watched_by_token — webhook Plex/Tautulli (Session 19)

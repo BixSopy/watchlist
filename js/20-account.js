@@ -433,7 +433,11 @@ var AUTH_VIEWS={
     title:function(){return esc(t('auth.linkError.title'));},
     html:function(c){
       var next=c.action==='recovery'?_link('forgot',esc(t('auth.linkError.newLink'))):c.action==='magiclink'?_link('magic',esc(t('auth.linkError.newLink'))):_link('login',esc(t('auth.linkError.login')));
-      return '<p class="auth-p">'+esc(AUTH_ERRORS[c.code]||(LANG==='en'&&c.description)||AUTH_ERRORS.otp_expired)+'</p><div class="auth-alt">'+next+'</div>'+
+      /* Code d'erreur venu de l'adresse : seuls nos messages traduits s'affichent, jamais le texte
+         error_description de l'URL (un lien piégé pourrait sinon faire afficher n'importe quel
+         message dans la fenêtre officielle, ex. une fausse consigne de sécurité). */
+      var known=Object.prototype.hasOwnProperty.call(AUTH_ERRORS,c.code)?AUTH_ERRORS[c.code]:AUTH_ERRORS.otp_expired;
+      return '<p class="auth-p">'+esc(known)+'</p><div class="auth-alt">'+next+'</div>'+
         '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">'+esc(t('common.close'))+'</button></div>';
     }
   },

@@ -1,6 +1,6 @@
 name: Keep Supabase Alive
 
-# Insère une ligne par jour dans public.keep_alive (colonnes : id, pinged_at) pour
+# Insère une ligne par jour (au plus une par heure) dans public.keep_alive (colonnes : id, pinged_at) pour
 # garder le projet Supabase actif. curl -fsS fait échouer le job si Supabase répond
 # une erreur (avant, les 401 passaient en vert).
 on:
@@ -23,9 +23,14 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           test -n "$SUPABASE_KEY" || { echo "Secret SUPABASE_ANON_KEY manquant"; exit 1; }
-          curl -fsS -X POST "$SUPABASE_URL/rest/v1/keep_alive" \
+          # 201 = ligne insérée ; 409 = déjà un ping dans l'heure (index unique
+          # keep_alive_une_par_heure) : le projet a bien été sollicité, c'est un succès.
+          code=$(curl -sS -o /tmp/resp -w '%{http_code}' -X POST "$SUPABASE_URL/rest/v1/keep_alive" \
             -H "apikey: $SUPABASE_KEY" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
-            -d "{\"pinged_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
-          echo "Ping OK"
+            -d "{\"pinged_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}")
+          case "$code" in
+            201|409) echo "Ping OK ($code)" ;;
+            *) echo "Échec du ping ($code)"; cat /tmp/resp; exit 1 ;;
+          esac
