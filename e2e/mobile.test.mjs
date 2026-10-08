@@ -207,6 +207,25 @@ test('C7 : filtre de statut qui suit d\'un onglet à l\'autre, expliqué avec un
   assert.deepEqual(problems, []);
 });
 
+test('C4 : sur téléphone, points du bandeau masqués et glisser le doigt change de titre', async t => {
+  const { page, problems } = await newPage(t, { vp: 'm360' });
+  await page.locator('#heroBand.on').waitFor();
+  assert.equal(await page.locator('#heroDots').isVisible(), false, 'points masqués');
+  const title = () => page.locator('#heroTitle').textContent();
+  const first = await title();
+  const cdp = await page.context().newCDPSession(page);
+  const swipe = async (x0, x1) => {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: x0, y: 200 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: (x0 + x1) / 2, y: 202 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  };
+  await swipe(300, 80);
+  await page.waitForFunction(f => document.getElementById('heroTitle').textContent !== f, first);
+  await swipe(80, 300);
+  await page.waitForFunction(f => document.getElementById('heroTitle').textContent === f, first);
+  assert.deepEqual(problems, []);
+});
+
 test('Point 20 : une synchro sans changement ne redessine pas la grille ; un vrai changement, une seule fois et sans recharger les affiches', async t => {
   const { page, db, problems } = await newPage(t, { vp: { width: 1280, height: 900 }, mobile: false });
   await page.waitForFunction(() => Array.from(document.querySelectorAll('#mc img.card-poster')).some(i => i.complete && i.naturalWidth));

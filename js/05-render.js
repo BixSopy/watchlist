@@ -128,6 +128,7 @@ function renderHero(){
   if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;document.getElementById('heroDots').innerHTML='';return;}
   if(_heroIdx>=_heroItems.length)_heroIdx=0;
   band.classList.add('on');
+  _heroSwipeInit(band);
   _showHeroItem(_heroIdx);
   _scheduleHeroRotate();
 }
@@ -151,6 +152,17 @@ function _scheduleHeroRotate(){
   },7000);
 }
 function _heroGoTo(i){_heroIdx=i;_showHeroItem(i);_scheduleHeroRotate();}
+/* Glisser le doigt sur le bandeau = titre suivant / précédent (les points sont masqués sur téléphone) */
+function _heroSwipeInit(band){
+  if(band._swipe)return;band._swipe=1;
+  var x0=null,y0=0;
+  band.addEventListener('touchstart',function(e){var p=e.touches[0];x0=p.clientX;y0=p.clientY;},{passive:true});
+  band.addEventListener('touchend',function(e){
+    if(x0===null)return;var p=e.changedTouches[0],dx=p.clientX-x0,dy=p.clientY-y0;x0=null;
+    if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5||_heroItems.length<2)return;
+    var n=_heroItems.length;_heroGoTo((_heroIdx+(dx<0?1:n-1))%n);
+  },{passive:true});
+}
 function _showHeroItem(idx){
   var item=_heroItems[idx];if(!item)return;
   document.getElementById('heroTitle').textContent=item.title;
