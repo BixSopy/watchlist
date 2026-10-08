@@ -51,15 +51,15 @@ function _kbdRow(key,label){
 function _webhookCodeField(id,label,text){
   return '<div class="webhook-field"><div class="webhook-field-lbl">'+label+'</div><div class="webhook-code-row">'+
     '<div class="webhook-code" id="'+id+'">'+esc(text)+'</div>'+
-    '<button type="button" class="webhook-copy-btn" onclick="copyWebhookText(\''+id+'\')">Copier</button>'+
+    '<button type="button" class="webhook-copy-btn" onclick="copyWebhookText(\''+id+'\')">'+esc(t('common.copy'))+'</button>'+
     '</div></div>';
 }
 function copyWebhookText(id){
   var el=document.getElementById(id);if(!el)return;
   var text=el.textContent;
   (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(function(){
-    sfx('click');toast('Copié');
-  }).catch(function(){toast('Copie impossible — sélectionne le texte manuellement','err');});
+    sfx('click');toast(t('common.copied'));
+  }).catch(function(){toast(t('common.copyFailed'),'err');});
 }
 /* Section "Suivi auto" (Session 19) : un seul jeton, utilisé par l'extension navigateur
  * ET par Tautulli (Plex) -> mark_watched_by_token()/mark_watched_by_title(). Le détail
@@ -68,38 +68,38 @@ function copyWebhookText(id){
 var _plexWebhookAdvancedOpen=false;
 function togglePlexWebhookAdvanced(){_plexWebhookAdvancedOpen=!_plexWebhookAdvancedOpen;sfx('click');renderSettingsMenu();}
 function _plexWebhookSection(){
-  var html='<div class="settings-section"><div class="settings-section-title">Suivi auto (Netflix, Plex...)</div>';
+  var html='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.autoTrack'))+'</div>';
   if(!supa||!authProfileId){
-    html+='<div class="setting-hint">Connecte-toi (menu Compte &amp; synchronisation) pour activer la mise à jour automatique de ta progression.</div>';
+    html+='<div class="setting-hint">'+esc(t('set.autoTrackLogin'))+'</div>';
     html+='</div>';
     return html;
   }
   if(!_plexWebhookTokenLoaded){
-    html+='<div class="setting-hint">Chargement...</div></div>';
+    html+='<div class="setting-hint">'+esc(t('common.loading'))+'</div></div>';
     loadPlexWebhookToken(function(){renderSettingsMenu();});
     return html;
   }
   if(!plexWebhookToken){
-    html+='<div class="setting-hint">Génère un jeton : colle-le dans l\'extension navigateur (Netflix) ou dans Tautulli (Plex) pour que ta progression se mette à jour toute seule pendant que tu regardes.</div>';
-    html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">Générer mon jeton</div></div>';
+    html+='<div class="setting-hint">'+esc(t('set.tokenIntro'))+'</div>';
+    html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">'+esc(t('set.tokenGenerate'))+'</div></div>';
     html+='</div>';
     return html;
   }
-  html+=_webhookCodeField('whToken','Ton jeton',plexWebhookToken);
-  html+='<div class="setting-hint">Colle-le dans le popup de l\'extension navigateur (icône dans la barre d\'outils, champ « Jeton »). Un seul jeton pour tout — extension et Tautulli.</div>';
-  html+='<div class="settings-action-row" onclick="togglePlexWebhookAdvanced()"><div class="setting-label">'+(_plexWebhookAdvancedOpen?'Masquer':'Config avancée Tautulli (Plex)')+'</div></div>';
+  html+=_webhookCodeField('whToken',esc(t('set.yourToken')),plexWebhookToken);
+  html+='<div class="setting-hint">'+esc(t('set.tokenHelp'))+'</div>';
+  html+='<div class="settings-action-row" onclick="togglePlexWebhookAdvanced()"><div class="setting-label">'+esc(_plexWebhookAdvancedOpen?t('set.hide'):t('set.tautulliAdvanced'))+'</div></div>';
   if(_plexWebhookAdvancedOpen){
     var rpcUrl=SUPA_URL+'/rest/v1/rpc/mark_watched_by_token';
     var headers=JSON.stringify({apikey:SUPA_KEY},null,0);
     var bodyEp=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:'{season_num}',p_episode:'{episode_num}'},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
     var bodyFilm=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:null,p_episode:null},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
-    html+='<div class="setting-hint">Dans Tautulli (Notifications &rsaquo; Ajouter &rsaquo; Webhook, méthode <b>POST</b>, déclencheur <b>Watched</b>) :</div>';
+    html+='<div class="setting-hint">'+t('set.tautulliHelp')+'</div>';
     html+=_webhookCodeField('whUrl','URL',rpcUrl);
-    html+=_webhookCodeField('whHeaders','En-têtes JSON',headers);
-    html+=_webhookCodeField('whBodyEp','Données JSON — séries/anime (condition : Media Type = Episode)',bodyEp);
-    html+=_webhookCodeField('whBodyFilm','Données JSON — films, agent séparé (condition : Media Type = Movie)',bodyFilm);
+    html+=_webhookCodeField('whHeaders',esc(t('set.headers')),headers);
+    html+=_webhookCodeField('whBodyEp',esc(t('set.bodyEp')),bodyEp);
+    html+=_webhookCodeField('whBodyFilm',esc(t('set.bodyFilm')),bodyFilm);
   }
-  html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">Régénérer (invalide le jeton actuel)</div></div>';
+  html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">'+esc(t('set.tokenRegenerate'))+'</div></div>';
   html+='</div>';
   return html;
 }
@@ -137,46 +137,47 @@ function renderSettingsMenu(){
   var body=document.getElementById('settingsBody');
   if(!body)return;
   var pending=memDB.filter(function(i){return i.needsSync;}).length;
-  var syncLabel=!supa?'Indisponible':(authUser?(pending?(pending+' élément'+(pending>1?'s':'')+' en attente'):'Synchronisé'):'Non connecté');
+  var syncLabel=esc(!supa?t('set.unavailable'):(authUser?(pending?tn('set.pending',pending):t('sync.synced')):t('set.notSignedIn')));
   var html='';
-  html+='<div class="settings-section"><div class="settings-section-title">Apparence</div>';
-  html+=_delegatedToggleRow('Mode compact','','toggleCompact',compactOn);
-  html+=_delegatedToggleRow('Sons d\'interface','','toggleSound',soundOn);
-  html+=_selectRow('Grille watchlist','wl_grid_cols',[{v:'auto',l:'Automatique'},{v:'4',l:'4 colonnes'},{v:'5',l:'5 colonnes'},{v:'6',l:'6 colonnes'},{v:'7',l:'7 colonnes'}],wlSettings.wl_grid_cols);
-  html+=_selectRow('Notes sur les cartes','wl_card_ratings',[{v:'both',l:'Les deux'},{v:'my',l:'Ma note seulement'},{v:'tmdb',l:'TMDB seulement'},{v:'off',l:'Masquer'}],wlSettings.wl_card_ratings);
-  html+=_selectRow('Badges de cartes','wl_card_badges',[{v:'full',l:'Complets'},{v:'off',l:'Masquer'}],wlSettings.wl_card_badges);
-  html+=_rangeRow('Transparence des pop-up','0% = panneaux pleins, 100% = très translucide','wl_glass',wlSettings.wl_glass);
-  html+=_rangeRow('Grain filmique','Texture subtile sur le fond. 0% = désactivé.','wl_grain',wlSettings.wl_grain);
-  html+=_rangeRow('Aurora','Taches de couleur animées en arrière-plan. 0% = désactivé.','wl_aurora',wlSettings.wl_aurora);
-  html+=_toggleRow('Lueur au survol','Anneau dégradé animé sur les cartes et affiches.','wl_glow_border',wlSettings.wl_glow_border==='1');
+  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('lang.label'))+'</div>'+langSwitcherHtml('lang-switch-settings',"{reopen:'settings'}")+'</div><div class="opt-sep"></div>';
+  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.appearance'))+'</div>';
+  html+=_delegatedToggleRow(esc(t('set.compact')),'','toggleCompact',compactOn);
+  html+=_delegatedToggleRow(esc(t('set.sounds')),'','toggleSound',soundOn);
+  html+=_selectRow(esc(t('set.grid')),'wl_grid_cols',[{v:'auto',l:esc(t('set.auto'))},{v:'4',l:esc(t('set.cols4'))},{v:'5',l:esc(t('set.cols5'))},{v:'6',l:esc(t('set.cols6'))},{v:'7',l:esc(t('set.cols7'))}],wlSettings.wl_grid_cols);
+  html+=_selectRow(esc(t('set.cardRatings')),'wl_card_ratings',[{v:'both',l:esc(t('set.both'))},{v:'my',l:esc(t('set.myOnly'))},{v:'tmdb',l:esc(t('set.tmdbOnly'))},{v:'off',l:esc(t('set.hide'))}],wlSettings.wl_card_ratings);
+  html+=_selectRow(esc(t('set.cardBadges')),'wl_card_badges',[{v:'full',l:esc(t('set.full'))},{v:'off',l:esc(t('set.hide'))}],wlSettings.wl_card_badges);
+  html+=_rangeRow(esc(t('set.glass')),esc(t('set.glassHint')),'wl_glass',wlSettings.wl_glass);
+  html+=_rangeRow(esc(t('set.grain')),esc(t('set.grainHint')),'wl_grain',wlSettings.wl_grain);
+  html+=_rangeRow(esc(t('set.aurora')),esc(t('set.auroraHint')),'wl_aurora',wlSettings.wl_aurora);
+  html+=_toggleRow(esc(t('set.glow')),esc(t('set.glowHint')),'wl_glow_border',wlSettings.wl_glow_border==='1');
   html+='</div><div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">Recommandations</div>';
-  html+=_toggleRow('Défilement automatique','','wl_reco_autoscroll',wlSettings.wl_reco_autoscroll==='1');
-  html+=_selectRow('Vitesse de défilement','wl_reco_speed',[{v:'slow',l:'Lent'},{v:'normal',l:'Normal'},{v:'fast',l:'Rapide'}],wlSettings.wl_reco_speed);
-  html+=_toggleRow('Pause au survol','','wl_reco_pause_hover',wlSettings.wl_reco_pause_hover==='1');
-  html+=_selectRow('Suggestions affichées','wl_reco_limit',[{v:'10',l:'10'},{v:'15',l:'15'},{v:'20',l:'20'}],wlSettings.wl_reco_limit);
-  html+='<div class="settings-action-row" onclick="resetDismissedRecos()"><div class="setting-label">Réinitialiser les titres ignorés</div><div class="setting-hint">Réaffiche les recommandations masquées avec « Non ».</div></div>';
-  html+='<div class="settings-action-row" onclick="clearDiscoveryCache()"><div class="setting-label">Vider le cache Discovery</div><div class="setting-hint">Force un nouveau chargement des rangées et suggestions TMDB.</div></div>';
+  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.recos'))+'</div>';
+  html+=_toggleRow(esc(t('set.autoscroll')),'','wl_reco_autoscroll',wlSettings.wl_reco_autoscroll==='1');
+  html+=_selectRow(esc(t('set.speed')),'wl_reco_speed',[{v:'slow',l:esc(t('set.slow'))},{v:'normal',l:esc(t('set.normal'))},{v:'fast',l:esc(t('set.fast'))}],wlSettings.wl_reco_speed);
+  html+=_toggleRow(esc(t('set.pauseHover')),'','wl_reco_pause_hover',wlSettings.wl_reco_pause_hover==='1');
+  html+=_selectRow(esc(t('set.recoLimit')),'wl_reco_limit',[{v:'10',l:'10'},{v:'15',l:'15'},{v:'20',l:'20'}],wlSettings.wl_reco_limit);
+  html+='<div class="settings-action-row" onclick="resetDismissedRecos()"><div class="setting-label">'+esc(t('set.resetDismissed'))+'</div><div class="setting-hint">'+esc(t('set.resetDismissedHint'))+'</div></div>';
+  html+='<div class="settings-action-row" onclick="clearDiscoveryCache()"><div class="setting-label">'+esc(t('set.clearCache'))+'</div><div class="setting-hint">'+esc(t('set.clearCacheHint'))+'</div></div>';
   html+='</div><div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">Suivi</div>';
-  html+=_delegatedToggleRow('Replier Suivi au démarrage','','toggleSuiviSection',suiviCollapsed);
-  html+=_toggleRow('Afficher les plateformes','','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
-  html+=_toggleRow('Rappels navigateur','Les rappels individuels restent conservés.','wl_reminders_global',wlSettings.wl_reminders_global==='1');
+  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.suivi'))+'</div>';
+  html+=_delegatedToggleRow(esc(t('set.suiviCollapsed')),'','toggleSuiviSection',suiviCollapsed);
+  html+=_toggleRow(esc(t('set.providers')),'','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
+  html+=_toggleRow(esc(t('set.reminders')),esc(t('set.remindersHint')),'wl_reminders_global',wlSettings.wl_reminders_global==='1');
   html+='</div><div class="opt-sep"></div>';
   html+=_plexWebhookSection()+'<div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">Données</div>';
-  html+='<div class="settings-action-row" onclick="openAuthModal();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">Compte &amp; synchronisation</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
-  if(authUser)html+='<div class="settings-action-row" onclick="exportAccountData();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">Exporter mes données (RGPD)</div></div></div>';
-  html+='<div class="setting-hint"><a href="'+BRAND.legal.privacy+'" style="color:var(--text2)">Confidentialité</a> · <a href="'+BRAND.legal.terms+'" style="color:var(--text2)">Conditions &amp; mentions légales</a></div>';
+  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.data'))+'</div>';
+  html+='<div class="settings-action-row" onclick="openAuthModal();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.accountSync'))+'</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
+  if(authUser)html+='<div class="settings-action-row" onclick="exportAccountData();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.exportGdpr'))+'</div></div></div>';
+  html+='<div class="setting-hint"><a href="'+esc(legalUrl('privacy'))+'" style="color:var(--text2)">'+esc(t('legal.privacy'))+'</a> · <a href="'+esc(legalUrl('terms'))+'" style="color:var(--text2)">'+esc(t('legal.terms'))+'</a></div>';
   html+='</div><div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">Raccourcis clavier</div>';
-  html+=_kbdRow('N','Ajouter un titre');
-  html+=_kbdRow('F','Rechercher dans la liste');
-  html+=_kbdRow('S','Statistiques');
-  html+=_kbdRow('C','Mode compact');
-  html+=_kbdRow('M','Sons d\'interface');
-  html+=_kbdRow('Échap','Fermer la fenêtre ouverte');
-  html+='<div class="setting-hint" style="margin-top:4px">Inactifs pendant la saisie dans un champ.</div>';
+  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.shortcuts'))+'</div>';
+  html+=_kbdRow('N',esc(t('add.title')));
+  html+=_kbdRow('F',esc(t('set.kbdSearch')));
+  html+=_kbdRow('S',esc(t('set.kbdStats')));
+  html+=_kbdRow('C',esc(t('set.compact')));
+  html+=_kbdRow('M',esc(t('set.sounds')));
+  html+=_kbdRow(esc(t('set.kbdEsc')),esc(t('set.kbdClose')));
+  html+='<div class="setting-hint" style="margin-top:4px">'+esc(t('set.shortcutsHint'))+'</div>';
   html+='</div>';
   body.innerHTML=html;
   enhanceAllSelects(body);
@@ -184,7 +185,7 @@ function renderSettingsMenu(){
 
 /* EXPORT */
 function exportJSON(){
-  if(!memDB.length){toast('Liste vide, rien à exporter','err');return;}
+  if(!memDB.length){toast(t('export.empty'),'err');return;}
   var payload={version:2,exportedAt:new Date().toISOString(),count:memDB.length,entries:memDB};
   var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   var a=document.createElement('a');
@@ -195,7 +196,7 @@ function exportJSON(){
   a.click();
   URL.revokeObjectURL(a.href);
   sfx('done');
-  toast('Export OK — '+memDB.length+' titres');
+  toast(tn('export.done',memDB.length));
 }
 
 

@@ -8,6 +8,10 @@
 <meta name="description" content="Politique de confidentialité de Cinepisode">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://cinepisode.com/confidentialite">
+<link rel="alternate" hreflang="fr" href="https://cinepisode.com/confidentialite">
+<link rel="alternate" hreflang="en" href="https://cinepisode.com/privacy">
+<link rel="alternate" hreflang="x-default" href="https://cinepisode.com/privacy">
+<meta property="og:locale" content="fr_FR">
 <meta name="referrer" content="strict-origin">
 <meta name="theme-color" content="#06070a">
 <link rel="icon" href="/icons/icon-192.png">
@@ -23,6 +27,9 @@ body{margin:0;background:#0a0a0c;color:#f0f0f0;font-family:'IBM Plex Sans', 'Int
 .logo svg{width:22px;height:22px}
 .back{font-size:13px;color:#9a9aa3;text-decoration:none;border:1px solid #26262c;border-radius:10px;padding:7px 12px}
 .back:hover{color:#fff}
+.nav{display:flex;align-items:center;gap:10px}
+.lang{font-size:13px;color:#9a9aa3;text-decoration:none}
+.lang:hover{color:#fff}
 h1{font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:30px;line-height:1.2;letter-spacing:-.4px;margin:0 0 6px}
 .updated{color:#5c5c66;font-size:13px;margin:0 0 30px}
 h2{font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:#5cc8ff;margin:34px 0 10px}
@@ -45,10 +52,10 @@ footer a{color:#9a9aa3}
 <div class="wrap">
   <div class="top">
     <a class="logo" href="/"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" fill="#5cc8ff"/><path d="M9 7.3 17 12 9 16.7z" fill="#06070a"/></svg>cin<em>episode</em></a>
-    <a class="back" href="/">Retour à l'app</a>
+    <div class="nav"><a class="lang" href="/privacy" hreflang="en" lang="en">English</a><a class="back" href="/">Retour à l'app</a></div>
   </div>
   <h1>Politique de confidentialité</h1>
-  <p class="updated">Dernière mise à jour&nbsp;: 8 octobre 2026</p>
+  <p class="updated">Dernière mise à jour : 8 octobre 2026</p>
 <p>Cinepisode est un service gratuit, sans publicité, sans traceur et sans revente de données. Cette page décrit exactement ce qui est collecté, où c'est stocké et comment tout supprimer.</p>
 
 <h2>Responsable du traitement</h2>
@@ -62,6 +69,7 @@ footer a{color:#9a9aa3}
   <tr><th>Donnée</th><th>Pourquoi</th><th>Où</th></tr>
   <tr><td>Adresse email, mot de passe (stocké uniquement sous forme chiffrée irréversible), dates de création et de dernière connexion</td><td>Créer et sécuriser ton compte, t'envoyer les emails de confirmation et de réinitialisation</td><td>Supabase (Auth), région <strong>eu-central-1, Francfort (UE)</strong></td></tr>
   <tr><td>Ta liste&nbsp;: titres, type, statut, progression (saison/épisode), notes, tags, sagas, identifiants TMDB</td><td>Synchroniser ta liste entre tes appareils</td><td>Supabase (base de données), Francfort (UE)</td></tr>
+  <tr><td>Langue de l'interface</td><td>T'envoyer les emails de compte dans ta langue</td><td>Supabase (Auth), Francfort (UE)</td></tr>
   <tr><td>Jeton de suivi automatique (si tu en génères un)</td><td>Permettre à l'extension navigateur ou à Tautulli/Plex de mettre à jour ta progression</td><td>Supabase, Francfort (UE)</td></tr>
   <tr><td>Compteurs d'utilisation du catalogue (nombre de requêtes par jour)</td><td>Appliquer les quotas quotidiens et empêcher les abus</td><td>Supabase, Francfort (UE)&nbsp;; effacés automatiquement après quelques jours</td></tr>
   <tr><td>Adresse IP, navigateur, horodatage des requêtes (journaux techniques)</td><td>Sécurité, limitation des abus, diagnostic des pannes</td><td>Journaux de Vercel et de Supabase, conservation courte selon leurs offres</td></tr>
@@ -69,7 +77,7 @@ footer a{color:#9a9aa3}
 <p class="muted">Bases légales&nbsp;: l'exécution du service que tu demandes en créant un compte (article 6.1.b du RGPD) et notre intérêt légitime à sécuriser le service (article 6.1.f) pour les journaux, le CAPTCHA et les quotas.</p>
 
 <h2>Stockage dans ton navigateur</h2>
-<p>Cinepisode n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
+<p>Cinepisode n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages, ta langue et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
 
 <h2>Hébergement et sous-traitants</h2>
 <ul>
@@ -82,7 +90,7 @@ footer a{color:#9a9aa3}
 
 <h2>Sources de données sur les films et séries</h2>
 <ul>
-  <li><strong>TMDB</strong> et <strong>OMDb</strong>&nbsp;: interrogés par notre serveur. Ils ne reçoivent ni ton adresse IP, ni ton email, ni ta liste&nbsp;: seulement la requête (par exemple un identifiant de film).</li>
+  <li><strong>TMDB</strong> et <strong>OMDb</strong>&nbsp;: interrogés par notre serveur. Ils ne reçoivent ni ton adresse IP, ni ton email, ni ta liste&nbsp;: seulement la requête (par exemple un identifiant de film) et sa langue.</li>
   <li><strong>Affiches TMDB</strong> (image.tmdb.org), <strong>Kitsu</strong> et <strong>TVmaze</strong>&nbsp;: chargés directement par ton navigateur, ces services voient donc ton adresse IP (comme pour toute image ou ressource web), mais aucune donnée de compte.</li>
 </ul>
 

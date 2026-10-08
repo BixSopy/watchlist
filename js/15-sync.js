@@ -140,6 +140,8 @@ function onAuthResolved(user){
   /* Changement de compte sans déconnexion (ex. lien email d'un autre compte) */
   if(authUser&&authUser.id!==user.id){stopSyncLoop();authProfileId=null;}
   authUser=user;
+  /* Langue des emails : enregistrée dans le compte s'il n'en a pas encore (js/20-account.js) */
+  if(typeof syncAccountLang==='function')syncAccountLang(user);
   /* La liste locale appartient-elle à ce compte ? (voir claimLocalDataFor, js/20-account.js) */
   if(typeof claimLocalDataFor==='function')claimLocalDataFor(user);
   ensureProfile(user).then(function(profileId){
@@ -237,7 +239,7 @@ function syncNow(){
     _logErr('[sync]',e);
     updateSyncStatusUI(navigator.onLine?'synced':'offline');
     var now=Date.now();
-    if(now-lastSyncErrorToast>60000){lastSyncErrorToast=now;toast('Synchronisation impossible pour le moment','nfo');}
+    if(now-lastSyncErrorToast>60000){lastSyncErrorToast=now;toast(t('sync.failed'),'nfo');}
   });
 }
 
@@ -264,8 +266,8 @@ function generatePlexWebhookToken(){
   var bytes=new Uint8Array(24);crypto.getRandomValues(bytes);
   var token=Array.prototype.map.call(bytes,function(b){return b.toString(16).padStart(2,'0');}).join('');
   supa.from('profiles').update({plex_webhook_token:token}).eq('id',authProfileId).then(function(res){
-    if(res.error){toast('Impossible de générer le jeton','err');return;}
-    plexWebhookToken=token;sfx('done');toast('Jeton webhook généré');
+    if(res.error){toast(t('sync.tokenFailed'),'err');return;}
+    plexWebhookToken=token;sfx('done');toast(t('sync.tokenDone'));
     if(typeof renderSettingsMenu==='function')renderSettingsMenu();
   });
 }
@@ -274,9 +276,9 @@ function generatePlexWebhookToken(){
 function updateSyncStatusUI(state){
   var dot=document.getElementById('syncDot'),txt=document.getElementById('syncStatusText');
   if(!dot||!txt)return;
-  if(state=='anon'){dot.className='sync-dot anon';txt.textContent='Se connecter';}
-  else if(state=='syncing'){dot.className='sync-dot syncing';txt.textContent='Synchronisation…';}
-  else if(state=='offline'){dot.className='sync-dot offline';txt.textContent='Hors ligne';}
-  else{dot.className='sync-dot synced';txt.textContent='Synchronisé';}
+  if(state=='anon'){dot.className='sync-dot anon';txt.textContent=t('auth.signIn');}
+  else if(state=='syncing'){dot.className='sync-dot syncing';txt.textContent=t('sync.syncing');}
+  else if(state=='offline'){dot.className='sync-dot offline';txt.textContent=t('sync.offline');}
+  else{dot.className='sync-dot synced';txt.textContent=t('sync.synced');}
 }
 

@@ -57,24 +57,24 @@ function applySettings(){
 /* 0% = panneaux pleins (pas de flou) ; 100% = très translucide. Les 4 variables sont
    lues par le CSS des pop-up (modales, menu, fiche détail, recherche, dossiers). */
 function applyGlass(pct){
-  var t=Math.max(0,Math.min(100,pct||0))/100;
+  var tt=Math.max(0,Math.min(100,pct||0))/100;
   var root=document.documentElement.style;
-  root.setProperty('--glass-panel-bg','rgba(16,16,19,'+(1-t*0.55).toFixed(2)+')');
-  root.setProperty('--glass-panel-blur',Math.round(t*44)+'px');
-  root.setProperty('--glass-backdrop-bg','rgba(8,9,11,'+(0.90-t*0.52).toFixed(2)+')');
-  root.setProperty('--glass-backdrop-blur',Math.round(t*18)+'px');
+  root.setProperty('--glass-panel-bg','rgba(16,16,19,'+(1-tt*0.55).toFixed(2)+')');
+  root.setProperty('--glass-panel-blur',Math.round(tt*44)+'px');
+  root.setProperty('--glass-backdrop-bg','rgba(8,9,11,'+(0.90-tt*0.52).toFixed(2)+')');
+  root.setProperty('--glass-backdrop-blur',Math.round(tt*18)+'px');
 }
 /* 0% = pas de grain ; 100% = grain marque (deux fois l'intensite par defaut).
    Lu par body::after (overlay SVG plein ecran, voir index.html). */
 function applyGrain(pct){
-  var t=Math.max(0,Math.min(100,pct||0))/100;
-  document.documentElement.style.setProperty('--grain-opacity',(t*0.07).toFixed(3));
+  var tt=Math.max(0,Math.min(100,pct||0))/100;
+  document.documentElement.style.setProperty('--grain-opacity',(tt*0.07).toFixed(3));
 }
 /* 0% = aurora invisible ; 100% = intensite de reference des taches de couleur.
    Multiplicateur applique a chaque .aurora-blob (voir index.html). */
 function applyAurora(pct){
-  var t=Math.max(0,Math.min(100,pct||0))/100;
-  document.documentElement.style.setProperty('--aurora-opacity',t.toFixed(2));
+  var tt=Math.max(0,Math.min(100,pct||0))/100;
+  document.documentElement.style.setProperty('--aurora-opacity',tt.toFixed(2));
 }
 
 

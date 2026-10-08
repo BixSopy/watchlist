@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="[[lang]]">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>[[title]] · [[name]]</title>
-<meta name="description" content="[[title]] de [[name]]">
+<meta name="description" content="[[description]]">
 <meta name="robots" content="[[robots]]">[[canonical]]
+<meta property="og:locale" content="[[ogLocale]]">
 <meta name="referrer" content="strict-origin">
 <meta name="theme-color" content="[[colors.themeColor]]">
 <link rel="icon" href="[[logo.icon192]]">
@@ -21,6 +22,9 @@ body{margin:0;background:[[colors.bg]];color:[[colors.text]];font-family:[[fonts
 .logo svg{width:22px;height:22px}
 .back{font-size:13px;color:[[colors.textMuted]];text-decoration:none;border:1px solid [[colors.border]];border-radius:10px;padding:7px 12px}
 .back:hover{color:#fff}
+.nav{display:flex;align-items:center;gap:10px}
+.lang{font-size:13px;color:[[colors.textMuted]];text-decoration:none}
+.lang:hover{color:#fff}
 h1{font-family:[[fonts.display]];font-size:30px;line-height:1.2;letter-spacing:-.4px;margin:0 0 6px}
 .updated{color:[[colors.textFaint]];font-size:13px;margin:0 0 30px}
 h2{font-family:[[fonts.mono]];font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:[[colors.accent]];margin:34px 0 10px}
@@ -43,16 +47,16 @@ footer a{color:[[colors.textMuted]]}
 <div class="wrap">
   <div class="top">
     <a class="logo" href="/">[[logoSvg]][[wordmark.main]]<em>[[wordmark.accent]]</em></a>
-    <a class="back" href="/">Retour à l'app</a>
+    <div class="nav">[[otherLangs]]<a class="back" href="/">[[back]]</a></div>
   </div>
   <h1>[[title]]</h1>
-  <p class="updated">Dernière mise à jour&nbsp;: [[updated]]</p>
+  <p class="updated">[[updatedLabel]] [[updated]]</p>
 [[content]]
   <footer>
-    <a href="/confidentialite">Confidentialité</a>
-    <a href="/conditions">Conditions &amp; mentions légales</a>
-    <a href="mailto:[[contactEmail]]">Contact</a>
-    <span>[[name]] · service gratuit et non commercial</span>
+    <a href="[[privacyHref]]">[[privacyLabel]]</a>
+    <a href="[[termsHref]]">[[termsLabel]]</a>
+    <a href="mailto:[[contactEmail]]">[[contactLabel]]</a>
+    <span>[[name]] · [[footerNote]]</span>
   </footer>
 </div>
 </body>

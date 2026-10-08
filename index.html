@@ -22,8 +22,12 @@
 <meta property="og:url" content="https://cinepisode.com/">
 <meta property="og:image" content="https://cinepisode.com/icons/icon-512.png">
 <meta property="og:locale" content="fr_FR">
+<meta property="og:locale:alternate" content="en_US">
 <meta name="twitter:card" content="summary">
 <link rel="canonical" href="https://cinepisode.com/">
+<link rel="alternate" hreflang="fr" href="https://cinepisode.com/fr">
+<link rel="alternate" hreflang="en" href="https://cinepisode.com/en">
+<link rel="alternate" hreflang="x-default" href="https://cinepisode.com/">
 <!--/brand:head-->
 <!-- supabase-js 2.117.2 embarqué (identique au paquet npm), intégrité vérifiée par le navigateur -->
 <script src="/vendor/supabase-2.117.2.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
@@ -144,6 +148,14 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .app-foot-links a{color:var(--text2);text-decoration:none}.app-foot-links a:hover{color:var(--text);text-decoration:underline}
 .app-foot-tmdb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;font-family:'IBM Plex Sans',sans-serif;letter-spacing:0;color:var(--text2);opacity:.8}
 .app-foot-tmdb img{height:12px;width:auto}
+/* Sélecteur de langue (réglages, connexion, pied de page) */
+.lang-switch{display:inline-flex;gap:4px;padding:3px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.03)}
+.lang-btn{font:inherit;font-size:12px;font-family:'IBM Plex Sans',sans-serif;letter-spacing:0;color:var(--text2);background:none;border:0;border-radius:999px;padding:5px 12px;cursor:pointer}
+.lang-btn:hover{color:var(--text)}
+.lang-btn.on{background:rgba(var(--accent-rgb),.16);color:var(--text);font-weight:600}
+.lang-btn:focus-visible{outline:2px solid rgba(var(--accent-rgb),.7);outline-offset:1px}
+.lang-switch-auth{display:flex;width:max-content;margin:16px auto 0}
+.lang-switch-foot .lang-btn{font-size:11px;padding:3px 10px}
 .hbtn{width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:var(--tr-slow)}
 .hbtn:hover{color:var(--text);border-color:var(--border2)}.hbtn svg{width:15px;height:15px}
 /* SEARCH BAR HEADER — centree, agrandie, Liquid Glass (coherente avec le hero/nav) */
@@ -893,37 +905,37 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 <div class="aurora-bg" aria-hidden="true"><div class="aurora-blob b1"></div><div class="aurora-blob b2"></div><div class="aurora-blob b3"></div></div>
 <header class="hdr">
   <div class="hdr-left">
-    <button class="hbtn sb-toggle" onclick="toggleSidebar()" title="Recommandations" aria-label="Ouvrir les recommandations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></button>
+    <button class="hbtn sb-toggle" onclick="toggleSidebar()" title="Recommandations" aria-label="Ouvrir les recommandations" data-i18n-attr="title:set.recos;aria-label:hdr.openRecos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></button>
     <!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" style="fill:var(--accent)"/><path d="M9 7.3 17 12 9 16.7z" style="fill:var(--on-accent)"/></svg>cin<em>episode</em></div><!--/brand:logo-->
   </div>
   <div class="search-bar liquid-glass" role="search">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="tmdbSearchInput" placeholder="Chercher un film, série, anime..." autocomplete="off" aria-label="Chercher dans le catalogue TMDB">
+    <input type="text" id="tmdbSearchInput" placeholder="Chercher un film, série, anime..." autocomplete="off" aria-label="Chercher dans le catalogue TMDB" data-i18n-attr="placeholder:hdr.searchPh;aria-label:hdr.searchAria">
   </div>
   <div class="hdr-right">
     <div class="hstats" id="hstats"></div>
-    <div class="sync-pill" id="syncStatusPill" onclick="openAuthModal()" title="Compte & synchronisation">
+    <div class="sync-pill" id="syncStatusPill" onclick="openAuthModal()" title="Compte & synchronisation" data-i18n-attr="title:set.accountSync">
       <span class="sync-dot anon" id="syncDot"></span>
-      <span id="syncStatusText">Se connecter</span>
+      <span id="syncStatusText" data-i18n="auth.signIn">Se connecter</span>
     </div>
-    <button class="hbtn" onclick="toggleMenu()" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button class="hbtn" onclick="toggleMenu()" title="Menu" data-i18n-attr="title:hdr.menu;aria-label:hdr.menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   </div>
   <div id="optMenu" class="opt-menu">
     <div class="settings-view" id="optMenuMain">
-      <button class="opt-btn" onclick="openStats();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> Statistiques</button>
-      <button class="opt-btn" onclick="openSettingsView()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Réglages<svg class="opt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 6 15 12 9 18"/></svg></button>
+      <button class="opt-btn" onclick="openStats();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> <span data-i18n="set.kbdStats">Statistiques</span></button>
+      <button class="opt-btn" onclick="openSettingsView()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> <span data-i18n="menu.settings">Réglages</span><svg class="opt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 6 15 12 9 18"/></svg></button>
       <div class="opt-sep"></div>
-      <button class="opt-btn" onclick="exportJSON();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exporter JSON</button>
+      <button class="opt-btn" onclick="exportJSON();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="menu.exportJson">Exporter JSON</span></button>
       <div class="opt-sep"></div>
-      <button class="opt-btn" onclick="openAuthModal();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Compte &amp; synchronisation</button>
+      <button class="opt-btn" onclick="openAuthModal();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span data-i18n="set.accountSync">Compte &amp; synchronisation</span></button>
     </div>
     <div class="settings-view" id="optMenuSettings" style="display:none">
       <div class="settings-head">
-        <button class="settings-back" onclick="closeSettingsView()" title="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <span>Réglages</span>
+        <button class="settings-back" onclick="closeSettingsView()" title="Retour" data-i18n-attr="title:common.back;aria-label:common.back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span data-i18n="menu.settings">Réglages</span>
       </div>
       <div id="settingsBody"></div>
-      <div class="settings-foot">Les réglages sont enregistrés automatiquement sur cet appareil.</div>
+      <div class="settings-foot" data-i18n="set.foot">Les réglages sont enregistrés automatiquement sur cet appareil.</div>
     </div>
   </div>
 
@@ -933,20 +945,20 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
   <aside class="sidebar">
     <div class="suivi-wrap" id="suiviWrap">
       <div class="suivi-hdr" onclick="toggleSuiviSection()">
-        <div class="sb-title">Suivi</div>
+        <div class="sb-title" data-i18n="set.suivi">Suivi</div>
         <svg class="suivi-toggle-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div class="suivi-body" id="suiviBody"><div class="suivi-empty">Chargement...</div></div>
+      <div class="suivi-body" id="suiviBody"><div class="suivi-empty" data-i18n="common.loading">Chargement...</div></div>
     </div>
     <div class="sb-hdr">
-      <div class="sb-title">Recommandations</div>
+      <div class="sb-title" data-i18n="set.recos">Recommandations</div>
       <button class="sb-refresh" onmouseenter="sfx('hover')" onclick="sfx('click');_preserveContentScroll(function(){cache={};seenRecos=[];loadRecos();})">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-        Actualiser
+        <span data-i18n="sb.refresh">Actualiser</span>
       </button>
     </div>
     <div class="sb-scroll" id="sbScroll">
-      <div id="sbContent"><div class="sb-loading"><div class="sb-spin"></div>Chargement...</div></div>
+      <div id="sbContent"><div class="sb-loading"><div class="sb-spin"></div><span data-i18n="common.loading">Chargement...</span></div></div>
     </div>
   </aside>
   <div class="main">
@@ -955,49 +967,49 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <div class="hero-band-img" id="heroBg"></div>
       <div class="hero-band-fade"></div>
       <div class="hero-band-content">
-        <div class="hero-badge">Reprendre</div>
+        <div class="hero-badge" data-i18n="hero.resume">Reprendre</div>
         <div class="hero-title" id="heroTitle"></div>
         <div class="hero-meta" id="heroMeta"></div>
         <div class="hero-actions">
-          <button class="hero-btn primary" id="heroBtnPlay"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>Reprendre</button>
-          <button class="hero-btn liquid-glass" id="heroBtnInfo">Details</button>
+          <button class="hero-btn primary" id="heroBtnPlay"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg><span data-i18n="hero.resume">Reprendre</span></button>
+          <button class="hero-btn liquid-glass" id="heroBtnInfo" data-i18n="hero.details">Details</button>
         </div>
       </div>
       <div class="hero-dots" id="heroDots"></div>
     </div>
     <div class="nav floating liquid-glass">
       <div class="ntabs-scroll">
-        <button class="ntab on" data-tab="all" onmouseenter="sfx('hover')" onclick="switchTab(this)">Tout</button>
-        <button class="ntab" data-tab="film" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127916;</span>Films</button>
-        <button class="ntab" data-tab="serie" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#128250;</span>Séries</button>
-        <button class="ntab" data-tab="anime" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127884;</span>Anime</button>
-        <button class="ntab" data-tab="discover" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#129517;</span>Découvrir</button>
+        <button class="ntab on" data-tab="all" onmouseenter="sfx('hover')" onclick="switchTab(this)" data-i18n="tab.all">Tout</button>
+        <button class="ntab" data-tab="film" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127916;</span><span data-i18n="type.films">Films</span></button>
+        <button class="ntab" data-tab="serie" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#128250;</span><span data-i18n="type.series">Séries</span></button>
+        <button class="ntab" data-tab="anime" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127884;</span><span data-i18n="type.anime">Anime</span></button>
+        <button class="ntab" data-tab="discover" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#129517;</span><span data-i18n="tab.discover">Découvrir</span></button>
       </div>
       <div class="nav-right">
         <button class="add-btn" onmouseenter="sfx('hover')" onclick="sfx('click');openAdd()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span class="add-btn-lbl">Ajouter</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span class="add-btn-lbl" data-i18n="common.add">Ajouter</span>
         </button>
         <div class="stabs" id="stabs">
-          <button class="stab on" data-s="all" onmouseenter="sfx('hover')">Tous</button>
-          <button class="stab" data-s="avoir" onmouseenter="sfx('hover')">À voir</button>
-          <button class="stab" data-s="encours" onmouseenter="sfx('hover')">En cours</button>
-          <button class="stab" data-s="termine" onmouseenter="sfx('hover')">Terminé</button>
+          <button class="stab on" data-s="all" onmouseenter="sfx('hover')" data-i18n="stab.all">Tous</button>
+          <button class="stab" data-s="avoir" onmouseenter="sfx('hover')" data-i18n="status.avoir">À voir</button>
+          <button class="stab" data-s="encours" onmouseenter="sfx('hover')" data-i18n="status.encours">En cours</button>
+          <button class="stab" data-s="termine" onmouseenter="sfx('hover')" data-i18n="status.termine">Terminé</button>
         </div>
         <select class="stat-sel-mobile" id="statSelMobile" onchange="document.querySelector('.stab[data-s=\''+this.value+'\']').click()">
-          <option value="all">Tous</option>
-          <option value="avoir">À voir</option>
-          <option value="encours">En cours</option>
-          <option value="termine">Terminé</option>
+          <option value="all" data-i18n="stab.all">Tous</option>
+          <option value="avoir" data-i18n="status.avoir">À voir</option>
+          <option value="encours" data-i18n="status.encours">En cours</option>
+          <option value="termine" data-i18n="status.termine">Terminé</option>
         </select>
         <select class="sort-sel" id="sortSel" onchange="render()">
-          <option value="date">Date</option>
+          <option value="date" data-i18n="sort.date">Date</option>
           <option value="title">A-Z</option>
           <option value="tmdb">TMDB</option>
-          <option value="myrate">Ma note</option>
+          <option value="myrate" data-i18n="plex.myRating">Ma note</option>
         </select>
         <div class="srch">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="qinput" placeholder="Rechercher...">
+          <input type="text" id="qinput" placeholder="Rechercher..." data-i18n-attr="placeholder:list.searchPh;aria-label:set.kbdSearch">
         </div>
       </div>
     </div>
@@ -1005,14 +1017,14 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <div class="alert-wrap" id="alertWrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <div class="alert-text" id="alertText"></div>
-        <button class="alert-close" onclick="document.getElementById('alertWrap').classList.remove('on')">x</button>
+        <button class="alert-close" onclick="document.getElementById('alertWrap').classList.remove('on')" data-i18n-attr="aria-label:common.close">x</button>
       </div>
       <div id="mc"></div>
       <div class="discover-cat-pills" id="discoverCatPills">
-        <button class="stab on" data-dc="all" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Tout</button>
-        <button class="stab" data-dc="film" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Films</button>
-        <button class="stab" data-dc="serie" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Séries</button>
-        <button class="stab" data-dc="anime" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)">Anime</button>
+        <button class="stab on" data-dc="all" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)" data-i18n="tab.all">Tout</button>
+        <button class="stab" data-dc="film" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)" data-i18n="type.films">Films</button>
+        <button class="stab" data-dc="serie" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)" data-i18n="type.series">Séries</button>
+        <button class="stab" data-dc="anime" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)" data-i18n="type.anime">Anime</button>
       </div>
       <div id="discoverSection" class="discover-section"></div>
     </div>
@@ -1023,36 +1035,36 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 <!-- ADD MODAL -->
 <div class="mbk" id="addMbk">
   <div class="modal-add">
-    <div class="mtitle" id="mtitle">Ajouter un titre</div>
+    <div class="mtitle" id="mtitle" data-i18n="add.title">Ajouter un titre</div>
     <div class="swrap" id="swrap">
-      <input type="text" id="tinput" placeholder="Rechercher un film, série, anime..." autocomplete="off">
+      <input type="text" id="tinput" placeholder="Rechercher un film, série, anime..." autocomplete="off" data-i18n-attr="placeholder:hdr.searchPh">
       <div class="spin" id="spin"></div>
       <div class="dd" id="tdd"></div>
     </div>
     <div class="sprev" id="sprev">
       <img id="spimg" src="" alt="" style="display:none">
       <div style="flex:1;min-width:0"><div class="sptitle" id="sptitle"></div><div class="spmeta" id="spmeta"></div></div>
-      <button class="spclear" onclick="clearSel()">x</button>
+      <button class="spclear" onclick="clearSel()" data-i18n-attr="aria-label:add.clear">x</button>
     </div>
     <div class="frow">
-      <div class="field"><label>Type</label><select id="ftype"><option value="film">Film</option><option value="serie">Série</option><option value="anime">Anime</option></select></div>
-      <div class="field"><label>Statut</label><select id="fstat"><option value="avoir">À voir</option><option value="encours">En cours</option><option value="termine">Terminé</option></select></div>
+      <div class="field"><label data-i18n="add.type">Type</label><select id="ftype"><option value="film" data-i18n="type.film">Film</option><option value="serie" data-i18n="type.serie">Série</option><option value="anime" data-i18n="type.anime">Anime</option></select></div>
+      <div class="field"><label data-i18n="add.status">Statut</label><select id="fstat"><option value="avoir" data-i18n="status.avoir">À voir</option><option value="encours" data-i18n="status.encours">En cours</option><option value="termine" data-i18n="status.termine">Terminé</option></select></div>
     </div>
-    <div class="field" id="agField" style="display:none"><label>Genre Anime</label><select id="fanimegenre"><option value="shonen">Shonen</option><option value="seinen">Seinen</option><option value="shojo">Shojo</option><option value="slice">Slice of Life</option><option value="isekai">Isekai</option><option value="autre">Autre</option></select></div>
+    <div class="field" id="agField" style="display:none"><label data-i18n="add.animeGenre">Genre Anime</label><select id="fanimegenre"><option value="shonen">Shonen</option><option value="seinen">Seinen</option><option value="shojo">Shojo</option><option value="slice">Slice of Life</option><option value="isekai">Isekai</option><option value="autre" data-i18n="add.otherGenre">Autre</option></select></div>
     <div class="ept" id="ept">
-      <div class="ept-title">Progression</div>
-      <div class="ep-row"><label>Saison</label><input type="number" id="fsai" min="1" value="1"><label>Episode</label><input type="number" id="fepi" min="1" value="1"><label>/ Total</label><input type="number" id="ftotep" min="0" value="0"></div>
+      <div class="ept-title" data-i18n="add.progress">Progression</div>
+      <div class="ep-row"><label data-i18n="add.season">Saison</label><input type="number" id="fsai" min="1" value="1"><label data-i18n="add.episode">Episode</label><input type="number" id="fepi" min="1" value="1"><label>/ Total</label><input type="number" id="ftotep" min="0" value="0"></div>
     </div>
-    <div class="field"><label>Ma note</label><div class="stars" id="stars"></div></div>
+    <div class="field"><label data-i18n="plex.myRating">Ma note</label><div class="stars" id="stars"></div></div>
     <div class="frow">
-      <div class="field"><label>Note TMDB</label><input type="text" id="ftmdb" placeholder="--" readonly style="color:var(--accent);background:var(--bg4)"></div>
-      <div class="field"><label>Annee</label><input type="text" id="fyear" placeholder="--" readonly style="background:var(--bg4)"></div>
+      <div class="field"><label data-i18n="plex.tmdbScore">Note TMDB</label><input type="text" id="ftmdb" placeholder="--" readonly style="color:var(--accent);background:var(--bg4)"></div>
+      <div class="field"><label data-i18n="add.year">Annee</label><input type="text" id="fyear" placeholder="--" readonly style="background:var(--bg4)"></div>
     </div>
-    <div class="field"><label>Tags</label><div class="tags-wrap" id="tagsWrap"></div></div>
-    <div class="field field-saga"><label>Saga / Collection <span style="color:var(--text3);font-weight:400;font-size:11px">(optionnel)</span></label><input type="text" id="fsaga" placeholder="ex: Star Wars, Harry Potter..." autocomplete="off" list="sagaSuggest"><datalist id="sagaSuggest"></datalist></div>
+    <div class="field"><label data-i18n="add.tags">Tags</label><div class="tags-wrap" id="tagsWrap"></div></div>
+    <div class="field field-saga"><label><span data-i18n="add.saga">Saga / Collection</span> <span style="color:var(--text3);font-weight:400;font-size:11px" data-i18n="add.optional">(optionnel)</span></label><input type="text" id="fsaga" placeholder="ex: Star Wars, Harry Potter..." data-i18n-attr="placeholder:add.sagaPh" autocomplete="off" list="sagaSuggest"><datalist id="sagaSuggest"></datalist></div>
     <div class="mact">
-      <button class="btn btn-ghost" onclick="sfx('close');closeAdd()">Annuler</button>
-      <button class="btn btn-primary" id="sbtn" onclick="saveEntry()">Ajouter</button>
+      <button class="btn btn-ghost" onclick="sfx('close');closeAdd()" data-i18n="common.cancel">Annuler</button>
+      <button class="btn btn-primary" id="sbtn" onclick="saveEntry()" data-i18n="common.add">Ajouter</button>
     </div>
   </div>
 </div>
@@ -1060,7 +1072,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 <!-- AUTH MODAL : écrans rendus par js/20-account.js -->
 <div class="mbk" id="authMbk" role="dialog" aria-modal="true" aria-labelledby="authViewTitle">
   <div class="modal-add auth-modal">
-    <button type="button" class="auth-close" onclick="closeAuthModal()" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <button type="button" class="auth-close" onclick="closeAuthModal()" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div id="authView"></div>
   </div>
 </div>
@@ -1090,12 +1102,12 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <div class="plex-overview" id="plexOverview"></div>
       <div class="plex-stats" id="plexStats"></div>
       <div id="plexProviders"></div>
-      <div id="plexCastWrap" style="display:none"><div class="sec-lbl">Casting</div><div class="cast-row" id="plexCast"></div></div>
+      <div id="plexCastWrap" style="display:none"><div class="sec-lbl" data-i18n="plex.cast">Casting</div><div class="cast-row" id="plexCast"></div></div>
       <div class="prog-detail" id="plexProg" style="display:none">
-        <div class="sec-lbl">Ma progression</div>
+        <div class="sec-lbl" data-i18n="plex.myProgress">Ma progression</div>
         <div class="prog-d-row"><div class="prog-d-val" id="plexProgVal"></div><div class="prog-d-track"><div class="prog-d-fill" id="plexProgFill"></div></div></div>
         <div class="prog-d-lbl" id="plexProgLbl"></div>
-        <button class="btn btn-primary" style="margin-top:8px;padding:6px 14px;font-size:12px" id="plexNextBtn">+ Episode suivant</button>
+        <button class="btn btn-primary" style="margin-top:8px;padding:6px 14px;font-size:12px" id="plexNextBtn" data-i18n="plex.nextEpBtn">+ Episode suivant</button>
       </div>
     </div>
   </div>
@@ -1104,9 +1116,9 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 <!-- STATS MODAL -->
 <div class="mbk" id="statsMbk">
   <div class="modal-stats">
-    <div class="mtitle">Statistiques</div>
+    <div class="mtitle" data-i18n="set.kbdStats">Statistiques</div>
     <div id="statsContent"></div>
-    <div class="mact"><button class="btn btn-ghost" onclick="sfx('close');document.getElementById('statsMbk').classList.remove('on')">Fermer</button></div>
+    <div class="mact"><button class="btn btn-ghost" onclick="sfx('close');document.getElementById('statsMbk').classList.remove('on')" data-i18n="common.close">Fermer</button></div>
   </div>
 </div>
 <!-- FOLDER MODAL -->
@@ -1118,18 +1130,104 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <div class="folder-hero-content">
         <div class="folder-hero-poster" id="folderHeroPoster"><img id="folderHeroPosterImg" src="" alt=""></div>
         <div class="folder-hero-info">
-          <div class="folder-htitle" id="folderTitle">Saga</div>
+          <div class="folder-htitle" id="folderTitle" data-i18n="folder.saga">Saga</div>
           <div class="folder-hmeta" id="folderMeta"></div>
         </div>
       </div>
-      <button class="folder-close-btn" onclick="sfx('close');closeFolder()">
+      <button class="folder-close-btn" onclick="sfx('close');closeFolder()" data-i18n-attr="aria-label:common.close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div class="folder-grid" id="folderGrid"></div>
   </div>
 </div>
+<!-- SEARCH MODAL -->
+<div class="search-modal" id="searchModal" aria-hidden="true">
+  <div class="search-modal-wrap" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
+    <div class="search-modal-head">
+      <div>
+        <div class="mtitle" id="searchModalTitle" data-i18n="search.title">Catalogue TMDB</div>
+        <div class="search-modal-sub" data-i18n="search.sub">Recherche parmi films, séries et anime · astuce : « Action 2020 ★4+ » filtre par genre / année / note</div>
+      </div>
+      <button class="hbtn" onclick="sfx('close');closeSearchModal()" aria-label="Fermer" data-i18n-attr="aria-label:common.close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="search-modal-toolbar">
+      <div class="search-modal-input-wrap" style="max-width:320px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchModalInput" placeholder="Chercher..." autocomplete="off" data-i18n-attr="placeholder:search.ph">
+      </div>
+      <div class="search-page-wrap">
+        <button class="hbtn" id="searchPrevBtn" onclick="searchPage(-1)" disabled data-i18n-attr="aria-label:common.prev">←</button>
+        <div class="search-page-ind" id="searchPageInd">Page 1</div>
+        <button class="hbtn" id="searchNextBtn" onclick="searchPage(1)" disabled data-i18n-attr="aria-label:common.next">→</button>
+      </div>
+    </div>
+    <div class="search-filter-row">
+      <select class="sf-sel" id="sfType" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+        <option value="" data-i18n="search.allTypes">Tous types</option>
+        <option value="movie" data-i18n="type.films">Films</option>
+        <option value="tv" data-i18n="search.seriesAnime">Séries / Anime</option>
+      </select>
+      <select class="sf-sel" id="sfGenre" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+        <option value="" data-i18n="search.allGenres">Tous genres</option>
+        <option value="action" data-i18n="genre.action">Action</option>
+        <option value="animation" data-i18n="genre.animation">Animation</option>
+        <option value="aventure" data-i18n="genre.adventure">Aventure</option>
+        <option value="comedie" data-i18n="genre.comedy">Comédie</option>
+        <option value="crime" data-i18n="genre.crime">Crime</option>
+        <option value="documentaire" data-i18n="genre.documentary">Documentaire</option>
+        <option value="drame" data-i18n="genre.drama">Drame</option>
+        <option value="famille" data-i18n="genre.family">Famille</option>
+        <option value="fantastique" data-i18n="genre.fantasy">Fantastique</option>
+        <option value="guerre" data-i18n="genre.war">Guerre</option>
+        <option value="horreur" data-i18n="genre.horror">Horreur</option>
+        <option value="mystere" data-i18n="genre.mystery">Mystère</option>
+        <option value="romance" data-i18n="genre.romance">Romance</option>
+        <option value="scifi" data-i18n="genre.scifi">Science-Fiction</option>
+        <option value="thriller" data-i18n="genre.thriller">Thriller</option>
+        <option value="western" data-i18n="genre.western">Western</option>
+      </select>
+      <select class="sf-sel" id="sfSort" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+        <option value="" data-i18n="search.relevance">Pertinence</option>
+        <option value="popularity.desc" data-i18n="search.popularity">Popularité</option>
+        <option value="primary_release_date.desc" data-i18n="search.newest">Plus récents</option>
+        <option value="vote_average.desc" data-i18n="disc.topRated">Meilleures notes</option>
+      </select>
+      <select class="sf-sel" id="sfYear" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+        <option value="" data-i18n="search.allYears">Toutes années</option>
+        <option value="2023">2023+</option>
+        <option value="2020">2020+</option>
+        <option value="2015">2015+</option>
+        <option value="2010">2010+</option>
+        <option value="2000">2000+</option>
+        <option value="1990">1990+</option>
+      </select>
+    </div>
+    <div class="search-state" id="searchState" data-i18n="search.ready">Prêt.</div>
+    <div class="search-results" id="searchResults" tabindex="-1"></div>
+    <div class="search-footer">
+      <div class="search-counter" id="searchCounter" data-i18n="search.selectedNone">0 sélectionné</div>
+      <button class="add-btn" id="searchAddBtn" onclick="addSelectedBatch()" disabled data-i18n="search.addNone">Ajouter 0 sélectionné</button>
+    </div>
+  </div>
+</div>
+
+<!--brand:footer-->
+<footer class="app-foot">
+  <div class="app-foot-row">Cinepisode &nbsp;·&nbsp; <span id="statsFooter">—</span></div>
+  <nav class="app-foot-links" aria-label="Informations légales" data-i18n-attr="aria-label:footer.legalAria"><a href="/confidentialite" data-legal="privacy" data-i18n="legal.privacy">Confidentialité</a><a href="/conditions" data-legal="terms" data-i18n="legal.terms">Conditions &amp; mentions légales</a><a href="mailto:contact@cinepisode.com" data-i18n="footer.contact">Contact</a></nav>
+  <div class="app-foot-lang" id="footLang"></div>
+  <div class="app-foot-tmdb"><img src="/icons/tmdb-logo.svg" alt="TMDB" width="92" height="12" loading="lazy"><span>This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div>
+</footer>
+<!--/brand:footer-->
 <script src="js/00-brand.js"></script>
+<!--i18n:scripts-->
+<script src="js/i18n/fr.js"></script>
+<script src="js/i18n/en.js"></script>
+<!--/i18n:scripts-->
+<script src="js/00-i18n.js"></script>
 <script src="js/01-config.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/03-dom-utils.js"></script>
@@ -1150,85 +1248,5 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 <script src="js/18-bootstrap.js"></script>
 <script src="js/19-search-modal.js"></script>
 <script src="js/20-account.js"></script>
-<!-- SEARCH MODAL -->
-<div class="search-modal" id="searchModal" aria-hidden="true">
-  <div class="search-modal-wrap" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
-    <div class="search-modal-head">
-      <div>
-        <div class="mtitle" id="searchModalTitle">Catalogue TMDB</div>
-        <div class="search-modal-sub">Recherche parmi films, séries et anime · astuce : « Action 2020 ★4+ » filtre par genre / année / note</div>
-      </div>
-      <button class="hbtn" onclick="sfx('close');closeSearchModal()" aria-label="Fermer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="search-modal-toolbar">
-      <div class="search-modal-input-wrap" style="max-width:320px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="searchModalInput" placeholder="Chercher..." autocomplete="off">
-      </div>
-      <div class="search-page-wrap">
-        <button class="hbtn" id="searchPrevBtn" onclick="searchPage(-1)" disabled>←</button>
-        <div class="search-page-ind" id="searchPageInd">Page 1</div>
-        <button class="hbtn" id="searchNextBtn" onclick="searchPage(1)" disabled>→</button>
-      </div>
-    </div>
-    <div class="search-filter-row">
-      <select class="sf-sel" id="sfType" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
-        <option value="">Tous types</option>
-        <option value="movie">Films</option>
-        <option value="tv">Séries / Anime</option>
-      </select>
-      <select class="sf-sel" id="sfGenre" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
-        <option value="">Tous genres</option>
-        <option value="action">Action</option>
-        <option value="animation">Animation</option>
-        <option value="aventure">Aventure</option>
-        <option value="comedie">Comédie</option>
-        <option value="crime">Crime</option>
-        <option value="documentaire">Documentaire</option>
-        <option value="drame">Drame</option>
-        <option value="famille">Famille</option>
-        <option value="fantastique">Fantastique</option>
-        <option value="guerre">Guerre</option>
-        <option value="horreur">Horreur</option>
-        <option value="mystere">Mystère</option>
-        <option value="romance">Romance</option>
-        <option value="scifi">Science-Fiction</option>
-        <option value="thriller">Thriller</option>
-        <option value="western">Western</option>
-      </select>
-      <select class="sf-sel" id="sfSort" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
-        <option value="">Pertinence</option>
-        <option value="popularity.desc">Popularité</option>
-        <option value="primary_release_date.desc">Plus récents</option>
-        <option value="vote_average.desc">Meilleures notes</option>
-      </select>
-      <select class="sf-sel" id="sfYear" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
-        <option value="">Toutes années</option>
-        <option value="2023">2023+</option>
-        <option value="2020">2020+</option>
-        <option value="2015">2015+</option>
-        <option value="2010">2010+</option>
-        <option value="2000">2000+</option>
-        <option value="1990">1990+</option>
-      </select>
-    </div>
-    <div class="search-state" id="searchState">Prêt.</div>
-    <div class="search-results" id="searchResults" tabindex="-1"></div>
-    <div class="search-footer">
-      <div class="search-counter" id="searchCounter">0 sélectionné</div>
-      <button class="add-btn" id="searchAddBtn" onclick="addSelectedBatch()" disabled>Ajouter 0 sélectionné</button>
-    </div>
-  </div>
-</div>
-
-<!--brand:footer-->
-<footer class="app-foot">
-  <div class="app-foot-row">Cinepisode &nbsp;·&nbsp; <span id="statsFooter">—</span></div>
-  <nav class="app-foot-links" aria-label="Informations légales"><a href="/confidentialite">Confidentialité</a><a href="/conditions">Conditions &amp; mentions légales</a><a href="mailto:contact@cinepisode.com">Contact</a></nav>
-  <div class="app-foot-tmdb"><img src="/icons/tmdb-logo.svg" alt="TMDB" width="92" height="12" loading="lazy"><span>This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div>
-</footer>
-<!--/brand:footer-->
 </body>
 </html>

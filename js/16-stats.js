@@ -10,19 +10,19 @@ function openStats(){
   var estH=Math.round(live.reduce(function(acc,i){return acc+(i.type=='film'?120:(i.totalEp||i.episode||12)*24);},0)/60);
   var avoirH=Math.round(live.filter(function(i){return i.status=='avoir'}).reduce(function(acc,i){return acc+(i.type=='film'?120:(i.totalEp||12)*24);},0)/60);
   var cHtml='';
-  if(compat.length>=3){var d=compat.map(function(p){return p.mine-p.tmdb;});var avg=d.reduce(function(a,b){return a+b},0)/d.length;var r=Math.abs(avg).toFixed(1);cHtml=avg>0.5?'Tu notes en moyenne <b>+'+r+' points</b> au-dessus de TMDB. Tu es genereux.':avg<-0.5?'Tu notes en moyenne <b>-'+r+' points</b> en dessous de TMDB. Tu es severe.':'Tes notes sont alignees avec TMDB (ecart <b>'+r+' pt</b>).';}else{cHtml='Note au moins 3 titres pour voir ton profil.';}
+  if(compat.length>=3){var d=compat.map(function(p){return p.mine-p.tmdb;});var avg=d.reduce(function(a,b){return a+b},0)/d.length;var r=Math.abs(avg).toFixed(1);var rr=fmtNum(Math.abs(avg),{minimumFractionDigits:1,maximumFractionDigits:1});cHtml=avg>0.5?t('stats.generous',{n:'<b>+'+rr+'</b>'}):avg<-0.5?t('stats.severe',{n:'<b>-'+rr+'</b>'}):t('stats.aligned',{n:'<b>'+rr+'</b>'});}else{cHtml=esc(t('stats.needMore'));}
   function bar(l,v,m){var p=m?Math.round((v/m)*100):0;return '<div class="bar-row"><div class="bar-lbl">'+l+'</div><div class="bar-track"><div class="bar-fill" style="width:'+p+'%"></div></div><div class="bar-val">'+v+'</div></div>';}
   var mT=Math.max(byT.film,byT.serie,byT.anime,1),mS=Math.max(byS.avoir,byS.encours,byS.termine,1);
   var html='<div class="bento-stats">'
-    +'<div class="bento-tile big accent"><div class="bt-lbl">Total titres</div><div class="bt-val a">'+total+'</div><div class="bt-sub">'+byT.film+' films &bull; '+byT.serie+' séries &bull; '+byT.anime+' anime</div></div>'
-    +'<div class="bento-tile"><div class="bt-lbl">Ma note moy.</div><div class="bt-val">'+(avgM?avgM.toFixed(1):'-')+'</div></div>'
-    +'<div class="bento-tile"><div class="bt-lbl">Temps total</div><div class="bt-val">'+estH+'h</div></div>'
-    +'<div class="bento-tile"><div class="bt-lbl">Reste a voir</div><div class="bt-val">'+avoirH+'h</div></div>'
-    +'<div class="bento-tile"><div class="bt-lbl">En cours</div><div class="bt-val">'+byS.encours+'</div></div>'
+    +'<div class="bento-tile big accent"><div class="bt-lbl">'+esc(t('stats.total'))+'</div><div class="bt-val a">'+fmtNum(total)+'</div><div class="bt-sub">'+esc(t('stats.breakdown',{films:fmtNum(byT.film),series:fmtNum(byT.serie),anime:fmtNum(byT.anime)}))+'</div></div>'
+    +'<div class="bento-tile"><div class="bt-lbl">'+esc(t('stats.avgRating'))+'</div><div class="bt-val">'+(avgM?fmtNum(avgM,{minimumFractionDigits:1,maximumFractionDigits:1}):'-')+'</div></div>'
+    +'<div class="bento-tile"><div class="bt-lbl">'+esc(t('stats.totalTime'))+'</div><div class="bt-val">'+esc(t('stats.hours',{n:fmtNum(estH)}))+'</div></div>'
+    +'<div class="bento-tile"><div class="bt-lbl">'+esc(t('stats.leftToWatch'))+'</div><div class="bt-val">'+esc(t('stats.hours',{n:fmtNum(avoirH)}))+'</div></div>'
+    +'<div class="bento-tile"><div class="bt-lbl">'+esc(t('status.encours'))+'</div><div class="bt-val">'+byS.encours+'</div></div>'
     +'</div>';
-  html+='<div class="stat-sec"><div class="stat-sec-title">Par type</div>'+bar('Films',byT.film,mT)+bar('Séries',byT.serie,mT)+bar('Anime',byT.anime,mT)+'</div>';
-  html+='<div class="stat-sec"><div class="stat-sec-title">Par statut</div>'+bar('À voir',byS.avoir,mS)+bar('En cours',byS.encours,mS)+bar('Terminé',byS.termine,mS)+'</div>';
-  html+='<div class="stat-sec"><div class="stat-sec-title">Compatibilite TMDB</div><div class="compat-box">'+cHtml+'</div></div>';
+  html+='<div class="stat-sec"><div class="stat-sec-title">'+esc(t('stats.byType'))+'</div>'+bar(esc(t('type.films')),byT.film,mT)+bar(esc(t('type.series')),byT.serie,mT)+bar(esc(t('type.anime')),byT.anime,mT)+'</div>';
+  html+='<div class="stat-sec"><div class="stat-sec-title">'+esc(t('stats.byStatus'))+'</div>'+bar(esc(t('status.avoir')),byS.avoir,mS)+bar(esc(t('status.encours')),byS.encours,mS)+bar(esc(t('status.termine')),byS.termine,mS)+'</div>';
+  html+='<div class="stat-sec"><div class="stat-sec-title">'+esc(t('stats.compat'))+'</div><div class="compat-box">'+cHtml+'</div></div>';
   document.getElementById('statsContent').innerHTML=html;document.getElementById('statsMbk').classList.add('on');
 }
 

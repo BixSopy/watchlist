@@ -2,7 +2,7 @@
 /* AIR ALERTS */
 function checkAir(item){
   if(!item.tmdbId||item.type=='film')return;
-  tf(TB+'/tv/'+item.tmdbId+'?language=fr-FR').then(function(d){
+  tf(TB+'/tv/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){
     var changed=false;
     if(d.next_episode_to_air&&d.next_episode_to_air.air_date){item.nextAir=d.next_episode_to_air.air_date;changed=true;}
     var last=d.last_episode_to_air,isNew=false;
@@ -32,7 +32,7 @@ function checkAllAir(){
       var namesHtml=newEps.slice(0,3).map(function(i){
         return '<span class="alert-link" onclick="openPlex('+jsArg(i.id)+')" style="cursor:pointer;text-decoration:underline">'+esc(i.title)+'</span>';
       }).join(', ');
-      document.getElementById('alertText').innerHTML='<b>'+newEps.length+' nouvel episode'+(newEps.length>1?'s':'')+' disponible'+(newEps.length>1?'s':'')+'</b> : '+namesHtml;
+      document.getElementById('alertText').innerHTML='<b>'+esc(tn('suivi.newEps',newEps.length))+'</b> : '+namesHtml;
       ab.classList.add('on');sfx('toast');render();
     }
     renderSuivi();
@@ -87,7 +87,7 @@ function refreshSuiviData(){
 }
 
 function fetchFilmRelease(item){
-  tf(TB+'/movie/'+item.tmdbId+'?language=fr-FR').then(function(d){
+  tf(TB+'/movie/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){
     var changed=false;
     if(d.release_date){item.nextAirDate=d.release_date;changed=true;}
     item.lastEpisodeCheck=Date.now();
@@ -100,7 +100,7 @@ function fetchFilmRelease(item){
 
 function fetchNextAirDate(item){
   var afterTvmaze=function(){
-    tf(TB+'/tv/'+item.tmdbId+'?language=fr-FR').then(function(d){
+    tf(TB+'/tv/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){
       /* Pas de prochain episode programme (serie terminee/annulee, ou pause entre saisons) :
          on efface une eventuelle ancienne date, sinon elle reste figee pour toujours et
          remonte comme "nouvel episode sorti" (ex. une serie finie depuis des annees). */
@@ -124,7 +124,7 @@ function fetchNextAirDate(item){
 function fetchWatchProviders(item,cb){
   var kind=item.type=='film'?'movie':'tv';
   tf(TB+'/'+kind+'/'+item.tmdbId+'/watch/providers').then(function(d){
-    var fr=d&&d.results&&d.results.FR;
+    var fr=d&&d.results&&d.results[TMDB_REGION];
     if(fr&&fr.flatrate&&fr.flatrate.length){
       item.streamingProviders=fr.flatrate.slice(0,4).map(function(p){return{name:p.provider_name,logo:p.logo_path?IB+'w45'+p.logo_path:null,url:fr.link||null};});
     }
@@ -153,11 +153,10 @@ function suiviStatusFor(item){
   if(diffDays<0)return null;
   if(diffDays===0){
     return item.type=='film'
-      ?{cls:'new',text:'&#10003; Sortie aujourd\'hui',tomorrow:false}
-      :{cls:'new',text:'&#10003; Nouvel episode sorti',tomorrow:false};
+      ?{cls:'new',text:'&#10003; '+esc(t('suivi.outToday')),tomorrow:false}
+      :{cls:'new',text:'&#10003; '+esc(t('suivi.newEpOut')),tomorrow:false};
   }
-  var dd=pad(d.getDate()),mm=pad(d.getMonth()+1),yyyy=d.getFullYear();
-  return{cls:'soon',text:'&#9200; Sortie prevue le '+dd+'/'+mm+'/'+yyyy,tomorrow:diffDays===1};
+  return{cls:'soon',text:'&#9200; '+esc(t('suivi.expected',{date:fmtDate(d)})),tomorrow:diffDays===1};
 }
 
 function renderSuivi(){
@@ -165,24 +164,24 @@ function renderSuivi(){
   if(!body)return;
   var tracked=memDB.map(function(i){var st=suiviStatusFor(i);return st?{item:i,status:st}:null;}).filter(Boolean);
   tracked.sort(function(a,b){return new Date(a.item.nextAirDate)-new Date(b.item.nextAirDate);});
-  if(!tracked.length){body.innerHTML='<div class="suivi-empty">Rien de prevu dans les 7 prochains jours.</div>';return;}
+  if(!tracked.length){body.innerHTML='<div class="suivi-empty">'+esc(t('suivi.empty'))+'</div>';return;}
   var shown=tracked.slice(0,SUIVI_MAX);
-  var html=shown.map(function(t){
-    var item=t.item,st=t.status;
+  var html=shown.map(function(tt){
+    var item=tt.item,st=tt.status;
     var poster=item.poster?'<img class="suivi-poster" src=\"'+IB+'w92'+esc(item.poster)+'\" alt="">':'<div class="suivi-poster-ph">'+icon(item.type)+'</div>';
     var provHtml='';
     if(item.streamingProviders&&item.streamingProviders.length){
       provHtml='<div class="suivi-providers">'+item.streamingProviders.map(function(p){return p.logo?'<img class="suivi-provider-logo" src="'+p.logo+'" title="'+esc(p.name)+'" alt="'+esc(p.name)+'">':'';}).join('')+'</div>';
     }
-    var tomorrowBadge=st.tomorrow?'<span class="suivi-badge tomorrow">&#9200; Demain !</span>':'';
+    var tomorrowBadge=st.tomorrow?'<span class="suivi-badge tomorrow">&#9200; '+esc(t('suivi.tomorrow'))+'</span>':'';
     return '<div class="suivi-item" data-id="'+esc(item.id)+'" onclick="sfx(\'click\');openPlex('+jsArg(item.id)+')" style="cursor:pointer">'+poster+
       '<div class="suivi-info"><span class="suivi-title">'+esc(item.title)+'</span>'+
       '<span class="suivi-badge '+st.cls+'">'+st.text+'</span>'+tomorrowBadge+provHtml+'</div>'+
-      '<button class="suivi-reminder-toggle" data-active="'+(item.reminderEnabled?'true':'false')+'" onclick="event.stopPropagation();toggleReminder('+jsArg(item.id)+')" title="Rappel">&#128276;</button>'+
+      '<button class="suivi-reminder-toggle" data-active="'+(item.reminderEnabled?'true':'false')+'" onclick="event.stopPropagation();toggleReminder('+jsArg(item.id)+')" title="'+esc(t('suivi.reminder'))+'">&#128276;</button>'+
       '</div>';
   }).join('');
   if(tracked.length>SUIVI_MAX){
-    html+='<button class="suivi-more" onclick="sfx(\'click\')">Voir tout ('+tracked.length+')</button>';
+    html+='<button class="suivi-more" onclick="sfx(\'click\')">'+esc(t('suivi.seeAll',{n:tracked.length}))+'</button>';
   }
   body.innerHTML=html;
 }
@@ -198,12 +197,12 @@ function toggleReminder(itemId){
   var finish=function(){persistSuiviItem(item);renderSuivi();sfx(enabling?'add':'click');};
   if(enabling&&typeof Notification!=='undefined'&&Notification.permission==='default'){
     Notification.requestPermission().then(function(perm){
-      if(perm!=='granted'){item.reminderEnabled=false;toast('Notifications refusees — rappel desactive','nfo');}
+      if(perm!=='granted'){item.reminderEnabled=false;toast(t('suivi.notifDenied'),'nfo');}
       finish();
     }).catch(function(){item.reminderEnabled=false;finish();});
   }else{
     if(enabling&&typeof Notification!=='undefined'&&Notification.permission==='denied'){
-      item.reminderEnabled=false;toast('Notifications bloquees dans le navigateur','nfo');
+      item.reminderEnabled=false;toast(t('suivi.notifBlocked'),'nfo');
     }
     finish();
   }
@@ -222,7 +221,7 @@ function checkReminders(){
     if(d.getTime()===today.getTime()){
       try{
         new Notification(item.title,{
-          body:item.type=='film'?'Sortie aujourd\'hui':'Nouvel episode disponible aujourd\'hui',
+          body:item.type=='film'?t('suivi.outToday'):t('suivi.newEpToday'),
           icon:item.poster?(IB+'w92'+item.poster):undefined
         });
       }catch(e){}

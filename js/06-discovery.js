@@ -5,44 +5,44 @@
    ============================================================ */
 var DISCOVER_CONFIG={
   all:[
-    {id:'tr-all',title:'Tendances',url:'/trending/all/week',mixed:true},
-    {id:'bc-all',title:'Parce que tu as aimé',type:'because',filter:'all'},
-    {id:'pop-film',title:'Films populaires',url:'/discover/movie?sort_by=popularity.desc&vote_count.gte=200',mtype:'movie'},
-    {id:'pop-serie',title:'Séries populaires',url:'/discover/tv?sort_by=popularity.desc&vote_count.gte=100&without_genres=16',mtype:'tv'},
-    {id:'top-film',title:'Films les mieux notés',url:'/discover/movie?sort_by=vote_average.desc&vote_count.gte=2000',mtype:'movie'},
+    {id:'tr-all',title:t('disc.trending'),url:'/trending/all/week',mixed:true},
+    {id:'bc-all',title:t('disc.because'),type:'because',filter:'all'},
+    {id:'pop-film',title:t('disc.popMovies'),url:'/discover/movie?sort_by=popularity.desc&vote_count.gte=200',mtype:'movie'},
+    {id:'pop-serie',title:t('disc.popSeries'),url:'/discover/tv?sort_by=popularity.desc&vote_count.gte=100&without_genres=16',mtype:'tv'},
+    {id:'top-film',title:t('disc.topMovies'),url:'/discover/movie?sort_by=vote_average.desc&vote_count.gte=2000',mtype:'movie'},
   ],
   film:[
-    {id:'tr-film',title:'Tendances Films',url:'/trending/movie/week',mtype:'movie'},
-    {id:'bc-film',title:'Parce que tu as aimé',type:'because',filter:'film'},
-    {id:'pop-film2',title:'Films populaires',url:'/discover/movie?sort_by=popularity.desc&vote_count.gte=200',mtype:'movie'},
-    {id:'top-film2',title:'Meilleures notes',url:'/discover/movie?sort_by=vote_average.desc&vote_count.gte=2000',mtype:'movie'},
-    {id:'new-film',title:'Sorties récentes',url:'/discover/movie?sort_by=primary_release_date.desc&vote_count.gte=100',mtype:'movie'},
+    {id:'tr-film',title:t('disc.trendingMovies'),url:'/trending/movie/week',mtype:'movie'},
+    {id:'bc-film',title:t('disc.because'),type:'because',filter:'film'},
+    {id:'pop-film2',title:t('disc.popMovies'),url:'/discover/movie?sort_by=popularity.desc&vote_count.gte=200',mtype:'movie'},
+    {id:'top-film2',title:t('disc.topRated'),url:'/discover/movie?sort_by=vote_average.desc&vote_count.gte=2000',mtype:'movie'},
+    {id:'new-film',title:t('disc.recent'),url:'/discover/movie?sort_by=primary_release_date.desc&vote_count.gte=100',mtype:'movie'},
   ],
   serie:[
-    {id:'tr-serie',title:'Tendances Séries',url:'/trending/tv/week',mtype:'tv'},
-    {id:'bc-serie',title:'Parce que tu as aimé',type:'because',filter:'serie'},
-    {id:'pop-serie2',title:'Séries populaires',url:'/discover/tv?sort_by=popularity.desc&vote_count.gte=100&without_genres=16',mtype:'tv'},
-    {id:'top-serie',title:'Meilleures notes',url:'/discover/tv?sort_by=vote_average.desc&vote_count.gte=300&without_genres=16',mtype:'tv'},
-    {id:'kr-serie',title:'K-Dramas',url:'/discover/tv?sort_by=popularity.desc&with_origin_country=KR&without_genres=16',mtype:'tv'},
+    {id:'tr-serie',title:t('disc.trendingSeries'),url:'/trending/tv/week',mtype:'tv'},
+    {id:'bc-serie',title:t('disc.because'),type:'because',filter:'serie'},
+    {id:'pop-serie2',title:t('disc.popSeries'),url:'/discover/tv?sort_by=popularity.desc&vote_count.gte=100&without_genres=16',mtype:'tv'},
+    {id:'top-serie',title:t('disc.topRated'),url:'/discover/tv?sort_by=vote_average.desc&vote_count.gte=300&without_genres=16',mtype:'tv'},
+    {id:'kr-serie',title:t('disc.kdramas'),url:'/discover/tv?sort_by=popularity.desc&with_origin_country=KR&without_genres=16',mtype:'tv'},
   ],
   anime:[
-    {id:'tr-anime',title:'Tendances Anime',url:'/discover/tv?with_genres=16&sort_by=popularity.desc',mtype:'tv'},
-    {id:'bc-anime',title:'Parce que tu as aimé',type:'because',filter:'anime'},
-    {id:'an-action',title:'Action',url:'/discover/tv?with_genres=16,10759&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-comedy',title:'Comédie',url:'/discover/tv?with_genres=16,35&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-drama',title:'Drama',url:'/discover/tv?with_genres=16,18&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-fantasy',title:'Fantastique',url:'/discover/tv?with_genres=16,14&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-romance',title:'Romance',url:'/discover/tv?with_genres=16,10749&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-scifi',title:'Science-Fiction',url:'/discover/tv?with_genres=16,10765&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-mystery',title:'Surnaturel / Mystère',url:'/discover/tv?with_genres=16,9648&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-isekai',title:'Isekai',url:'/discover/tv?with_genres=16&with_keywords=210024&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-mecha',title:'Mecha',url:'/discover/tv?with_genres=16&with_keywords=3944&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-shonen',title:'Shōnen',url:'/discover/tv?with_genres=16&with_keywords=157015&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-seinen',title:'Seinen',url:'/discover/tv?with_genres=16&with_keywords=162246&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-slice',title:'Slice of Life',url:'/discover/tv?with_genres=16,18&sort_by=vote_average.desc&vote_count.gte=80',mtype:'tv'},
-    {id:'an-kids',title:'Kodomo',url:'/discover/tv?with_genres=16,10762&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-ecchi',title:'Ecchi',url:'/discover/tv?with_genres=16&with_keywords=5095&sort_by=popularity.desc',mtype:'tv'},
-    {id:'an-harem',title:'Harem',url:'/discover/tv?with_genres=16&with_keywords=158645&sort_by=popularity.desc',mtype:'tv'},
+    {id:'tr-anime',title:t('disc.trendingAnime'),url:'/discover/tv?with_genres=16&sort_by=popularity.desc',mtype:'tv'},
+    {id:'bc-anime',title:t('disc.because'),type:'because',filter:'anime'},
+    {id:'an-action',title:t('genre.action'),url:'/discover/tv?with_genres=16,10759&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-comedy',title:t('genre.comedy'),url:'/discover/tv?with_genres=16,35&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-drama',title:t('disc.drama'),url:'/discover/tv?with_genres=16,18&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-fantasy',title:t('genre.fantasy'),url:'/discover/tv?with_genres=16,14&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-romance',title:t('genre.romance'),url:'/discover/tv?with_genres=16,10749&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-scifi',title:t('genre.scifi'),url:'/discover/tv?with_genres=16,10765&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-mystery',title:t('disc.mystery'),url:'/discover/tv?with_genres=16,9648&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-isekai',title:t('disc.isekai'),url:'/discover/tv?with_genres=16&with_keywords=210024&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-mecha',title:t('disc.mecha'),url:'/discover/tv?with_genres=16&with_keywords=3944&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-shonen',title:t('disc.shonen'),url:'/discover/tv?with_genres=16&with_keywords=157015&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-seinen',title:t('disc.seinen'),url:'/discover/tv?with_genres=16&with_keywords=162246&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-slice',title:t('disc.slice'),url:'/discover/tv?with_genres=16,18&sort_by=vote_average.desc&vote_count.gte=80',mtype:'tv'},
+    {id:'an-kids',title:t('disc.kodomo'),url:'/discover/tv?with_genres=16,10762&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-ecchi',title:t('disc.ecchi'),url:'/discover/tv?with_genres=16&with_keywords=5095&sort_by=popularity.desc',mtype:'tv'},
+    {id:'an-harem',title:t('disc.harem'),url:'/discover/tv?with_genres=16&with_keywords=158645&sort_by=popularity.desc',mtype:'tv'},
   ]
 };
 
@@ -61,10 +61,10 @@ function _drFetchBecause(filter){
   pool.forEach(function(i){if(i.myRating&&(!best||i.myRating>best.myRating))best=i;});
   if(!best)pool.forEach(function(i){if(i.tmdbScore&&(!best||parseFloat(i.tmdbScore)>parseFloat(best.tmdbScore||0)))best=i;});
   if(!best)return Promise.resolve({title:'',items:[]});
-  var t=best.tmdbType||(best.type==='film'?'movie':'tv');
+  var tt=best.tmdbType||(best.type==='film'?'movie':'tv');
   var inL=new Set(memDB.map(function(i){return i.tmdbId;}));
   function get(u){return apiFetch(u).then(function(r){return r.ok?r.json():{results:[]};}).catch(function(){return{results:[]};});}
-  var base=TB+'/'+t+'/'+best.tmdbId,q='?language=fr-FR&page=';
+  var base=TB+'/'+tt+'/'+best.tmdbId,q='?language='+TMDB_LANG+'&page=';
   /* recommendations p1+p2 puis similar p1+p2 en fallback → pool large garanti */
   return Promise.all([get(base+'/recommendations'+q+'1'),get(base+'/recommendations'+q+'2'),get(base+'/similar'+q+'1'),get(base+'/similar'+q+'2')]).then(function(pages){
     var seen={},items=[];
@@ -72,7 +72,7 @@ function _drFetchBecause(filter){
       (d.results||[]).forEach(function(x){
         if(seen[x.id])return;seen[x.id]=1;
         if(inL.has(x.id)||dismissed.indexOf(x.id)>=0||!x.poster_path)return;
-        items.push(_drNormItem(x,t));
+        items.push(_drNormItem(x,tt));
       });
     });
     items=_sortByProfile(items,computeTasteProfile());
@@ -92,7 +92,7 @@ function _drFetchRow(cfg){
     out.push(_drNormItem(x,cfg.mtype||null));
   }
   function get(p){
-    return apiFetch(TB+cfg.url+sep+'language=fr-FR&page='+p)
+    return apiFetch(TB+cfg.url+sep+'language='+TMDB_LANG+'&page='+p)
       .then(function(r){return r.ok?r.json():{results:[]};}).catch(function(){return{results:[]};});
   }
   /* Burst initial : 3 pages en parallèle depuis un offset aléatoire (renouvellement) */
@@ -162,17 +162,17 @@ function _renderDrRow(cfg,data,tab){
   var row=document.getElementById(rowId);if(!row)return;
   var items=data.items||[];
   if(!items.length){row.style.display='none';return;}
-  var label=cfg.title+(cfg.type==='because'&&data.title?' <em>'+esc(data.title.slice(0,20))+'</em>':'');
+  var label=esc(cfg.title)+(cfg.type==='because'&&data.title?' <em>'+esc(data.title.slice(0,20))+'</em>':'');
   row.innerHTML=
     '<div class="dr-row-head">'+
       '<div class="dr-row-title">'+label+'</div>'+
     '</div>'+
     '<div class="dr-row-wrap">'+
-      '<button class="dr-arrow left" onclick="drScrollRow(\''+innerId+'\',-1)" aria-label="Précédent">'+
+      '<button class="dr-arrow left" onclick="drScrollRow(\''+innerId+'\',-1)" aria-label="'+esc(t('common.prev'))+'">'+
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>'+
       '</button>'+
       '<div class="dr-row-inner" id="'+innerId+'">'+items.map(_drCardHtml).join('')+'</div>'+
-      '<button class="dr-arrow right" onclick="drScrollRow(\''+innerId+'\',1)" aria-label="Suivant">'+
+      '<button class="dr-arrow right" onclick="drScrollRow(\''+innerId+'\',1)" aria-label="'+esc(t('common.next'))+'">'+
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</button>'+
     '</div>';
@@ -220,14 +220,14 @@ function switchDiscoverCat(btn){
 
 /* Session 11B : actions Réglages > Recommandations */
 function resetDismissedRecos(){
-  if(!confirm('Réafficher tous les titres ignorés dans les recommandations ?'))return;
+  if(!confirm(t('disc.resetDismissedConfirm')))return;
   dismissed=[];
   localStorage.setItem('wl_dis','[]');
   _preserveContentScroll(function(){cache={};seenRecos=[];loadRecos();});
-  toast('Titres ignorés réaffichés');
+  toast(t('disc.resetDismissedDone'));
 }
 function clearDiscoveryCache(){
-  if(!confirm('Vider le cache Discovery et forcer un nouveau chargement ?'))return;
+  if(!confirm(t('disc.clearCacheConfirm')))return;
   _drCache={};
   cache={};
   seenRecos=[];
@@ -235,7 +235,7 @@ function clearDiscoveryCache(){
     loadDiscovery(activeTab);
     loadRecos();
   });
-  toast('Catalogue actualisé.');
+  toast(t('disc.clearCacheDone'));
 }
 
 document.getElementById('stabs').addEventListener('click',function(e){var b=e.target.closest('.stab');if(!b)return;sfx('click');document.querySelectorAll('.stab').forEach(function(x){x.classList.remove('on')});b.classList.add('on');activeStat=b.dataset.s;var m=document.getElementById('statSelMobile');if(m)m.value=activeStat;render();});

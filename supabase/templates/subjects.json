@@ -1,5 +1,11 @@
 {
   "$comment": "Fichier généré par scripts/build-brand.mjs depuis brand.config.json — ne pas modifier à la main.",
+  "$comment_subject": "« subject » (toutes les langues à la suite) est l'objet à coller dans Supabase. « subjectConditional » (une seule langue selon le compte) est une option non testée sur Supabase : à n'utiliser qu'après avoir vérifié qu'un email de test arrive avec le bon objet.",
+  "defaultLanguage": "fr",
+  "languages": [
+    "fr",
+    "en"
+  ],
   "smtp": {
     "senderEmail": "noreply@cinepisode.com",
     "senderName": "Cinepisode",
@@ -9,34 +15,74 @@
   },
   "confirmation": {
     "dashboard": "Confirm sign up",
-    "subject": "Confirme ton adresse email · Cinepisode"
+    "subject": "Confirme ton adresse email · Confirm your email address · Cinepisode",
+    "byLanguage": {
+      "fr": "Confirme ton adresse email · Cinepisode",
+      "en": "Confirm your email address · Cinepisode"
+    },
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Confirm your email address · Cinepisode{{ else }}Confirme ton adresse email · Cinepisode{{ end }}"
   },
   "invite": {
     "dashboard": "Invite user",
-    "subject": "Tu es invité·e sur Cinepisode"
+    "subject": "Tu es invité·e sur Cinepisode · You're invited to Cinepisode",
+    "byLanguage": {
+      "fr": "Tu es invité·e sur Cinepisode",
+      "en": "You're invited to Cinepisode"
+    },
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}You're invited to Cinepisode{{ else }}Tu es invité·e sur Cinepisode{{ end }}"
   },
   "magic_link": {
     "dashboard": "Magic link",
-    "subject": "Ton lien de connexion · Cinepisode"
+    "subject": "Ton lien de connexion · Your sign-in link · Cinepisode",
+    "byLanguage": {
+      "fr": "Ton lien de connexion · Cinepisode",
+      "en": "Your sign-in link · Cinepisode"
+    },
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Your sign-in link · Cinepisode{{ else }}Ton lien de connexion · Cinepisode{{ end }}"
   },
   "email_change": {
     "dashboard": "Change email address",
-    "subject": "Confirme ta nouvelle adresse email · Cinepisode"
+    "subject": "Confirme ta nouvelle adresse email · Confirm your new email address · Cinepisode",
+    "byLanguage": {
+      "fr": "Confirme ta nouvelle adresse email · Cinepisode",
+      "en": "Confirm your new email address · Cinepisode"
+    },
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Confirm your new email address · Cinepisode{{ else }}Confirme ta nouvelle adresse email · Cinepisode{{ end }}"
   },
   "recovery": {
     "dashboard": "Reset password",
-    "subject": "Réinitialise ton mot de passe · Cinepisode"
+    "subject": "Réinitialise ton mot de passe · Reset your password · Cinepisode",
+    "byLanguage": {
+      "fr": "Réinitialise ton mot de passe · Cinepisode",
+      "en": "Reset your password · Cinepisode"
+    },
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Reset your password · Cinepisode{{ else }}Réinitialise ton mot de passe · Cinepisode{{ end }}"
   },
   "reauthentication": {
     "dashboard": "Reauthentication",
-    "subject": "{{ .Token }} est ton code de vérification · Cinepisode"
+    "subject": "{{ .Token }} est ton code de vérification · Your verification code · Cinepisode",
+    "byLanguage": {
+      "fr": "{{ .Token }} est ton code de vérification · Cinepisode",
+      "en": "Your verification code · Cinepisode"
+    },
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Your verification code · Cinepisode{{ else }}{{ .Token }} est ton code de vérification · Cinepisode{{ end }}"
   },
   "password_changed_notification": {
     "dashboard": "Password changed (notification de sécurité)",
-    "subject": "Ton mot de passe a été modifié · Cinepisode"
+    "subject": "Ton mot de passe a été modifié · Your password was changed · Cinepisode",
+    "byLanguage": {
+      "fr": "Ton mot de passe a été modifié · Cinepisode",
+      "en": "Your password was changed · Cinepisode"
+    },
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Your password was changed · Cinepisode{{ else }}Ton mot de passe a été modifié · Cinepisode{{ end }}"
   },
   "email_changed_notification": {
     "dashboard": "Email address changed (notification de sécurité)",
-    "subject": "Ton adresse email a été modifiée · Cinepisode"
+    "subject": "Ton adresse email a été modifiée · Your email address was changed · Cinepisode",
+    "byLanguage": {
+      "fr": "Ton adresse email a été modifiée · Cinepisode",
+      "en": "Your email address was changed · Cinepisode"
+    },
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Your email address was changed · Cinepisode{{ else }}Ton adresse email a été modifiée · Cinepisode{{ end }}"
   }
 }

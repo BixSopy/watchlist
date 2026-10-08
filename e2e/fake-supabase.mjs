@@ -19,7 +19,7 @@ export async function installFakeSupabase(page, opts = {}) {
   const userJson = u => ({ id: u.id, aud: 'authenticated', role: 'authenticated', email: u.email,
     email_confirmed_at: u.confirmed ? '2026-10-01T10:00:00Z' : null, confirmed_at: u.confirmed ? '2026-10-01T10:00:00Z' : null,
     created_at: '2026-10-01T10:00:00Z', updated_at: '2026-10-01T10:00:00Z', last_sign_in_at: '2026-10-08T10:00:00Z',
-    app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: {},
+    app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: { ...(u.metadata || {}) },
     identities: [{ id: u.id, user_id: u.id, provider: 'email', identity_id: 'i-' + u.id, identity_data: { email: u.email, sub: u.id }, created_at: '2026-10-01T10:00:00Z', updated_at: '2026-10-01T10:00:00Z', last_sign_in_at: '2026-10-01T10:00:00Z' }] });
   const session = u => ({ access_token: jwt(u), token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     refresh_token: 'refresh-' + u.id, user: userJson(u) });
@@ -43,7 +43,7 @@ export async function installFakeSupabase(page, opts = {}) {
 
     if (p === '/auth/v1/signup') {
       if (db.users.some(x => x.email === body.email)) return ok(route, { ...userJson({ id: 'fake', email: body.email }), identities: [] });
-      const nu = { id: '22222222-2222-4222-8222-222222222222', email: body.email, password: body.password, confirmed: false };
+      const nu = { id: '22222222-2222-4222-8222-222222222222', email: body.email, password: body.password, confirmed: false, metadata: { ...(body.data || {}) } };
       db.users.push(nu);
       return ok(route, { ...userJson(nu), confirmation_sent_at: new Date().toISOString() });
     }
@@ -70,6 +70,7 @@ export async function installFakeSupabase(page, opts = {}) {
       if (!usr) return err(route, 401, 'session_not_found', 'invalid JWT');
       if (req.method() === 'PUT') {
         if (body.password) { if (body.password === usr.password) return err(route, 422, 'same_password', 'New password should be different'); usr.password = body.password; }
+        if (body.data) usr.metadata = { ...(usr.metadata || {}), ...body.data };
       }
       return ok(route, userJson(usr));
     }

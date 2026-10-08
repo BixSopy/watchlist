@@ -1,14 +1,14 @@
 {
   "name": "Cinepisode",
   "short_name": "Cinepisode",
-  "description": "Suivi personnel de films, séries et anime",
+  "description": "Personal tracker for movies, series and anime",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#06070a",
   "theme_color": "#06070a",
   "orientation": "any",
-  "lang": "fr",
+  "lang": "en",
   "icons": [
     {
       "src": "/icons/icon-192.png",

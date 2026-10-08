@@ -1,0 +1,11 @@
+subject: Reset your password · [[name]]
+preheader: Choose a new password for your [[name]] account.
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>New password</h1>
+<p>Someone (probably you) asked to reset the password for the account <strong>{{ .Email }}</strong>. Click the button to choose a new one.</p>
+[[button||Choose a new password||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=en]]
+<p class="muted">Or, in [[name]] ("Sign in", then "I have a code"), enter this code:</p>
+[[code||{{ .Token }}]]
+<p class="small">The link and the code expire after one hour and can only be used once. If you didn't request this, ignore this email: your current password still works.</p>
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=en]]

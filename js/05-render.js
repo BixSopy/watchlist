@@ -23,11 +23,11 @@ function cardHtml(item,idx){
   var mr=item.myRating?'<div class="cmyr">'+item.myRating+'/10</div>':'';
   var prog='';
   if(item.status=='encours'&&item.totalEp&&item.totalEp>0&&item.episode){var pct=Math.min(100,Math.round((item.episode/item.totalEp)*100));prog='<div class="cprog"><div class="cprog-bar"><div class="cprog-fill" style="width:'+pct+'%"></div></div><div class="cprog-lbl">'+item.episode+'/'+item.totalEp+' ep ('+pct+'%)</div></div>';}
-  var newep=item.hasNewEp?'<div class="card-newep">Nouvel ep</div>':'';
-  var todof=(item.status==='todo'||item.needsConfig)?'<div class="card-todo-flag" title="À qualifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>':'';
+  var newep=item.hasNewEp?'<div class="card-newep">'+esc(t('card.newEp'))+'</div>':'';
+  var todof=(item.status==='todo'||item.needsConfig)?'<div class="card-todo-flag" title="'+esc(t('status.todo'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>':'';
   var id=item.id;var delay=idx*0.02;
-  var nextBtn=(item.status=='encours'&&item.type!='film')?'<div class="ibtn" onclick="quickNextEp('+jsArg(id)+',event)" title="Épisode suivant vu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>':'';
-  return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(id)+')">'+newep+todof+po+ph+'<div class="cact">'+nextBtn+'<div class="ibtn" onclick="event.stopPropagation();sfx(\'click\');openEdit('+jsArg(id)+')" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del" onclick="event.stopPropagation();delEntry('+jsArg(id)+')" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(item.title)+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
+  var nextBtn=(item.status=='encours'&&item.type!='film')?'<div class="ibtn" onclick="quickNextEp('+jsArg(id)+',event)" title="'+esc(t('card.nextEp'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>':'';
+  return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(id)+')">'+newep+todof+po+ph+'<div class="cact">'+nextBtn+'<div class="ibtn" onclick="event.stopPropagation();sfx(\'click\');openEdit('+jsArg(id)+')" title="'+esc(t('common.edit'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del" onclick="event.stopPropagation();delEntry('+jsArg(id)+')" title="'+esc(t('common.delete'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(item.title)+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
 }
 
 /* Session 11B : estimation du nombre de colonnes réelles de la grille principale,
@@ -79,7 +79,7 @@ function loadMoreSec(secId,btn){
   toShow.forEach(function(el,i){el.style.animationDelay=(i*0.035)+'s';el.classList.add('revealed');});
   var left=hidden.length-n;
   if(left<=0){if(btn&&btn.parentElement)btn.parentElement.style.display='none';}
-  else if(btn)btn.textContent='Charger plus · '+left+' autre'+(left>1?'s':'');
+  else if(btn)btn.textContent=tn('sec.loadMore',left);
 }
 var STATUS_SEC_CLASS={encours:'sec-status-encours',avoir:'sec-status-avoir',termine:'sec-status-termine'};
 function secHtml(label,items,statusClass){
@@ -102,7 +102,7 @@ function secHtml(label,items,statusClass){
   });
   h+='</div>';
   var rem=blocks.length-initVisible;
-  if(rem>0)h+='<div class="load-more-wrap"><button class="load-more-btn" onclick="loadMoreSec(\''+secId+'\',this)">Charger plus \xb7 '+rem+' autre'+(rem>1?'s':'')+'</button><span class="load-more-count">'+blocks.length+' au total</span></div>';
+  if(rem>0)h+='<div class="load-more-wrap"><button class="load-more-btn" onclick="loadMoreSec(\''+secId+'\',this)">'+esc(tn('sec.loadMore',rem))+'</button><span class="load-more-count">'+esc(tn('sec.total',blocks.length))+'</span></div>';
   return h+'</div>';
 }
 /* Hero cinematique : met en avant les titres "en cours" de l'onglet actif (balayage
@@ -152,19 +152,19 @@ function _heroGoTo(i){_heroIdx=i;_showHeroItem(i);_scheduleHeroRotate();}
 function _showHeroItem(idx){
   var item=_heroItems[idx];if(!item)return;
   document.getElementById('heroTitle').textContent=item.title;
-  var typeLbl=item.type==='film'?'Film':item.type==='anime'?'Anime':'Série';
+  var typeLbl=t('type.'+(item.type==='film'||item.type==='anime'?item.type:'serie'));
   var epT=(item.saison&&item.episode)?('S'+pad(item.saison)+' E'+pad(item.episode)):'';
   document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
   document.getElementById('heroBtnPlay').onclick=function(){sfx('click');openPlex(item.id);};
   document.getElementById('heroBtnInfo').onclick=function(){sfx('click');openPlex(item.id);};
   var dots=document.getElementById('heroDots');
-  dots.innerHTML=_heroItems.length>1?_heroItems.map(function(_,i){return '<button class="hero-dot'+(i===idx?' on':'')+'" onclick="sfx(\'click\');_heroGoTo('+i+')" aria-label="Titre '+(i+1)+'"></button>';}).join(''):'';
+  dots.innerHTML=_heroItems.length>1?_heroItems.map(function(_,i){return '<button class="hero-dot'+(i===idx?' on':'')+'" onclick="sfx(\'click\');_heroGoTo('+i+')" aria-label="'+esc(t('hero.dot',{n:i+1}))+'"></button>';}).join(''):'';
   if(_heroItemId===item.id)return;
   _heroItemId=item.id;
   var bg=document.getElementById('heroBg');
   bg.classList.remove('loaded');
   var kind=item.tmdbType||(item.type==='film'?'movie':'tv');
-  tf(TB+'/'+kind+'/'+item.tmdbId+'?language=fr-FR&append_to_response=images').then(function(det){
+  tf(TB+'/'+kind+'/'+item.tmdbId+'?language='+TMDB_LANG+'&append_to_response=images').then(function(det){
     if(_heroItemId!==item.id)return;
     var imgs=(det.images&&det.images.backdrops)||[];
     var path=imgs.length?imgs[0].file_path:(det.backdrop_path||null);
@@ -175,7 +175,7 @@ function _showHeroItem(idx){
 function render(){
   renderHero();
   var total0=memDB.filter(function(i){return !i.deleted}).length,ec0=memDB.filter(function(i){return i.status=='encours'&&!i.deleted}).length,te0=memDB.filter(function(i){return i.status=='termine'&&!i.deleted}).length;
-  document.getElementById('hstats').innerHTML='<div class="pill"><b>'+total0+'</b> titres</div><div class="pill">En cours <b>'+ec0+'</b></div><div class="pill">Terminés <b>'+te0+'</b></div>';
+  document.getElementById('hstats').innerHTML='<div class="pill">'+tn('pill.titles',total0,{n:'<b>'+fmtNum(total0)+'</b>'})+'</div><div class="pill">'+esc(t('status.encours'))+' <b>'+fmtNum(ec0)+'</b></div><div class="pill">'+esc(t('sec.termines'))+' <b>'+fmtNum(te0)+'</b></div>';
   if(activeTab==='discover'){
     document.getElementById('mc').innerHTML='';
     if(typeof updateStatsFooter==='function')updateStatsFooter();
@@ -189,33 +189,33 @@ function render(){
   if(tab=='all'){
     var ec=items.filter(function(i){return i.status=='encours'});
     if(ec.length){
-      html+='<div class="sec sec-status-encours"><div class="sec-hd"><div class="sec-title">En cours</div><div class="sec-count">'+ec.length+'</div></div><div class="ec-strip">';
+      html+='<div class="sec sec-status-encours"><div class="sec-hd"><div class="sec-title">'+esc(t('status.encours'))+'</div><div class="sec-count">'+ec.length+'</div></div><div class="ec-strip">';
       ec.forEach(function(item){
         var po=item.poster?'<img class="ec-poster" src=\"'+IB+'w185'+esc(item.poster)+'\" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'';
         var ph='<div class="ec-poster-ph" '+(item.poster?'style="display:none"':'')+'>'+icon(item.type)+'</div>';
-        var epT=(item.saison&&item.episode)?'S'+pad(item.saison)+' E'+pad(item.episode):'En cours';
+        var epT=(item.saison&&item.episode)?'S'+pad(item.saison)+' E'+pad(item.episode):t('status.encours');
         var pct=0;if(item.totalEp&&item.totalEp>0&&item.episode)pct=Math.min(100,Math.round((item.episode/item.totalEp)*100));
         var pb=item.totalEp?'<div class="pbar"><div class="pbar-fill" style="width:'+pct+'%"></div></div>':'';
-        var nextBtn=item.type!='film'?'<button class="ec-next" title="Épisode suivant vu" onclick="quickNextEp('+jsArg(item.id)+',event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>':'';
+        var nextBtn=item.type!='film'?'<button class="ec-next" title="'+esc(t('card.nextEp'))+'" onclick="quickNextEp('+jsArg(item.id)+',event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>':'';
         html+='<div class="ec-card" onmouseenter="sfx(\'hover\')" onclick="sfx(\'click\');openPlex('+jsArg(item.id)+')">'+po+ph+nextBtn+'<div class="ec-body"><div class="ec-title">'+esc(item.title)+'</div><div class="ec-ep">'+epT+'</div>'+pb+'</div></div>';
       });
       html+='</div></div>';
     }
     if(stat=='all'){
       /* "En cours" a déjà sa bande dédiée ci-dessus : on évite de le répéter en grille complète */
-      html+=secHtml('À voir',items.filter(function(i){return i.status=='avoir'||i.status=='todo'}),'sec-status-avoir');
-      html+=secHtml('Terminés',items.filter(function(i){return i.status=='termine'}),'sec-status-termine');
+      html+=secHtml(esc(t('status.avoir')),items.filter(function(i){return i.status=='avoir'||i.status=='todo'}),'sec-status-avoir');
+      html+=secHtml(esc(t('sec.termines')),items.filter(function(i){return i.status=='termine'}),'sec-status-termine');
     }
-    else{html+=secHtml(stat=='avoir'?'À voir':stat=='encours'?'En cours':'Terminés',items,STATUS_SEC_CLASS[stat]);}
+    else{html+=secHtml(esc(stat=='avoir'?t('status.avoir'):stat=='encours'?t('status.encours'):t('sec.termines')),items,STATUS_SEC_CLASS[stat]);}
   } else {
-    var secs=[{s:'encours',l:'En cours',c:'sec-status-encours'},{s:'avoir',l:'À voir',c:'sec-status-avoir'},{s:'termine',l:'Terminés',c:'sec-status-termine'}];
+    var secs=[{s:'encours',l:esc(t('status.encours')),c:'sec-status-encours'},{s:'avoir',l:esc(t('status.avoir')),c:'sec-status-avoir'},{s:'termine',l:esc(t('sec.termines')),c:'sec-status-termine'}];
     secs.forEach(function(sec){
       var si=stat=='all'?items.filter(function(i){return i.status==sec.s}):(sec.s==stat?items:[]);
       if(si.length)html+=secHtml(sec.l,si,sec.c);
     });
   }
 
-  if(!html)html=memDB.length==0?'<div class="empty-state"><div class="empty-state-icon">🎬</div><p>Ta watchlist est vide</p><small>Appuie sur <strong style="color:var(--accent)">N</strong> ou clique sur Ajouter pour commencer</small></div>':'<div class="empty-state"><div class="empty-state-icon">🔍</div><p>Aucun résultat</p><small>Essaie un autre filtre ou terme de recherche</small></div>';
+  if(!html)html=memDB.length==0?'<div class="empty-state"><div class="empty-state-icon">🎬</div><p>'+esc(t('empty.title'))+'</p><small>'+t('empty.hint',{key:'<strong style="color:var(--accent)">N</strong>'})+'</small></div>':'<div class="empty-state"><div class="empty-state-icon">🔍</div><p>'+esc(t('empty.noResult'))+'</p><small>'+esc(t('empty.noResultHint'))+'</small></div>';
   document.getElementById('mc').innerHTML=html;
   if(typeof updateStatsFooter==='function')updateStatsFooter();
 }

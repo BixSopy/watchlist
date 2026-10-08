@@ -37,15 +37,15 @@ function apiFetch(url){
   });
 }
 var _API_STATE_MSG={
-  login:'Connecte-toi ou crée un compte gratuit pour accéder au catalogue (recherche, recommandations, nouveautés).',
-  forbidden:'Ce compte n\'a pas accès au catalogue.',
-  unconfirmed:'Confirme ton adresse email (lien reçu à l\'inscription) pour accéder au catalogue.',
-  quota:'Tu as atteint ton quota quotidien de catalogue. Ta liste reste utilisable ; le catalogue revient demain.'
+  login:t('api.msg.login'),
+  forbidden:t('api.msg.forbidden'),
+  unconfirmed:t('api.msg.unconfirmed'),
+  quota:t('api.msg.quota')
 };
 function _loginMsgHtml(){
   var st=_apiAuthState||'login';
-  var cta=st==='login'?'<div class="sb-cta"><button class="btn btn-primary" onclick="openAuthModal(\'signup\')">Créer un compte</button><button class="btn btn-ghost" onclick="openAuthModal(\'login\')">Se connecter</button></div>'
-    :st==='unconfirmed'?'<div class="sb-cta"><button class="btn btn-ghost" onclick="openAuthModal(\'account\')">Mon compte</button></div>':'';
+  var cta=st==='login'?'<div class="sb-cta"><button class="btn btn-primary" onclick="openAuthModal(\'signup\')">'+esc(t('auth.createAccount'))+'</button><button class="btn btn-ghost" onclick="openAuthModal(\'login\')">'+esc(t('auth.signIn'))+'</button></div>'
+    :st==='unconfirmed'?'<div class="sb-cta"><button class="btn btn-ghost" onclick="openAuthModal(\'account\')">'+esc(t('auth.myAccount'))+'</button></div>':'';
   return '<div class="sb-loading sb-auth-msg">'+esc(_API_STATE_MSG[st]||_API_STATE_MSG.login)+cta+'</div>';
 }
 function _paintLoginRequired(){
@@ -54,10 +54,10 @@ function _paintLoginRequired(){
   var ds=document.getElementById('discoverSection');if(ds)ds.innerHTML=_loginMsgHtml();
 }
 var _API_STATE_TOAST={
-  login:'Connecte-toi pour charger le catalogue',
-  forbidden:'Compte non autorisé pour le catalogue',
-  unconfirmed:'Confirme ton adresse email pour accéder au catalogue',
-  quota:'Quota quotidien du catalogue atteint, retour demain'
+  login:t('api.toast.login'),
+  forbidden:t('api.toast.forbidden'),
+  unconfirmed:t('api.toast.unconfirmed'),
+  quota:t('api.toast.quota')
 };
 function _notifyLoginRequired(state){
   _apiAuthState=state||'login';
@@ -119,7 +119,7 @@ function detectAnimeGenre(tmdbId,cb){
 
 /* TRAILER */
 function getTrailer(type,id,sn,cb){
-  var u=sn?TB+'/tv/'+id+'/season/'+sn+'/videos?language=fr-FR':TB+'/'+type+'/'+id+'/videos?language=fr-FR';
+  var u=sn?TB+'/tv/'+id+'/season/'+sn+'/videos?language='+TMDB_LANG:TB+'/'+type+'/'+id+'/videos?language='+TMDB_LANG;
   tf(u).then(function(d){
     var v=(d.results||[]).filter(function(x){return x.site=='YouTube'&&(x.type=='Trailer'||x.type=='Teaser')});
     if(!v.length){

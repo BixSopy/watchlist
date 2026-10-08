@@ -14,6 +14,7 @@ updated: 8 octobre 2026
   <tr><th>Donnée</th><th>Pourquoi</th><th>Où</th></tr>
   <tr><td>Adresse email, mot de passe (stocké uniquement sous forme chiffrée irréversible), dates de création et de dernière connexion</td><td>Créer et sécuriser ton compte, t'envoyer les emails de confirmation et de réinitialisation</td><td>Supabase (Auth), région <strong>eu-central-1, Francfort (UE)</strong></td></tr>
   <tr><td>Ta liste&nbsp;: titres, type, statut, progression (saison/épisode), notes, tags, sagas, identifiants TMDB</td><td>Synchroniser ta liste entre tes appareils</td><td>Supabase (base de données), Francfort (UE)</td></tr>
+  <tr><td>Langue de l'interface</td><td>T'envoyer les emails de compte dans ta langue</td><td>Supabase (Auth), Francfort (UE)</td></tr>
   <tr><td>Jeton de suivi automatique (si tu en génères un)</td><td>Permettre à l'extension navigateur ou à Tautulli/Plex de mettre à jour ta progression</td><td>Supabase, Francfort (UE)</td></tr>
   <tr><td>Compteurs d'utilisation du catalogue (nombre de requêtes par jour)</td><td>Appliquer les quotas quotidiens et empêcher les abus</td><td>Supabase, Francfort (UE)&nbsp;; effacés automatiquement après quelques jours</td></tr>
   <tr><td>Adresse IP, navigateur, horodatage des requêtes (journaux techniques)</td><td>Sécurité, limitation des abus, diagnostic des pannes</td><td>Journaux de Vercel et de Supabase, conservation courte selon leurs offres</td></tr>
@@ -21,7 +22,7 @@ updated: 8 octobre 2026
 <p class="muted">Bases légales&nbsp;: l'exécution du service que tu demandes en créant un compte (article 6.1.b du RGPD) et notre intérêt légitime à sécuriser le service (article 6.1.f) pour les journaux, le CAPTCHA et les quotas.</p>
 
 <h2>Stockage dans ton navigateur</h2>
-<p>[[name]] n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
+<p>[[name]] n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages, ta langue et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
 
 <h2>Hébergement et sous-traitants</h2>
 <ul>
@@ -34,7 +35,7 @@ updated: 8 octobre 2026
 
 <h2>Sources de données sur les films et séries</h2>
 <ul>
-  <li><strong>TMDB</strong> et <strong>OMDb</strong>&nbsp;: interrogés par notre serveur. Ils ne reçoivent ni ton adresse IP, ni ton email, ni ta liste&nbsp;: seulement la requête (par exemple un identifiant de film).</li>
+  <li><strong>TMDB</strong> et <strong>OMDb</strong>&nbsp;: interrogés par notre serveur. Ils ne reçoivent ni ton adresse IP, ni ton email, ni ta liste&nbsp;: seulement la requête (par exemple un identifiant de film) et sa langue.</li>
   <li><strong>Affiches TMDB</strong> (image.tmdb.org), <strong>Kitsu</strong> et <strong>TVmaze</strong>&nbsp;: chargés directement par ton navigateur, ces services voient donc ton adresse IP (comme pour toute image ou ressource web), mais aucune donnée de compte.</li>
 </ul>
 

@@ -1,7 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Fichier généré par scripts/build-brand.mjs depuis brand.config.json — ne pas modifier à la main. -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://cinepisode.com/</loc></url>
-  <url><loc>https://cinepisode.com/confidentialite</loc></url>
-  <url><loc>https://cinepisode.com/conditions</loc></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://cinepisode.com/</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://cinepisode.com/fr"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cinepisode.com/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cinepisode.com/"/>
+  </url>
+  <url>
+    <loc>https://cinepisode.com/fr</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://cinepisode.com/fr"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cinepisode.com/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cinepisode.com/"/>
+  </url>
+  <url>
+    <loc>https://cinepisode.com/en</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://cinepisode.com/fr"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cinepisode.com/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cinepisode.com/"/>
+  </url>
+  <url>
+    <loc>https://cinepisode.com/confidentialite</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://cinepisode.com/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cinepisode.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cinepisode.com/privacy"/>
+  </url>
+  <url>
+    <loc>https://cinepisode.com/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://cinepisode.com/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cinepisode.com/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cinepisode.com/privacy"/>
+  </url>
+  <url>
+    <loc>https://cinepisode.com/conditions</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://cinepisode.com/conditions"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cinepisode.com/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cinepisode.com/terms"/>
+  </url>
+  <url>
+    <loc>https://cinepisode.com/terms</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://cinepisode.com/conditions"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cinepisode.com/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cinepisode.com/terms"/>
+  </url>
 </urlset>

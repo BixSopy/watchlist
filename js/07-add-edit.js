@@ -3,14 +3,14 @@
 var ti=document.getElementById('tinput'),tdd=document.getElementById('tdd'),spin=document.getElementById('spin');
 ti.addEventListener('input',function(){clearTimeout(stimer);var q=ti.value.trim();if(q.length<2){tdd.classList.remove('on');return}spin.classList.add('on');stimer=setTimeout(function(){doSearch(q)},400);});
 function doSearch(q){
-  tf(TB+'/search/multi?query='+encodeURIComponent(q)+'&language=fr-FR').then(function(data){
+  tf(TB+'/search/multi?query='+encodeURIComponent(q)+'&language='+TMDB_LANG).then(function(data){
     spin.classList.remove('on');
     var res=(data.results||[]).filter(function(r){return r.media_type=='movie'||r.media_type=='tv'}).slice(0,8);
-    if(!res.length){tdd.innerHTML='<div class="ddi" style="color:var(--text3)">Aucun resultat</div>';tdd.classList.add('on');return}
+    if(!res.length){tdd.innerHTML='<div class="ddi" style="color:var(--text3)">'+esc(t('empty.noResult'))+'</div>';tdd.classList.add('on');return}
     tdd.innerHTML=res.map(function(r,i){
       var isM=r.media_type=='movie';var title=isM?r.title:r.name;var year=isM?(r.release_date||'').slice(0,4):(r.first_air_date||'').slice(0,4);
       var th=r.poster_path?'<img class="ddth" src=\"'+IB+'w92'+esc(r.poster_path)+'\" alt="" loading="lazy">':'<div class="ddph">'+icon(isM?'film':'serie')+'</div>';
-      return '<div class="ddi"><div class="ddi-main" data-idx="'+i+'">'+th+'<div><div class="ddn">'+esc(title)+'</div><div class="dds">'+(isM?'Film':'Série/Anime')+(year?' - '+year:'')+'</div></div></div><div class="dd-ibtn" data-idx="'+i+'" data-act="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div></div>';
+      return '<div class="ddi"><div class="ddi-main" data-idx="'+i+'">'+th+'<div><div class="ddn">'+esc(title)+'</div><div class="dds">'+(isM?t('type.film'):t('type.serieAnime'))+(year?' - '+year:'')+'</div></div></div><div class="dd-ibtn" data-idx="'+i+'" data-act="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div></div>';
     }).join('');
     tdd._res=res;tdd.classList.add('on');
   }).catch(function(){spin.classList.remove('on');});
@@ -21,12 +21,12 @@ tdd.addEventListener('click',function(e){
   var dm=e.target.closest('.ddi-main');if(!dm)return;
   var r=tdd._res[parseInt(dm.dataset.idx)];if(!r)return;
   var dup=memDB.find(function(i){return i.tmdbId==r.id});
-  if(dup&&dup.id!=editId){sfx('err');tdd.classList.remove('on');ti.value='';toast('"'+(r.media_type=='movie'?r.title:r.name)+'" est deja dans ta liste','err');return;}
+  if(dup&&dup.id!=editId){sfx('err');tdd.classList.remove('on');ti.value='';toast(t('add.dup',{title:(r.media_type=='movie'?r.title:r.name)}),'err');return;}
   sfx('click');tdd.classList.remove('on');ti.value='';
   var isM=r.media_type=='movie';var title=isM?r.title:r.name;var year=isM?(r.release_date||'').slice(0,4):(r.first_air_date||'').slice(0,4);
   selTmdb={tmdbId:r.id,tmdbType:r.media_type,title:title,year:year,poster:r.poster_path||null,overview:r.overview||'',tmdbScore:r.vote_average?r.vote_average.toFixed(1):null};
   document.getElementById('sptitle').textContent=title;
-  document.getElementById('spmeta').textContent=(isM?'Film':'Série/Anime')+(year?' - '+year:'')+(r.vote_average?' - '+r.vote_average.toFixed(1):'');
+  document.getElementById('spmeta').textContent=(isM?t('type.film'):t('type.serieAnime'))+(year?' - '+year:'')+(r.vote_average?' - '+r.vote_average.toFixed(1):'');
   var im=document.getElementById('spimg');if(r.poster_path){im.src=IB+'w92'+r.poster_path;im.style.display='block';}else{im.style.display='none';}
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
   document.getElementById('ftmdb').value=selTmdb.tmdbScore||'';document.getElementById('fyear').value=year||'';
@@ -34,7 +34,7 @@ tdd.addEventListener('click',function(e){
   if(isM){document.getElementById('ftype').value='film';}else{document.getElementById('ftype').value='serie';fetchTotEp(r.id);}
   chkEpt();
 });
-function fetchTotEp(id){tf(TB+'/tv/'+id+'?language=fr-FR').then(function(d){document.getElementById('ftotep').value=d.number_of_episodes||0;}).catch(function(){});}
+function fetchTotEp(id){tf(TB+'/tv/'+id+'?language='+TMDB_LANG).then(function(d){document.getElementById('ftotep').value=d.number_of_episodes||0;}).catch(function(){});}
 function clearSel(){selTmdb=null;document.getElementById('sprev').classList.remove('on');document.getElementById('swrap').style.display='';ti.value='';document.getElementById('ftmdb').value='';document.getElementById('fyear').value='';}
 document.addEventListener('click',function(e){if(!e.target.closest('.swrap'))tdd.classList.remove('on');});
 
@@ -48,17 +48,17 @@ function _updateStarsLock(){
 }
 function buildStars(c){myRate=c||0;document.getElementById('stars').innerHTML=Array.from({length:10},function(_,i){var v=i+1;return '<div class="star'+(v<=myRate?' on':'')+'" onmouseenter="sfx(\'hover\')" onclick="setRate('+v+')">'+starsvg(v<=myRate)+'</div>';}).join('');}
 function setRate(v){sfx('click');myRate=v;buildStars(v);}
-function buildTags(t){curTags=t?t.slice():[];renderTags();}
+function buildTags(tt){curTags=tt?tt.slice():[];renderTags();}
 function renderTags(){
   var w=document.getElementById('tagsWrap');
-  w.innerHTML=curTags.map(function(t,i){return '<span class="tag">'+esc(t)+'<span class="tag-rm" onclick="rmTag('+i+')">x</span></span>';}).join('')+'<input type="text" class="tag-inp" id="tagInput" placeholder="+ tag">';
+  w.innerHTML=curTags.map(function(tt,i){return '<span class="tag">'+esc(tt)+'<span class="tag-rm" onclick="rmTag('+i+')">x</span></span>';}).join('')+'<input type="text" class="tag-inp" id="tagInput" placeholder="+ tag">';
   document.getElementById('tagInput').addEventListener('keydown',function(e){if(e.key=='Enter'||e.key==','){e.preventDefault();var v=this.value.trim().replace(/,/g,'');if(v&&curTags.indexOf(v)<0){curTags.push(v);sfx('click');renderTags();}else{this.value='';}}});
 }
 function rmTag(i){curTags=curTags.filter(function(x,k){return k!==i});renderTags();}
 function chkEpt(){
-  var s=document.getElementById('fstat').value,t=document.getElementById('ftype').value;
-  document.getElementById('ept').classList.toggle('on',s=='encours'&&t!='film');
-  document.getElementById('agField').style.display=t=='anime'?'block':'none';
+  var s=document.getElementById('fstat').value,tt=document.getElementById('ftype').value;
+  document.getElementById('ept').classList.toggle('on',s=='encours'&&tt!='film');
+  document.getElementById('agField').style.display=tt=='anime'?'block':'none';
 }
 document.getElementById('ftype').addEventListener('change',chkEpt);
 document.getElementById('fstat').addEventListener('change',chkEpt);
@@ -67,7 +67,7 @@ document.getElementById('fstat').addEventListener('change',chkEpt);
 function _buildSagaSuggest(){var names={};memDB.forEach(function(i){if(i.collectionName)names[i.collectionName]=1;});var dl=document.getElementById('sagaSuggest');if(dl)dl.innerHTML=Object.keys(names).map(function(n){return'<option value="'+esc(n)+'">';}).join('');}
 function openAdd(){
   editId=null;selTmdb=null;myRate=0;
-  document.getElementById('mtitle').textContent='Ajouter un titre';document.getElementById('sbtn').textContent='Ajouter';
+  document.getElementById('mtitle').textContent=t('add.title');document.getElementById('sbtn').textContent=t('common.add');
   document.getElementById('sprev').classList.remove('on');document.getElementById('swrap').style.display='';ti.value='';
   document.getElementById('ftype').value='film';document.getElementById('fstat').value='avoir';
   document.getElementById('ftmdb').value='';document.getElementById('fyear').value='';
@@ -79,10 +79,10 @@ function openAdd(){
 function openEdit(id){
   var item=memDB.find(function(i){return i.id==id});if(!item)return;
   editId=id;
-  document.getElementById('mtitle').textContent='Modifier';document.getElementById('sbtn').textContent='Enregistrer';
+  document.getElementById('mtitle').textContent=t('common.edit');document.getElementById('sbtn').textContent=t('common.save');
   selTmdb={tmdbId:item.tmdbId,tmdbType:item.tmdbType,title:item.title,year:item.year,poster:item.poster,overview:item.overview,tmdbScore:item.tmdbScore};
   document.getElementById('sptitle').textContent=item.title;
-  document.getElementById('spmeta').textContent=(item.type=='film'?'Film':'Série/Anime')+(item.year?' - '+item.year:'');
+  document.getElementById('spmeta').textContent=(item.type=='film'?t('type.film'):t('type.serieAnime'))+(item.year?' - '+item.year:'');
   var im=document.getElementById('spimg');if(item.poster){im.src=IB+'w92'+item.poster;im.style.display='block';}else{im.style.display='none';}
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
   document.getElementById('ftype').value=item.type;document.getElementById('fstat').value=item.status;
@@ -98,10 +98,10 @@ document.getElementById('addMbk').addEventListener('click',function(e){if(e.targ
 
 /* SAVE/DELETE */
 function saveEntry(){
-  if(!selTmdb){sfx('err');toast('Selectionne un titre','err');return;}
+  if(!selTmdb){sfx('err');toast(t('add.selectTitle'),'err');return;}
   if(!editId){
     var dup=memDB.find(function(i){return i.tmdbId==selTmdb.tmdbId;});
-    if(dup){sfx('err');toast('"'+selTmdb.title+'" est deja dans ta liste','err');return;}
+    if(dup){sfx('err');toast(t('add.dup',{title:selTmdb.title}),'err');return;}
   }
   var type=document.getElementById('ftype').value,status=document.getElementById('fstat').value;
   var sai=parseInt(document.getElementById('fsai').value)||1,epi=parseInt(document.getElementById('fepi').value)||1,totep=parseInt(document.getElementById('ftotep').value)||0;
@@ -127,20 +127,20 @@ function saveEntry(){
     collectionChecked:ex?ex.collectionChecked:false,tmdbCollectionId:ex?ex.tmdbCollectionId:null};
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}
-  dbPut(entry,function(){render();loadRecos();if(!editId)_removeFromDiscoverUI(entry.tmdbId);if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast((editId?'Modifie':'Ajoute')+' : '+entry.title);closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
+  dbPut(entry,function(){render();loadRecos();if(!editId)_removeFromDiscoverUI(entry.tmdbId);if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast(t(editId?'add.updated':'add.added',{title:entry.title}));closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
 }
 function delEntry(id){
-  if(!confirm('Supprimer ?'))return;
+  if(!confirm(t('add.deleteConfirm')))return;
   var item=memDB.find(function(i){return i.id==id});
   if(!item){return;}
   if(item.supaId||authUser){
     /* Item potentiellement connu de Supabase (ou compte actif) : tombstone pour propager la suppression, purge physique locale seulement apres confirmation de sync */
     item.deleted=true;item.updatedAtLocal=Date.now();item.needsSync=true;
-    dbPut(item,function(){sfx('del');render();loadRecos();toast('Supprime'+(item?' : '+item.title:''),'nfo');});
+    dbPut(item,function(){sfx('del');render();loadRecos();toast(t('add.deleted',{title:item.title}),'nfo');});
   }else{
     /* Jamais connecte / jamais synchronise : suppression physique immediate (comportement historique) */
     memDB=memDB.filter(function(i){return i.id!=id});
-    dbDel(id,function(){sfx('del');render();loadRecos();toast('Supprime'+(item?' : '+item.title:''),'nfo');});
+    dbDel(id,function(){sfx('del');render();loadRecos();toast(t('add.deleted',{title:item.title}),'nfo');});
   }
 }
 

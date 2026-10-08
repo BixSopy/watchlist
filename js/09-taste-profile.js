@@ -17,7 +17,7 @@ function buildTasteProfileCache(){
     if(idx>=pending.length){_profileBuildRunning=false;return;}
     var item=pending[idx];
     var kind=item.tmdbType||(item.type==='film'?'movie':'tv');
-    tf(TB+'/'+kind+'/'+item.tmdbId+'?language=fr-FR').then(function(d){
+    tf(TB+'/'+kind+'/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){
       item.genreIds=(d.genres||[]).map(function(g){return g.id;});
     }).catch(function(){item.genreIds=[];}).finally(function(){persistSuiviItem(item);setTimeout(function(){next(idx+1);},150);});
   }
