@@ -31,7 +31,7 @@ body{margin:0;background:#0a0a0c;color:#f0f0f0;font-family:'IBM Plex Sans', 'Int
 .lang{font-size:13px;color:#9a9aa3;text-decoration:none}
 .lang:hover{color:#fff}
 h1{font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:30px;line-height:1.2;letter-spacing:-.4px;margin:0 0 6px}
-.updated{color:#5c5c66;font-size:13px;margin:0 0 30px}
+.updated{color:#9a9aa3;font-size:13px;margin:0 0 30px}
 h2{font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:#5cc8ff;margin:34px 0 10px}
 p,li{color:#f0f0f0}
 .muted{color:#9a9aa3}
@@ -41,6 +41,9 @@ li{margin:4px 0}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 6px}
 th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid #26262c}
 th{color:#9a9aa3;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+/* Petits écrans : les cellules se coupent au lieu d'élargir la page */
+th,td{overflow-wrap:anywhere}
+@media (max-width:420px){table{font-size:13px}th,td{padding:8px 6px}}
 .card{background:#101013;border:1px solid #26262c;border-radius:16px;padding:16px 18px;margin:12px 0}
 .tmdb{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .tmdb img{height:14px;width:auto}

@@ -26,7 +26,7 @@ body{margin:0;background:[[colors.bg]];color:[[colors.text]];font-family:[[fonts
 .lang{font-size:13px;color:[[colors.textMuted]];text-decoration:none}
 .lang:hover{color:#fff}
 h1{font-family:[[fonts.display]];font-size:30px;line-height:1.2;letter-spacing:-.4px;margin:0 0 6px}
-.updated{color:[[colors.textFaint]];font-size:13px;margin:0 0 30px}
+.updated{color:[[colors.textMuted]];font-size:13px;margin:0 0 30px}
 h2{font-family:[[fonts.mono]];font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:[[colors.accent]];margin:34px 0 10px}
 p,li{color:[[colors.text]]}
 .muted{color:[[colors.textMuted]]}
@@ -36,6 +36,9 @@ li{margin:4px 0}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 6px}
 th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid [[colors.border]]}
 th{color:[[colors.textMuted]];font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+/* Petits écrans : les cellules se coupent au lieu d'élargir la page */
+th,td{overflow-wrap:anywhere}
+@media (max-width:420px){table{font-size:13px}th,td{padding:8px 6px}}
 .card{background:[[colors.surface]];border:1px solid [[colors.border]];border-radius:16px;padding:16px 18px;margin:12px 0}
 .tmdb{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .tmdb img{height:14px;width:auto}

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!--brand:head-->
 <title>Cinepisode</title>
 <meta name="description" content="Suivi personnel de films, séries et anime">
@@ -37,7 +37,7 @@
   /* COULEURS — fond profond (#1) */
   --bg2:#101013;--bg3:#17171b;--bg4:#1e1e23;--bg5:#27272e;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
-  --text:#f0f0f0;--text2:#888;--text3:#444;
+  --text:#f0f0f0;--text2:#888;--text3:#7c7c87;
   /* Couleurs de marque : générées depuis brand.config.json (node scripts/build-brand.mjs) */
   /*brand:css*/--bg:#0a0a0c;--accent:#5cc8ff;--accent-rgb:92,200,255;--accent-hover:#7ad4ff;--accent-dim:rgba(var(--accent-rgb),0.12);--accent-dim2:rgba(var(--accent-rgb),0.35);--on-accent:#06070a;/*/brand:css*/
   --red:#e84b4b;--green:#4be87a;
@@ -691,7 +691,6 @@ body.suivi-providers-off .suivi-providers{display:none}
   .toast{max-width:none}
   .nav{padding-left:10px;flex-wrap:wrap;gap:0;padding-top:8px;padding-bottom:0;background:transparent;border:none;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
   .nav.floating{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border:none;padding:0 10px}
-  .ntab[data-tab="all"]{display:none}
   .ntabs-scroll{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .ntab{font-size:15px;padding:14px 10px;justify-content:center;background:rgba(255,255,255,.055);backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);border:1px solid rgba(255,255,255,.12);border-radius:16px}
   .ntab.on{border-color:transparent}
@@ -947,6 +946,168 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 .csel-opt:hover{background:rgba(255,255,255,.08);color:var(--text)}
 .csel-opt.on{background:rgba(var(--accent-rgb),.14);color:var(--accent);font-weight:600}
 @media (prefers-reduced-motion: reduce){.csel-menu{transition:opacity .12s}}
+/* ===== Session 20 : audit mobile (360 → 768 px, paysage, application installée) =====
+   Rien ne change sur ordinateur, sauf le contraste des textes secondaires (--text3) et l'état vide
+   d'un filtre. Les env(safe-area-inset-*) valent 0 hors iPhone à encoche (viewport-fit=cover). */
+/* Encoche / Dynamic Island (application installée, barre d'état translucide) et paysage */
+.hdr{padding-top:env(safe-area-inset-top,0px);height:calc(68px + env(safe-area-inset-top,0px));padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}
+.layout,.app-foot{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.opt-menu{top:calc(76px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px))}
+.toast-wrap{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+/* Fermeture en haut des fenêtres plein écran (masquée là où la fenêtre n'est pas plein écran) */
+.modal-x-wrap{display:none}
+.plex-close{display:none}
+.modal-x,.plex-close{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(10,10,12,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.modal-x svg,.plex-close svg{width:16px;height:16px}
+.btn-del-plex{color:#ff8a8a}
+.btn-del-plex:hover{color:#ff8a8a;border-color:rgba(232,75,75,.45)}
+.empty-clear{margin-top:14px}
+/* Rendu discret (synchro, épisode suivant…) : pas d'animation d'entrée rejouée (js/05-render.js) */
+#mc.mc-quiet .card,#mc.mc-quiet .folder-card,#mc.mc-quiet .card.revealed,#mc.mc-quiet .folder-card.revealed{animation:none}
+/* 100vh d'iOS = hauteur sous la barre d'outils de Safari : dvh quand il est disponible */
+@supports (height:100dvh){
+  body{min-height:100dvh}
+  .layout{min-height:calc(100dvh - 62px)}
+  .search-modal-wrap{max-height:calc(100dvh - 8vh - 18px)}
+  .opt-menu{max-height:calc(100dvh - 100px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .modal-add,.modal-stats{max-height:90dvh}
+  .plex-wrap{max-height:92dvh}
+  .folder-wrap{max-height:90dvh}
+}
+@supports (height:100dvh){@media (min-width:1101px){.sidebar{height:calc(100dvh - 62px)}}}
+@media (max-width:1100px){
+  .sidebar{top:calc(62px + env(safe-area-inset-top,0px))}
+  .sb-backdrop{top:calc(62px + env(safe-area-inset-top,0px))}
+}
+@media (max-width:768px){
+  /* B1 : la rangée Ajouter / filtre / tri / recherche passe à la ligne au lieu d'élargir la page */
+  html,body{overflow-x:clip}
+  .nav.floating .nav-right{flex-wrap:wrap;row-gap:8px}
+  .srch{flex:1 1 150px;width:auto;min-width:0}
+  .srch input,.srch input:focus{width:100%;height:44px}
+  /* B2 : « Tout » de nouveau visible, 6 onglets en 3 colonnes */
+  .ntabs-scroll{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .ntab{min-width:0;padding:12px 6px;font-size:14px;gap:6px}
+  /* G1 : la recherche du catalogue devient une icône de 44 px, le logo reste entier */
+  .hdr{grid-template-columns:minmax(0,1fr) auto auto;column-gap:8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+  .hdr-left{gap:10px}
+  .search-bar{justify-self:end;width:44px;min-width:44px;height:44px;padding:0;border-radius:12px;justify-content:center;cursor:pointer}
+  .hdr .hbtn{border-radius:12px}
+  .search-bar input{display:none}
+  .search-bar>svg{position:static;transform:none;width:18px;height:18px;color:var(--text)}
+  /* C2 : toasts plus compacts (2 au plus, js/03-dom-utils.js), au-dessus de la barre d'accueil */
+  .toast-wrap{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));align-items:center}
+  .toast{max-width:min(440px,100%);padding:9px 14px;border-radius:12px}
+  /* C5 : plus de texte à 9-10 px */
+  .ec-ep,.cep,.cprog-lbl,.badge,.cast-role,.dr-year,.folder-item-year,.suivi-badge,.p-stat-l,.sb-title,.sb-sec-title,.settings-section-title{font-size:11px}
+  .card-newep{font-size:10.5px}
+  .cast-name{font-size:11.5px}
+  .setting-hint,.webhook-copy-btn{font-size:12px}
+}
+/* G2 : 16 px minimum dans les champs, sinon iOS zoome à chaque fois qu'on en touche un */
+@media (max-width:768px),(pointer:coarse){
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.auth-code-input),select,textarea{font-size:16px !important}
+}
+@media (max-width:640px){
+  /* G5 : fenêtres plein écran, fermeture toujours visible en haut, rien sous l'encoche */
+  .mbk .modal-add,.mbk .modal-stats{max-width:100%;max-height:100%;border-radius:0;padding:calc(18px + env(safe-area-inset-top,0px)) calc(18px + env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) calc(18px + env(safe-area-inset-left,0px))}
+  .modal-x-wrap{display:flex;justify-content:flex-end;position:sticky;top:calc(6px + env(safe-area-inset-top,0px));height:0;z-index:6}
+  .modal-x{display:flex;margin:-6px -6px 0 0}
+  .modal-add .mtitle,.modal-stats .mtitle{padding-right:48px}
+  .auth-close{top:calc(10px + env(safe-area-inset-top,0px))}
+  .folder-close-btn{top:calc(14px + env(safe-area-inset-top,0px))}
+  .search-modal-head{padding-top:calc(14px + env(safe-area-inset-top,0px))}
+  .search-footer{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+  @supports (height:100dvh){.search-modal-wrap{max-height:100dvh}}
+  .folder-wrap{max-height:100%}
+}
+/* B3 + G5 : sur téléphone et en paysage, la fiche défile d'un bloc (en-tête compris) et a un bouton × */
+@media (max-width:640px),(max-height:520px){
+  .plex-mbk{padding:0;align-items:stretch}
+  .plex-wrap{display:block;max-width:100%;max-height:100%;height:100%;border-radius:0;overflow-y:auto;overscroll-behavior:contain}
+  .plex-hero{border-radius:0}
+  .plex-body{overflow:visible;flex:none;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+  .plex-close{display:flex;position:sticky;top:calc(10px + env(safe-area-inset-top,0px));margin:calc(10px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) calc(-54px - env(safe-area-inset-top,0px)) auto;z-index:6}
+}
+@media (max-height:520px){
+  .plex-hero{height:210px}
+  .plex-hero-c{padding:14px calc(18px + env(safe-area-inset-right,0px)) 14px calc(18px + env(safe-area-inset-left,0px));gap:14px}
+  .plex-poster,.plex-poster-ph{width:84px;height:126px}
+  .plex-title{font-size:21px}
+  .plex-body{padding-left:calc(18px + env(safe-area-inset-left,0px));padding-right:calc(18px + env(safe-area-inset-right,0px))}
+}
+/* G7 : en paysage, le bandeau « Reprendre » ne prend plus tout l'écran */
+@media (max-height:500px) and (orientation:landscape){
+  .hero-band{height:160px}
+  .hero-band-content{left:calc(20px + env(safe-area-inset-left,0px));bottom:14px}
+  .hero-badge{margin-bottom:6px;padding:3px 9px}
+  .hero-title{font-size:22px;margin-bottom:8px}
+  .hero-meta,.hero-dots{display:none}
+  .hero-btn{padding:9px 15px;font-size:12px}
+  .hero-band.on + .nav.floating{margin-top:16px}
+}
+/* Onglets à 360 px : un peu moins de marge pour « Découvrir » et « Détectés » + pastille */
+@media (max-width:380px){.ntab{font-size:13.5px;padding-left:3px;padding-right:3px;gap:4px}}
+/* C4 : points du bandeau masqués sur petit écran (le bandeau défile seul) */
+@media (max-width:480px){.hero-dots{display:none}}
+/* Pastille du compte compacte sous 400 px : icône + point d'état (le texte reste lu par les lecteurs d'écran) */
+@media (max-width:400px){
+  .sync-pill{position:relative;width:44px;height:44px;padding:0;justify-content:center;border-radius:12px}
+  .sync-pill::before{content:'';width:18px;height:18px;background:var(--text);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E") center/contain no-repeat}
+  .sync-pill .sync-dot{position:absolute;top:8px;right:8px;width:9px;height:9px;box-shadow:0 0 0 2px var(--bg3)}
+  .sync-pill #syncStatusText{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+}
+/* G4 : en tactile (pas de survol), les boutons de carte invisibles ne doivent plus être touchables par erreur.
+   Seul « épisode suivant » reste, bien visible ; Modifier et Supprimer sont dans la fiche. */
+@media (hover:none){
+  .cact{opacity:1}
+  .cact .ibtn:not(.ibtn-next){display:none}
+  .cact .ibtn-next{width:38px;height:38px;border-radius:10px;color:#fff;background:rgba(0,0,0,.72)}
+  .cact .ibtn-next svg{width:15px;height:15px}
+  .card-todo-flag~.cact{top:36px}
+}
+/* G9 : cibles tactiles d'au moins 44 px pour les commandes fréquentes */
+@media (pointer:coarse){
+  .hbtn{width:44px;height:44px;flex:none}
+  .ntab{min-height:44px}
+  .hbtn svg{width:17px;height:17px}
+  .sync-pill{min-height:44px}
+  .ec-next{width:36px;height:36px}
+  .ec-next::after{content:'';position:absolute;inset:-4px}
+  .ec-next svg{width:14px;height:14px}
+  .toggle-switch{width:46px;height:28px}
+  .toggle-switch .knob{top:3px;left:3px;width:20px;height:20px}
+  .toggle-switch.on .knob{left:21px}
+  .toggle-switch::after{content:'';position:absolute;inset:-8px -4px}
+  .settings-back{width:44px;height:44px;justify-content:center;margin:-10px 0 -10px -10px}
+  .auth-close,.folder-close-btn{width:44px;height:44px}
+  .auth-close{right:10px}
+  .alert-close{min-width:44px;min-height:44px}
+  .alert-link{display:inline-block;padding:12px 2px;margin:-12px 0}
+  .nav-right .csel-btn{min-height:44px}
+  .auth-tab{min-height:44px}
+  .rbtn,.webhook-copy-btn,.lang-btn,.btn,.opt-btn,.load-more-btn,.hero-btn,.spclear{min-height:44px}
+  .csel-opt{min-height:44px;display:flex;align-items:center}
+  .stab,.s-btn{min-height:40px}
+  .search-check{width:44px;height:44px;top:3px;left:3px}
+  .pw-eye{width:44px;height:44px;right:2px}
+  .dd-ibtn{width:36px;height:36px}
+  .det-cb{width:24px;height:24px}
+  .suivi-reminder-toggle{min-width:40px;min-height:40px}
+  .spclear{flex:none;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+  .field .csel-btn,.search-filter-row .csel-btn{min-height:44px}
+  .settings-select .csel-btn{min-height:40px}
+  .auth-row-right .auth-link,.auth-alt .auth-link{padding:12px 0;margin:-12px 0}
+  .auth-check input,.det-all input{width:22px;height:22px}
+  .sb-refresh{min-height:40px;padding:4px 12px}
+  .suivi-hdr{min-height:44px}
+  .ep-row input{height:44px}
+  .settings-range{height:24px;background:linear-gradient(var(--bg5),var(--bg5)) center/100% 4px no-repeat}
+  .settings-range::-webkit-slider-thumb{width:22px;height:22px}
+  .settings-range::-moz-range-thumb{width:22px;height:22px}
+  /* Paysage : le champ de recherche de la liste ne s'élargit plus au focus (la page débordait à 850 px) */
+  .srch input:focus{width:100%}
+}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
@@ -1085,6 +1246,7 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 <!-- ADD MODAL -->
 <div class="mbk" id="addMbk">
   <div class="modal-add">
+    <div class="modal-x-wrap"><button type="button" class="modal-x" data-click="closeAddTop" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="mtitle" id="mtitle" data-i18n="add.title">Ajouter un titre</div>
     <div class="swrap" id="swrap">
       <input type="text" id="tinput" placeholder="Rechercher un film, série, anime..." autocomplete="off" data-i18n-attr="placeholder:hdr.searchPh">
@@ -1130,6 +1292,7 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 <!-- PLEX MODAL -->
 <div class="plex-mbk" id="plexMbk">
   <div class="plex-wrap">
+    <button type="button" class="plex-close" data-click="closePlexBtn" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div class="plex-hero" id="plexHero">
       <img id="plexBg" class="plex-bg" src="" alt="" style="display:none">
       <img id="plexBgBlur" class="plex-bg-blur" src="" alt="" style="display:none">
@@ -1166,6 +1329,7 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 <!-- STATS MODAL -->
 <div class="mbk" id="statsMbk">
   <div class="modal-stats">
+    <div class="modal-x-wrap"><button type="button" class="modal-x" data-click="closeStatsTop" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="mtitle" data-i18n="set.kbdStats">Statistiques</div>
     <div id="statsContent"></div>
     <div class="mact"><button class="btn btn-ghost" data-click="closeStats" data-i18n="common.close">Fermer</button></div>
@@ -1300,5 +1464,6 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 <script src="js/19-search-modal.js"></script>
 <script src="js/20-account.js"></script>
 <script src="js/21-detected.js"></script>
+<script src="js/22-modal-history.js"></script>
 </body>
 </html>

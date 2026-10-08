@@ -6,9 +6,17 @@ function toggleMenu(){
   menu.classList.toggle('on');
   if(!opening)closeSettingsView();
 }
+/* Clic en dehors du menu : on le ferme. Le chemin de l'événement (composedPath) est figé au moment du clic :
+   un interrupteur qui redessine le panneau pendant le clic (Mode compact, Sons, Section Suivi repliée,
+   Config avancée Tautulli) est détaché du document quand cet écouteur passe, et e.target.closest('.opt-menu')
+   renvoyait null, ce qui fermait le menu. */
 document.addEventListener('click',function(e){
   var menu=document.getElementById('optMenu');
-  if(!e.target.closest('.hbtn')&&!e.target.closest('.opt-menu')){menu.classList.remove('on');closeSettingsView();}
+  var path=e.composedPath?e.composedPath():[];
+  if(path.indexOf(menu)>=0)return;
+  if(!document.contains(e.target))return;
+  if(e.target.closest('.hbtn')||e.target.closest('.opt-menu'))return;
+  menu.classList.remove('on');closeSettingsView();
 });
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
@@ -142,6 +150,10 @@ function _onSettingChanged(key,val){
 function renderSettingsMenu(){
   var body=document.getElementById('settingsBody');
   if(!body)return;
+  /* Position de défilement conservée quand le panneau est redessiné (interrupteurs, jeton…) */
+  var menuEl=document.getElementById('optMenu'),scrollY=menuEl?menuEl.scrollTop:0;
+  /* Écran tactile : pas de réglages « au survol » ni de raccourcis clavier ; grille fixe à 2 colonnes sous 400 px */
+  var touch=typeof _isTouchUi==='function'&&_isTouchUi();
   var pending=memDB.filter(function(i){return i.needsSync;}).length;
   var syncLabel=esc(!supa?t('set.unavailable'):(authUser?(pending?tn('set.pending',pending):t('sync.synced')):t('set.notSignedIn')));
   var html='';
@@ -150,18 +162,18 @@ function renderSettingsMenu(){
   html+=_delegatedToggleRow(esc(t('set.compact')),'','toggleCompact',compactOn);
   html+=_delegatedToggleRow(esc(t('set.sounds')),'','toggleSound',soundOn);
   html+=_rangeRow(esc(t('set.soundVolume')),'','wl_snd_vol',wlSettings.wl_snd_vol);
-  html+=_selectRow(esc(t('set.grid')),'wl_grid_cols',[{v:'auto',l:esc(t('set.auto'))},{v:'4',l:esc(t('set.cols4'))},{v:'5',l:esc(t('set.cols5'))},{v:'6',l:esc(t('set.cols6'))},{v:'7',l:esc(t('set.cols7'))}],wlSettings.wl_grid_cols);
+  if(window.innerWidth>400)html+=_selectRow(esc(t('set.grid')),'wl_grid_cols',[{v:'auto',l:esc(t('set.auto'))},{v:'4',l:esc(t('set.cols4'))},{v:'5',l:esc(t('set.cols5'))},{v:'6',l:esc(t('set.cols6'))},{v:'7',l:esc(t('set.cols7'))}],wlSettings.wl_grid_cols);
   html+=_selectRow(esc(t('set.cardRatings')),'wl_card_ratings',[{v:'both',l:esc(t('set.both'))},{v:'my',l:esc(t('set.myOnly'))},{v:'tmdb',l:esc(t('set.tmdbOnly'))},{v:'off',l:esc(t('set.hide'))}],wlSettings.wl_card_ratings);
   html+=_selectRow(esc(t('set.cardBadges')),'wl_card_badges',[{v:'full',l:esc(t('set.full'))},{v:'off',l:esc(t('set.hide'))}],wlSettings.wl_card_badges);
   html+=_rangeRow(esc(t('set.glass')),esc(t('set.glassHint')),'wl_glass',wlSettings.wl_glass);
   html+=_rangeRow(esc(t('set.grain')),esc(t('set.grainHint')),'wl_grain',wlSettings.wl_grain);
   html+=_rangeRow(esc(t('set.aurora')),esc(t('set.auroraHint')),'wl_aurora',wlSettings.wl_aurora);
-  html+=_toggleRow(esc(t('set.glow')),esc(t('set.glowHint')),'wl_glow_border',wlSettings.wl_glow_border==='1');
+  if(!touch)html+=_toggleRow(esc(t('set.glow')),esc(t('set.glowHint')),'wl_glow_border',wlSettings.wl_glow_border==='1');
   html+='</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.recos'))+'</div>';
   html+=_toggleRow(esc(t('set.autoscroll')),'','wl_reco_autoscroll',wlSettings.wl_reco_autoscroll==='1');
   html+=_selectRow(esc(t('set.speed')),'wl_reco_speed',[{v:'slow',l:esc(t('set.slow'))},{v:'normal',l:esc(t('set.normal'))},{v:'fast',l:esc(t('set.fast'))}],wlSettings.wl_reco_speed);
-  html+=_toggleRow(esc(t('set.pauseHover')),'','wl_reco_pause_hover',wlSettings.wl_reco_pause_hover==='1');
+  if(!touch)html+=_toggleRow(esc(t('set.pauseHover')),'','wl_reco_pause_hover',wlSettings.wl_reco_pause_hover==='1');
   html+=_selectRow(esc(t('set.recoLimit')),'wl_reco_limit',[{v:'10',l:'10'},{v:'15',l:'15'},{v:'20',l:'20'}],wlSettings.wl_reco_limit);
   html+='<div class="settings-action-row" data-click="resetDismissed"><div class="setting-label">'+esc(t('set.resetDismissed'))+'</div><div class="setting-hint">'+esc(t('set.resetDismissedHint'))+'</div></div>';
   html+='<div class="settings-action-row" data-click="clearDiscoveryCache"><div class="setting-label">'+esc(t('set.clearCache'))+'</div><div class="setting-hint">'+esc(t('set.clearCacheHint'))+'</div></div>';
@@ -176,6 +188,7 @@ function renderSettingsMenu(){
   html+='<div class="settings-action-row" data-click="menuAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.accountSync'))+'</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
   if(authUser)html+='<div class="settings-action-row" data-click="menuExportAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.exportGdpr'))+'</div></div></div>';
   html+='<div class="setting-hint"><a href="'+esc(legalUrl('privacy'))+'" style="color:var(--text2)">'+esc(t('legal.privacy'))+'</a> · <a href="'+esc(legalUrl('terms'))+'" style="color:var(--text2)">'+esc(t('legal.terms'))+'</a></div>';
+  if(!touch){
   html+='</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.shortcuts'))+'</div>';
   html+=_kbdRow('N',esc(t('add.title')));
@@ -185,9 +198,11 @@ function renderSettingsMenu(){
   html+=_kbdRow('M',esc(t('set.sounds')));
   html+=_kbdRow(esc(t('set.kbdEsc')),esc(t('set.kbdClose')));
   html+='<div class="setting-hint" style="margin-top:4px">'+esc(t('set.shortcutsHint'))+'</div>';
+  }
   html+='</div>';
   body.innerHTML=html;
   enhanceAllSelects(body);
+  if(menuEl&&scrollY)menuEl.scrollTop=scrollY;
 }
 
 /* EXPORT */
