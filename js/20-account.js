@@ -257,8 +257,31 @@ function authGo(view,ctx){
     try{first.focus();}catch(e){}
   },30);
 }
-document.getElementById('authMbk').addEventListener('click',function(e){if(e.target===this){if(typeof sfx==='function')sfx('close');closeAuthModal();}});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('authMbk').classList.contains('on'))closeAuthModal();});
+/* Fermeture « implicite » (clic à côté, Échap) : jamais quand un champ du formulaire est rempli,
+   pour ne pas perdre un mot de passe en cours de saisie. Un clic à côté ne compte que s'il commence
+   ET se termine sur le fond (un clic qui démarre dans un champ ou dans le menu d'un gestionnaire de
+   mots de passe et se termine ailleurs ne ferme rien). Le bouton × et « Annuler » ferment toujours. */
+function _authDirty(){
+  var r=document.getElementById('authView');if(!r)return false;
+  return Array.prototype.some.call(r.querySelectorAll('input'),function(i){
+    return !i.hidden&&!i.readOnly&&i.type!=='checkbox'&&i.type!=='hidden'&&String(i.value||'')!=='';
+  });
+}
+var _authDownOnBackdrop=false;
+(function(){
+  var mbk=document.getElementById('authMbk');
+  mbk.addEventListener('pointerdown',function(e){_authDownOnBackdrop=(e.target===mbk);});
+  mbk.addEventListener('click',function(e){
+    var ok=_authDownOnBackdrop&&e.target===mbk;_authDownOnBackdrop=false;
+    if(!ok||_authDirty())return;
+    if(typeof sfx==='function')sfx('close');closeAuthModal();
+  });
+})();
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape'||!document.getElementById('authMbk').classList.contains('on'))return;
+  if(_authDirty()){if(e.target&&e.target.blur)e.target.blur();return;}
+  closeAuthModal();
+});
 
 /* ---------- Vues ---------- */
 var CAPTCHA_SLOT='<div class="auth-captcha" style="display:none"></div>';
