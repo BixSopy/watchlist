@@ -905,7 +905,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 <div class="aurora-bg" aria-hidden="true"><div class="aurora-blob b1"></div><div class="aurora-blob b2"></div><div class="aurora-blob b3"></div></div>
 <header class="hdr">
   <div class="hdr-left">
-    <button class="hbtn sb-toggle" onclick="toggleSidebar()" title="Recommandations" aria-label="Ouvrir les recommandations" data-i18n-attr="title:set.recos;aria-label:hdr.openRecos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></button>
+    <button class="hbtn sb-toggle" data-click="toggleSidebar" title="Recommandations" aria-label="Ouvrir les recommandations" data-i18n-attr="title:set.recos;aria-label:hdr.openRecos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></button>
     <!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" style="fill:var(--accent)"/><path d="M9 7.3 17 12 9 16.7z" style="fill:var(--on-accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo-->
   </div>
   <div class="search-bar liquid-glass" role="search">
@@ -914,24 +914,24 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
   </div>
   <div class="hdr-right">
     <div class="hstats" id="hstats"></div>
-    <div class="sync-pill" id="syncStatusPill" onclick="openAuthModal()" title="Compte & synchronisation" data-i18n-attr="title:set.accountSync">
+    <div class="sync-pill" id="syncStatusPill" data-click="openAuth" title="Compte & synchronisation" data-i18n-attr="title:set.accountSync">
       <span class="sync-dot anon" id="syncDot"></span>
       <span id="syncStatusText" data-i18n="auth.signIn">Se connecter</span>
     </div>
-    <button class="hbtn" onclick="toggleMenu()" title="Menu" data-i18n-attr="title:hdr.menu;aria-label:hdr.menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button class="hbtn" data-click="toggleMenu" title="Menu" data-i18n-attr="title:hdr.menu;aria-label:hdr.menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   </div>
   <div id="optMenu" class="opt-menu">
     <div class="settings-view" id="optMenuMain">
-      <button class="opt-btn" onclick="openStats();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> <span data-i18n="set.kbdStats">Statistiques</span></button>
-      <button class="opt-btn" onclick="openSettingsView()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> <span data-i18n="menu.settings">Réglages</span><svg class="opt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 6 15 12 9 18"/></svg></button>
+      <button class="opt-btn" data-click="menuStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> <span data-i18n="set.kbdStats">Statistiques</span></button>
+      <button class="opt-btn" data-click="openSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> <span data-i18n="menu.settings">Réglages</span><svg class="opt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 6 15 12 9 18"/></svg></button>
       <div class="opt-sep"></div>
-      <button class="opt-btn" onclick="exportJSON();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="menu.exportJson">Exporter JSON</span></button>
+      <button class="opt-btn" data-click="menuExportJson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="menu.exportJson">Exporter JSON</span></button>
       <div class="opt-sep"></div>
-      <button class="opt-btn" onclick="openAuthModal();toggleMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span data-i18n="set.accountSync">Compte &amp; synchronisation</span></button>
+      <button class="opt-btn" data-click="menuAccount"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span data-i18n="set.accountSync">Compte &amp; synchronisation</span></button>
     </div>
     <div class="settings-view" id="optMenuSettings" style="display:none">
       <div class="settings-head">
-        <button class="settings-back" onclick="closeSettingsView()" title="Retour" data-i18n-attr="title:common.back;aria-label:common.back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="settings-back" data-click="closeSettings" title="Retour" data-i18n-attr="title:common.back;aria-label:common.back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="15 18 9 12 15 6"/></svg></button>
         <span data-i18n="menu.settings">Réglages</span>
       </div>
       <div id="settingsBody"></div>
@@ -941,10 +941,10 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 
 </header>
 <div class="layout">
-  <div class="sb-backdrop" id="sbBackdrop" onclick="toggleSidebar(false)"></div>
+  <div class="sb-backdrop" id="sbBackdrop" data-click="toggleSidebar" data-args="[false]"></div>
   <aside class="sidebar">
     <div class="suivi-wrap" id="suiviWrap">
-      <div class="suivi-hdr" onclick="toggleSuiviSection()">
+      <div class="suivi-hdr" data-click="toggleSuivi">
         <div class="sb-title" data-i18n="set.suivi">Suivi</div>
         <svg class="suivi-toggle-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
@@ -952,7 +952,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
     </div>
     <div class="sb-hdr">
       <div class="sb-title" data-i18n="set.recos">Recommandations</div>
-      <button class="sb-refresh" onmouseenter="sfx('hover')" onclick="sfx('click');_preserveContentScroll(function(){cache={};seenRecos=[];loadRecos();})">
+      <button class="sb-refresh" data-sfx-hover data-click="refreshRecos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
         <span data-i18n="sb.refresh">Actualiser</span>
       </button>
@@ -979,29 +979,29 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
     </div>
     <div class="nav floating liquid-glass">
       <div class="ntabs-scroll">
-        <button class="ntab on" data-tab="all" onmouseenter="sfx('hover')" onclick="switchTab(this)" data-i18n="tab.all">Tout</button>
-        <button class="ntab" data-tab="film" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127916;</span><span data-i18n="type.films">Films</span></button>
-        <button class="ntab" data-tab="serie" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#128250;</span><span data-i18n="type.series">Séries</span></button>
-        <button class="ntab" data-tab="anime" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#127884;</span><span data-i18n="type.anime">Anime</span></button>
-        <button class="ntab" data-tab="discover" onmouseenter="sfx('hover')" onclick="switchTab(this)"><span class="ntab-ic">&#129517;</span><span data-i18n="tab.discover">Découvrir</span></button>
+        <button class="ntab on" data-tab="all" data-sfx-hover data-click="switchTab" data-i18n="tab.all">Tout</button>
+        <button class="ntab" data-tab="film" data-sfx-hover data-click="switchTab"><span class="ntab-ic">&#127916;</span><span data-i18n="type.films">Films</span></button>
+        <button class="ntab" data-tab="serie" data-sfx-hover data-click="switchTab"><span class="ntab-ic">&#128250;</span><span data-i18n="type.series">Séries</span></button>
+        <button class="ntab" data-tab="anime" data-sfx-hover data-click="switchTab"><span class="ntab-ic">&#127884;</span><span data-i18n="type.anime">Anime</span></button>
+        <button class="ntab" data-tab="discover" data-sfx-hover data-click="switchTab"><span class="ntab-ic">&#129517;</span><span data-i18n="tab.discover">Découvrir</span></button>
       </div>
       <div class="nav-right">
-        <button class="add-btn" onmouseenter="sfx('hover')" onclick="sfx('click');openAdd()">
+        <button class="add-btn" data-sfx-hover data-click="openAdd">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span class="add-btn-lbl" data-i18n="common.add">Ajouter</span>
         </button>
         <div class="stabs" id="stabs">
-          <button class="stab on" data-s="all" onmouseenter="sfx('hover')" data-i18n="stab.all">Tous</button>
-          <button class="stab" data-s="avoir" onmouseenter="sfx('hover')" data-i18n="status.avoir">À voir</button>
-          <button class="stab" data-s="encours" onmouseenter="sfx('hover')" data-i18n="status.encours">En cours</button>
-          <button class="stab" data-s="termine" onmouseenter="sfx('hover')" data-i18n="status.termine">Terminé</button>
+          <button class="stab on" data-s="all" data-sfx-hover data-i18n="stab.all">Tous</button>
+          <button class="stab" data-s="avoir" data-sfx-hover data-i18n="status.avoir">À voir</button>
+          <button class="stab" data-s="encours" data-sfx-hover data-i18n="status.encours">En cours</button>
+          <button class="stab" data-s="termine" data-sfx-hover data-i18n="status.termine">Terminé</button>
         </div>
-        <select class="stat-sel-mobile" id="statSelMobile" onchange="document.querySelector('.stab[data-s=\''+this.value+'\']').click()">
+        <select class="stat-sel-mobile" id="statSelMobile" data-change="statSelMobile">
           <option value="all" data-i18n="stab.all">Tous</option>
           <option value="avoir" data-i18n="status.avoir">À voir</option>
           <option value="encours" data-i18n="status.encours">En cours</option>
           <option value="termine" data-i18n="status.termine">Terminé</option>
         </select>
-        <select class="sort-sel" id="sortSel" onchange="render()">
+        <select class="sort-sel" id="sortSel">
           <option value="date" data-i18n="sort.date">Date</option>
           <option value="title">A-Z</option>
           <option value="tmdb">TMDB</option>
@@ -1017,14 +1017,14 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
       <div class="alert-wrap" id="alertWrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <div class="alert-text" id="alertText"></div>
-        <button class="alert-close" onclick="document.getElementById('alertWrap').classList.remove('on')" data-i18n-attr="aria-label:common.close">x</button>
+        <button class="alert-close" data-click="closeAlert" data-i18n-attr="aria-label:common.close">x</button>
       </div>
       <div id="mc"></div>
       <div class="discover-cat-pills" id="discoverCatPills">
-        <button class="stab on" data-dc="all" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)" data-i18n="tab.all">Tout</button>
-        <button class="stab" data-dc="film" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)" data-i18n="type.films">Films</button>
-        <button class="stab" data-dc="serie" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)" data-i18n="type.series">Séries</button>
-        <button class="stab" data-dc="anime" onmouseenter="sfx('hover')" onclick="switchDiscoverCat(this)" data-i18n="type.anime">Anime</button>
+        <button class="stab on" data-dc="all" data-sfx-hover data-click="switchDiscoverCat" data-i18n="tab.all">Tout</button>
+        <button class="stab" data-dc="film" data-sfx-hover data-click="switchDiscoverCat" data-i18n="type.films">Films</button>
+        <button class="stab" data-dc="serie" data-sfx-hover data-click="switchDiscoverCat" data-i18n="type.series">Séries</button>
+        <button class="stab" data-dc="anime" data-sfx-hover data-click="switchDiscoverCat" data-i18n="type.anime">Anime</button>
       </div>
       <div id="discoverSection" class="discover-section"></div>
     </div>
@@ -1044,7 +1044,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
     <div class="sprev" id="sprev">
       <img id="spimg" src="" alt="" style="display:none">
       <div style="flex:1;min-width:0"><div class="sptitle" id="sptitle"></div><div class="spmeta" id="spmeta"></div></div>
-      <button class="spclear" onclick="clearSel()" data-i18n-attr="aria-label:add.clear">x</button>
+      <button class="spclear" data-click="clearSel" data-i18n-attr="aria-label:add.clear">x</button>
     </div>
     <div class="frow">
       <div class="field"><label data-i18n="add.type">Type</label><select id="ftype"><option value="film" data-i18n="type.film">Film</option><option value="serie" data-i18n="type.serie">Série</option><option value="anime" data-i18n="type.anime">Anime</option></select></div>
@@ -1063,8 +1063,8 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
     <div class="field"><label data-i18n="add.tags">Tags</label><div class="tags-wrap" id="tagsWrap"></div></div>
     <div class="field field-saga"><label><span data-i18n="add.saga">Saga / Collection</span> <span style="color:var(--text3);font-weight:400;font-size:11px" data-i18n="add.optional">(optionnel)</span></label><input type="text" id="fsaga" placeholder="ex: Star Wars, Harry Potter..." data-i18n-attr="placeholder:add.sagaPh" autocomplete="off" list="sagaSuggest"><datalist id="sagaSuggest"></datalist></div>
     <div class="mact">
-      <button class="btn btn-ghost" onclick="sfx('close');closeAdd()" data-i18n="common.cancel">Annuler</button>
-      <button class="btn btn-primary" id="sbtn" onclick="saveEntry()" data-i18n="common.add">Ajouter</button>
+      <button class="btn btn-ghost" data-click="closeAdd" data-i18n="common.cancel">Annuler</button>
+      <button class="btn btn-primary" id="sbtn" data-click="saveEntry" data-i18n="common.add">Ajouter</button>
     </div>
   </div>
 </div>
@@ -1072,7 +1072,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 <!-- AUTH MODAL : écrans rendus par js/20-account.js -->
 <div class="mbk" id="authMbk" role="dialog" aria-modal="true" aria-labelledby="authViewTitle">
   <div class="modal-add auth-modal">
-    <button type="button" class="auth-close" onclick="closeAuthModal()" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <button type="button" class="auth-close" data-click="closeAuth" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div id="authView"></div>
   </div>
 </div>
@@ -1118,7 +1118,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
   <div class="modal-stats">
     <div class="mtitle" data-i18n="set.kbdStats">Statistiques</div>
     <div id="statsContent"></div>
-    <div class="mact"><button class="btn btn-ghost" onclick="sfx('close');document.getElementById('statsMbk').classList.remove('on')" data-i18n="common.close">Fermer</button></div>
+    <div class="mact"><button class="btn btn-ghost" data-click="closeStats" data-i18n="common.close">Fermer</button></div>
   </div>
 </div>
 <!-- FOLDER MODAL -->
@@ -1134,7 +1134,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
           <div class="folder-hmeta" id="folderMeta"></div>
         </div>
       </div>
-      <button class="folder-close-btn" onclick="sfx('close');closeFolder()" data-i18n-attr="aria-label:common.close">
+      <button class="folder-close-btn" data-click="closeFolder" data-i18n-attr="aria-label:common.close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
@@ -1149,7 +1149,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
         <div class="mtitle" id="searchModalTitle" data-i18n="search.title">Catalogue TMDB</div>
         <div class="search-modal-sub" data-i18n="search.sub">Recherche parmi films, séries et anime · astuce : « Action 2020 ★4+ » filtre par genre / année / note</div>
       </div>
-      <button class="hbtn" onclick="sfx('close');closeSearchModal()" aria-label="Fermer" data-i18n-attr="aria-label:common.close">
+      <button class="hbtn" data-click="closeSearch" aria-label="Fermer" data-i18n-attr="aria-label:common.close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
@@ -1159,18 +1159,18 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
         <input type="text" id="searchModalInput" placeholder="Chercher..." autocomplete="off" data-i18n-attr="placeholder:search.ph">
       </div>
       <div class="search-page-wrap">
-        <button class="hbtn" id="searchPrevBtn" onclick="searchPage(-1)" disabled data-i18n-attr="aria-label:common.prev">←</button>
+        <button class="hbtn" id="searchPrevBtn" data-click="searchPage" data-args="[-1]" disabled data-i18n-attr="aria-label:common.prev">←</button>
         <div class="search-page-ind" id="searchPageInd">Page 1</div>
-        <button class="hbtn" id="searchNextBtn" onclick="searchPage(1)" disabled data-i18n-attr="aria-label:common.next">→</button>
+        <button class="hbtn" id="searchNextBtn" data-click="searchPage" data-args="[1]" disabled data-i18n-attr="aria-label:common.next">→</button>
       </div>
     </div>
     <div class="search-filter-row">
-      <select class="sf-sel" id="sfType" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+      <select class="sf-sel" id="sfType" data-change="searchFilters">
         <option value="" data-i18n="search.allTypes">Tous types</option>
         <option value="movie" data-i18n="type.films">Films</option>
         <option value="tv" data-i18n="search.seriesAnime">Séries / Anime</option>
       </select>
-      <select class="sf-sel" id="sfGenre" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+      <select class="sf-sel" id="sfGenre" data-change="searchFilters">
         <option value="" data-i18n="search.allGenres">Tous genres</option>
         <option value="action" data-i18n="genre.action">Action</option>
         <option value="animation" data-i18n="genre.animation">Animation</option>
@@ -1189,13 +1189,13 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
         <option value="thriller" data-i18n="genre.thriller">Thriller</option>
         <option value="western" data-i18n="genre.western">Western</option>
       </select>
-      <select class="sf-sel" id="sfSort" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+      <select class="sf-sel" id="sfSort" data-change="searchFilters">
         <option value="" data-i18n="search.relevance">Pertinence</option>
         <option value="popularity.desc" data-i18n="search.popularity">Popularité</option>
         <option value="primary_release_date.desc" data-i18n="search.newest">Plus récents</option>
         <option value="vote_average.desc" data-i18n="disc.topRated">Meilleures notes</option>
       </select>
-      <select class="sf-sel" id="sfYear" onchange="_runSearch(document.getElementById('searchModalInput').value,1)">
+      <select class="sf-sel" id="sfYear" data-change="searchFilters">
         <option value="" data-i18n="search.allYears">Toutes années</option>
         <option value="2023">2023+</option>
         <option value="2020">2020+</option>
@@ -1209,7 +1209,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
     <div class="search-results" id="searchResults" tabindex="-1"></div>
     <div class="search-footer">
       <div class="search-counter" id="searchCounter" data-i18n="search.selectedNone">0 sélectionné</div>
-      <button class="add-btn" id="searchAddBtn" onclick="addSelectedBatch()" disabled data-i18n="search.addNone">Ajouter 0 sélectionné</button>
+      <button class="add-btn" id="searchAddBtn" data-click="addSelectedBatch" disabled data-i18n="search.addNone">Ajouter 0 sélectionné</button>
     </div>
   </div>
 </div>
@@ -1223,6 +1223,7 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 </footer>
 <!--/brand:footer-->
 <script src="js/00-brand.js"></script>
+<script src="js/00-actions.js"></script>
 <!--i18n:scripts-->
 <script src="js/i18n/fr.js"></script>
 <script src="js/i18n/en.js"></script>

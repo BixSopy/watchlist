@@ -21,8 +21,6 @@ function dbDel(id,cb){if(!idb){cb&&cb();return}var tx=idb.transaction('entries',
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function pad(n){return String(n).padStart(2,'0')}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-/* Argument de chaîne sûr dans un attribut onclick="f(...)" : littéral JS (JSON) puis échappement HTML */
-function jsArg(s){return esc(JSON.stringify(String(s==null?'':s)));}
 function icon(tt){return tt=='film'?'&#127916;':tt=='serie'?'&#128250;':'&#127884;';}
 function tbadge(tt){var c={film:'bf',serie:'bs',anime:'ba'}[tt]||'bf';var l={film:t('type.film'),serie:t('type.serie'),anime:t('type.anime')}[tt]||tt;return '<span class="badge '+c+'">'+l+'</span>';}
 function sbadge(s){var c={avoir:'bav',encours:'bec',termine:'bte',todo:'btd'}[s]||'bav';var l={avoir:t('status.avoir'),encours:t('status.encours'),termine:t('status.termine'),todo:t('status.todo')}[s]||s;return '<span class="badge '+c+'">'+l+'</span>';}

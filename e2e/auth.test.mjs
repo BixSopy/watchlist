@@ -304,8 +304,8 @@ test('changement de langue : réglages et modale de connexion, choix mémorisé 
   assert.equal(db.users[0].metadata?.lang, 'en');
   // Depuis les réglages : retour au français, la langue du compte suit, les réglages se rouvrent
   await page.evaluate(() => closeAuthModal());
-  await page.click('button.hbtn[onclick="toggleMenu()"]');
-  await page.click('#optMenuMain button[onclick="openSettingsView()"]');
+  await page.click('button.hbtn[data-click="toggleMenu"]');
+  await page.click('#optMenuMain button[data-click="openSettings"]');
   await page.locator('.lang-switch-settings').waitFor();
   if (SHOTS) { await page.waitForTimeout(500); await pageShot(page, 'en-06-reglages', '#optMenu'); }
   await Promise.all([page.waitForEvent('load'), page.click('.lang-switch-settings .lang-btn[lang="fr"]')]);

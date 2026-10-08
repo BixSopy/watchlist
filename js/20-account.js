@@ -186,7 +186,7 @@ function _val(id){var el=document.getElementById(id);return el?String(el.value||
 function _pwField(id,label,autocomplete,withMeter){
   return '<div class="field"><label for="'+id+'">'+label+'</label><div class="pw-wrap">'+
     '<input type="password" id="'+id+'" autocomplete="'+autocomplete+'" maxlength="128" '+(withMeter?'aria-describedby="'+id+'Meter" ':'')+'spellcheck="false">'+
-    '<button type="button" class="pw-eye" onclick="togglePwVisibility(\''+id+'\',this)" aria-label="'+esc(t('pw.show'))+'">'+
+    '<button type="button" class="pw-eye" data-click="togglePw" data-args="'+esc(JSON.stringify([id]))+'" aria-label="'+esc(t('pw.show'))+'">'+
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>'+
     (withMeter?'<div class="pw-meter" id="'+id+'Meter"><div class="pw-meter-bar"><span></span></div><div class="pw-meter-lbl">'+esc(t('pw.minShort',{n:AUTH_PW_MIN}))+'</div></div>':'')+
     '</div>';
@@ -209,7 +209,7 @@ function _codeField(){
   return '<div class="field"><label for="authCode">'+esc(t('auth.codeLabel'))+'</label>'+
     '<input type="text" id="authCode" class="auth-code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" pattern="[0-9]*"></div>';
 }
-function _link(view,label){return '<button type="button" class="auth-link" onclick="authGo(\''+view+'\')">'+label+'</button>';}
+function _link(view,label){return '<button type="button" class="auth-link" data-click="authGo" data-args="'+esc(JSON.stringify([view]))+'">'+label+'</button>';}
 function _legalLinks(){
   return t('auth.consent',{terms:'<a href="'+esc(legalUrl('terms'))+'" target="_blank" rel="noopener">'+esc(t('auth.termsLink'))+'</a>',privacy:'<a href="'+esc(legalUrl('privacy'))+'" target="_blank" rel="noopener">'+esc(t('auth.privacyLink'))+'</a>'});
 }
@@ -290,7 +290,7 @@ var AUTH_VIEWS={
     title:function(){return esc(t('auth.login'));},
     html:function(c){
       return '<div class="auth-tabs" role="tablist"><button type="button" class="auth-tab on" role="tab" aria-selected="true">'+esc(t('auth.login'))+'</button>'+
-        '<button type="button" class="auth-tab" role="tab" aria-selected="false" id="authTabSignup" onclick="authGo(\'signup\')">'+esc(t('auth.createAccount'))+'</button></div>'+
+        '<button type="button" class="auth-tab" role="tab" aria-selected="false" id="authTabSignup" data-click="authGo" data-args="[&quot;signup&quot;]">'+esc(t('auth.createAccount'))+'</button></div>'+
         '<form novalidate autocomplete="on">'+
         '<div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
         _pwField('authPassword',esc(t('auth.password')),'current-password',false)+
@@ -298,8 +298,8 @@ var AUTH_VIEWS={
         '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.signIn'))+'</button></form>'+
         '<div class="auth-alt">'+_link('magic',esc(t('auth.magicLink')))+' · '+_link('code',esc(t('auth.haveCode')))+'</div>'+
         '<div class="auth-local-note">'+esc(t('auth.localNote'))+'</div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">'+esc(t('auth.continueWithout'))+'</button></div>'+
-        langSwitcherHtml('lang-switch-auth',"{reopen:{auth:'login'}}");
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="closeAuth">'+esc(t('auth.continueWithout'))+'</button></div>'+
+        langSwitcherHtml('lang-switch-auth',{reopen:{auth:'login'}});
     },
     after:function(){loadPublicConfig().then(function(cfg){var tt=document.getElementById('authTabSignup');if(tt&&!cfg.signupsOpen)tt.style.display='none';});},
     submit:function(btn){
@@ -323,7 +323,7 @@ var AUTH_VIEWS={
   signup:{
     title:function(){return esc(t('auth.createAccount'));},
     html:function(c){
-      return '<div class="auth-tabs" role="tablist"><button type="button" class="auth-tab" role="tab" aria-selected="false" onclick="authGo(\'login\')">'+esc(t('auth.login'))+'</button>'+
+      return '<div class="auth-tabs" role="tablist"><button type="button" class="auth-tab" role="tab" aria-selected="false" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.login'))+'</button>'+
         '<button type="button" class="auth-tab on" role="tab" aria-selected="true">'+esc(t('auth.createAccount'))+'</button></div>'+
         '<form novalidate autocomplete="on">'+
         '<div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
@@ -332,7 +332,7 @@ var AUTH_VIEWS={
         '<label class="auth-check"><input type="checkbox" id="authConsent"><span>'+_legalLinks()+'</span></label>'+CAPTCHA_SLOT+
         '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.createMine'))+'</button></form>'+
         '<div class="auth-local-note">'+esc(t('auth.signupNote'))+'</div>'+
-        langSwitcherHtml('lang-switch-auth',"{reopen:{auth:'signup'}}");
+        langSwitcherHtml('lang-switch-auth',{reopen:{auth:'signup'}});
     },
     after:function(){_bindPwMeter('authPassword');},
     submit:function(btn){
@@ -362,8 +362,8 @@ var AUTH_VIEWS={
         '<p>'+t('auth.check.sent',{email:'<b>'+_maskEmail(c.email)+'</b>'})+'</p>'+
         '<p class="auth-sub">'+t('auth.check.help',{login:_link('login',esc(t('auth.check.loginLink'))),forgot:_link('forgot',esc(t('auth.check.forgotLink')))})+'</p></div>'+
         '<form novalidate>'+_codeField()+CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
-        '<div class="auth-alt"><button type="button" class="auth-link" id="authResendBtn" onclick="authResend(this)">'+esc(t('auth.resend'))+'</button></div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
+        '<div class="auth-alt"><button type="button" class="auth-link" id="authResendBtn" data-click="authResend">'+esc(t('auth.resend'))+'</button></div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     after:function(c){if(c.notice)showAuthMsg(c.notice,'nfo');_tickResend();},
     submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast(t('auth.toast.confirmed'),'ok');authGo('account');});}
@@ -375,7 +375,7 @@ var AUTH_VIEWS={
         '<form novalidate><div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
         CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.sendLink'))+'</button></form>'+
         '<div class="auth-alt">'+_link('code',esc(t('auth.haveCodeAlready')))+'</div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){
       var email=_val('authEmail').trim();
@@ -395,7 +395,7 @@ var AUTH_VIEWS={
     html:function(c){
       return '<p class="auth-p">'+t('auth.forgotSent.text',{email:'<b>'+_maskEmail(c.email)+'</b>'})+'</p>'+
         '<form novalidate>'+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){_verifyCode(btn,'recovery',_authCtx.email,function(){authGo('reset',{mode:'recovery'});});}
   },
@@ -406,7 +406,7 @@ var AUTH_VIEWS={
         '<form novalidate><div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
         CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.sendLink'))+'</button></form>'+
         '<div class="auth-alt">'+_link('code',esc(t('auth.haveCodeAlready')))+'</div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){
       var email=_val('authEmail').trim();
@@ -426,7 +426,7 @@ var AUTH_VIEWS={
     html:function(c){
       return '<p class="auth-p">'+t('auth.magicSent.text',{email:'<b>'+_maskEmail(c.email)+'</b>'})+'</p>'+
         '<form novalidate>'+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.signIn'))+'</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast(t('auth.toast.signedIn'),'ok');authGo('account');});}
   },
@@ -438,7 +438,7 @@ var AUTH_VIEWS={
       return '<p class="auth-p">'+esc(t('auth.code.intro'))+'</p>'+
         '<form novalidate><div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
         _codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){
       var email=_val('authEmail').trim(),code=_val('authCode').replace(/\s/g,'');
@@ -484,7 +484,7 @@ var AUTH_VIEWS={
          message dans la fenêtre officielle, ex. une fausse consigne de sécurité). */
       var known=Object.prototype.hasOwnProperty.call(AUTH_ERRORS,c.code)?AUTH_ERRORS[c.code]:AUTH_ERRORS.otp_expired;
       return '<p class="auth-p">'+esc(known)+'</p><div class="auth-alt">'+next+'</div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">'+esc(t('common.close'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="closeAuth">'+esc(t('common.close'))+'</button></div>';
     }
   },
   /* Choix d'un nouveau mot de passe (après « mot de passe oublié » ou invitation) */
@@ -501,21 +501,21 @@ var AUTH_VIEWS={
   account:{
     title:function(){return esc(t('auth.myAccount'));},
     html:function(){
-      if(!authUser)return '<p class="auth-p">'+esc(t('auth.account.notSignedIn'))+'</p><div class="mact"><button type="button" class="btn btn-primary" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.signIn'))+'</button></div>';
+      if(!authUser)return '<p class="auth-p">'+esc(t('auth.account.notSignedIn'))+'</p><div class="mact"><button type="button" class="btn btn-primary" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.signIn'))+'</button></div>';
       var pending=memDB.filter(function(i){return i.needsSync;}).length;
       var online=navigator.onLine;
       return '<div class="auth-account-row"><span class="sync-dot '+(online?'synced':'offline')+'" id="authAccountDot"></span><span class="auth-account-email" id="authAccountEmail">'+esc(authUser.email||'')+'</span></div>'+
         '<div class="auth-sync-info" id="authSyncInfo">'+esc(pending?tn('auth.account.pending',pending):t('auth.account.allSynced'))+'</div>'+
         '<div class="auth-menu">'+
-        _accBtn('syncNow()',esc(t('auth.account.syncNow')),'<path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>')+
-        _accBtn("authGo('changePassword')",esc(t('auth.account.changePw')),'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>')+
-        _accBtn("authGo('changeEmail')",esc(t('auth.account.changeEmail')),'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/>')+
-        _accBtn('exportAccountData(this)',esc(t('auth.account.export')),'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>')+
-        _accBtn('signOutUser()',esc(t('auth.account.signOut')),'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>')+
+        _accBtn('syncNow',esc(t('auth.account.syncNow')),'<path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>')+
+        _accBtn(['authGo','changePassword'],esc(t('auth.account.changePw')),'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>')+
+        _accBtn(['authGo','changeEmail'],esc(t('auth.account.changeEmail')),'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/>')+
+        _accBtn('exportAccount',esc(t('auth.account.export')),'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>')+
+        _accBtn('signOut',esc(t('auth.account.signOut')),'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>')+
         '</div>'+
-        '<div class="auth-danger"><button type="button" class="auth-link danger" onclick="authGo(\'deleteAccount\')">'+esc(t('auth.account.delete'))+'</button></div>'+
+        '<div class="auth-danger"><button type="button" class="auth-link danger" data-click="authGo" data-args="[&quot;deleteAccount&quot;]">'+esc(t('auth.account.delete'))+'</button></div>'+
         '<div class="auth-legal"><a href="'+esc(legalUrl('privacy'))+'" target="_blank" rel="noopener">'+esc(t('legal.privacy'))+'</a> · <a href="'+esc(legalUrl('terms'))+'" target="_blank" rel="noopener">'+esc(t('legal.termsShort'))+'</a></div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">'+esc(t('common.close'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="closeAuth">'+esc(t('common.close'))+'</button></div>';
     }
   },
   changePassword:{
@@ -525,7 +525,7 @@ var AUTH_VIEWS={
         _pwField('authPassword',esc(t('auth.newPassword')),'new-password',true)+_pwField('authPasswordConfirm',esc(t('auth.confirm')),'new-password',false)+
         (c.needNonce?'<p class="auth-sub">'+esc(t('auth.changePw.nonce',{email:authUser&&authUser.email||''}))+'</p>'+_codeField():'')+
         '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('common.save'))+'</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\',{needNonce:false})">'+esc(t('common.cancel'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;account&quot;,{&quot;needNonce&quot;:false}]">'+esc(t('common.cancel'))+'</button></div>';
     },
     after:function(){_bindPwMeter('authPassword');},
     submit:function(btn){_submitNewPassword(btn,function(){_authCtx.needNonce=false;toast(t('auth.toast.pwChanged'),'ok');_pwSavedState(btn,t('auth.toast.pwChanged'));},true);}
@@ -536,8 +536,8 @@ var AUTH_VIEWS={
       return '<p class="auth-p">'+t('auth.changeEmail.intro',{email:'<b>'+esc(authUser&&authUser.email||'')+'</b>'})+'</p>'+
         '<form novalidate><div class="field"><label for="authNewEmail">'+esc(t('auth.newEmail'))+'</label><input type="email" id="authNewEmail" autocomplete="email" maxlength="254"></div>'+
         '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.changeEmail.send'))+'</button></form>'+
-        '<div class="auth-alt"><button type="button" class="auth-link" onclick="authGo(\'emailSent\',{newEmail:_val(\'authNewEmail\').trim()})">'+esc(t('auth.haveCode'))+'</button></div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">'+esc(t('common.cancel'))+'</button></div>';
+        '<div class="auth-alt"><button type="button" class="auth-link" data-click="authHaveCodeEmail">'+esc(t('auth.haveCode'))+'</button></div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;account&quot;]">'+esc(t('common.cancel'))+'</button></div>';
     },
     submit:function(btn){
       var email=_val('authNewEmail').trim();
@@ -557,7 +557,7 @@ var AUTH_VIEWS={
       var known=_validEmail(c.newEmail||'');
       return (known?'<p class="auth-p">'+t('auth.emailSent.known',{email:'<b>'+esc(c.newEmail)+'</b>'})+'</p>':'<p class="auth-p">'+esc(t('auth.emailSent.unknown'))+'</p>')+
         '<form novalidate>'+(known?'':'<div class="field"><label for="authNewEmail">'+esc(t('auth.newEmail'))+'</label><input type="email" id="authNewEmail" autocomplete="email" maxlength="254"></div>')+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">'+esc(t('common.later'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;account&quot;]">'+esc(t('common.later'))+'</button></div>';
     },
     submit:function(btn){
       var c=_authCtx,code=_val('authCode').replace(/\s/g,'');
@@ -577,13 +577,13 @@ var AUTH_VIEWS={
   deleteAccount:{
     title:function(){return esc(t('auth.delete.title'));},
     html:function(){
-      return '<div class="auth-warn">'+t('auth.delete.warn',{email:esc(authUser&&authUser.email||''),export:'<button type="button" class="auth-link" onclick="exportAccountData(this)">'+esc(t('auth.delete.exportLink'))+'</button>'})+'</div>'+
+      return '<div class="auth-warn">'+t('auth.delete.warn',{email:esc(authUser&&authUser.email||''),export:'<button type="button" class="auth-link" data-click="exportAccount">'+esc(t('auth.delete.exportLink'))+'</button>'})+'</div>'+
         '<form novalidate autocomplete="on"><input type="email" autocomplete="username" value="'+esc(authUser&&authUser.email||'')+'" hidden readonly>'+
         _pwField('authPassword',esc(t('auth.currentPassword')),'current-password',false)+
         '<div class="field"><label for="authDeleteConfirm">'+esc(t('auth.delete.typeWord',{word:t('auth.delete.word')}))+'</label><input type="text" id="authDeleteConfirm" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>'+
         '<label class="auth-check"><input type="checkbox" id="authDeleteLocal" checked><span>'+esc(t('auth.delete.wipeLocal'))+'</span></label>'+
         CAPTCHA_SLOT+'<button type="submit" class="btn auth-submit btn-danger" id="authDeleteBtn" disabled>'+esc(t('auth.delete.submit'))+'</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">'+esc(t('common.cancel'))+'</button></div>';
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;account&quot;]">'+esc(t('common.cancel'))+'</button></div>';
     },
     after:function(){
       var i=document.getElementById('authDeleteConfirm'),b=document.getElementById('authDeleteBtn');
@@ -622,8 +622,10 @@ var AUTH_VIEWS={
     }
   }
 };
-function _accBtn(onclick,label,svgPath){
-  return '<button type="button" class="auth-menu-btn" onclick="'+onclick+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+svgPath+'</svg><span>'+label+'</span></button>';
+/* action : nom d'action (js/00-actions.js), ou [nom, ...arguments] */
+function _accBtn(action,label,svgPath){
+  var a=Array.isArray(action)?action:[action];
+  return '<button type="button" class="auth-menu-btn"'+uiAct(a[0],a.slice(1))+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+svgPath+'</svg><span>'+label+'</span></button>';
 }
 
 /* ---------- Actions partagées ---------- */

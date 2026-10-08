@@ -46,12 +46,12 @@ function _updateStarsLock(){
   if(s.value==='avoir'){st.classList.add('locked');}
   else{st.classList.remove('locked');}
 }
-function buildStars(c){myRate=c||0;document.getElementById('stars').innerHTML=Array.from({length:10},function(_,i){var v=i+1;return '<div class="star'+(v<=myRate?' on':'')+'" onmouseenter="sfx(\'hover\')" onclick="setRate('+v+')">'+starsvg(v<=myRate)+'</div>';}).join('');}
+function buildStars(c){myRate=c||0;document.getElementById('stars').innerHTML=Array.from({length:10},function(_,i){var v=i+1;return '<div class="star'+(v<=myRate?' on':'')+'" data-sfx-hover'+uiAct('setRate',[v])+'>'+starsvg(v<=myRate)+'</div>';}).join('');}
 function setRate(v){sfx('click');myRate=v;buildStars(v);}
 function buildTags(tt){curTags=tt?tt.slice():[];renderTags();}
 function renderTags(){
   var w=document.getElementById('tagsWrap');
-  w.innerHTML=curTags.map(function(tt,i){return '<span class="tag">'+esc(tt)+'<span class="tag-rm" onclick="rmTag('+i+')">x</span></span>';}).join('')+'<input type="text" class="tag-inp" id="tagInput" placeholder="+ tag">';
+  w.innerHTML=curTags.map(function(tt,i){return '<span class="tag">'+esc(tt)+'<span class="tag-rm"'+uiAct('rmTag',[i])+'>x</span></span>';}).join('')+'<input type="text" class="tag-inp" id="tagInput" placeholder="+ tag">';
   document.getElementById('tagInput').addEventListener('keydown',function(e){if(e.key=='Enter'||e.key==','){e.preventDefault();var v=this.value.trim().replace(/,/g,'');if(v&&curTags.indexOf(v)<0){curTags.push(v);sfx('click');renderTags();}else{this.value='';}}});
 }
 function rmTag(i){curTags=curTags.filter(function(x,k){return k!==i});renderTags();}

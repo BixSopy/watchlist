@@ -4,8 +4,8 @@ Marque automatiquement ta progression (saison/épisode) dans Cinepisode pendant
 que tu regardes, sans action manuelle. Même jeton que la synchro Plex/Tautulli.
 
 Textes de l'extension en français et en anglais (`_locales/fr`, `_locales/en`, choisis par
-Chrome selon la langue du navigateur, anglais par défaut). Les messages `[WL]` de la console
-sont des traces de développement et ne sont pas traduits.
+Chrome selon la langue du navigateur, anglais par défaut). L'extension n'écrit rien dans la
+console : le titre regardé n'a pas à y apparaître.
 
 *English: automatically marks your progress (season/episode) in Cinepisode while you watch.
 Install: `chrome://extensions` → Developer mode → Load unpacked → `extension/`, then paste the
@@ -16,16 +16,21 @@ token from Cinepisode (Settings › Auto-tracking (Netflix, Plex...) › Generat
 | Plateforme | État |
 |---|---|
 | Netflix | **Fonctionnel**, vérifié sur un vrai compte (saison/épisode via `netflix.falcorCache`, titre via `[data-uia="video-title"]`) |
-| Prime Video | Diagnostic seulement — rien n'est encore envoyé à la watchlist |
-| Disney+ | Diagnostic seulement |
-| Max (ex-HBO Max) | Diagnostic seulement |
-| Crunchyroll | Diagnostic seulement |
+| Prime Video, Disney+, Max, Crunchyroll | Pas encore pris en charge |
 
-"Diagnostic seulement" = le script tourne et logge dans la console (`[WL:<plateforme>]`)
-ce qu'il trouve sur la page, mais ne met encore rien à jour. Netflix a demandé 3 allers-retours
-avec de vraies données de console pour trouver le bon mécanisme (aucune de ces plateformes
-n'a d'API publique) — même principe ici : le diagnostic sert à obtenir un exemple réel, pas
-à deviner à l'aveugle un mécanisme qui échouerait silencieusement.
+Les scripts de diagnostic (exploration de la page dans la console, `content/diagnostic*.js` et les
+scripts « diagnostic seulement » de Prime Video, Disney+, Max et Crunchyroll) ont été retirés en
+version 0.3.0 : l'extension ne s'exécute plus que sur `netflix.com/watch/*`. Ils restent dans
+l'historique git si une nouvelle plateforme doit être étudiée.
+
+## Sécurité des messages
+
+`content/netflix-main.js` (monde MAIN, accès à `window.netflix`) envoie la détection à
+`content/netflix-bridge.js` (monde isolé) par `window.postMessage`, adressé à l'origine exacte de
+la page (jamais `'*'`). Le relai n'accepte que les messages de la même fenêtre (`event.source`),
+de l'origine `https://www.netflix.com` (`event.origin`) et de la forme exacte attendue (titre
+texte de 300 caractères maximum, saison et épisode entiers ou vides). Le service worker revérifie
+l'expéditeur (cette extension, onglet Netflix) et la forme avant d'appeler Supabase.
 
 ## Installation (Chrome / Edge / Brave)
 
@@ -35,18 +40,11 @@ n'a d'API publique) — même principe ici : le diagnostic sert à obtenir un ex
 4. Clique sur l'icône de l'extension → colle le jeton généré depuis l'app
    (Réglages › Suivi auto (Netflix, Plex...) › Générer mon jeton)
 
-## Vérifier Netflix (fonctionnel)
+## Vérifier Netflix
 
-1. Lance un épisode sur Netflix (`netflix.com/watch/...`)
-2. F12 → Console, filtre sur **WL**
-3. Tu dois voir `[WL] detecte : <Titre> S<saison>E<épisode>`
-
-## Passer une plateforme diagnostic → fonctionnelle
-
-1. Regarde un épisode/film sur la plateforme concernée (Prime Video, Disney+, Max ou Crunchyroll)
-2. F12 → Console, filtre sur `WL:` + le nom de la plateforme (ex. `WL:primevideo`)
-3. Copie tout ce qui s'affiche (ou capture d'écran) et envoie-le — ça permet d'écrire
-   l'extraction réelle pour cette plateforme, comme ça a été fait pour Netflix
+1. Lance un épisode d'une série de ta watchlist sur Netflix (`netflix.com/watch/...`)
+2. Après quelques secondes, la saison et l'épisode se mettent à jour dans Cinepisode
+   (à la prochaine synchronisation)
 
 ## Pourquoi pas de clé TMDB ni de login dans l'extension
 

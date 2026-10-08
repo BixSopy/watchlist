@@ -30,7 +30,7 @@ function checkAllAir(){
     if(newEps.length){
       var ab=document.getElementById('alertWrap');
       var namesHtml=newEps.slice(0,3).map(function(i){
-        return '<span class="alert-link" onclick="openPlex('+jsArg(i.id)+')" style="cursor:pointer;text-decoration:underline">'+esc(i.title)+'</span>';
+        return '<span class="alert-link"'+uiAct('openPlexQuiet',[i.id])+' style="cursor:pointer;text-decoration:underline">'+esc(i.title)+'</span>';
       }).join(', ');
       document.getElementById('alertText').innerHTML='<b>'+esc(tn('suivi.newEps',newEps.length))+'</b> : '+namesHtml;
       ab.classList.add('on');sfx('toast');render();
@@ -174,14 +174,14 @@ function renderSuivi(){
       provHtml='<div class="suivi-providers">'+item.streamingProviders.map(function(p){return p.logo?'<img class="suivi-provider-logo" src="'+esc(p.logo)+'" title="'+esc(p.name)+'" alt="'+esc(p.name)+'">':'';}).join('')+'</div>';
     }
     var tomorrowBadge=st.tomorrow?'<span class="suivi-badge tomorrow">&#9200; '+esc(t('suivi.tomorrow'))+'</span>':'';
-    return '<div class="suivi-item" data-id="'+esc(item.id)+'" onclick="sfx(\'click\');openPlex('+jsArg(item.id)+')" style="cursor:pointer">'+poster+
+    return '<div class="suivi-item" data-id="'+esc(item.id)+'" '+uiAct('openPlex',[item.id])+' style="cursor:pointer">'+poster+
       '<div class="suivi-info"><span class="suivi-title">'+esc(item.title)+'</span>'+
       '<span class="suivi-badge '+st.cls+'">'+st.text+'</span>'+tomorrowBadge+provHtml+'</div>'+
-      '<button class="suivi-reminder-toggle" data-active="'+(item.reminderEnabled?'true':'false')+'" onclick="event.stopPropagation();toggleReminder('+jsArg(item.id)+')" title="'+esc(t('suivi.reminder'))+'">&#128276;</button>'+
+      '<button class="suivi-reminder-toggle" data-active="'+(item.reminderEnabled?'true':'false')+'" '+uiAct('toggleReminder',[item.id])+' title="'+esc(t('suivi.reminder'))+'">&#128276;</button>'+
       '</div>';
   }).join('');
   if(tracked.length>SUIVI_MAX){
-    html+='<button class="suivi-more" onclick="sfx(\'click\')">'+esc(t('suivi.seeAll',{n:tracked.length}))+'</button>';
+    html+='<button class="suivi-more" data-click="sfxClick">'+esc(t('suivi.seeAll',{n:tracked.length}))+'</button>';
   }
   body.innerHTML=html;
 }

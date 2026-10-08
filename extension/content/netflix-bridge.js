@@ -1,12 +1,35 @@
 'use strict';
-/* Monde isolé (par défaut) : reçoit les détections de netflix-main.js (monde MAIN,
- * seul endroit avec accès à window.netflix) via postMessage, et relaie vers le
- * service worker avec chrome.runtime — API indisponible depuis le monde MAIN. */
+/* Monde isolé (par défaut) : reçoit les détections de netflix-main.js (monde MAIN, seul endroit
+ * avec accès à window.netflix) via postMessage, et les relaie au service worker avec
+ * chrome.runtime — API indisponible depuis le monde MAIN.
+ *
+ * Contrôles stricts : le message doit venir de cette même fenêtre (event.source), de l'origine
+ * Netflix attendue (event.origin), et avoir exactement la forme prévue. Tout le reste est ignoré
+ * (iframes, autres onglets, messages d'autres scripts). Les scripts de la page Netflix partagent
+ * le monde MAIN et peuvent donc toujours imiter un message : le service worker revalide tout et la
+ * fonction Supabase est bornée à la watchlist du propriétaire du jeton. */
+var WL_ALLOWED_ORIGINS = ['https://www.netflix.com'];
+
+function wlValidDetection(d) {
+  if (!d || typeof d !== 'object' || d.__wl !== true || d.type !== 'wl_watched') return null;
+  if (typeof d.title !== 'string') return null;
+  var title = d.title.trim();
+  if (!title || title.length > 300) return null;
+  function num(v) {
+    if (v === null || v === undefined) return null;
+    return (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 100000) ? v : undefined;
+  }
+  var season = num(d.season), episode = num(d.episode);
+  if (season === undefined || episode === undefined) return null;
+  return { title: title, season: season, episode: episode };
+}
+
 window.addEventListener('message', function (ev) {
-  if (ev.source !== window || !ev.data || ev.data.__wl !== true) return;
-  console.log('[WL] relai vers le background :', ev.data);
-  chrome.runtime.sendMessage(
-    { type: 'wl_watched', title: ev.data.title, season: ev.data.season, episode: ev.data.episode },
-    function (res) { console.log('[WL] reponse background :', res); }
-  );
+  if (ev.source !== window) return;
+  if (ev.origin !== window.location.origin || WL_ALLOWED_ORIGINS.indexOf(ev.origin) < 0) return;
+  var det = wlValidDetection(ev.data);
+  if (!det) return;
+  chrome.runtime.sendMessage({ type: 'wl_watched', title: det.title, season: det.season, episode: det.episode }, function () {
+    void chrome.runtime.lastError; /* pas de réponse (service worker relancé) : rien à faire */
+  });
 });

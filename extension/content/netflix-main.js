@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Détection du titre/saison/épisode en cours sur Netflix — basée sur des mécanismes
- * vérifiés en conditions réelles (Session 19, voir extension/content/diagnostic*.js) :
+ * vérifiés en conditions réelles (Session 19, scripts de diagnostic retirés depuis, voir l'historique git) :
  *  - netflix.appContext.state.playerApp.getAPI().videoPlayer : session active, avec
  *    getMovieId()/getCurrentTime()/getDuration() confirmés fonctionnels.
  *  - netflix.falcorCache.videos[movieId].summary.value : {type, season, episode, runtime}
@@ -17,9 +17,12 @@
  * page Netflix — seul moyen d'accéder à window.netflix (un content script "isolé"
  * classique a sa propre copie de window et ne le voit jamais, même si le DOM est partagé).
  * Contrepartie : pas d'accès à chrome.runtime ici, donc on relaie via window.postMessage
- * vers content/netflix-bridge.js (lui en monde isolé), qui parle à l'extension.
+ * vers content/netflix-bridge.js (lui en monde isolé), qui parle à l'extension. Le message est
+ * adressé à l'origine exacte de la page (jamais '*') et n'est relayé que s'il en a la forme exacte.
+ * Aucune trace dans la console (le titre regardé n'a pas à y apparaître).
  */
 
+(function () {
 function getActive() {
   try {
     var vp = window.netflix.appContext.state.playerApp.getAPI().videoPlayer;
@@ -39,7 +42,6 @@ function getActive() {
       durationMs: player.getDuration(),
     };
   } catch (e) {
-    console.log('[WL] getActive() echec :', e.message);
     return null;
   }
 }
@@ -58,36 +60,36 @@ function getShowTitle(info) {
 }
 
 var lastKey = null;
+function toInt(v) {
+  var n = typeof v === 'number' ? v : parseInt(v, 10);
+  return Number.isInteger(n) && n >= 0 ? n : null;
+}
 function send(title, season, episode) {
-  console.log('[WL] envoi vers le relai (netflix-bridge.js) :', title, season, episode);
-  window.postMessage({ __wl: true, title: title, season: season, episode: episode }, '*');
+  window.postMessage({ __wl: true, type: 'wl_watched', title: String(title), season: toInt(season), episode: toInt(episode) }, window.location.origin);
 }
 
 function check() {
   var info = getActive();
-  if (!info) { console.log('[WL] aucune lecture active detectee'); return; }
+  if (!info) return;
   var title = getShowTitle(info);
-  if (!title) { console.log('[WL] titre introuvable ([data-uia="video-title"] absent)'); return; }
+  if (!title) return;
 
   if (info.type === 'episode') {
-    console.log('[WL] detecte :', title, 'S' + info.season + 'E' + info.episode);
     var key = title + '|' + info.season + '|' + info.episode;
     if (key === lastKey) return;
     lastKey = key;
     send(title, info.season, info.episode);
   } else if (info.type === 'movie') {
     var pct = info.durationMs ? info.currentTimeMs / info.durationMs : 0;
-    console.log('[WL] film detecte :', title, Math.round(pct * 100) + '%');
     if (pct >= 0.9) {
       var mkey = 'film|' + title;
       if (mkey === lastKey) return;
       lastKey = mkey;
       send(title, null, null);
     }
-  } else {
-    console.log('[WL] type video non gere :', info.type);
   }
 }
 
 setTimeout(check, 3000);
 setInterval(check, 5000);
+})();
