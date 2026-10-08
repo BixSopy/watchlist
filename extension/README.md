@@ -35,8 +35,7 @@ l'extension (section « Historique ») :
 
 Envoi : RPC `extension_push_detections(p_token, p_items)` (migration
 `20261008160000_titres_detectes.sql`), par lots de 1 000. **Une ligne par titre** (épisode le
-plus avancé), avec seulement : source (`netflix`, `netflix_csv`, `live` ; `crunchyroll` et `prime`
-prévus), titre, film/série, saison, épisode, date du visionnage, pourcentage vu. Aucun identifiant
+plus avancé), avec seulement : source (`netflix`, `netflix_csv`, `live`, `crunchyroll`, `prime`), titre, film/série, saison, épisode, date du visionnage, pourcentage vu. Aucun identifiant
 Netflix, aucun nom de profil. Le serveur normalise le titre, dédoublonne (même titre + saison +
 épisode : le visionnage le plus récent gagne) et garde « Ignoré » définitif pour ce titre.
 L'onglet « Détectés » s'ouvre à la fin si quelque chose de nouveau est arrivé.
@@ -56,7 +55,69 @@ la RPC à jeton écrit. Un compte supprimé efface ses détections (cascade). L'
 localement le jeton, la dernière détection et l'état de l'import (`wlImport`, `wlImportMeta` : date
 du dernier import, jamais le jeton ni la liste des titres).
 
-### Permissions (0.5.0)
+## Crunchyroll et Prime Video (0.6.0)
+
+Deux plateformes de plus, **désactivées par défaut** : dans la fenêtre de l'extension, section
+« Crunchyroll et Prime Video », les boutons **« Activer Crunchyroll »** et **« Activer Prime
+Video »** demandent à Chrome l'accès à ces sites seulement (permissions facultatives,
+`optional_host_permissions`). L'avertissement à l'installation reste donc celui de la 0.5.0
+(Netflix et Cinepisode). « Désactiver » retire l'accès. Une fois une plateforme activée :
+
+- **détection en direct** : le service worker enregistre les scripts de la plateforme
+  (`chrome.scripting.registerContentScripts`, liste dans `lib/platforms.js`) et les retire si
+  l'accès est retiré. Mêmes règles que Netflix (80 % / générique après 50 % pour un épisode,
+  90 % / 80 % pour un film, 20 s de lecture réellement observée), communes dans `lib/watch-rules.js` ;
+  - Crunchyroll : la vidéo est dans l'iframe du lecteur (`static.crunchyroll.com`,
+    `content/crunchyroll-player.js`), qui envoie seulement position, durée et écran de fin à la
+    page (`postMessage` vers `https://www.crunchyroll.com`, jamais `'*'`). La page
+    (`content/crunchyroll.js`) vérifie l'origine de l'iframe, que l'expéditeur est bien une iframe
+    de la page et la forme du message ; série, saison et épisode viennent des métadonnées JSON-LD
+    (`TVEpisode`) de la page `/watch/`, ignorées si elles décrivent une autre vidéo ;
+  - Prime Video (`content/prime.js`) : titre et repère lus dans le lecteur, en anglais et en
+    français (« S2 E5 », « S2 É5 », « Season 2, Ep. 5 », « Saison 2, ép. 5 »…). Prime masque ses
+    commandes pendant la lecture : le dernier titre lu reste associé à la vidéo tant que sa durée
+    ne change pas. Rien n'est compté pendant une publicité. Suffixes « [4K/UHD] » et « - Saison 2 »
+    retirés ;
+- **« Importer mon historique Crunchyroll »** (`lib/crunchyroll.js`) : jeton d'accès de courte
+  durée obtenu avec la session crunchyroll.com du navigateur (`POST /auth/v1/token`,
+  `grant_type=etp_rt_cookie` ; le cookie est ajouté par le navigateur, l'extension ne le lit
+  jamais ; l'en-tête `Basic` est l'identifiant public du client web de crunchyroll.com, le même
+  pour tous les visiteurs), puis `GET /content/v2/{compte}/watch-history` par pages de 100
+  (forme v1 `items`/`next_page` acceptée aussi). Une ligne par série : dernier épisode fini
+  (`fully_watched` ou ≥ 80 %), date, pourcentage ; films (`movie_listing`) à part ; suffixes
+  « (French Dub) », « (VOSTFR) »… retirés. Un identifiant d'appareil aléatoire propre à
+  l'installation est envoyé (`wlDeviceId`) : Crunchyroll peut signaler une « nouvelle connexion ».
+  Pause et nouvel essai si Crunchyroll limite les requêtes (429) ;
+- **« Importer mon historique Prime Video »** (`lib/prime.js`) : région du compte
+  (`atv-ps.primevideo.com/cdp/usage/GetAppStartupConfig`, `eu` par défaut pour la France), puis
+  `www.primevideo.com/region/eu/api/getWatchHistorySettingsPage` page par page (`nextToken`),
+  pourcentage vu (`enrichItemMetadata`) et, **seulement pour les éléments vus à 80 % ou plus**,
+  la fiche (`atv-ps-eu.primevideo.com/cdp/catalog/GetPlaybackResources`, 3 en parallèle,
+  1 500 au plus par import) : série, saison, épisode. Bandes-annonces et bonus écartés ; lectures
+  courtes (épisode entamé, film non fini) jamais envoyées et sans appel de fiche.
+
+Les deux imports sont faits par le service worker (requêtes directes avec les cookies du site,
+limitées aux adresses de la plateforme), avec la même interface que Netflix (avancement, résultat,
+onglet « Détectés » ouvert à la fin) et un réimport incrémental (date du dernier visionnage lu,
+moins 3 jours).
+
+**Saisons d'animés** : Crunchyroll numérote parfois autrement que TMDB (saisons découpées,
+numérotation absolue, OAV). La saison est envoyée telle quelle ; dans l'onglet « Détectés », une
+ligne dont l'épisode vient de Crunchyroll n'est **jamais cochée d'office** et affiche
+« Numérotation Crunchyroll : vérifie la saison ». Chaque ligne affiche une pastille par source
+(Netflix, Fichier Netflix, Crunchyroll, Prime Video, Vu en direct).
+
+**Prime Video sur amazon.fr** : seule la session `www.primevideo.com` est utilisée (demander
+l'accès à `amazon.fr` reviendrait à lire tout le site marchand). Se connecter une fois sur
+`www.primevideo.com` dans ce navigateur suffit ; la lecture sur `amazon.fr/gp/video` n'est pas
+détectée en direct.
+
+**Export de données Amazon** (« Demander vos données » › Prime Video) : pas pris en charge pour
+l'instant. Son format (fichiers `Digital.PrimeVideo.ViewingHistory`, CSV/JSON selon les périodes)
+n'est pas documenté et n'a pas pu être vérifié sur un vrai export ; l'import par la session
+`primevideo.com` couvre le même historique. À ajouter si un export réel est fourni.
+
+### Permissions (0.6.0)
 
 | Permission | Pourquoi |
 |---|---|
@@ -64,17 +125,27 @@ du dernier import, jamais le jeton ni la liste des titres).
 | `scripting` | lire l'historique dans l'onglet `netflix.com` (requêtes même origine, au clic seulement) |
 | `https://www.netflix.com/*` | idem (avant : seulement `netflix.com/watch/*` pour la détection en direct) |
 | `https://batfulcvvquffgfeppcx.supabase.co/*` | inchangé : marquage en direct et envoi des détections |
+| *facultatif* `https://www.crunchyroll.com/*`, `https://static.crunchyroll.com/*` | demandé par « Activer Crunchyroll » : historique et détection en direct (page et iframe du lecteur) |
+| *facultatif* `https://www.primevideo.com/*`, `https://atv-ps.primevideo.com/*`, `https://atv-ps-eu.primevideo.com/*`, `https://atv-ps-fe.primevideo.com/*` | demandé par « Activer Prime Video » : historique (site et API de la région du compte) et détection en direct |
 
 Pas d'accès à `cinepisode.com` (l'onglet « Détectés » est simplement ouvert pour toi, sans
 permission), pas de permission `tabs`, `history` ni `cookies`, aucun appel TMDB depuis
 l'extension. Page de l'extension sous CSP stricte (`script-src 'self'`, `connect-src` limité à
-Supabase, `img-src 'self'`), aucun script en ligne, aucun `innerHTML`.
+Supabase et aux adresses Crunchyroll / Prime Video ci-dessus — sans la permission facultative,
+ces requêtes restent impossibles —, `img-src 'self'`), aucun script en ligne, aucun `innerHTML`.
+Nom, identifiant et clé de l'extension inchangés.
 
 ### Crédit
 
 La façon de lire l'historique Netflix (endpoint `aui/pathEvaluator`, structure des éléments,
 adresses des fiches) s'inspire de [Universal Trakt Scrobbler](https://github.com/trakt-tools/universal-trakt-scrobbler)
 (`src/services/netflix/NetflixApi.ts`). Le code de `lib/import.js` est réécrit pour Cinepisode.
+Idem pour Crunchyroll et Prime Video (0.6.0) : `lib/crunchyroll.js` reprend de
+`src/services/crunchyroll/CrunchyrollApi.ts` le jeton `etp_rt_cookie`, la structure de
+l'historique et le repérage des films / doublages ; `lib/prime.js` reprend de
+`src/services/amazon-prime/AmazonPrimeApi.ts` les endpoints, le `deviceTypeID` et la structure des
+réponses, et `content/prime.js` les sélecteurs du lecteur d'`AmazonPrimeParser.ts`. Code réécrit
+pour Cinepisode, sous la même notice :
 
 > MIT License — Copyright (c) 2020 trakt-tools
 >
@@ -95,11 +166,13 @@ adresses des fiches) s'inspire de [Universal Trakt Scrobbler](https://github.com
 | Plateforme | État |
 |---|---|
 | Netflix | **Fonctionnel**, vérifié sur un vrai compte (saison/épisode via `netflix.falcorCache`, titre via `[data-uia="video-title"]`) |
-| Prime Video, Disney+, Max, Crunchyroll | Pas encore pris en charge |
+| Crunchyroll | **0.6.0, à activer** : historique et détection en direct ; testé sur des réponses simulées (endpoints réels non vérifiés sur un vrai compte) |
+| Prime Video | **0.6.0, à activer** : historique et détection en direct (textes anglais et français) ; testé sur des réponses simulées (endpoints réels non vérifiés sur un vrai compte) |
+| Disney+, Max | Pas encore pris en charge |
 
 Les scripts de diagnostic (exploration de la page dans la console, `content/diagnostic*.js` et les
 scripts « diagnostic seulement » de Prime Video, Disney+, Max et Crunchyroll) ont été retirés en
-version 0.3.0 : l'extension ne s'exécute plus que sur `netflix.com/watch/*`. Ils restent dans
+version 0.3.0 : l'extension ne s'exécutait plus que sur `netflix.com/watch/*` (Crunchyroll et Prime Video reviennent en 0.6.0, seulement si tu les actives). Ils restent dans
 l'historique git si une nouvelle plateforme doit être étudiée.
 
 ## Quand un titre est marqué vu (0.4.0)

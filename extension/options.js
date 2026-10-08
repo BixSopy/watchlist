@@ -107,7 +107,10 @@ var msgN = function (k, values) { return chrome.i18n.getMessage(k, values) || k;
 var STALE_MS = 10 * 60 * 1000; /* « en cours » sans nouvelle depuis 10 min : service worker arrêté */
 var IMPORT_ERRORS = { no_token: 'importErrNoToken', invalid_token: 'importErrToken', netflix_tab: 'importErrNetflixTab',
   netflix_auth: 'importErrNetflixAuth', netflix_http: 'importErrNetflix', csv: 'importErrCsv', limit: 'importErrLimit',
-  server_error: 'importErrServer', network: 'importErrNetwork', busy: 'importBusy' };
+  server_error: 'importErrServer', network: 'importErrNetwork', busy: 'importBusy',
+  permission: 'importErrPermission', crunchyroll_auth: 'importErrCrunchyrollAuth', crunchyroll_http: 'importErrCrunchyroll',
+  prime_auth: 'importErrPrimeAuth', prime_http: 'importErrPrime' };
+var PLATFORM_SOURCES = ['crunchyroll', 'prime'];
 
 function isRunning(st) { return !!st && st.state === 'running' && typeof st.at === 'number' && Date.now() - st.at < STALE_MS; }
 function importStatusText(st) {
@@ -117,15 +120,15 @@ function importStatusText(st) {
     var s = st.sent || {};
     if (!st.titles || (s.inserted | 0) + (s.updated | 0) === 0) return { text: msg('importNothing'), tone: 'ok' };
     var text = msgN('importDone', [String(st.titles), String(s.inserted | 0), String(s.updated | 0)]);
-    if (st.truncated) text += msg('importTruncated');
+    if (st.truncated) text += msg(PLATFORM_SOURCES.indexOf(st.source) >= 0 ? 'importTruncatedOther' : 'importTruncated');
     if (st.metaFailed) text += msg('importMetaFailed');
     return { text: text, tone: 'ok' };
   }
   if (!isRunning(st)) return { text: '', tone: '' };
   if (st.step === 'tab') return { text: msg('importStepTab'), tone: '', pct: 3 };
-  if (st.step === 'session') return { text: msg('importStepSession'), tone: '', pct: 6 };
+  if (st.step === 'session') return { text: msg(st.source === 'crunchyroll' ? 'importStepCrunchyroll' : st.source === 'prime' ? 'importStepPrime' : 'importStepSession'), tone: '', pct: 6 };
   if (st.step === 'history') return { text: msgN('importStepHistory', [String(st.items | 0), String(st.pages | 0)]), tone: '', pct: Math.min(55, 8 + (st.pages | 0)) };
-  if (st.step === 'meta') return { text: msgN('importStepMeta', [String(st.done | 0), String(st.total | 0)]), tone: '', pct: 55 + 35 * (st.done | 0) / Math.max(1, st.total | 0) };
+  if (st.step === 'meta') return { text: msgN(st.source === 'prime' ? 'importStepPrimeMeta' : 'importStepMeta', [String(st.done | 0), String(st.total | 0)]), tone: '', pct: 55 + 35 * (st.done | 0) / Math.max(1, st.total | 0) };
   if (st.step === 'parse') return { text: msg('importStepParse'), tone: '', pct: 20 };
   return { text: msg('importStepPush'), tone: '', pct: 92 };
 }
@@ -140,6 +143,7 @@ function renderImport(st) {
   }
   var busy = isRunning(st);
   importNetflixBtn.disabled = busy;
+  document.querySelectorAll('.platform [data-role="import"]').forEach(function (b) { b.disabled = busy; });
   csvInput.disabled = busy;
   csvLabel.classList.toggle('disabled', busy);
 }
@@ -173,4 +177,43 @@ csvInput.addEventListener('change', function () {
   reader.onerror = function () { csvInput.value = ''; renderImport({ state: 'error', error: 'csv' }); };
   reader.readAsText(file, 'utf-8');
 });
+/* ---------- Crunchyroll et Prime Video (0.6.0) ----------
+ * « Activer » demande la permission facultative du site (chrome.permissions.request, sur le clic) ;
+ * le service worker enregistre alors la détection en direct. « Désactiver » la retire. */
+var PLATFORMS = (typeof self !== 'undefined' && self.CinepisodePlatforms) || {};
+function platformBox(name) { return document.querySelector('.platform[data-platform="' + name + '"]'); }
+function setPlatformState(name, granted, note) {
+  var box = platformBox(name);
+  if (!box) return;
+  box.querySelector('[data-role="enable"]').hidden = granted;
+  box.querySelector('[data-role="import"]').hidden = !granted;
+  box.querySelector('[data-role="disable"]').hidden = !granted;
+  var state = box.querySelector('[data-role="state"]');
+  state.textContent = note === 'denied' ? msg('platformDenied') : granted ? msg('platformEnabled') : '';
+  state.className = note === 'denied' ? 'state err' : 'state';
+}
+function refreshPlatform(name, note) {
+  if (!chrome.permissions || !PLATFORMS[name]) return;
+  chrome.permissions.contains({ origins: PLATFORMS[name].origins }, function (ok) { setPlatformState(name, !!ok, note); });
+}
+Object.keys(PLATFORMS).forEach(function (name) {
+  var box = platformBox(name);
+  if (!box) return;
+  refreshPlatform(name);
+  box.querySelector('[data-role="enable"]').addEventListener('click', function () {
+    chrome.permissions.request({ origins: PLATFORMS[name].origins }, function (granted) {
+      void chrome.runtime.lastError;
+      refreshPlatform(name, granted ? null : 'denied');
+    });
+  });
+  box.querySelector('[data-role="disable"]').addEventListener('click', function () {
+    chrome.permissions.remove({ origins: PLATFORMS[name].origins }, function () { void chrome.runtime.lastError; refreshPlatform(name); });
+  });
+  box.querySelector('[data-role="import"]').addEventListener('click', function () { startImport({ type: 'wl_import_' + name }); });
+});
+if (chrome.permissions && chrome.permissions.onAdded) {
+  chrome.permissions.onAdded.addListener(function () { Object.keys(PLATFORMS).forEach(function (n) { refreshPlatform(n); }); });
+  chrome.permissions.onRemoved.addListener(function () { Object.keys(PLATFORMS).forEach(function (n) { refreshPlatform(n); }); });
+}
+
 openDetectedBtn.addEventListener('click', function () { chrome.tabs.create({ url: DETECTED_URL }); });

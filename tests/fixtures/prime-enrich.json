@@ -1,0 +1,44 @@
+{
+  "enrichments": {
+    "amzn1.dv.gti.boys-s4e3": {
+      "progress": {
+        "percentage": 100
+      }
+    },
+    "amzn1.dv.gti.boys-s4e2": {
+      "progress": {
+        "percentage": 97
+      }
+    },
+    "amzn1.dv.gti.boys-s4e4": {
+      "progress": {
+        "percentage": 12
+      }
+    },
+    "amzn1.dv.gti.trailer-gladiator": {
+      "progress": {
+        "percentage": 100
+      }
+    },
+    "amzn1.dv.gti.saltburn": {
+      "progress": {
+        "percentage": 4
+      }
+    },
+    "amzn1.dv.gti.reacher-s2e8": {
+      "progress": {
+        "percentage": 95
+      }
+    },
+    "amzn1.dv.gti.fallout-s1e1": {
+      "progress": {
+        "percentage": 88
+      }
+    },
+    "amzn1.dv.gti.anatomie": {
+      "progress": {
+        "percentage": 99
+      }
+    }
+  }
+}

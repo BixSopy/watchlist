@@ -47,7 +47,7 @@ test('regroupement : un groupe par titre (toutes sources), épisode le plus avan
   const arcane = g.find((x) => x.key === 'show:arcane');
   assert.strictEqual(arcane.ids.length, 3);
   assert.deepStrictEqual(arcane.sources.sort(), ['live', 'netflix', 'netflix_csv']);
-  assert.deepStrictEqual(arcane.progress, { season: 1, episode: 9, approx: false }, 'S2E1 à 30 % : pas compté ; exact préféré à l\'estimé');
+  assert.deepStrictEqual(arcane.progress, { season: 1, episode: 9, approx: false, src: 'netflix' }, 'S2E1 à 30 % : pas compté ; exact préféré à l\'estimé');
   assert.strictEqual(arcane.title, 'Arcane', 'titre de la détection la plus récente');
   assert.strictEqual(g[0].key, 'show:arcane', 'plus récent d\'abord');
   const dark = g.find((x) => x.key === 'show:dark');
@@ -193,4 +193,36 @@ test('site : nouvel onglet branché sans gestionnaire en ligne, ajout par le mê
   assert.match(src, /updateEntryProgress\(/);
   /* les détections ne sont lues/modifiées qu'avec la session (RLS), jamais insérées par le site */
   assert.doesNotMatch(src, /from\('detected_media'\)\.(insert|upsert)/);
+});
+
+test('Crunchyroll / Prime Video : sources gardées par groupe ; saison Crunchyroll jamais cochée d\'office', () => {
+  const g = D.groupRows([
+    row({ raw_title: 'JUJUTSU KAISEN', source: 'crunchyroll', season: 2, episode: 5, progress_pct: 100, watched_at: '2026-09-30T20:40:00Z' }),
+    row({ raw_title: 'The Boys', source: 'prime', season: 4, episode: 3, progress_pct: 100, watched_at: '2026-10-05T10:00:00Z' }),
+    row({ raw_title: 'The Boys', source: 'live', season: 4, episode: 2, watched_at: '2026-10-04T10:00:00Z' }),
+  ]);
+  const jjk = g.find((x) => x.key === 'show:jujutsu kaisen');
+  const boys = g.find((x) => x.key === 'show:boys');
+  assert.deepStrictEqual(jjk.sources, ['crunchyroll']);
+  assert.deepStrictEqual(boys.sources.sort(), ['live', 'prime']);
+  assert.deepStrictEqual(boys.progress, { season: 4, episode: 3, approx: false, src: 'prime' });
+  const tm = { state: 'done', candidates: D.rankCandidates(jjk, [TV(95479, 'JUJUTSU KAISEN', '2020-10-03', 120)]) };
+  const c = D.classify(jjk, [], tm, null);
+  assert.strictEqual(D.actionable(jjk, c), true, 'reste ajoutable après vérification');
+  assert.strictEqual(D.defaultChecked(jjk, c), false, 'numérotation Crunchyroll : à vérifier');
+  const up = D.classify(jjk, [{ id: 'i1', title: 'Jujutsu Kaisen', type: 'anime', status: 'encours', saison: 1, episode: 24 }], tm, null);
+  assert.strictEqual(up.kind, 'update');
+  assert.strictEqual(D.defaultChecked(jjk, up), false);
+  const tmB = { state: 'done', candidates: D.rankCandidates(boys, [TV(76479, 'The Boys', '2019-07-25', 120)]) };
+  assert.strictEqual(D.defaultChecked(boys, D.classify(boys, [], tmB, null)), true, 'Prime Video : coché comme Netflix');
+});
+
+test('onglet « Détectés » : pastille par plateforme, textes dans les deux langues', () => {
+  const src = read('js/21-detected.js');
+  assert.match(src, /class="det-src det-src-'\+/);
+  for (const k of ['netflix', 'crunchyroll', 'prime', 'live']) assert.match(read('index.html'), new RegExp('\\.det-src-' + k + '\\b'));
+  for (const l of ['fr', 'en']) {
+    const txt = read('js/i18n/' + l + '.js');
+    for (const k of ['det.src.netflix', 'det.src.crunchyroll', 'det.src.prime', 'det.crNumbering']) assert.ok(txt.includes('"' + k + '"'), l + ' ' + k);
+  }
 });

@@ -25,7 +25,7 @@
     "message": "Saved."
   },
   "coverage": {
-    "message": "Currently supported: Netflix only. An episode is marked as watched at 80% of its length or as soon as the end credits start, a movie at 90%; an autoplayed next episode you stop is not counted."
+    "message": "Live detection: Netflix, plus Crunchyroll / Prime Video once enabled. An episode is marked as watched at 80% of its length or as soon as the end credits start, a movie at 90%; an autoplayed next episode you stop is not counted."
   },
   "openApp": {
     "message": "Open Cinepisode"
@@ -253,5 +253,73 @@
   },
   "importBusy": {
     "message": "An import is already running."
+  },
+  "platformsTitle": {
+    "message": "Crunchyroll and Prime Video"
+  },
+  "platformsIntro": {
+    "message": "Each platform is enabled separately: Chrome then asks for access to that site only. History is read with your session in this browser; nothing is sent anywhere but Cinepisode."
+  },
+  "enableCrunchyroll": {
+    "message": "Enable Crunchyroll"
+  },
+  "enablePrime": {
+    "message": "Enable Prime Video"
+  },
+  "importCrunchyroll": {
+    "message": "Import my Crunchyroll history"
+  },
+  "importPrime": {
+    "message": "Import my Prime Video history"
+  },
+  "disablePlatform": {
+    "message": "Disable"
+  },
+  "platformEnabled": {
+    "message": "Enabled: live detection and history import."
+  },
+  "platformDenied": {
+    "message": "Access denied by Chrome: nothing was enabled."
+  },
+  "crunchyrollHint": {
+    "message": "Sign in to crunchyroll.com in this browser. Anime seasons are sent as Crunchyroll numbers them: check them in the “Detected” tab."
+  },
+  "primeHint": {
+    "message": "Sign in to www.primevideo.com in this browser (an amazon.com session is not enough). Trailers, extras and plays under 80% are ignored. The Amazon data export is not supported yet."
+  },
+  "importStepCrunchyroll": {
+    "message": "Connecting to Crunchyroll…"
+  },
+  "importStepPrime": {
+    "message": "Connecting to Prime Video…"
+  },
+  "importStepPrimeMeta": {
+    "message": "Episode and movie details: $D$ / $T$…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTruncatedOther": {
+    "message": " Very long history: only the most recent part was read."
+  },
+  "importErrPermission": {
+    "message": "Enable the platform first (“Enable” button above)."
+  },
+  "importErrCrunchyrollAuth": {
+    "message": "Sign in to Crunchyroll in this browser, then try again."
+  },
+  "importErrCrunchyroll": {
+    "message": "Crunchyroll answered unexpectedly (or is rate limiting). Try again later."
+  },
+  "importErrPrimeAuth": {
+    "message": "Sign in to www.primevideo.com in this browser (and pick your profile), then try again."
+  },
+  "importErrPrime": {
+    "message": "Prime Video answered unexpectedly. Try again later."
   }
 }

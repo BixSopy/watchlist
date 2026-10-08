@@ -36,6 +36,13 @@
   #openDetected{margin-top:8px}
   button:disabled{opacity:.5;cursor:default}
   p.spaced{margin-top:14px}
+  .platform{margin-top:12px;padding:10px;background:#111115;border:1px solid #2a2a33;border-radius:8px}
+  .platform h3{font-size:12px;margin:0;display:flex;justify-content:space-between;align-items:center}
+  .platform .state{font-size:11px;color:#4ade80;margin:6px 0 0}
+  .platform .state.err{color:#ff9a9a}
+  .platform .state:empty{display:none}
+  button.link{width:auto;margin:0;padding:0;background:none;border:none;color:#9a9aa5;font-size:11px;text-decoration:underline}
+  button.link:hover{background:none;color:#e8e8ec}
 </style>
 </head>
 <body>
@@ -54,10 +61,27 @@
   <label id="csvLabel" class="filebtn" for="csvFile"><span data-msg="importCsv"></span></label>
   <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
   <p class="hint" data-msg="importCsvHint"></p>
+  <h2 data-msg="platformsTitle"></h2>
+  <p data-msg="platformsIntro"></p>
+  <div class="platform" data-platform="crunchyroll">
+    <h3><span>Crunchyroll</span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
+    <button class="secondary" data-role="enable" data-msg="enableCrunchyroll"></button>
+    <button class="secondary" data-role="import" data-msg="importCrunchyroll" hidden></button>
+    <p class="state" data-role="state"></p>
+    <p class="hint" data-msg="crunchyrollHint"></p>
+  </div>
+  <div class="platform" data-platform="prime">
+    <h3><span>Prime Video</span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
+    <button class="secondary" data-role="enable" data-msg="enablePrime"></button>
+    <button class="secondary" data-role="import" data-msg="importPrime" hidden></button>
+    <p class="state" data-role="state"></p>
+    <p class="hint" data-msg="primeHint"></p>
+  </div>
   <div id="importStatus" aria-live="polite"></div>
   <button id="openDetected" class="secondary" data-msg="openDetected"></button>
   <p class="spaced" data-msg="coverage"></p>
   <a href="https://cinepisode.com" target="_blank" rel="noopener" data-msg="openApp"></a>
+  <script src="lib/platforms.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

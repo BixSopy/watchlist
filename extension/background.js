@@ -11,13 +11,22 @@
  * regroupe par titre (lib/import.js) et envoie les détections à extension_push_detections().
  * Les détections en direct sans correspondance (« pas dans ta liste », « plusieurs titres ») sont
  * envoyées de la même façon. Tout se choisit ensuite dans l'onglet « Détectés » de Cinepisode.
- * Rien n'est envoyé ailleurs qu'à Supabase. */
-importScripts('lib/import.js');
+ * Rien n'est envoyé ailleurs qu'à Supabase.
+ *
+ * 0.6.0 : Crunchyroll et Prime Video, activables séparément (permissions facultatives demandées
+ * depuis la fenêtre de l'extension). Historique lu directement par le service worker avec la
+ * session du navigateur (lib/crunchyroll.js, lib/prime.js), détection en direct par des scripts
+ * enregistrés seulement quand la permission est accordée (lib/platforms.js). */
+importScripts('lib/import.js', 'lib/platforms.js', 'lib/crunchyroll.js', 'lib/prime.js');
 var I = self.CinepisodeImport;
+var PLATFORMS = self.CinepisodePlatforms;
+var CR = self.CinepisodeCrunchyroll;
+var PV = self.CinepisodePrime;
 var SUPA_URL = 'https://batfulcvvquffgfeppcx.supabase.co';
 var SUPA_KEY = 'sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
-/* Pages d'où une détection peut venir (mêmes origines que content_scripts dans manifest.json) */
-var ALLOWED_ORIGINS = ['https://www.netflix.com'];
+/* Pages d'où une détection peut venir : Netflix (content_scripts du manifeste) et les pages des
+ * plateformes activées (scripts enregistrés seulement après la permission, lib/platforms.js) */
+var ALLOWED_ORIGINS = ['https://www.netflix.com', 'https://www.crunchyroll.com', 'https://www.primevideo.com'];
 /* Réponses structurées de mark_watched_by_title (migration 20261008120000_mark_watched_fiable) */
 var SERVER_STATUSES = ['updated', 'already_up_to_date', 'not_found', 'ambiguous', 'invalid_token', 'invalid_input'];
 
@@ -106,7 +115,7 @@ function markWatched(token, det) {
 
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || typeof msg !== 'object') return;
-  if (msg.type === 'wl_import_netflix' || msg.type === 'wl_import_csv') return onImportMessage(msg, sender, sendResponse);
+  if (IMPORT_TYPES.indexOf(msg.type) >= 0) return onImportMessage(msg, sender, sendResponse);
   if (msg.type !== 'wl_watched') return;
   if (!trustedSender(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
   var det = validDetection(msg);
@@ -139,6 +148,7 @@ var NETFLIX_ORIGIN = 'https://www.netflix.com';
 var DETECTED_URL = 'https://cinepisode.com/#detectes';
 var CSV_MAX_CHARS = 20 * 1024 * 1024;
 var importRunning = false;
+var IMPORT_TYPES = ['wl_import_netflix', 'wl_import_csv', 'wl_import_crunchyroll', 'wl_import_prime'];
 
 /* Message venu d'une page de cette extension (fenêtre de l'extension / page d'options) */
 function trustedExtensionPage(sender) {
@@ -294,6 +304,121 @@ async function runCsvImport(token, text) {
   if (sent.inserted + sent.updated > 0) openDetected();
 }
 
+/* ======================= Crunchyroll et Prime Video (0.6.0) ======================= */
+function permissionsContains(origins) {
+  return new Promise(function (resolve) {
+    try { chrome.permissions.contains({ origins: origins }, function (ok) { void chrome.runtime.lastError; resolve(!!ok); }); }
+    catch (e) { resolve(false); }
+  });
+}
+/* Requête directe du service worker, avec les cookies de la plateforme (permission accordée),
+ * limitée aux adresses de cette plateforme. Renvoie {status, body}. */
+var PLATFORM_FETCH_PREFIXES = {
+  crunchyroll: ['https://www.crunchyroll.com/'],
+  prime: ['https://www.primevideo.com/', 'https://atv-ps.primevideo.com/', 'https://atv-ps-eu.primevideo.com/', 'https://atv-ps-fe.primevideo.com/'],
+};
+function platformFetch(platform) {
+  var prefixes = PLATFORM_FETCH_PREFIXES[platform] || [];
+  return function (url, opts) {
+    var allowed = typeof url === 'string' && prefixes.some(function (p) { return url.indexOf(p) === 0; });
+    if (!allowed) return Promise.resolve({ status: 0, body: '' });
+    opts = opts || {};
+    return fetch(url, { method: opts.method === 'POST' ? 'POST' : 'GET', headers: opts.headers || {},
+      body: opts.method === 'POST' ? opts.body : undefined, credentials: 'include', redirect: 'follow' })
+      .then(function (r) {
+        return r.text().then(function (text) { return { status: r.status, body: text.length > 8 * 1024 * 1024 ? '' : text }; });
+      })
+      .catch(function () { return { status: 0, body: '' }; });
+  };
+}
+function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+/* Identifiant d'appareil propre à cette installation (demandé par Crunchyroll et Prime Video pour
+ * leurs jetons ; aléatoire, sans lien avec l'utilisateur). */
+async function deviceId() {
+  var st = await storageGet(['wlDeviceId']);
+  if (typeof st.wlDeviceId === 'string' && /^[0-9a-f-]{36}$/.test(st.wlDeviceId)) return st.wlDeviceId;
+  var id = (self.crypto && self.crypto.randomUUID) ? self.crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, function () { return (Math.random() * 16 | 0).toString(16); });
+  chrome.storage.local.set({ wlDeviceId: id });
+  return id;
+}
+function uiLocale() {
+  var l = '';
+  try { l = chrome.i18n.getUILanguage(); } catch (e) { l = ''; }
+  return /^fr/i.test(l || 'fr') ? { cr: 'fr-FR', pv: 'fr_FR' } : { cr: 'en-US', pv: 'en_US' };
+}
+
+/* Import commun : lit l'historique (fetchHistory de la plateforme), envoie, mémorise la date */
+async function runPlatformImport(token, platform) {
+  var lib = platform === 'crunchyroll' ? CR : PV;
+  await setImportState({ state: 'running', source: platform, step: 'session', pages: 0, items: 0, done: 0, total: 0, error: null, sent: null, truncated: false, metaFailed: false, profile: null });
+  if (!(await permissionsContains(PLATFORMS[platform].origins))) { await setImportState({ state: 'error', error: 'permission' }); return; }
+  var meta = (await storageGet(['wlImportMeta'])).wlImportMeta || {};
+  var lastKey = platform + 'LastMs';
+  var since = typeof meta[lastKey] === 'number' ? meta[lastKey] - 3 * 86400000 : null;
+  var loc = uiLocale();
+  var hist;
+  try {
+    hist = await lib.fetchHistory(platformFetch(platform), {
+      deviceId: await deviceId(), locale: loc.cr, uxLocale: loc.pv, sinceMs: since, sleep: sleep,
+      onProgress: function (a, b, c) {
+        if (a === 'meta') { setImportState({ step: 'meta', done: b, total: c }); return; }
+        if (a === 'history') { setImportState({ step: 'history', pages: b, items: c }); return; }
+        setImportState({ step: 'history', pages: a, items: b });
+      },
+    });
+  } catch (e) {
+    var code = e && e.code;
+    await setImportState({ state: 'error', error: code === platform + '_auth' ? platform + '_auth' : platform + '_http' });
+    return;
+  }
+  var items = I.pushItemsFromGroups(hist.items, platform);
+  await setImportState({ step: 'push', done: 0, total: items.length });
+  var sent = { inserted: 0, updated: 0, unchanged: 0, invalid: 0 };
+  if (items.length) {
+    try {
+      sent = await pushDetections(token, items, function (d, n) { setImportState({ done: d, total: n }); });
+    } catch (e) {
+      await setImportState({ state: 'error', error: (e && e.code) || 'network' });
+      return;
+    }
+  }
+  meta[lastKey] = I.latestDate(hist.items, meta[lastKey]);
+  meta[platform + 'LastAt'] = Date.now();
+  chrome.storage.local.set({ wlImportMeta: meta });
+  await setImportState({ state: 'done', step: 'done', titles: items.length, sent: sent, truncated: !!hist.truncated, metaFailed: !!hist.metaFailed });
+  if (sent.inserted + sent.updated > 0) openDetected();
+}
+
+/* Scripts de détection en direct : enregistrés quand la permission de la plateforme est accordée,
+ * retirés quand elle est retirée (au démarrage, à l'installation et à chaque changement). */
+async function syncPlatformScripts() {
+  if (!chrome.scripting || !chrome.scripting.registerContentScripts || !chrome.permissions) return;
+  var registered = [];
+  try { registered = (await chrome.scripting.getRegisteredContentScripts()).map(function (c) { return c.id; }); } catch (e) { registered = []; }
+  var names = Object.keys(PLATFORMS);
+  for (var i = 0; i < names.length; i++) {
+    var p = PLATFORMS[names[i]];
+    var granted = await permissionsContains(p.origins);
+    var ids = p.scripts.map(function (c) { return c.id; });
+    var present = ids.filter(function (id) { return registered.indexOf(id) >= 0; });
+    try {
+      if (granted && present.length !== ids.length) {
+        if (present.length) await chrome.scripting.unregisterContentScripts({ ids: present });
+        await chrome.scripting.registerContentScripts(p.scripts.map(function (c) { return Object.assign({ persistAcrossSessions: true }, c); }));
+      } else if (!granted && present.length) {
+        await chrome.scripting.unregisterContentScripts({ ids: present });
+      }
+    } catch (e) { /* permission retirée entre-temps : resynchronisé au prochain changement */ }
+  }
+}
+if (chrome.permissions && chrome.permissions.onAdded) {
+  chrome.permissions.onAdded.addListener(function () { syncPlatformScripts(); });
+  chrome.permissions.onRemoved.addListener(function () { syncPlatformScripts(); });
+}
+if (chrome.runtime.onInstalled) chrome.runtime.onInstalled.addListener(function () { syncPlatformScripts(); });
+if (chrome.runtime.onStartup) chrome.runtime.onStartup.addListener(function () { syncPlatformScripts(); });
+
 function onImportMessage(msg, sender, sendResponse) {
   if (!trustedExtensionPage(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
   if (importRunning) { sendResponse({ ok: false, reason: 'busy' }); return; }
@@ -305,7 +430,10 @@ function onImportMessage(msg, sender, sendResponse) {
     if (!token) { setImportState({ state: 'error', error: 'no_token' }); sendResponse({ ok: false, reason: 'no_token' }); return; }
     importRunning = true;
     sendResponse({ ok: true, started: true });
-    var job = msg.type === 'wl_import_csv' ? runCsvImport(token, msg.text) : runNetflixImport(token);
+    var job = msg.type === 'wl_import_csv' ? runCsvImport(token, msg.text)
+      : msg.type === 'wl_import_crunchyroll' ? runPlatformImport(token, 'crunchyroll')
+        : msg.type === 'wl_import_prime' ? runPlatformImport(token, 'prime')
+          : runNetflixImport(token);
     job.catch(function () { return setImportState({ state: 'error', error: 'network' }); })
       .then(function () { importRunning = false; });
   });

@@ -1,0 +1,34 @@
+{
+  "widgets": [
+    {
+      "widgetType": "watch-history",
+      "content": {
+        "content": {
+          "titles": [
+            {
+              "date": "12 septembre 2026",
+              "titles": [
+                {
+                  "gti": "amzn1.dv.gti.fallout-s1",
+                  "time": 1789200000000,
+                  "children": [
+                    {
+                      "gti": "amzn1.dv.gti.fallout-s1e1",
+                      "time": 1789200000000,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "gti": "amzn1.dv.gti.anatomie",
+                  "time": 1789100000000,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

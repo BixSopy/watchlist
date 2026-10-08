@@ -59,6 +59,8 @@ const TMDB = {
     { id: 2996, name: 'The Office', original_name: 'The Office', first_air_date: '2001-07-09', popularity: 120, vote_average: 8.1, poster_path: '/uk.jpg' }],
   'movie:Glass Onion': [{ id: 661374, title: 'Glass Onion', original_title: 'Glass Onion: A Knives Out Mystery', release_date: '2022-11-23', popularity: 80, vote_average: 7.1, poster_path: '/go.jpg' }],
   'tv:Titre Introuvable': [],
+  'tv:JUJUTSU KAISEN': [{ id: 95479, name: 'JUJUTSU KAISEN', original_name: '呪術廻戦', first_air_date: '2020-10-03', popularity: 150, vote_average: 8.5, poster_path: '/jjk.jpg', overview: 'Anime', genre_ids: [16, 10759], origin_country: ['JP'] }],
+  'tv:The Boys': [{ id: 76479, name: 'The Boys', original_name: 'The Boys', first_air_date: '2019-07-25', popularity: 400, vote_average: 8.4, poster_path: '/boys.jpg', overview: 'Supes', genre_ids: [10765], origin_country: ['US'] }],
 };
 const TV_DETAILS = {
   94605: { id: 94605, status: 'Returning Series', in_production: true, number_of_episodes: 18, seasons: [{ season_number: 1, episode_count: 9 }, { season_number: 2, episode_count: 9 }] },
@@ -74,7 +76,9 @@ async function newPage(t, opts = {}) {
   page.on('console', m => { const x = m.text(); if (m.type() === 'error' && !/^Failed to load resource: the server responded with a status of (4\d\d)/.test(x)) problems.push(x); if (/Content Security Policy/i.test(x)) problems.push(x); });
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
   page.on('dialog', d => d.accept());
-  const db = await installFakeSupabase(page, fixtures());
+  const fx = fixtures();
+  if (opts.detected) fx.detected.push(...opts.detected.map(det));
+  const db = await installFakeSupabase(page, fx);
   const tmdbCalls = [];
   /* Proxy TMDB du site : /api/tmdb?path=/search/tv&query=… (js/04-tmdb-api.js) */
   await page.route(u => u.pathname === '/api/tmdb', route => {
@@ -122,7 +126,8 @@ test('Détectés : onglet caché sans compte, badge, groupes, filtres, correspon
   assert.equal(await page.locator('#mc').isHidden(), true);
   // Correspondances
   assert.match(await row(page, 'Dark').textContent(), /Mise à jour.*Dans ta liste : Dark \(S01 E04\) → S02 E03/s);
-  assert.match(await row(page, 'Arcane').textContent(), /Nouveau.*Fichier Netflix, Netflix.*Vu jusqu'à ≈ S01 E09.*Ajouter Arcane \(2021\) en cours à ≈ S01 E09/s, 'CSV et historique fusionnés, épisode le plus avancé (estimé par le CSV : ≈)');
+  assert.deepEqual(await row(page, 'Arcane').locator('.det-src').allTextContents(), ['Fichier Netflix', 'Netflix'], 'une pastille par source');
+  assert.match(await row(page, 'Arcane').textContent(), /Nouveau.*Fichier Netflix.*Netflix.*Vu jusqu'à ≈ S01 E09.*Ajouter Arcane \(2021\) en cours à ≈ S01 E09/s, 'CSV et historique fusionnés, épisode le plus avancé (estimé par le CSV : ≈)');
   assert.match(await row(page, 'Glass Onion').textContent(), /Ajouter Glass Onion \(2022\) comme terminé/);
   assert.match(await row(page, 'The Office').textContent(), /Ambigu.*Plusieurs fiches possibles/s);
   assert.match(await row(page, 'Lupin').textContent(), /Ambigu.*Plusieurs titres de ta liste correspondent/s);
@@ -226,5 +231,31 @@ test('Détectés : interface en anglais', async t => {
   await page.locator('.det-title', { hasText: 'Detected titles' }).waitFor();
   assert.match(await page.locator('.det-filters').textContent(), /All.*New.*Updates.*Ambiguous/s);
   assert.match(await page.locator('#detectedSection').textContent(), /Clear all/);
+  assert.deepEqual(problems, []);
+});
+
+test('Détectés : pastilles Crunchyroll / Prime Video ; saison Crunchyroll à vérifier (pas cochée d\'office)', async t => {
+  const { page, problems } = await newPage(t, { detected: [
+    { raw_title: 'JUJUTSU KAISEN', normalized_title: 'jujutsu kaisen', season: 2, episode: 5, source: 'crunchyroll', progress_pct: 100 },
+    { raw_title: 'The Boys', normalized_title: 'boys', season: 4, episode: 3, source: 'prime', progress_pct: 100 },
+    { raw_title: 'The Boys', normalized_title: 'boys', season: 4, episode: 2, source: 'live' },
+  ] });
+  await page.goto(server.url + '/');
+  await login(page);
+  await page.locator('#detTab').waitFor({ state: 'visible' });
+  await page.click('#detTab');
+  await row(page, 'JUJUTSU KAISEN').waitFor();
+  await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche'));
+  const jjk = row(page, 'JUJUTSU KAISEN'), boys = row(page, 'The Boys');
+  assert.deepEqual(await jjk.locator('.det-src').allTextContents(), ['Crunchyroll']);
+  assert.equal(await jjk.locator('.det-src').getAttribute('class'), 'det-src det-src-crunchyroll');
+  assert.deepEqual((await boys.locator('.det-src').allTextContents()).sort(), ['Prime Video', 'Vu en direct']);
+  assert.equal(await boys.locator('.det-src-prime').count(), 1);
+  assert.match(await jjk.textContent(), /Vu jusqu'à S02 E05.*Numérotation Crunchyroll : vérifie la saison/s);
+  assert.match(await jjk.textContent(), /Ajouter JUJUTSU KAISEN \(2020\) en cours à S02 E05/);
+  assert.equal(await jjk.locator('.det-cb').isChecked(), false, 'Crunchyroll : à vérifier avant d\'ajouter');
+  assert.equal(await jjk.locator('.det-cb').isDisabled(), false);
+  assert.equal(await boys.locator('.det-cb').isChecked(), true);
+  assert.match(await boys.textContent(), /Vu jusqu'à S04 E03/);
   assert.deepEqual(problems, []);
 });

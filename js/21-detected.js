@@ -50,7 +50,7 @@ var DET_CORE=(function(){
       if(w!==null&&(g.lastMs===null||w>g.lastMs)){g.lastMs=w;g.title=r.raw_title;}
       if(kind==='show'){
         if(Number.isInteger(r.season)&&Number.isInteger(r.episode)){
-          if(counted(r))g.progress=furthest(g.progress,{season:r.season,episode:r.episode,approx:r.source==='netflix_csv'});
+          if(counted(r))g.progress=furthest(g.progress,{season:r.season,episode:r.episode,approx:r.source==='netflix_csv',src:r.source});
         }else g.unknownProgress=true;
       }
     });
@@ -174,6 +174,9 @@ var DET_CORE=(function(){
   }
   /* Coché par défaut : seulement quand il n'y a aucun choix à faire */
   function defaultChecked(group,c){
+    /* Saison numérotée par Crunchyroll (saisons « cours », numérotation absolue) : souvent différente
+       de TMDB, l'utilisateur vérifie avant d'ajouter ou de mettre à jour */
+    if(group.kind==='show'&&group.progress&&group.progress.src==='crunchyroll')return false;
     if(c.kind==='update')return group.kind==='movie'||!!group.progress;
     return c.kind==='new'&&!!c.cand&&c.unambiguous===true&&(group.kind==='movie'||!!group.progress);
   }
@@ -316,6 +319,8 @@ function onDetectedTabHidden(){
 if(typeof window!=='undefined')window.addEventListener('hashchange',function(){if(location.hash==='#detectes')openDetectedTab();});
 
 var DET_SOURCE_KEY={netflix:'det.src.netflix',netflix_csv:'det.src.netflixCsv',live:'det.src.live',crunchyroll:'det.src.crunchyroll',prime:'det.src.prime'};
+/* Pastille par plateforme (couleurs dans index.html : .det-src-*) */
+var DET_SOURCE_CLS={netflix:'netflix',netflix_csv:'netflix',live:'live',crunchyroll:'crunchyroll',prime:'prime'};
 function _detEp(p){return p?(p.approx?'≈ ':'')+'S'+pad(p.season)+' E'+pad(p.episode):'';}
 function _detListProgress(it){
   if(it.status==='termine')return t('status.termine');
@@ -332,10 +337,12 @@ function _detRowHtml(g,c){
   var img=poster?'<img class="det-poster" src="'+IB+'w92'+esc(poster)+'" alt="" loading="lazy" data-hide-broken>':'<div class="det-poster det-poster-ph">'+icon(typ)+'</div>';
   var tagCls={update:'upd',uptodate:'ok',ambiguous:'amb',new:'new'}[c.kind];
   var tagTxt=t({update:'det.tag.update',uptodate:'det.tag.uptodate',ambiguous:'det.tag.ambiguous',new:'det.tag.new'}[c.kind]);
-  var meta=[g.sources.map(function(x){return t(DET_SOURCE_KEY[x]||'det.src.netflix');}).join(', ')];
+  var badges=g.sources.map(function(x){return '<span class="det-src det-src-'+(DET_SOURCE_CLS[x]||'other')+'">'+esc(t(DET_SOURCE_KEY[x]||'det.src.netflix'))+'</span>';}).join('');
+  var meta=[];
   if(g.kind==='movie')meta.push(t('det.movieSeen'));
   else if(g.progress)meta.push(t('det.seenUpTo',{ep:_detEp(g.progress)}));
   else meta.push(t('det.progressUnknown'));
+  if(g.kind==='show'&&g.progress&&g.progress.src==='crunchyroll')meta.push(t('det.crNumbering'));
   if(g.lastMs)meta.push(fmtDate(g.lastMs));
   var detail='';
   if(c.kind==='update'||c.kind==='uptodate'){
@@ -362,7 +369,7 @@ function _detRowHtml(g,c){
   return '<div class="det-row'+(s.checked?' on':'')+'" data-key="'+esc(g.key)+'">'
     +'<input type="checkbox" class="det-cb" aria-label="'+esc(t('det.select',{title:g.title}))+'"'+(s.checked?' checked':'')+(act?'':' disabled')+uiAct('detToggle',[g.key],'change')+'>'
     +img+'<div class="det-body"><div class="det-name">'+esc(g.title)+'</div>'
-    +'<div class="det-meta"><span class="det-tag '+tagCls+'">'+esc(tagTxt)+'</span><span>'+esc(meta.join(' · '))+'</span></div>'
+    +'<div class="det-meta"><span class="det-tag '+tagCls+'">'+esc(tagTxt)+'</span>'+badges+'<span>'+esc(meta.join(' · '))+'</span></div>'
     +'<div class="det-detail">'+detail+'</div></div>'
     +'<button type="button" class="btn btn-ghost det-ign"'+uiAct('detIgnore',[g.key])+'>'+esc(t('det.ignore'))+'</button></div>';
 }

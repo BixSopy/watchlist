@@ -1,0 +1,18 @@
+{
+  "total": 1,
+  "data": [
+    {
+      "panel": {
+        "id": "GJWU2VKK3", "type": "episode", "title": "A Spy and a Wife",
+        "episode_metadata": {
+          "series_id": "G4PH0WXVJ", "series_title": "SPY x FAMILY", "series_slug_title": "spy-x-family",
+          "season_title": "SPY x FAMILY Season 2", "season_slug_title": "spy-x-family-season-2",
+          "season_number": 2, "episode": "12", "episode_number": 12, "duration_ms": 1440000
+        }
+      },
+      "parent_id": "G4PH0WXVJ", "parent_type": "series", "id": "GJWU2VKK3",
+      "date_played": "2026-07-01T18:00:00Z", "playhead": 1160, "fully_watched": false
+    }
+  ],
+  "meta": { "prev_page": "/content/v2/acc-123/watch-history?page=1&page_size=100", "next_page": "" }
+}
