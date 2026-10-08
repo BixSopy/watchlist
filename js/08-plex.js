@@ -115,7 +115,7 @@ function fillPlexDetails(det){
     var seasons=det.seasons.filter(function(s){return s.season_number>0});plexSeasons=seasons;
     if(seasons.length>1){
       var sel=document.getElementById('sSelWrap');
-      sel.innerHTML='<button class="s-btn on" data-s="0" onmouseenter="sfx(\'hover\')" onclick="plexSeason(0)">'+esc(t('plex.overview'))+'</button>'+seasons.map(function(s){return '<button class="s-btn" data-s="'+s.season_number+'" onmouseenter="sfx(\'hover\')" onclick="plexSeason('+s.season_number+')">S'+s.season_number+'</button>';}).join('');
+      sel.innerHTML='<button class="s-btn on" data-s="0" data-sfx-hover'+uiAct('plexSeason',[0])+'>'+esc(t('plex.overview'))+'</button>'+seasons.map(function(s){return '<button class="s-btn" data-s="'+s.season_number+'" data-sfx-hover'+uiAct('plexSeason',[s.season_number])+'>S'+s.season_number+'</button>';}).join('');
     }
   }
   /* Next air */

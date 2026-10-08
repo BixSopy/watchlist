@@ -83,10 +83,10 @@ function setLang(code,opts){
   if(p&&p.then)p.then(done,done);else done();
 }
 /* Sélecteur de langue réutilisable (réglages, écran de connexion) */
-function langSwitcherHtml(cls,reopenJs){
+function langSwitcherHtml(cls,opts){
   return '<div class="lang-switch '+(cls||'')+'" role="group" aria-label="'+esc(t('lang.label'))+'">'+i18nLanguages().map(function(c){
     var m=I18N_DICTS[c].$meta||{};
-    return '<button type="button" class="lang-btn'+(c===LANG?' on':'')+'" lang="'+c+'" aria-pressed="'+(c===LANG)+'" onclick="setLang(\''+c+'\''+(reopenJs?','+reopenJs:'')+')">'+esc(m.name||c)+'</button>';
+    return '<button type="button" class="lang-btn'+(c===LANG?' on':'')+'" lang="'+c+'" aria-pressed="'+(c===LANG)+'" data-click="setLang" data-args="'+esc(JSON.stringify(opts?[c,opts]:[c]))+'">'+esc(m.name||c)+'</button>';
   }).join('')+'</div>';
 }
 /* Balises de la page dans la langue active (description, Open Graph, adresse canonique de /fr, /en) */

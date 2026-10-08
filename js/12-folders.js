@@ -11,7 +11,7 @@ function folderCardHtml(collId,items){
     return '<div class="fs-img">'+(it.poster?'<img src="'+IB+'w185'+esc(it.poster)+'" alt="" loading="lazy">':'<div class="fs-ph">'+icon(it.type)+'</div>')+'</div>';
   }).join('');
   var n=items.length;
-  return '<div class="folder-card" '+(arguments[2]||'')+' onclick="sfx(\'click\');openFolder('+jsArg(collId)+')">'+
+  return '<div class="folder-card" '+(arguments[2]||'')+' '+uiAct('openFolder',[collId])+'>'+
     '<div class="folder-stack">'+stacks+
     '<div class="folder-badge">'+n+'</div>'+
     '<div class="folder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>'+
@@ -44,7 +44,7 @@ function openFolder(collId){
     }).catch(function(){});
   }
   document.getElementById('folderGrid').innerHTML=sorted.map(function(item,i){
-    return '<div class="folder-item" style="animation-delay:'+(i*0.04)+'s" onclick="sfx(\'click\');closeFolder();setTimeout(function(){openPlex('+jsArg(item.id)+');},80)">'+
+    return '<div class="folder-item" style="animation-delay:'+(i*0.04)+'s" '+uiAct('folderItem',[item.id])+'>'+
       '<div class="folder-item-poster">'+(item.poster?'<img src="'+IB+'w185'+esc(item.poster)+'" alt="" loading="lazy">':'<div class="fi-ph">'+icon(item.type)+'</div>')+'</div>'+
       '<div class="folder-item-title">'+esc(item.title)+'</div>'+
       '<div class="folder-item-year">'+esc(String(item.year||''))+(item.status?' · '+sbadge(item.status):'')+'</div>'+

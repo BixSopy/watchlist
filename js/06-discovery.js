@@ -117,10 +117,10 @@ function _drFetchRow(cfg){
   });
 }
 function _drCardHtml(d){
-  var p=d.poster?'<img class="dr-poster" src="'+IB+'w185'+esc(d.poster)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'<div class="dr-poster-ph">'+icon(d.type==='movie'?'film':d.type==='tv'?'serie':'anime')+'</div>';
+  var p=d.poster?'<img class="dr-poster" src="'+IB+'w185'+esc(d.poster)+'" alt="" loading="lazy" data-hide-broken>':'<div class="dr-poster-ph">'+icon(d.type==='movie'?'film':d.type==='tv'?'serie':'anime')+'</div>';
   var sc=d.score?'<div class="dr-score">&#9733; '+d.score+'</div>':'';
   var ds='data-tmdbid="'+esc(String(d.tmdbId||''))+'" data-type="'+esc(d.type||'')+'" data-title="'+esc(d.title||'')+'" data-year="'+esc(d.year||'')+'" data-poster="'+esc(d.poster||'')+'" data-score="'+esc(String(d.score||''))+'" data-overview="'+esc(d.overview||'')+'"';
-  return '<div class="dr-card" '+ds+' onclick="sfx(\'click\');openPlexReco(getCardData(this))" onmouseenter="sfx(\'hover\')"><div class="dr-poster-wrap">'+p+'</div><div class="dr-title">'+esc(d.title)+'</div><div style="display:flex;gap:5px;align-items:center">'+sc+'<div class="dr-year">'+esc(d.year||'')+'</div></div></div>';
+  return '<div class="dr-card" '+ds+' data-click="openPlexRecoCard" data-sfx-hover><div class="dr-poster-wrap">'+p+'</div><div class="dr-title">'+esc(d.title)+'</div><div style="display:flex;gap:5px;align-items:center">'+sc+'<div class="dr-year">'+esc(d.year||'')+'</div></div></div>';
 }
 function _drSkeletonHtml(){var h='';for(var i=0;i<10;i++)h+='<div class="dr-skel"><div class="dr-skel-img"></div><div class="dr-skel-txt"></div></div>';return h;}
 /* CARD SIZE DYNAMIQUE — nb de cards visibles adapté au viewport */
@@ -168,11 +168,11 @@ function _renderDrRow(cfg,data,tab){
       '<div class="dr-row-title">'+label+'</div>'+
     '</div>'+
     '<div class="dr-row-wrap">'+
-      '<button class="dr-arrow left" onclick="drScrollRow(\''+innerId+'\',-1)" aria-label="'+esc(t('common.prev'))+'">'+
+      '<button class="dr-arrow left" '+uiAct('drScrollRow',[innerId,-1])+' aria-label="'+esc(t('common.prev'))+'">'+
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>'+
       '</button>'+
       '<div class="dr-row-inner" id="'+innerId+'">'+items.map(_drCardHtml).join('')+'</div>'+
-      '<button class="dr-arrow right" onclick="drScrollRow(\''+innerId+'\',1)" aria-label="'+esc(t('common.next'))+'">'+
+      '<button class="dr-arrow right" '+uiAct('drScrollRow',[innerId,1])+' aria-label="'+esc(t('common.next'))+'">'+
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</button>'+
     '</div>';

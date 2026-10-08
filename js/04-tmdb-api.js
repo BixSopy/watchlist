@@ -44,8 +44,8 @@ var _API_STATE_MSG={
 };
 function _loginMsgHtml(){
   var st=_apiAuthState||'login';
-  var cta=st==='login'?'<div class="sb-cta"><button class="btn btn-primary" onclick="openAuthModal(\'signup\')">'+esc(t('auth.createAccount'))+'</button><button class="btn btn-ghost" onclick="openAuthModal(\'login\')">'+esc(t('auth.signIn'))+'</button></div>'
-    :st==='unconfirmed'?'<div class="sb-cta"><button class="btn btn-ghost" onclick="openAuthModal(\'account\')">'+esc(t('auth.myAccount'))+'</button></div>':'';
+  var cta=st==='login'?'<div class="sb-cta"><button class="btn btn-primary" data-click="openAuth" data-args="[&quot;signup&quot;]">'+esc(t('auth.createAccount'))+'</button><button class="btn btn-ghost" data-click="openAuth" data-args="[&quot;login&quot;]">'+esc(t('auth.signIn'))+'</button></div>'
+    :st==='unconfirmed'?'<div class="sb-cta"><button class="btn btn-ghost" data-click="openAuth" data-args="[&quot;account&quot;]">'+esc(t('auth.myAccount'))+'</button></div>':'';
   return '<div class="sb-loading sb-auth-msg">'+esc(_API_STATE_MSG[st]||_API_STATE_MSG.login)+cta+'</div>';
 }
 function _paintLoginRequired(){

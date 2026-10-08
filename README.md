@@ -44,6 +44,10 @@ https://watchlist-omega-three.vercel.app continue de fonctionner).
 - En-têtes dans `vercel.json` : CSP stricte (Turnstile seul autorisé en `script-src` /
   `frame-src`), `Referrer-Policy: strict-origin` (Turnstile a besoin de l'origine),
   `Permissions-Policy`, `frame-ancestors 'none'`, HSTS.
+- Aucun gestionnaire d'événement dans le HTML (`onclick=`, `onchange=`…) : la CSP ne contient pas
+  `script-src-attr 'unsafe-inline'`, donc un attribut injecté ne peut rien exécuter. Les boutons
+  portent `data-click="action"` (+ `data-args` en JSON) et `js/00-actions.js` appelle l'action
+  correspondante dans une liste fermée (`tests/csp.test.js` vérifie qu'il n'en reste aucun).
 - Indexation (`brand.config.json › indexable: true`) : l'accueil et les pages légales sont
   indexables **uniquement sur `cinepisode.com`** (meta robots `index`, `canonical`,
   `robots.txt`, `sitemap.xml`) ; `X-Robots-Tag: noindex` reste envoyé sur tout autre hôte

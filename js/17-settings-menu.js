@@ -31,17 +31,17 @@ function closeSettingsView(){
   if(sv)sv.style.display='none';
 }
 function _toggleRow(label,hint,key,checked){
-  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'</div><div class="setting-control"><div class="toggle-switch'+(checked?' on':'')+'" onclick="_onSettingToggle(\''+key+'\',this)"><div class="knob"></div></div></div></div>';
+  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'</div><div class="setting-control"><div class="toggle-switch'+(checked?' on':'')+'" '+uiAct('settingToggle',[key])+'><div class="knob"></div></div></div></div>';
 }
 function _delegatedToggleRow(label,hint,fnName,checked){
-  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'</div><div class="setting-control"><div class="toggle-switch'+(checked?' on':'')+'" onclick="'+fnName+'();renderSettingsMenu()"><div class="knob"></div></div></div></div>';
+  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'</div><div class="setting-control"><div class="toggle-switch'+(checked?' on':'')+'" '+uiAct('settingFn',[fnName])+'><div class="knob"></div></div></div></div>';
 }
 function _selectRow(label,key,options,current){
   var opts=options.map(function(o){return '<option value="'+o.v+'"'+(o.v===current?' selected':'')+'>'+o.l+'</option>';}).join('');
-  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div></div><div class="setting-control"><select class="settings-select" onchange="_onSettingSelect(\''+key+'\',this.value)">'+opts+'</select></div></div>';
+  return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div></div><div class="setting-control"><select class="settings-select"'+uiAct('settingSelect',[key],'change')+'>'+opts+'</select></div></div>';
 }
 function _rangeRow(label,hint,key,value){
-  return '<div class="setting-row setting-row-col"><div class="setting-copy" style="display:flex;justify-content:space-between;align-items:baseline"><div class="setting-label">'+label+'</div><div class="setting-hint" id="_rangeVal_'+key+'" style="margin:0">'+value+'%</div></div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'<input type="range" class="settings-range" min="0" max="100" step="5" value="'+value+'" oninput="_onSettingRange(\''+key+'\',this.value)"></div>';
+  return '<div class="setting-row setting-row-col"><div class="setting-copy" style="display:flex;justify-content:space-between;align-items:baseline"><div class="setting-label">'+label+'</div><div class="setting-hint" id="_rangeVal_'+key+'" style="margin:0">'+value+'%</div></div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'<input type="range" class="settings-range" min="0" max="100" step="5" value="'+value+'" '+uiAct('settingRange',[key],'input')+'></div>';
 }
 /* Raccourcis clavier (voir js/18-bootstrap.js) — informatif, aucune action au clic. */
 function _kbdRow(key,label){
@@ -51,7 +51,7 @@ function _kbdRow(key,label){
 function _webhookCodeField(id,label,text){
   return '<div class="webhook-field"><div class="webhook-field-lbl">'+label+'</div><div class="webhook-code-row">'+
     '<div class="webhook-code" id="'+id+'">'+esc(text)+'</div>'+
-    '<button type="button" class="webhook-copy-btn" onclick="copyWebhookText(\''+id+'\')">'+esc(t('common.copy'))+'</button>'+
+    '<button type="button" class="webhook-copy-btn" '+uiAct('copyWebhook',[id])+'>'+esc(t('common.copy'))+'</button>'+
     '</div></div>';
 }
 function copyWebhookText(id){
@@ -81,13 +81,13 @@ function _plexWebhookSection(){
   }
   if(!plexWebhookToken){
     html+='<div class="setting-hint">'+esc(t('set.tokenIntro'))+'</div>';
-    html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">'+esc(t('set.tokenGenerate'))+'</div></div>';
+    html+='<div class="settings-action-row" data-click="genWebhookToken"><div class="setting-label">'+esc(t('set.tokenGenerate'))+'</div></div>';
     html+='</div>';
     return html;
   }
   html+=_webhookCodeField('whToken',esc(t('set.yourToken')),plexWebhookToken);
   html+='<div class="setting-hint">'+esc(t('set.tokenHelp'))+'</div>';
-  html+='<div class="settings-action-row" onclick="togglePlexWebhookAdvanced()"><div class="setting-label">'+esc(_plexWebhookAdvancedOpen?t('set.hide'):t('set.tautulliAdvanced'))+'</div></div>';
+  html+='<div class="settings-action-row" data-click="toggleWebhookAdvanced"><div class="setting-label">'+esc(_plexWebhookAdvancedOpen?t('set.hide'):t('set.tautulliAdvanced'))+'</div></div>';
   if(_plexWebhookAdvancedOpen){
     var rpcUrl=SUPA_URL+'/rest/v1/rpc/mark_watched_by_token';
     var headers=JSON.stringify({apikey:SUPA_KEY},null,0);
@@ -99,7 +99,7 @@ function _plexWebhookSection(){
     html+=_webhookCodeField('whBodyEp',esc(t('set.bodyEp')),bodyEp);
     html+=_webhookCodeField('whBodyFilm',esc(t('set.bodyFilm')),bodyFilm);
   }
-  html+='<div class="settings-action-row" onclick="generatePlexWebhookToken()"><div class="setting-label">'+esc(t('set.tokenRegenerate'))+'</div></div>';
+  html+='<div class="settings-action-row" data-click="genWebhookToken"><div class="setting-label">'+esc(t('set.tokenRegenerate'))+'</div></div>';
   html+='</div>';
   return html;
 }
@@ -139,7 +139,7 @@ function renderSettingsMenu(){
   var pending=memDB.filter(function(i){return i.needsSync;}).length;
   var syncLabel=esc(!supa?t('set.unavailable'):(authUser?(pending?tn('set.pending',pending):t('sync.synced')):t('set.notSignedIn')));
   var html='';
-  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('lang.label'))+'</div>'+langSwitcherHtml('lang-switch-settings',"{reopen:'settings'}")+'</div><div class="opt-sep"></div>';
+  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('lang.label'))+'</div>'+langSwitcherHtml('lang-switch-settings',{reopen:'settings'})+'</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.appearance'))+'</div>';
   html+=_delegatedToggleRow(esc(t('set.compact')),'','toggleCompact',compactOn);
   html+=_delegatedToggleRow(esc(t('set.sounds')),'','toggleSound',soundOn);
@@ -156,8 +156,8 @@ function renderSettingsMenu(){
   html+=_selectRow(esc(t('set.speed')),'wl_reco_speed',[{v:'slow',l:esc(t('set.slow'))},{v:'normal',l:esc(t('set.normal'))},{v:'fast',l:esc(t('set.fast'))}],wlSettings.wl_reco_speed);
   html+=_toggleRow(esc(t('set.pauseHover')),'','wl_reco_pause_hover',wlSettings.wl_reco_pause_hover==='1');
   html+=_selectRow(esc(t('set.recoLimit')),'wl_reco_limit',[{v:'10',l:'10'},{v:'15',l:'15'},{v:'20',l:'20'}],wlSettings.wl_reco_limit);
-  html+='<div class="settings-action-row" onclick="resetDismissedRecos()"><div class="setting-label">'+esc(t('set.resetDismissed'))+'</div><div class="setting-hint">'+esc(t('set.resetDismissedHint'))+'</div></div>';
-  html+='<div class="settings-action-row" onclick="clearDiscoveryCache()"><div class="setting-label">'+esc(t('set.clearCache'))+'</div><div class="setting-hint">'+esc(t('set.clearCacheHint'))+'</div></div>';
+  html+='<div class="settings-action-row" data-click="resetDismissed"><div class="setting-label">'+esc(t('set.resetDismissed'))+'</div><div class="setting-hint">'+esc(t('set.resetDismissedHint'))+'</div></div>';
+  html+='<div class="settings-action-row" data-click="clearDiscoveryCache"><div class="setting-label">'+esc(t('set.clearCache'))+'</div><div class="setting-hint">'+esc(t('set.clearCacheHint'))+'</div></div>';
   html+='</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.suivi'))+'</div>';
   html+=_delegatedToggleRow(esc(t('set.suiviCollapsed')),'','toggleSuiviSection',suiviCollapsed);
@@ -166,8 +166,8 @@ function renderSettingsMenu(){
   html+='</div><div class="opt-sep"></div>';
   html+=_plexWebhookSection()+'<div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.data'))+'</div>';
-  html+='<div class="settings-action-row" onclick="openAuthModal();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.accountSync'))+'</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
-  if(authUser)html+='<div class="settings-action-row" onclick="exportAccountData();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.exportGdpr'))+'</div></div></div>';
+  html+='<div class="settings-action-row" data-click="menuAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.accountSync'))+'</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
+  if(authUser)html+='<div class="settings-action-row" data-click="menuExportAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.exportGdpr'))+'</div></div></div>';
   html+='<div class="setting-hint"><a href="'+esc(legalUrl('privacy'))+'" style="color:var(--text2)">'+esc(t('legal.privacy'))+'</a> · <a href="'+esc(legalUrl('terms'))+'" style="color:var(--text2)">'+esc(t('legal.terms'))+'</a></div>';
   html+='</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.shortcuts'))+'</div>';
