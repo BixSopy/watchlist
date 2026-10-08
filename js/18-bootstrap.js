@@ -10,6 +10,8 @@ document.addEventListener('keydown',function(e){
     sfx('close');closeAdd();closePlex();document.getElementById('statsMbk').classList.remove('on');return;
   }
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
+  /* Page d'accueil affichée : pas de raccourcis de l'app (elle est masquée) */
+  if(document.documentElement.classList.contains('lp-guest'))return;
   if(e.key==='n'||e.key==='N'){e.preventDefault();openAdd();}
   else if(e.key==='f'||e.key==='F'){e.preventDefault();document.getElementById('qinput').focus();}
   else if(e.key==='s'||e.key==='S'){e.preventDefault();openStats();}
@@ -87,7 +89,11 @@ loadSfxVolume();
 compactOn=localStorage.getItem('wl_cpt')=='1';
 try{dismissed=JSON.parse(localStorage.getItem('wl_dis')||'[]');}catch(e){dismissed=[];}
 loadSettings();applySettings();
-openDB(function(){render();loadRecos();setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);enhanceAllSelects(document);setTimeout(function(){detectCollections(true);},6000);});
+/* IndexedDB peut s'ouvrir pendant que le navigateur télécharge encore les scripts suivants
+   (réseau lent) : on attend qu'ils soient tous exécutés (DOMContentLoaded) avant de démarrer. */
+function _whenScriptsReady(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn,{once:true});else fn();}
+openDB(function(){_whenScriptsReady(_bootApp);});
+function _bootApp(){render();loadRecos();setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);enhanceAllSelects(document);setTimeout(function(){detectCollections(true);},6000);}
 
 /* PWA : enregistre un service worker volontairement sans cache (voir sw.js), uniquement
    pour satisfaire le critère d'installabilité de Chrome/Android ("Ajouter à l'écran

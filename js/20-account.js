@@ -216,8 +216,15 @@ function _legalLinks(){
 function _maskEmail(e){return esc(e||'');}
 
 /* ---------- Ouverture / navigation ---------- */
+/* #authView peut être prêté au panneau d'inscription de la page d'accueil (js/23-landing.js) :
+   il revient dans la fenêtre de compte avant chaque ouverture. */
+function _authViewHome(){
+  var slot=document.querySelector('#authMbk .auth-modal'),v=document.getElementById('authView');
+  if(slot&&v&&v.parentNode!==slot)slot.appendChild(v);
+}
 function openAuthModal(view,ctx){
   if(typeof sfx==='function')sfx('open');
+  _authViewHome();
   document.getElementById('authMbk').classList.add('on');
   authGo(view||(authUser?'account':'login'),ctx);
 }
@@ -248,14 +255,26 @@ function authGo(view,ctx){
     if(!_authBusy&&v.submit)v.submit(form.querySelector('[type=submit]'));
   });
   if(v.after)v.after(_authCtx);
-  var cap=root.querySelector('.auth-captcha');if(cap)captchaMount(cap);
+  var cap=root.querySelector('.auth-captcha');
+  /* Page d'accueil : le CAPTCHA (script tiers) attend le premier geste dans le formulaire */
+  if(cap&&root.closest('.lp-auth'))_captchaOnFirstUse(root,cap);
+  else if(cap)captchaMount(cap);
   var first=root.querySelector('input:not([type=checkbox]):not([readonly])');
   /* Focus auto (souris uniquement), sauf si l'utilisateur a déjà cliqué dans un champ */
-  if(first&&window.matchMedia&&window.matchMedia('(pointer:fine)').matches)setTimeout(function(){
+  /* (pas dans le panneau de la page d'accueil : il est plus bas dans la page, js/23-landing.js
+     ne donne le focus qu'après un clic sur « Créer mon compte » / « Se connecter ») */
+  if(first&&!root.closest('.lp-auth')&&window.matchMedia&&window.matchMedia('(pointer:fine)').matches)setTimeout(function(){
     var a=document.activeElement;
     if(a&&a!==document.body&&root.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return;
     try{first.focus();}catch(e){}
   },30);
+}
+function _captchaOnFirstUse(root,cap){
+  root._lazyCaptcha=cap;
+  if(root._lazyCaptchaBound)return;
+  root._lazyCaptchaBound=true;
+  var go=function(){var c=root._lazyCaptcha;root._lazyCaptcha=null;if(c&&root.contains(c))captchaMount(c);};
+  ['focusin','pointerdown','keydown'].forEach(function(ev){root.addEventListener(ev,go,true);});
 }
 /* Fermeture « implicite » (clic à côté, Échap) : jamais quand un champ du formulaire est rempli,
    pour ne pas perdre un mot de passe en cours de saisie. Un clic à côté ne compte que s'il commence

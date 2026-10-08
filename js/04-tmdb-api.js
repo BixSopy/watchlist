@@ -62,6 +62,8 @@ var _API_STATE_TOAST={
 function _notifyLoginRequired(state){
   _apiAuthState=state||'login';
   setTimeout(_paintLoginRequired,0);
+  /* Visiteur sur la page d'accueil : l'app tourne en arrière-plan, pas de toast par-dessus l'accueil */
+  if(document.documentElement.classList.contains('lp-guest'))return;
   if(Date.now()-_apiAuthToastAt>60000){
     _apiAuthToastAt=Date.now();
     toast(_API_STATE_TOAST[_apiAuthState]||_API_STATE_TOAST.login,'nfo');

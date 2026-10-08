@@ -16,6 +16,9 @@ export async function installFakeSupabase(page, opts = {}) {
     users: [{ id: '11111111-1111-4111-8111-111111111111', email: 'pierre@exemple.fr', password: 'Correct-Horse-42', confirmed: true }],
     profiles: [], items: [], detected: [], calls: [], deleted: false, ...opts,
   };
+  /* Par défaut, les tests visent l'application : on passe la page d'accueil (visiteur déjà venu, liste locale).
+     { landing: true } garde le parcours d'un nouveau visiteur (page d'accueil publique). */
+  if (!opts.landing) await page.addInitScript(() => { try { localStorage.setItem('wl_app_guest', '1'); } catch (e) {} });
   const userJson = u => ({ id: u.id, aud: 'authenticated', role: 'authenticated', email: u.email,
     email_confirmed_at: u.confirmed ? '2026-10-01T10:00:00Z' : null, confirmed_at: u.confirmed ? '2026-10-01T10:00:00Z' : null,
     created_at: '2026-10-01T10:00:00Z', updated_at: '2026-10-01T10:00:00Z', last_sign_in_at: '2026-10-08T10:00:00Z',

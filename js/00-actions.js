@@ -144,6 +144,9 @@ uiOn('addSelectedBatch',function(){addSelectedBatch();});
 uiOn('openAuth',function(el,e,view){openAuthModal(view);});
 uiOn('closeAuth',function(){closeAuthModal();});
 uiOn('authGo',function(el,e,view,ctx){authGo(view,ctx);});
+/* Page d'accueil (js/23-landing.js) */
+uiOn('lpAuth',function(el,e,view){if(e&&e.preventDefault)e.preventDefault();lpShowAuth(view);});
+uiOn('lpOpenApp',function(){lpOpenApp();});
 uiOn('authHaveCodeEmail',function(){authGo('emailSent',{newEmail:_val('authNewEmail').trim()});});
 uiOn('authResend',function(el){authResend(el);});
 uiOn('togglePw',function(el,e,id){togglePwVisibility(id,el);});

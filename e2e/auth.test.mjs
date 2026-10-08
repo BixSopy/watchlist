@@ -98,7 +98,10 @@ test('connexion : erreurs en français, puis compte et déconnexion', async t =>
   await page.locator('#syncStatusText').filter({ hasText: /Synchronis/ }).waitFor();
   await shot(page, '04-mon-compte');
   await page.click('text=Se déconnecter');
-  await page.locator('#syncStatusText').filter({ hasText: 'Se connecter' }).waitFor();
+  // Déconnexion : retour à la page d'accueil publique, formulaire de connexion prêt
+  await page.locator('#landing').waitFor({ state: 'visible' });
+  await page.locator('#lpAuthHost #authViewTitle').filter({ hasText: 'Connexion' }).waitFor();
+  assert.equal(await page.locator('.hdr').isVisible(), false, 'l’application est masquée');
   assert.deepEqual(problems, []);
 });
 
@@ -255,8 +258,8 @@ test('navigateur en anglais : interface, modale de connexion et erreurs en angla
   await page.goto(server.url + '/');
   assert.equal(await page.getAttribute('html', 'lang'), 'en');
   assert.match(await page.locator('#syncStatusText').textContent(), /Sign in/);
-  assert.equal(await page.locator('footer a[data-legal="privacy"]').getAttribute('href'), '/privacy');
-  assert.match(await page.locator('footer a[data-legal="terms"]').textContent(), /Terms/);
+  assert.equal(await page.locator('footer.app-foot a[data-legal="privacy"]').getAttribute('href'), '/privacy');
+  assert.match(await page.locator('footer.app-foot a[data-legal="terms"]').textContent(), /Terms/);
   await pageShot(page, 'en-01-accueil');
   await page.click('#syncStatusPill');
   await title(page).filter({ hasText: 'Sign in' }).waitFor();
@@ -321,7 +324,7 @@ test('adresse /en et ?lang= : langue imposée, paramètre retiré, balises de la
   let r = await page.goto(server.url + '/en');
   assert.equal(r.status(), 200);
   assert.equal(await page.getAttribute('html', 'lang'), 'en');
-  assert.match(await page.getAttribute('meta[name="description"]', 'content'), /tracker/);
+  assert.match(await page.getAttribute('meta[name="description"]', 'content'), /Track your movies, series and anime/);
   await page.goto(server.url + '/?lang=fr');
   assert.equal(await page.getAttribute('html', 'lang'), 'fr');
   assert.equal(new URL(page.url()).search, '', 'lang retiré de l’adresse');

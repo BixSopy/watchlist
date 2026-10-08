@@ -7,7 +7,7 @@
     "accent": "episode"
   },
   "tagline": "Ton suivi de films, séries et anime",
-  "description": "Suivi personnel de films, séries et anime",
+  "description": "Suis tes films, séries et anime au même endroit : où tu en es, les nouveaux épisodes, ta liste synchronisée partout. Gratuit, sans pub, sans pistage, hébergé dans l'UE.",
   "baseUrl": "https://cinepisode.com",
   "$comment_baseUrl": "Domaine de production (origine https, sans « / » final). Utilisé dans les textes, les balises Open Graph et les instructions ; l'app elle-même fonctionne sur n'importe quel domaine (tout est en chemins relatifs).",
   "domains": {
