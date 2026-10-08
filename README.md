@@ -23,6 +23,12 @@ https://watchlist-omega-three.vercel.app continue de fonctionner).
 - 🌙 Dark mode OLED (`#0a0a0c`)
 - 🔍 Search modal avec 3 filtres (type, tri, année)
 - 🎯 Notation bloquée sur statut "À voir"
+- 🔊 Sons d'interface (désactivables, touche `M`, volume réglable) : fichiers courts dans `sounds/` + synthèse Web Audio
+
+**Crédits sons** : `sounds/open.mp3`, `close.mp3`, `add.mp3`, `done.mp3` — [Kenney](https://kenney.nl) Interface Sounds
+(maximize_008, minimize_008, confirmation_001, confirmation_004), licence CC0 ; `sounds/del.mp3`, `err.mp3` —
+[Mixkit](https://mixkit.co) (n° 1120 « Modern click box check », n° 2569 « Negative tone interface tap »), licence
+gratuite Mixkit (sans attribution obligatoire). Les autres sons (clic, survol, épisode suivant, alerte) sont synthétisés.
 
 ## 🛠 Tech Stack
 
@@ -54,7 +60,7 @@ https://watchlist-omega-three.vercel.app continue de fonctionner).
   (previews, `*.vercel.app`) et sur `/api/`.
 - `.vercelignore` (liste blanche) : seuls `index.html`, les deux pages légales, `robots.txt`,
   `sitemap.xml`, `js/`, `api/`,
-  `vendor/`, `fonts/`, `icons/`, `manifest.json`, `sw.js` et `vercel.json` sont publiés.
+  `vendor/`, `fonts/`, `icons/`, `sounds/`, `manifest.json`, `sw.js` et `vercel.json` sont publiés.
 - Proxy `/api` : session Supabase obligatoire **et email confirmé**, liste blanche de chemins
   et paramètres, quotas quotidiens par compte (`consume_api_quota`, voir la migration
   `20261008100000`), cache OMDb partagé pour tenir dans les 1 000 requêtes/jour de la clé.

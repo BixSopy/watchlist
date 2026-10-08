@@ -54,7 +54,7 @@ function buildPlexActions(){
   if(d.tmdbId){var tb=document.createElement('button');tb.className='btn btn-trailer';tb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>'+esc(t('plex.trailer'));tb.onclick=function(){sfx('click');getTrailer(d.type,d.tmdbId,null,openYT);};acts.appendChild(tb);}
   var inList=d.item||memDB.find(function(i){return i.tmdbId==d.tmdbId});
   if(inList&&d.item){
-    var eb=document.createElement('button');eb.className='btn btn-ghost';eb.textContent=t('common.edit');eb.onclick=function(){sfx('click');closePlex();openEdit(d.item.id);};acts.appendChild(eb);
+    var eb=document.createElement('button');eb.className='btn btn-ghost';eb.textContent=t('common.edit');eb.onclick=function(){sfx('open');closePlex();openEdit(d.item.id);};acts.appendChild(eb);
     if(d.item.type!='film'&&d.item.saison&&d.item.episode){
       var pg=document.getElementById('plexProg');pg.style.display='block';
       document.getElementById('plexProgVal').textContent='S'+pad(d.item.saison)+' E'+pad(d.item.episode);

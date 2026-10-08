@@ -14,7 +14,8 @@ var WL_SETTINGS_DEFAULTS={
   wl_glass:'40',
   wl_grain:'50',
   wl_aurora:'100',
-  wl_glow_border:'1'
+  wl_glow_border:'1',
+  wl_snd_vol:'50'
 };
 var WL_RECO_SPEEDS={
   slow:{duration:2100,pause:700},

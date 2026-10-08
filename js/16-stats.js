@@ -3,7 +3,7 @@
 function openStats(){
   /* Les titres supprimés (tombstones en attente de synchro) ne comptent pas */
   var live=memDB.filter(function(i){return !i.deleted;});
-  sfx('click');var total=live.length;
+  sfx('open');var total=live.length;
   var byT={film:0,serie:0,anime:0},byS={avoir:0,encours:0,termine:0},ratings=[],compat=[];
   live.forEach(function(i){byT[i.type]=(byT[i.type]||0)+1;byS[i.status]=(byS[i.status]||0)+1;if(i.myRating)ratings.push(i.myRating);if(i.myRating&&i.tmdbScore)compat.push({mine:i.myRating,tmdb:parseFloat(i.tmdbScore)});});
   var avgM=ratings.length?(ratings.reduce(function(a,b){return a+b},0)/ratings.length):0;

@@ -188,6 +188,7 @@
  "export.done.other": "Export OK — {n} titres",
  "set.compact": "Mode compact",
  "set.sounds": "Sons d'interface",
+ "set.soundVolume": "Volume des sons",
  "set.grid": "Grille watchlist",
  "set.auto": "Automatique",
  "set.cols4": "4 colonnes",

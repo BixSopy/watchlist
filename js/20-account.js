@@ -217,7 +217,7 @@ function _maskEmail(e){return esc(e||'');}
 
 /* ---------- Ouverture / navigation ---------- */
 function openAuthModal(view,ctx){
-  if(typeof sfx==='function')sfx('click');
+  if(typeof sfx==='function')sfx('open');
   document.getElementById('authMbk').classList.add('on');
   authGo(view||(authUser?'account':'login'),ctx);
 }

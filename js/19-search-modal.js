@@ -294,7 +294,7 @@ function addSelectedBatch(){
   var added=0,skipped=0;
   sel.forEach(function(d){var r=addSearchEntryDirect(d);if(r.ok)added++;else skipped++;});
   searchState.selected={};_updateCounter();
-  if(added){render();loadRecos();toast(tn('search.added',added));sfx('add');}
+  if(added){render();loadRecos();sfx('add');toast(tn('search.added',added));}
   else{toast(t('search.noneAddable'),'nfo');}
   _renderSR(searchState.results);
 }
@@ -317,7 +317,7 @@ function _runSearch(query,page){
     if(e&&e.code==='FORBIDDEN'){_stateText(t('api.msg.forbidden'));return;}
     if(e&&e.code==='UNCONFIRMED'){_stateText(t('search.err.unconfirmed'));return;}
     if(e&&e.code==='QUOTA'){_stateText(t('search.err.quota'));return;}
-    _stateText(t('search.err.network'));toast(t('search.err.tmdb'),'err');sfx('err');
+    _stateText(t('search.err.network'));sfx('err');toast(t('search.err.tmdb'),'err');
   }).finally(function(){if(tok!==searchState.token)return;_setSearchLoad(false);_updatePager();});
 }
 function searchPage(delta){if(searchState.loading)return;var n=searchState.page+delta;if(n<1||n>searchState.totalPages)return;_runSearch(searchState.query,n);}
@@ -333,7 +333,7 @@ function bindSearchModalEvents(){
   /* Sur mobile le champ du header est écrasé à 0 px : seule la loupe (pointer-events:none) reste visible.
      Toute la barre ouvre donc la recherche, sinon le tap sur la loupe ne fait rien. */
   var hBar=hIn.closest('.search-bar');
-  if(hBar)hBar.addEventListener('click',function(e){if(e.target===hIn||searchState.open)return;sfx('click');openSearchModal(hIn.value.trim());});
+  if(hBar)hBar.addEventListener('click',function(e){if(e.target===hIn||searchState.open)return;sfx('open');openSearchModal(hIn.value.trim());});
   hIn.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();openSearchModal(this.value.trim());}});
   hIn.addEventListener('input',debounce(function(){if(this.value.trim().length>=2)openSearchModal(this.value.trim());},320));
   mIn.addEventListener('input',function(){_dbSearch();});
@@ -351,7 +351,7 @@ function bindSearchModalEvents(){
   document.addEventListener('keydown',function(e){
     var open=document.getElementById('searchModal').classList.contains('on');
     if(open&&e.key==='Escape'){e.preventDefault();sfx('close');closeSearchModal();return;}
-    if(!open&&(e.key==='/'||(e.key==='k'&&(e.ctrlKey||e.metaKey)))){e.preventDefault();sfx('click');openSearchModal(document.getElementById('tmdbSearchInput').value.trim());}
+    if(!open&&(e.key==='/'||(e.key==='k'&&(e.ctrlKey||e.metaKey)))){e.preventDefault();sfx('open');openSearchModal(document.getElementById('tmdbSearchInput').value.trim());}
   });
 }
 

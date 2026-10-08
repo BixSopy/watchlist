@@ -114,13 +114,19 @@ function _onSettingSelect(key,val){
   _onSettingChanged(key,val);
 }
 function _onSettingRange(key,val){
-  /* Pas de sfx ici : oninput se déclenche en continu pendant qu'on glisse le curseur */
+  /* Pas de clic ici : oninput se déclenche en continu pendant qu'on glisse le curseur (sauf aperçu du volume) */
   saveSetting(key,val);
   var lbl=document.getElementById('_rangeVal_'+key);if(lbl)lbl.textContent=val+'%';
   if(key==='wl_glass')applyGlass(parseInt(val,10));
   if(key==='wl_grain')applyGrain(parseInt(val,10));
   if(key==='wl_aurora')applyAurora(parseInt(val,10));
+  if(key==='wl_snd_vol'){
+    setSfxVolume(parseInt(val,10)/100);
+    /* Aperçu du volume pendant le glissement, au plus un son toutes les 200 ms */
+    var now=Date.now();if(now-_sndVolPreviewAt>200){_sndVolPreviewAt=now;sfx('click');}
+  }
 }
+var _sndVolPreviewAt=0;
 function _onSettingChanged(key,val){
   if(key==='wl_grid_cols'||key==='wl_card_ratings'||key==='wl_card_badges'||key==='wl_suivi_providers'||key==='wl_glow_border'){
     applySettings();
@@ -143,6 +149,7 @@ function renderSettingsMenu(){
   html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.appearance'))+'</div>';
   html+=_delegatedToggleRow(esc(t('set.compact')),'','toggleCompact',compactOn);
   html+=_delegatedToggleRow(esc(t('set.sounds')),'','toggleSound',soundOn);
+  html+=_rangeRow(esc(t('set.soundVolume')),'','wl_snd_vol',wlSettings.wl_snd_vol);
   html+=_selectRow(esc(t('set.grid')),'wl_grid_cols',[{v:'auto',l:esc(t('set.auto'))},{v:'4',l:esc(t('set.cols4'))},{v:'5',l:esc(t('set.cols5'))},{v:'6',l:esc(t('set.cols6'))},{v:'7',l:esc(t('set.cols7'))}],wlSettings.wl_grid_cols);
   html+=_selectRow(esc(t('set.cardRatings')),'wl_card_ratings',[{v:'both',l:esc(t('set.both'))},{v:'my',l:esc(t('set.myOnly'))},{v:'tmdb',l:esc(t('set.tmdbOnly'))},{v:'off',l:esc(t('set.hide'))}],wlSettings.wl_card_ratings);
   html+=_selectRow(esc(t('set.cardBadges')),'wl_card_badges',[{v:'full',l:esc(t('set.full'))},{v:'off',l:esc(t('set.hide'))}],wlSettings.wl_card_badges);

@@ -85,15 +85,15 @@ uiOn('switchTab',function(el){switchTab(el);});
 uiOn('statSelMobile',function(el){var b=document.querySelector('.stab[data-s="'+String(el.value).replace(/["\\]/g,'')+'"]');if(b)b.click();});
 uiOn('closeAlert',function(){document.getElementById('alertWrap').classList.remove('on');});
 uiOn('switchDiscoverCat',function(el){switchDiscoverCat(el);});
-uiOn('openPlex',function(el,e,id){sfx('click');openPlex(_uiId(id));});
+uiOn('openPlex',function(el,e,id){sfx('open');openPlex(_uiId(id));});
 uiOn('openPlexQuiet',function(el,e,id){openPlex(_uiId(id));});
 uiOn('quickNextEp',function(el,e,id){quickNextEp(_uiId(id),e);});
-uiOn('editEntry',function(el,e,id){e.stopPropagation();sfx('click');openEdit(_uiId(id));});
+uiOn('editEntry',function(el,e,id){e.stopPropagation();sfx('open');openEdit(_uiId(id));});
 uiOn('delEntry',function(el,e,id){e.stopPropagation();delEntry(_uiId(id));});
 uiOn('loadMoreSec',function(el,e,secId){loadMoreSec(secId,el);});
 uiOn('heroGoTo',function(el,e,i){sfx('click');_heroGoTo(i);});
 uiOn('drScrollRow',function(el,e,id,dir){drScrollRow(id,dir);});
-uiOn('openPlexRecoCard',function(el){sfx('click');openPlexReco(getCardData(el));});
+uiOn('openPlexRecoCard',function(el){sfx('open');openPlexReco(getCardData(el));});
 uiOn('toggleSuivi',function(){toggleSuiviSection();});
 uiOn('toggleReminder',function(el,e,id){e.stopPropagation();toggleReminder(_uiId(id));});
 /* Recommandations */
@@ -102,15 +102,15 @@ uiOn('recoPreview',function(el){recoPreview(el.closest('.reco-card'));});
 uiOn('recoAdd',function(el){recoAdd(el.closest('.reco-card'));});
 uiOn('recoDismiss',function(el){recoDismiss(el.closest('.reco-card'));});
 /* Ajout / édition, fiche, dossiers, statistiques */
-uiOn('openAdd',function(){sfx('click');openAdd();});
+uiOn('openAdd',function(){sfx('open');openAdd();});
 uiOn('closeAdd',function(){sfx('close');closeAdd();});
 uiOn('saveEntry',function(){saveEntry();});
 uiOn('clearSel',function(){clearSel();});
 uiOn('setRate',function(el,e,v){setRate(v);});
 uiOn('rmTag',function(el,e,i){rmTag(i);});
 uiOn('plexSeason',function(el,e,n){plexSeason(n);});
-uiOn('openFolder',function(el,e,id){sfx('click');openFolder(_uiId(id));});
-uiOn('folderItem',function(el,e,id){id=_uiId(id);sfx('click');closeFolder();setTimeout(function(){openPlex(id);},80);});
+uiOn('openFolder',function(el,e,id){sfx('open');openFolder(_uiId(id));});
+uiOn('folderItem',function(el,e,id){id=_uiId(id);sfx('open');closeFolder();setTimeout(function(){openPlex(id);},80);});
 uiOn('closeFolder',function(){sfx('close');closeFolder();});
 uiOn('closeStats',function(){sfx('close');document.getElementById('statsMbk').classList.remove('on');});
 /* Recherche */

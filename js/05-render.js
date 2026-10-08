@@ -155,8 +155,8 @@ function _showHeroItem(idx){
   var typeLbl=t('type.'+(item.type==='film'||item.type==='anime'?item.type:'serie'));
   var epT=(item.saison&&item.episode)?('S'+pad(item.saison)+' E'+pad(item.episode)):'';
   document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
-  document.getElementById('heroBtnPlay').onclick=function(){sfx('click');openPlex(item.id);};
-  document.getElementById('heroBtnInfo').onclick=function(){sfx('click');openPlex(item.id);};
+  document.getElementById('heroBtnPlay').onclick=function(){sfx('open');openPlex(item.id);};
+  document.getElementById('heroBtnInfo').onclick=function(){sfx('open');openPlex(item.id);};
   var dots=document.getElementById('heroDots');
   dots.innerHTML=_heroItems.length>1?_heroItems.map(function(_,i){return '<button class="hero-dot'+(i===idx?' on':'')+'" '+uiAct('heroGoTo',[i])+' aria-label="'+esc(t('hero.dot',{n:i+1}))+'"></button>';}).join(''):'';
   if(_heroItemId===item.id)return;
