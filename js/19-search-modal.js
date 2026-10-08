@@ -351,6 +351,9 @@ function bindSearchModalEvents(){
   document.addEventListener('keydown',function(e){
     var open=document.getElementById('searchModal').classList.contains('on');
     if(open&&e.key==='Escape'){e.preventDefault();sfx('close');closeSearchModal();return;}
+    /* « / » tapé dans un champ (ex. un mot de passe) reste un caractère ; rien sur la page d'accueil */
+    if(!open&&e.key==='/'&&e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName||''))return;
+    if(!open&&document.documentElement.classList.contains('lp-guest'))return;
     if(!open&&(e.key==='/'||(e.key==='k'&&(e.ctrlKey||e.metaKey)))){e.preventDefault();sfx('open');openSearchModal(document.getElementById('tmdbSearchInput').value.trim());}
   });
 }

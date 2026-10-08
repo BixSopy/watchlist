@@ -1,7 +1,7 @@
 {
   "name": "Cinepisode",
   "short_name": "Cinepisode",
-  "description": "Personal tracker for movies, series and anime",
+  "description": "Track your movies, series and anime in one place: where you left off, new episodes, your list synced everywhere. Free, no ads, no tracking, hosted in the EU.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

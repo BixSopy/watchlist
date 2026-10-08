@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!--brand:head-->
-<title>Cinepisode</title>
-<meta name="description" content="Suivi personnel de films, séries et anime">
+<title>Cinepisode · Suivi de films, séries et anime, gratuit et sans pub</title>
+<meta name="description" content="Suis tes films, séries et anime au même endroit : où tu en es, les nouveaux épisodes, ta liste synchronisée partout. Gratuit, sans pub, sans pistage, hébergé dans l'UE.">
 <meta name="robots" content="index,follow">
 <meta name="referrer" content="strict-origin">
 <link rel="manifest" href="/manifest.json">
@@ -18,7 +18,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cinepisode">
 <meta property="og:title" content="Cinepisode · Ton suivi de films, séries et anime">
-<meta property="og:description" content="Suivi personnel de films, séries et anime">
+<meta property="og:description" content="Suis tes films, séries et anime au même endroit : où tu en es, les nouveaux épisodes, ta liste synchronisée partout. Gratuit, sans pub, sans pistage, hébergé dans l'UE.">
 <meta property="og:url" content="https://cinepisode.com/">
 <meta property="og:image" content="https://cinepisode.com/icons/icon-512.png">
 <meta property="og:locale" content="fr_FR">
@@ -29,9 +29,12 @@
 <link rel="alternate" hreflang="en" href="https://cinepisode.com/en">
 <link rel="alternate" hreflang="x-default" href="https://cinepisode.com/">
 <!--/brand:head-->
+<!-- Accueil des visiteurs ou app : décidé avant le premier rendu (aucune requête réseau) -->
+<script src="/js/00-landing-gate.js"></script>
 <!-- supabase-js 2.117.2 embarqué (identique au paquet npm), intégrité vérifiée par le navigateur -->
 <script src="/vendor/supabase-2.117.2.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/landing/landing.css">
 <style>
 :root{
   /* COULEURS — fond profond (#1) */
@@ -1116,9 +1119,282 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
   /* Paysage : le champ de recherche de la liste ne s'élargit plus au focus (la page débordait à 850 px) */
   .srch input:focus{width:100%}
 }
+/* Page d'accueil des visiteurs (#landing, js/00-landing-gate.js, landing/landing.css) : l'app reste
+   masquée tant que <html> n'a pas la classe lp-member (aussi sans JavaScript, ex. robots d'indexation) */
+html:not(.lp-member) .hdr,html:not(.lp-member) .layout,html:not(.lp-member) .app-foot,html:not(.lp-member) .aurora-bg{display:none!important}
+html.lp-member #landing{display:none!important}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
+<!-- PAGE D'ACCUEIL des visiteurs sans compte (affichage décidé avant le premier rendu par
+     js/00-landing-gate.js ; comportement : js/23-landing.js ; styles : landing/landing.css).
+     Masquée pour les membres (classe lp-member sur <html>). Textes : clés lp.* de js/i18n/. -->
+<div class="lp" id="landing">
+<a class="lp-skip" href="#lp-main" data-i18n="lp.skip">Aller au contenu</a>
+<header class="lp-nav">
+  <div class="lp-wrap lp-nav-in">
+    <a class="lp-brand" href="#lp-top" aria-label="Cinepisode, retour en haut de la page" data-i18n-attr="aria-label:lp.nav.homeAria"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" style="fill:var(--accent)"/><path d="M9 7.3 17 12 9 16.7z" style="fill:var(--on-accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--></a>
+    <nav class="lp-links" aria-label="Sections de la page" data-i18n-attr="aria-label:lp.nav.aria">
+      <a href="#lp-features" data-i18n="lp.nav.features">Fonctionnalités</a>
+      <a href="#lp-extension" data-i18n="lp.nav.extension">Extension</a>
+      <a href="#lp-privacy" data-i18n="lp.nav.privacy">Confidentialité</a>
+      <a href="#lp-faq" data-i18n="lp.nav.faq">FAQ</a>
+    </nav>
+    <div class="lp-nav-act">
+      <button type="button" class="lp-local" id="lpLocalBtn" hidden data-click="lpOpenApp"><span data-i18n="lp.nav.localList">Ma liste sur cet appareil</span></button>
+      <a href="#lp-join" class="lp-btn lp-btn-ghost lp-btn-sm" data-click="lpAuth" data-args="[&quot;login&quot;]"><span data-i18n="lp.cta.signin">Se connecter</span></a>
+      <a href="#lp-join" class="lp-btn lp-btn-primary lp-btn-sm lp-nav-signup" data-click="lpAuth" data-args="[&quot;signup&quot;]"><span data-i18n="lp.cta.signupShort">Créer un compte</span></a>
+    </div>
+  </div>
+</header>
+<main class="lp-main" id="lp-main">
+<section class="lp-hero" id="lp-top" aria-labelledby="lp-title">
+  <div class="lp-glow lp-glow-a" aria-hidden="true"></div><div class="lp-glow lp-glow-b" aria-hidden="true"></div>
+  <div class="lp-wrap lp-hero-in">
+    <p class="lp-eyebrow lp-reveal"><span class="lp-eyebrow-dot" aria-hidden="true"></span><span data-i18n="lp.hero.eyebrow">Gratuit · Sans pub · Sans pistage</span></p>
+    <h1 class="lp-h1 lp-reveal" id="lp-title"><span data-i18n="lp.hero.title1">Tout ce que tu regardes,</span> <span class="lp-grad" data-i18n="lp.hero.title2">enfin au même endroit.</span></h1>
+    <p class="lp-lead lp-reveal" data-i18n="lp.hero.lead">Films, séries et anime : Cinepisode retient où tu en es, repère les nouveaux épisodes et garde ta liste synchronisée sur tous tes appareils.</p>
+    <div class="lp-ctas lp-reveal">
+      <a href="#lp-join" class="lp-btn lp-btn-primary lp-btn-lg" data-click="lpAuth" data-args="[&quot;signup&quot;]"><span data-i18n="lp.cta.signup">Créer mon compte gratuit</span><svg class="lp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <a href="#lp-join" class="lp-btn lp-btn-ghost lp-btn-lg" data-click="lpAuth" data-args="[&quot;login&quot;]"><span data-i18n="lp.cta.signin">Se connecter</span></a>
+    </div>
+    <ul class="lp-proof lp-reveal">
+      <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.proof.eu">Données hébergées dans l'UE</span></li>
+      <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.proof.noads">Aucune publicité</span></li>
+      <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.proof.export">Export et suppression en libre-service</span></li>
+    </ul>
+  </div>
+  <div class="lp-wrap lp-stage-wrap">
+    <div class="lp-stage lp-reveal" role="img" aria-label="Aperçu de Cinepisode sur ordinateur et sur téléphone : le bandeau « Reprendre » et la liste des séries en cours." data-i18n-attr="aria-label:lp.hero.visualAria">
+      
+<div class="mk-desk" aria-hidden="true">
+  <div class="mk-bar"><i></i><i></i><i></i><span class="mk-url">cinepisode.com</span></div>
+  <div class="mk-app">
+    <div class="mk-hdr"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" style="fill:var(--accent)"/><path d="M9 7.3 17 12 9 16.7z" style="fill:var(--on-accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--><span class="mk-search"><svg class="mk-s-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg><span data-i18n="hdr.searchPh">Chercher un film, série, anime...</span></span><span class="mk-pills"><span class="mk-pill">48</span><span class="mk-pill mk-pill-ok"><i></i></span></span></div>
+    <div class="mk-banner">
+      <div class="mk-banner-art pa pa1"></div>
+      <div class="mk-banner-txt">
+        <span class="mk-tag"><span data-i18n="hero.resume">Reprendre</span></span>
+        <b class="mk-banner-title">Nuit polaire</b>
+        <small><span data-i18n="type.serie">Série</span> · S02 E05 · ★ 8.4</small>
+        <span class="mk-btns"><span class="mk-btn mk-btn-p">▶ <span data-i18n="hero.resume">Reprendre</span></span><span class="mk-btn"><span data-i18n="hero.details">Détails</span></span></span>
+      </div>
+      <span class="mk-dots"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+    </div>
+    <div class="mk-tabs"><span class="on"><span data-i18n="tab.all">Tout</span></span><span><span data-i18n="type.films">Films</span></span><span><span data-i18n="type.series">Séries</span></span><span><span data-i18n="type.anime">Anime</span></span><span><span data-i18n="det.tab">Détectés</span> <em>4</em></span></div>
+    <div class="mk-sec"><b><span data-i18n="status.encours">En cours</span></b><small>6</small></div>
+    <div class="mk-row">
+      <div class="mk-card"><i class="pa pa2" aria-hidden="true"></i><div class="mk-card-b"><b>Les Veilleurs</b><small>S01 E07</small><span class="mk-prog"><span style="width:70%"></span></span></div></div><div class="mk-card"><i class="pa pa4" aria-hidden="true"></i><div class="mk-card-b"><b>Kaze no Michi</b><small>S01 E12</small><span class="mk-prog"><span style="width:48%"></span></span></div></div><div class="mk-card"><i class="pa pa3" aria-hidden="true"></i><div class="mk-card-b"><b>Orbite 9</b><small>S03 E02</small><span class="mk-prog"><span style="width:18%"></span></span></div></div><div class="mk-card"><i class="pa pa6" aria-hidden="true"></i><div class="mk-card-b"><b>Atlas</b><small>S02 E09</small><span class="mk-prog"><span style="width:82%"></span></span></div></div><div class="mk-card"><i class="pa pa7" aria-hidden="true"></i><div class="mk-card-b"><b>Hanabi</b><small>S01 E03</small><span class="mk-prog"><span style="width:25%"></span></span></div></div><div class="mk-card"><i class="pa pa8" aria-hidden="true"></i><div class="mk-card-b"><b>Le Dernier Été</b><small>S01 E05</small><span class="mk-prog"><span style="width:60%"></span></span></div></div>
+    </div>
+  </div>
+</div>
+      
+<div class="mk-phone" aria-hidden="true">
+  <div class="mk-notch"></div>
+  <div class="mk-app mk-app-m">
+    <div class="mk-hdr mk-hdr-m"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" style="fill:var(--accent)"/><path d="M9 7.3 17 12 9 16.7z" style="fill:var(--on-accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--></div>
+    <div class="mk-banner mk-banner-m">
+      <div class="mk-banner-art pa pa4"></div>
+      <div class="mk-banner-txt"><span class="mk-tag"><span data-i18n="hero.resume">Reprendre</span></span><b class="mk-banner-title">Kaze no Michi</b><small><span data-i18n="type.anime">Anime</span> · S01 E12</small></div>
+    </div>
+    <div class="mk-sec"><b><span data-i18n="status.encours">En cours</span></b></div>
+    <div class="mk-grid"><div class="mk-card"><i class="pa pa2" aria-hidden="true"></i><div class="mk-card-b"><b>Les Veilleurs</b><small>S01 E07</small><span class="mk-prog"><span style="width:70%"></span></span></div></div><div class="mk-card"><i class="pa pa1" aria-hidden="true"></i><div class="mk-card-b"><b>Nuit polaire</b><small>S02 E05</small><span class="mk-prog"><span style="width:50%"></span></span></div></div><div class="mk-card"><i class="pa pa3" aria-hidden="true"></i><div class="mk-card-b"><b>Orbite 9</b><small>S03 E02</small><span class="mk-prog"><span style="width:18%"></span></span></div></div><div class="mk-card"><i class="pa pa6" aria-hidden="true"></i><div class="mk-card-b"><b>Atlas</b><small>S02 E09</small><span class="mk-prog"><span style="width:82%"></span></span></div></div></div>
+  </div>
+</div>
+    </div>
+  </div>
+  <div class="lp-wrap">
+    <div class="lp-sources lp-reveal">
+      <span class="lp-sources-lbl" data-i18n="lp.sources.label">Ton historique depuis</span>
+      <span class="lp-src">Netflix</span><span class="lp-src">Prime Video</span><span class="lp-src">Crunchyroll</span>
+      <span class="lp-src lp-src-soft" data-i18n="lp.sources.plex">et Plex via Tautulli</span>
+    </div>
+  </div>
+</section>
+
+<section class="lp-sec" id="lp-features" aria-labelledby="lp-features-t">
+  <div class="lp-wrap">
+    <div class="lp-sec-head lp-reveal">
+      <p class="lp-kicker" data-i18n="lp.features.kicker">Ton suivi, en mieux</p>
+      <h2 class="lp-h2" data-i18n="lp.features.title"  id="lp-features-t">Pensé pour celles et ceux qui regardent beaucoup.</h2>
+      <p class="lp-sec-lead" data-i18n="lp.features.lead">Une liste claire, ta progression à jour et rien à ressaisir : Cinepisode s'occupe du suivi, tu t'occupes de regarder.</p>
+    </div>
+
+    <div class="lp-spot lp-reveal">
+      <div class="lp-spot-txt">
+        <span class="lp-spot-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></svg></span>
+        <p class="lp-kicker" data-i18n="lp.f1.kicker">Reprendre &amp; Suivi</p>
+        <h3 class="lp-h3" data-i18n="lp.f1.title">Reprends exactement là où tu t'étais arrêté.</h3>
+        <p class="lp-p" data-i18n="lp.f1.text">Le bandeau « Reprendre » te remet sur ton épisode, et le Suivi signale les nouveaux épisodes de tes séries en cours. Fini les « on en était où, déjà ? ».</p>
+        <ul class="lp-list">
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f1.b1">Progression par saison et par épisode</span></li>
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f1.b2">Épisode suivant en un geste</span></li>
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f1.b3">Prochaine sortie affichée sur la fiche</span></li>
+        </ul>
+      </div>
+      <div class="lp-spot-vis">
+<div class="mk-panel mk-suivi" aria-hidden="true">
+  <div class="mk-panel-h"><b data-i18n="lp.mock.suivi">Suivi</b><small data-i18n="lp.mock.suiviSub">Tes séries en cours</small></div>
+  <div class="mk-srow"><i class="pa pa1" aria-hidden="true"></i><div><b>Nuit polaire</b><small>S02 E06 · <span data-i18n="suivi.newEpOut">Nouvel épisode sorti</span></small></div><em class="mk-badge mk-badge-new"><span data-i18n="card.newEp">Nouvel ep</span></em></div>
+  <div class="mk-srow"><i class="pa pa3" aria-hidden="true"></i><div><b>Orbite 9</b><small>S03 E03 · <span data-i18n="suivi.tomorrow">Demain !</span></small></div></div>
+  <div class="mk-srow"><i class="pa pa4" aria-hidden="true"></i><div><b>Kaze no Michi</b><small>S01 E13 · <span data-i18n="suivi.outToday">Sortie aujourd'hui</span></small></div><em class="mk-badge mk-badge-new"><span data-i18n="card.newEp">Nouvel ep</span></em></div>
+  <div class="mk-progress-card">
+    <div class="mk-pc-top"><span data-i18n="lp.mock.progress">Ma progression</span><b>S02 E05</b></div>
+    <span class="mk-prog mk-prog-lg"><span style="width:50%"></span></span>
+    <div class="mk-pc-bot"><span data-i18n="lp.mock.season">Saison 2 · 5 / 10</span><span class="mk-btn mk-btn-p mk-btn-sm"><svg class="mk-s-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="lp.mock.nextEp">Épisode suivant</span></span></div>
+  </div>
+</div></div>
+    </div>
+
+    <div class="lp-spot lp-spot-rev lp-reveal" id="lp-extension">
+      <div class="lp-spot-txt">
+        <span class="lp-spot-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.44 7.85c-.05.32.06.65.29.88l1.57 1.57c.47.47.7 1.09.7 1.7s-.23 1.24-.7 1.7l-1.61 1.62a.98.98 0 0 1-.84.27c-.47-.07-.8-.48-.97-.92a2.5 2.5 0 1 0-3.21 3.21c.44.17.85.5.92.97a.98.98 0 0 1-.27.84l-1.61 1.61a2.4 2.4 0 0 1-1.7.7 2.4 2.4 0 0 1-1.71-.7l-1.57-1.57a1.03 1.03 0 0 0-.87-.29c-.5.07-.84.5-1.02.97a2.5 2.5 0 1 1-3.24-3.24c.46-.18.9-.53.97-1.02a1.03 1.03 0 0 0-.29-.87L2.7 13.7A2.4 2.4 0 0 1 2 12c0-.62.24-1.23.7-1.7l1.53-1.53c.24-.24.58-.35.92-.3.51.08.87.53 1.07 1.01a2.5 2.5 0 1 0 3.26-3.26c-.48-.2-.93-.56-1.01-1.07-.05-.34.06-.68.3-.92L10.3 2.7A2.4 2.4 0 0 1 12 2c.62 0 1.23.24 1.7.7l1.57 1.57c.23.23.56.34.88.29.5-.07.84-.5 1.02-.97a2.5 2.5 0 1 1 3.24 3.24c-.46.18-.9.53-.97 1.02Z"/></svg></span>
+        <p class="lp-kicker"><span data-i18n="lp.f2.kicker">Extension navigateur</span> <span class="lp-soon" data-i18n="lp.f2.soon">Bientôt sur le Chrome Web Store</span></p>
+        <h3 class="lp-h3" data-i18n="lp.f2.title">Ton historique Netflix, Prime Video et Crunchyroll, rapatrié.</h3>
+        <p class="lp-p" data-i18n="lp.f2.text">L'extension Cinepisode lit ton historique de visionnage et l'envoie dans l'onglet « Détectés ». Rien n'entre dans ta liste sans ton accord : tu valides, tu corriges ou tu ignores.</p>
+        <ul class="lp-list">
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f2.b1">Tout l'historique du compte, quel que soit l'appareil utilisé</span></li>
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f2.b2">L'épisode en cours repéré pendant que tu regardes dans Chrome</span></li>
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f2.b3">Tu choisis les plateformes, rien d’autre n’est lu</span></li>
+        </ul>
+      </div>
+      <div class="lp-spot-vis">
+<div class="mk-detect" aria-hidden="true">
+  <div class="mk-ext">
+    <div class="mk-ext-h"><svg class="mk-ext-logo" viewBox="0 0 24 24"><rect width="24" height="24" rx="7" fill="#5cc8ff"/><path d="M9 7.3 17 12 9 16.7z" fill="#06070a"/></svg><b>Cinepisode</b><small data-i18n="lp.mock.ext">Extension</small></div>
+    <div class="mk-ext-btn" data-i18n="lp.mock.import">Importer mon historique</div>
+    <div class="mk-ext-plat"><span>Netflix</span><span>Prime Video</span><span>Crunchyroll</span></div>
+  </div>
+  <div class="mk-panel mk-det">
+    <div class="mk-panel-h"><b><span data-i18n="det.tab">Détectés</span></b><small data-i18n="lp.mock.detSub">Rien n'est ajouté sans ton accord</small></div>
+    <div class="mk-dtabs"><span class="on"><span data-i18n="det.filter.new">Nouveaux</span> <em>2</em></span><span><span data-i18n="det.filter.updates">Mises à jour</span> <em>1</em></span><span><span data-i18n="det.filter.ambiguous">Ambigus</span> <em>1</em></span></div>
+    <div class="mk-drow"><i class="pa pa1" aria-hidden="true"></i><div class="mk-dmain"><b>Nuit polaire</b><small><span class="mk-src">Netflix</span>S02 E05</small></div><em class="mk-badge mk-badge-up" data-i18n="lp.mock.update">Mise à jour</em><span class="mk-dbtn"><svg class="mk-s-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+    <div class="mk-drow"><i class="pa pa4" aria-hidden="true"></i><div class="mk-dmain"><b>Kaze no Michi</b><small><span class="mk-src">Crunchyroll</span>S01 E12</small></div><em class="mk-badge mk-badge-new" data-i18n="lp.mock.new">Nouveau</em><span class="mk-dbtn"><svg class="mk-s-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+    <div class="mk-drow"><i class="pa pa6" aria-hidden="true"></i><div class="mk-dmain"><b>Atlas</b><small><span class="mk-src">Prime Video</span>Film</small></div><em class="mk-badge mk-badge-new" data-i18n="lp.mock.new">Nouveau</em><span class="mk-dbtn"><svg class="mk-s-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+    <div class="mk-drow"><i class="pa pa3" aria-hidden="true"></i><div class="mk-dmain"><b>Orbite 9</b><small><span class="mk-src">Netflix</span>S01 E01</small></div><em class="mk-badge mk-badge-amb" data-i18n="lp.mock.ambiguous">2 fiches possibles</em><span class="mk-dbtn"><svg class="mk-s-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+  </div>
+</div></div>
+    </div>
+
+    <div class="lp-spot lp-reveal">
+      <div class="lp-spot-txt">
+        <span class="lp-spot-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg></span>
+        <p class="lp-kicker" data-i18n="lp.f3.kicker">Films, séries, anime</p>
+        <h3 class="lp-h3" data-i18n="lp.f3.title">Une seule liste pour tout ce que tu regardes.</h3>
+        <p class="lp-p" data-i18n="lp.f3.text">Films, séries et anime cohabitent, les sagas se regroupent toutes seules et chaque fiche réunit résumé, casting, plateformes de diffusion et notes. Tes statistiques te montrent le temps passé, la répartition de ta liste et si tu notes plus sévèrement que TMDB.</p>
+        <ul class="lp-list">
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f3.b1">Sagas regroupées automatiquement</span></li>
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f3.b2">Notes IMDb, Rotten Tomatoes, Metacritic et Kitsu sur la fiche</span></li>
+          <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.f3.b3">Statistiques de ta liste</span></li>
+        </ul>
+      </div>
+      <div class="lp-spot-vis">
+<div class="mk-stats" aria-hidden="true">
+  <div class="mk-tile mk-tile-big"><small data-i18n="lp.mock.total">Titres dans ma liste</small><b>48</b><span data-i18n="lp.mock.breakdown">18 films · 21 séries · 9 anime</span></div>
+  <div class="mk-tile"><small data-i18n="lp.mock.avg">Ma note moyenne</small><b>7,8</b></div>
+  <div class="mk-tile"><small data-i18n="lp.mock.time">Temps passé</small><b>312 h</b></div>
+  <div class="mk-tile mk-tile-wide"><small data-i18n="lp.mock.byType">Par type</small>
+    <div class="mk-bars"><span><i data-i18n="type.films">Films</i><span class="mk-sbar"><span style="width:86%"></span></span></span><span><i data-i18n="type.series">Séries</i><span class="mk-sbar"><span style="width:100%"></span></span></span><span><i data-i18n="type.anime">Anime</i><span class="mk-sbar"><span style="width:43%"></span></span></span></div>
+  </div>
+  <div class="mk-posters"><i class="pa pa5" aria-hidden="true"></i><i class="pa pa2" aria-hidden="true"></i><i class="pa pa7" aria-hidden="true"></i><i class="pa pa8" aria-hidden="true"></i><i class="pa pa6" aria-hidden="true"></i></div>
+</div></div>
+    </div>
+
+    <div class="lp-more">
+      <h3 class="lp-more-t lp-reveal" data-i18n="lp.more.title">Et aussi</h3>
+      <div class="lp-grid">
+        <article class="lp-card lp-reveal"><span class="lp-card-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></span><h3 class="lp-h4" data-i18n="lp.more.plex.t">Plex et Tautulli</h3><p data-i18n="lp.more.plex.d">Ta progression Plex se met à jour toute seule grâce au webhook Tautulli.</p></article>
+        <article class="lp-card lp-reveal"><span class="lp-card-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/></svg></span><h3 class="lp-h4" data-i18n="lp.more.pwa.t">Une appli à installer</h3><p data-i18n="lp.more.pwa.d">Ajoute Cinepisode à l'écran d'accueil de ton téléphone ou de ton ordinateur, sans passer par un store.</p></article>
+        <article class="lp-card lp-reveal"><span class="lp-card-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></span><h3 class="lp-h4" data-i18n="lp.more.sync.t">Synchronisé partout</h3><p data-i18n="lp.more.sync.d">Ta liste te suit d'un appareil à l'autre, automatiquement.</p></article>
+        <article class="lp-card lp-reveal"><span class="lp-card-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg></span><h3 class="lp-h4" data-i18n="lp.more.reco.t">Recommandations</h3><p data-i18n="lp.more.reco.d">Des idées tirées de ce que tu as aimé, et tout le catalogue TMDB à portée de recherche.</p></article>
+        <article class="lp-card lp-reveal"><span class="lp-card-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></span><h3 class="lp-h4" data-i18n="lp.more.search.t">Recherche en langage naturel</h3><p data-i18n="lp.more.search.d">Tape « Action 2020 ★4+ » : genre, année et note sont compris d'un coup.</p></article>
+        <article class="lp-card lp-reveal"><span class="lp-card-ic"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span><h3 class="lp-h4" data-i18n="lp.more.stats.t">Tes statistiques</h3><p data-i18n="lp.more.stats.d">Temps passé, répartition films, séries et anime, note moyenne : ta liste en chiffres.</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-sec lp-privacy" id="lp-privacy" aria-labelledby="lp-privacy-t">
+  <div class="lp-wrap">
+    <div class="lp-priv-box lp-reveal">
+      <div class="lp-priv-head">
+        <span class="lp-spot-ic lp-spot-ic-lg"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <p class="lp-kicker" data-i18n="lp.privacy.kicker">Confidentialité</p>
+        <h2 class="lp-h2" data-i18n="lp.privacy.title"  id="lp-privacy-t">Ta liste n'appartient qu'à toi.</h2>
+        <p class="lp-sec-lead" data-i18n="lp.privacy.lead">Cinepisode est gratuit, sans publicité et sans pistage. Tes données servent à une seule chose : faire marcher ta liste.</p>
+      </div>
+      <div class="lp-priv-grid">
+        <div class="lp-priv"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M2 2l20 20"/></svg><h3 class="lp-h4" data-i18n="lp.privacy.p1.t">Aucun pistage</h3><p data-i18n="lp.privacy.p1.d">Pas de mesure d'audience, pas de cookie publicitaire, pas de profilage. Rien n'est revendu.</p></div>
+        <div class="lp-priv"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><h3 class="lp-h4" data-i18n="lp.privacy.p2.t">Hébergé dans l'UE</h3><p data-i18n="lp.privacy.p2.d">Ton compte et ta liste sont stockés à Francfort, en Allemagne.</p></div>
+        <div class="lp-priv"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><h3 class="lp-h4" data-i18n="lp.privacy.p3.t">Tes données, tes règles</h3><p data-i18n="lp.privacy.p3.d">Export complet en un clic, suppression du compte en libre-service.</p></div>
+        <div class="lp-priv"><svg class="lp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg><h3 class="lp-h4" data-i18n="lp.privacy.p4.t">Rien chez des tiers</h3><p data-i18n="lp.privacy.p4.d">Polices et code servis par Cinepisode : pas de Google Fonts ni de CDN. Seule exception, l'anti-robot de Cloudflare sur les formulaires de compte.</p></div>
+      </div>
+      <a class="lp-textlink" href="/confidentialite" data-legal="privacy"><span data-i18n="lp.privacy.link">Lire la politique de confidentialité</span><svg class="lp-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<section class="lp-sec lp-faq" id="lp-faq" aria-labelledby="lp-faq-t">
+  <div class="lp-wrap lp-faq-in">
+    <div class="lp-sec-head lp-sec-head-left lp-reveal">
+      <p class="lp-kicker" data-i18n="lp.faq.kicker">FAQ</p>
+      <h2 class="lp-h2" data-i18n="lp.faq.title"  id="lp-faq-t">Questions fréquentes</h2>
+      <p class="lp-sec-lead"><span data-i18n="lp.faq.contact">Une autre question ? Écris-nous à</span> <!--brand:contact--><a class="lp-mail" href="mailto:contact@cinepisode.com">contact@cinepisode.com</a><!--/brand:contact--></p>
+    </div>
+    <div class="lp-faq-list">
+      <details class="lp-faq-item lp-reveal"><summary><span data-i18n="lp.faq.q1">C'est vraiment gratuit ?</span><svg class="lp-faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary><p data-i18n="lp.faq.a1">Oui. Pas d'abonnement, pas de version payante, pas de publicité.</p></details>
+      <details class="lp-faq-item lp-reveal"><summary><span data-i18n="lp.faq.q2">Quelles données sont enregistrées ?</span><svg class="lp-faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary><p data-i18n="lp.faq.a2">Ton adresse email et ta liste : titres, progression, notes. Le tout est hébergé dans l'Union européenne et n'est jamais revendu ni utilisé pour de la publicité.</p></details>
+      <details class="lp-faq-item lp-reveal"><summary><span data-i18n="lp.faq.q3">Quand l'extension sera-t-elle disponible ?</span><svg class="lp-faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary><p data-i18n="lp.faq.a3">Elle arrive bientôt sur le Chrome Web Store. Elle importe ton historique Netflix, Prime Video et Crunchyroll, et tu valides chaque titre dans l'onglet « Détectés ».</p></details>
+      <details class="lp-faq-item lp-reveal"><summary><span data-i18n="lp.faq.q4">Y a-t-il une appli pour téléphone ?</span><svg class="lp-faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary><p data-i18n="lp.faq.a4">Cinepisode s'installe directement depuis le navigateur, sur Android, iPhone et ordinateur : ouvre le site puis « Ajouter à l'écran d'accueil ».</p></details>
+      <details class="lp-faq-item lp-reveal"><summary><span data-i18n="lp.faq.q5">D’où viennent les fiches des films et séries ?</span><svg class="lp-faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary><p data-i18n="lp.faq.a5">Du catalogue collaboratif TMDB, en français et en anglais, avec les plateformes où chaque titre est disponible.</p></details>
+      <details class="lp-faq-item lp-reveal"><summary><span data-i18n="lp.faq.q6">Je peux partir avec mes données ?</span><svg class="lp-faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary><p data-i18n="lp.faq.a6">Oui. Depuis « Mon compte », tu exportes toute ta liste en un fichier, et tu peux supprimer ton compte à tout moment.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="lp-sec lp-join" id="lp-join" aria-labelledby="lp-join-t">
+  <div class="lp-glow lp-glow-c" aria-hidden="true"></div>
+  <div class="lp-wrap lp-join-in">
+    <div class="lp-join-txt lp-reveal">
+      <p class="lp-kicker" data-i18n="lp.join.kicker">Rejoindre Cinepisode</p>
+      <h2 class="lp-h2" data-i18n="lp.join.title"  id="lp-join-t">Commence ta liste ce soir.</h2>
+      <p class="lp-sec-lead" data-i18n="lp.join.lead">Crée ton compte gratuit : ta liste se synchronise aussitôt sur tous tes appareils.</p>
+      <ul class="lp-list lp-list-lg">
+        <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.join.b1">Gratuit et sans publicité</span></li>
+        <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.join.b2">Films, séries et anime au même endroit</span></li>
+        <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.join.b3">Données hébergées dans l'UE</span></li>
+        <li><svg class="lp-ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.join.b4">Export et suppression en libre-service</span></li>
+      </ul>
+    </div>
+    <div class="lp-auth-card lp-reveal">
+      <div class="lp-auth auth-modal" id="lpAuthHost">
+        <div class="lp-auth-ph">
+          <p class="auth-p" data-i18n="lp.join.ph">Crée ton compte en quelques secondes avec ton adresse email.</p>
+          <a href="#lp-join" class="lp-btn lp-btn-primary lp-btn-block" data-click="lpAuth" data-args="[&quot;signup&quot;]"><span data-i18n="lp.cta.signup">Créer mon compte gratuit</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="lp-foot">
+  <div class="lp-wrap lp-foot-in">
+    <div class="lp-foot-brand"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" style="fill:var(--accent)"/><path d="M9 7.3 17 12 9 16.7z" style="fill:var(--on-accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--><p data-i18n="lp.foot.tagline">Ton suivi de films, séries et anime. Gratuit, sans pub, sans pistage.</p></div>
+    <nav class="lp-foot-nav" aria-label="Liens du site" data-i18n-attr="aria-label:lp.foot.navAria">
+      <a href="#lp-features" data-i18n="lp.nav.features">Fonctionnalités</a>
+      <a href="#lp-extension" data-i18n="lp.nav.extension">Extension</a>
+      <a href="#lp-faq" data-i18n="lp.nav.faq">FAQ</a>
+      <a href="/confidentialite" data-legal="privacy" data-i18n="legal.privacy">Confidentialité</a>
+      <a href="/conditions" data-legal="terms" data-i18n="legal.terms">Conditions &amp; mentions légales</a>
+      <!--brand:contact--><a class="lp-mail" href="mailto:contact@cinepisode.com">contact@cinepisode.com</a><!--/brand:contact-->
+    </nav>
+    <div class="lp-foot-lang" id="lpLang"></div>
+  </div>
+  <div class="lp-wrap lp-foot-tmdb"><img src="/icons/tmdb-logo.svg" alt="TMDB" width="92" height="12"><span>This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div>
+</footer>
+</div>
+<!-- /PAGE D'ACCUEIL -->
 <div class="aurora-bg" aria-hidden="true"><div class="aurora-blob b1"></div><div class="aurora-blob b2"></div><div class="aurora-blob b3"></div></div>
 <header class="hdr">
   <div class="hdr-left">
@@ -1473,5 +1749,6 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 <script src="js/20-account.js"></script>
 <script src="js/21-detected.js"></script>
 <script src="js/22-modal-history.js"></script>
+<script src="js/23-landing.js"></script>
 </body>
 </html>

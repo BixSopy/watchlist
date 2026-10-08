@@ -26,7 +26,7 @@ test('les fichiers générés depuis brand.config.json sont à jour', () => {
 
 test('le nom, le domaine et le contact viennent de brand.config.json', () => {
   const html = read('index.html');
-  assert.match(html, new RegExp('<title>' + brand.name + '</title>'));
+  assert.match(html, new RegExp('<title>' + brand.name + '( · [^<]+)?</title>'), 'titre : le nom de la marque, éventuellement suivi d’une accroche');
   assert.match(html, new RegExp('<meta property="og:url" content="' + brand.baseUrl + '/">'));
   const manifest = JSON.parse(read('manifest.json'));
   assert.strictEqual(manifest.name, brand.name);

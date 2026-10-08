@@ -300,7 +300,9 @@ function buildApp(out) {
 
   const blocks = {
     head: '\n' + [
-      `<title>${escHtml(brand.name)}</title>`,
+      /* Titre descriptif pour la page d'accueil (moteurs de recherche, onglet) ; ramené au nom seul
+         pour les membres par js/00-landing-gate.js, traduit par js/23-landing.js */
+      `<title>${escHtml(T(DEFAULT_LANG, 'lp.meta.title', { name: brand.name }))}</title>`,
       `<meta name="description" content="${escHtml(brand.description)}">`,
       `<meta name="robots" content="${robots}">`,
       '<meta name="referrer" content="strict-origin">',
@@ -325,6 +327,8 @@ function buildApp(out) {
       ...(brand.indexable ? [`<link rel="canonical" href="${escHtml(brand.baseUrl)}/">`,
         ...hreflangLinks(landingUrls(), brand.baseUrl + '/').trim().split('\n')] : []),
     ].join('\n') + '\n',
+    /* Plusieurs occurrences possibles (en-tête de l'app, page d'accueil) : toutes remplacées */
+    contact: `<a class="lp-mail" href="mailto:${escHtml(brand.contactEmail)}">${escHtml(brand.contactEmail)}</a>`,
     logo: `<div class="logo">${logoSvg().replace(/ fill="[^"]*"/, ' style="fill:var(--accent)"').replace(/ fill="[^"]*"/, ' style="fill:var(--on-accent)"')}<span class="logo-word">${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></span></div>`,
     /* Textes dans la langue par défaut, traduits au chargement (data-i18n, data-legal : js/00-i18n.js) */
     footer: '\n<footer class="app-foot">\n' +
@@ -344,8 +348,8 @@ function buildApp(out) {
 
   let html = read('index.html');
   for (const [name, content] of Object.entries(blocks)) {
-    const re = new RegExp('<!--brand:' + name + '-->[\\s\\S]*?<!--/brand:' + name + '-->');
-    if (!re.test(html)) throw new Error('index.html : bloc <!--brand:' + name + '--> introuvable');
+    const re = new RegExp('<!--brand:' + name + '-->[\\s\\S]*?<!--/brand:' + name + '-->', 'g');
+    if (!html.includes('<!--brand:' + name + '-->')) throw new Error('index.html : bloc <!--brand:' + name + '--> introuvable');
     html = html.replace(re, () => '<!--brand:' + name + '-->' + content + '<!--/brand:' + name + '-->');
   }
   /* Dictionnaires chargés avant js/00-i18n.js (ordre : langue par défaut, puis alphabétique) */
