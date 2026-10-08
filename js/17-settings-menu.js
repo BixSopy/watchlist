@@ -70,7 +70,7 @@ function togglePlexWebhookAdvanced(){_plexWebhookAdvancedOpen=!_plexWebhookAdvan
 function _plexWebhookSection(){
   var html='<div class="settings-section"><div class="settings-section-title">Suivi auto (Netflix, Plex...)</div>';
   if(!supa||!authProfileId){
-    html+='<div class="setting-hint">Connecte-toi (menu Compte) pour activer la mise à jour automatique de ta progression.</div>';
+    html+='<div class="setting-hint">Connecte-toi (menu Compte &amp; synchronisation) pour activer la mise à jour automatique de ta progression.</div>';
     html+='</div>';
     return html;
   }
@@ -166,6 +166,8 @@ function renderSettingsMenu(){
   html+=_plexWebhookSection()+'<div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">Données</div>';
   html+='<div class="settings-action-row" onclick="openAuthModal();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">Compte &amp; synchronisation</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
+  if(authUser)html+='<div class="settings-action-row" onclick="exportAccountData();toggleMenu()"><div class="setting-row" style="padding:0"><div class="setting-label">Exporter mes données (RGPD)</div></div></div>';
+  html+='<div class="setting-hint"><a href="'+BRAND.legal.privacy+'" style="color:var(--text2)">Confidentialité</a> · <a href="'+BRAND.legal.terms+'" style="color:var(--text2)">Conditions &amp; mentions légales</a></div>';
   html+='</div><div class="opt-sep"></div>';
   html+='<div class="settings-section"><div class="settings-section-title">Raccourcis clavier</div>';
   html+=_kbdRow('N','Ajouter un titre');
@@ -182,14 +184,14 @@ function renderSettingsMenu(){
 
 /* EXPORT */
 function exportJSON(){
-  if(!memDB.length){toast('Watchlist vide — rien à exporter','err');return;}
+  if(!memDB.length){toast('Liste vide, rien à exporter','err');return;}
   var payload={version:2,exportedAt:new Date().toISOString(),count:memDB.length,entries:memDB};
   var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   var a=document.createElement('a');
   var d=new Date();
   var ds=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   a.href=URL.createObjectURL(blob);
-  a.download='watchlist_'+ds+'.json';
+  a.download=String(BRAND.shortName).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'_'+ds+'.json';
   a.click();
   URL.revokeObjectURL(a.href);
   sfx('done');

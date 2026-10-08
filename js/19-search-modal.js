@@ -308,8 +308,10 @@ function _runSearch(query,page){
   }).catch(function(e){
     if(tok!==searchState.token)return;
     searchState.results=[];_renderSR([]);
-    if(e&&e.code==='AUTH_REQUIRED'){_stateText('Connecte-toi (menu Compte) pour rechercher dans TMDB.');return;}
-    if(e&&e.code==='FORBIDDEN'){_stateText('Compte non autorisé pour le catalogue TMDB.');return;}
+    if(e&&e.code==='AUTH_REQUIRED'){_stateText('Connecte-toi ou crée un compte gratuit (bouton « Se connecter » en haut) pour rechercher dans le catalogue.');return;}
+    if(e&&e.code==='FORBIDDEN'){_stateText('Ce compte n\'a pas accès au catalogue.');return;}
+    if(e&&e.code==='UNCONFIRMED'){_stateText('Confirme ton adresse email (lien reçu à l\'inscription) pour rechercher dans le catalogue.');return;}
+    if(e&&e.code==='QUOTA'){_stateText('Quota quotidien du catalogue atteint : la recherche revient demain.');return;}
     _stateText('Erreur réseau / TMDB.');toast('Erreur TMDB','err');sfx('err');
   }).finally(function(){if(tok!==searchState.token)return;_setSearchLoad(false);_updatePager();});
 }
