@@ -3,7 +3,7 @@
   "name": "__MSG_extName__",
   "short_name": "Cinepisode",
   "default_locale": "en",
-  "version": "0.5.0",
+  "version": "0.6.2",
   "description": "__MSG_extDescription__",
   "homepage_url": "https://cinepisode.com",
   "icons": { "16": "icons/icon.png", "48": "icons/icon.png", "128": "icons/icon.png" },
@@ -11,8 +11,9 @@
   "options_page": "options.html",
   "permissions": ["storage", "scripting"],
   "host_permissions": ["https://batfulcvvquffgfeppcx.supabase.co/*", "https://www.netflix.com/*"],
+  "optional_host_permissions": ["https://www.crunchyroll.com/*", "https://static.crunchyroll.com/*", "https://www.primevideo.com/*", "https://atv-ps.primevideo.com/*", "https://atv-ps-eu.primevideo.com/*", "https://atv-ps-fe.primevideo.com/*"],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://batfulcvvquffgfeppcx.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://batfulcvvquffgfeppcx.supabase.co https://www.crunchyroll.com https://www.primevideo.com https://atv-ps.primevideo.com https://atv-ps-eu.primevideo.com https://atv-ps-fe.primevideo.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
   },
   "background": { "service_worker": "background.js" },
   "content_scripts": [

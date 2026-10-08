@@ -24,7 +24,7 @@ var NF_HISTORY_MAX_PAGES = 200;   /* 20 000 éléments maximum (au-delà : impor
 var NF_METADATA_MAX = 400;        /* nombre maximum d'appels de métadonnées par import */
 var PUSH_MAX = 1000;              /* éléments par appel à extension_push_detections (limite de la RPC) */
 
-/* Sources (colonne « source » de public.detected_media ; crunchyroll et prime viendront s'y ajouter) :
+/* Sources (colonne « source » de public.detected_media) : crunchyroll et prime (0.6.0, lib/crunchyroll.js, lib/prime.js),
  * netflix (historique lu sur netflix.com), netflix_csv (fichier CSV), live (détection en direct). */
 var SOURCES = ['netflix', 'netflix_csv', 'crunchyroll', 'prime', 'live'];
 

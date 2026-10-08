@@ -1,0 +1,35 @@
+{
+  "widgets": [
+    { "widgetType": "header", "content": { "content": { "header": "Historique de visionnage" } } },
+    {
+      "widgetType": "watch-history",
+      "content": {
+        "content": {
+          "nextToken": "eyJwYWdlIjoyfQ==",
+          "titles": [
+            {
+              "date": "5 octobre 2026",
+              "titles": [
+                { "gti": "amzn1.dv.gti.boys-s4", "time": 1791230400000, "title": "The Boys - Saison 4", "children": [
+                  { "gti": "amzn1.dv.gti.boys-s4e3", "time": 1791230400000, "children": [] },
+                  { "gti": "amzn1.dv.gti.boys-s4e2", "time": 1791226800000, "children": [] },
+                  { "gti": "amzn1.dv.gti.boys-s4e4", "time": 1791234000000, "children": [] }
+                ] },
+                { "gti": "amzn1.dv.gti.trailer-gladiator", "time": 1791220000000, "children": [] }
+              ]
+            },
+            {
+              "date": "1 octobre 2026",
+              "titles": [
+                { "gti": "amzn1.dv.gti.saltburn", "time": 1790880000000, "children": [] },
+                { "gti": "amzn1.dv.gti.reacher-s2", "time": 1790870000000, "children": [
+                  { "gti": "amzn1.dv.gti.reacher-s2e8", "time": 1790870000000, "children": [] }
+                ] }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -51,3 +51,15 @@ test('contrastes WCAG AA : onglet actif, sous-onglet actif, pastille', () => {
   assert.ok(ratio('#ffffff', badge[1]) >= 4.5, 'chiffre blanc de la pastille');
   assert.doesNotMatch(css, /\.det-n\{opacity/, 'le compteur des filtres n\'est plus estompé');
 });
+
+test('contrastes WCAG AA : pastilles de source de l\'onglet « Détectés » (Netflix, Crunchyroll, Prime Video, direct)', () => {
+  const base = css.match(/\.det-src\{[^}]*\}/);
+  assert.ok(base && /background:var\(--bg2\)/.test(base[0]), 'fond explicite (celui des lignes)');
+  for (const k of ['netflix', 'crunchyroll', 'prime', 'live', 'other']) {
+    const m = css.match(new RegExp('\\.det-src-' + k + '\\b[^{]*\\{color:(#[0-9a-fA-F]{6})\\}'));
+    assert.ok(m, 'couleur explicite : ' + k);
+    assert.ok(ratio(m[1], v('bg2')) >= 4.5, k + ' sur le fond des lignes');
+    assert.ok(ratio(m[1], v('bg3')) >= 4.5, k + ' sur le fond des cartes');
+  }
+});
+
