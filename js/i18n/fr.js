@@ -391,6 +391,7 @@
  "auth.emailSent.title": "Confirme ta nouvelle adresse",
  "auth.emailSent.known": "Clique sur le lien envoyé à {email} (et à ton adresse actuelle si on te le demande), ou saisis le code reçu :",
  "auth.emailSent.unknown": "Saisis ta nouvelle adresse et le code reçu par email :",
+ "common.continue": "Continuer",
  "common.later": "Plus tard",
  "auth.err.newEmail": "Saisis ta nouvelle adresse email.",
  "auth.delete.title": "Supprimer mon compte",

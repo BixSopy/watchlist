@@ -124,9 +124,22 @@ test('mot de passe oublié → lien reçu (token_hash) → nouveau mot de passe'
   await page.fill('#authPassword', 'Nouveau-Secret-2026!');
   await page.fill('#authPasswordConfirm', 'Nouveau-Secret-2026!');
   await shot(page, '06-nouveau-mot-de-passe');
+  // Un gestionnaire de mots de passe qui « valide » à notre place (envoi simulé) est ignoré
+  await page.evaluate(() => {
+    const f = document.querySelector('#authView form');
+    f.requestSubmit();
+    document.getElementById('authPasswordConfirm').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    f.requestSubmit();
+  });
+  await page.waitForTimeout(400);
+  assert.equal(db.calls.filter(c => c.path === '/auth/v1/user' && c.method === 'PUT').length, 0, 'pas d’envoi sans action réelle');
+  await page.click('.auth-submit');
+  // Le formulaire reste affiché (verrouillé) pour laisser le gestionnaire proposer l’enregistrement
+  await page.locator('#authMsg.ok').filter({ hasText: 'Mot de passe enregistré' }).waitFor();
+  assert.equal(await page.locator('#authPassword').evaluate(i => i.readOnly), true);
+  assert.equal(db.users[0].password, 'Nouveau-Secret-2026!');
   await page.click('.auth-submit');
   await title(page).filter({ hasText: 'Mon compte' }).waitFor();
-  assert.equal(db.users[0].password, 'Nouveau-Secret-2026!');
   assert.deepEqual(problems, []);
 });
 
