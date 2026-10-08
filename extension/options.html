@@ -37,18 +37,50 @@
   #openDetected{margin-top:8px}
   button:disabled{opacity:.5;cursor:default}
   p.spaced{margin-top:14px}
-  .platform{margin-top:12px;padding:10px;background:#111115;border:1px solid #2a2a33;border-radius:8px}
+  .platform{margin-top:12px;padding:10px;background:#111115;border:1px solid #2a2a33;border-left:3px solid #2a2a33;border-radius:8px}
+  .platform[data-platform="crunchyroll"]{border-left-color:#f47521}
+  .platform[data-platform="prime"]{border-left-color:#00a8e1}
   .platform h3{font-size:12px;margin:0;display:flex;justify-content:space-between;align-items:center}
   .platform .state{font-size:11px;color:#4ade80;margin:6px 0 0}
   .platform .state.err{color:#ff9a9a}
   .platform .state:empty{display:none}
+  .platform [data-role="enable"]{border:1px solid currentColor}
+  .platform[data-platform="crunchyroll"] [data-role="enable"]{color:#f47521}
+  .platform[data-platform="prime"] [data-role="enable"]{color:#00a8e1}
+  .platform [data-role="enable"]:hover{background:#1e1e23}
   button.link{width:auto;margin:0;padding:0;background:none;border:none;color:#9a9aa5;font-size:11px;text-decoration:underline}
   button.link:hover{background:none;color:#e8e8ec}
+  /* Bande de statut des 3 plateformes (clarté d'un coup d'oeil) */
+  .platsum-title{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#6a6a74;margin:0 0 6px}
+  .platsum{display:flex;gap:6px;margin-bottom:16px}
+  .platsum-chip{flex:1;display:flex;align-items:center;gap:6px;padding:7px 8px;background:#111115;border:1px solid #2a2a33;border-radius:8px;font-size:11px;min-width:0}
+  .platsum-dot{width:7px;height:7px;border-radius:50%;background:#4a4a54;flex-shrink:0}
+  .platsum-dot.on{background:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.18)}
+  .platsum-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .platsum-sub{color:#6a6a74;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .platsum-chip[data-chip="netflix"]{border-left:3px solid #e50914}
+  .platsum-chip[data-chip="crunchyroll"]{border-left:3px solid #f47521}
+  .platsum-chip[data-chip="prime"]{border-left:3px solid #00a8e1}
 </style>
 </head>
 <body>
   <!-- Textes : _locales/<langue>/messages.json (langue du navigateur, anglais par défaut) -->
   <h1 data-msg="optionsTitle">Cinepisode</h1>
+  <p class="platsum-title" data-msg="platformsSummaryTitle"></p>
+  <div class="platsum" id="platsum">
+    <div class="platsum-chip" data-chip="netflix">
+      <span class="platsum-dot on"></span>
+      <div><span class="platsum-name">Netflix</span><br><span class="platsum-sub" data-msg="platformNetflixAlways"></span></div>
+    </div>
+    <div class="platsum-chip" data-chip="crunchyroll">
+      <span class="platsum-dot" data-role="dot"></span>
+      <div><span class="platsum-name">Crunchyroll</span><br><span class="platsum-sub" data-role="sub"></span></div>
+    </div>
+    <div class="platsum-chip" data-chip="prime">
+      <span class="platsum-dot" data-role="dot"></span>
+      <div><span class="platsum-name">Prime Video</span><br><span class="platsum-sub" data-role="sub"></span></div>
+    </div>
+  </div>
   <p data-msg="optionsIntro"></p>
   <label for="token" data-msg="tokenLabel"></label>
   <input type="text" id="token" placeholder="a1b2c3...">
