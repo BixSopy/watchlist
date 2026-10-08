@@ -293,7 +293,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=DET_CORE;
 
 /* ======================= Interface (navigateur) ======================= */
 var DET={rows:[],groups:[],loadedAt:0,loading:null,filter:'all',sel:{},tmdb:{},busy:false,lookups:0,requests:0,stopped:false,queue:[],active:0,renderTimer:null};
-/* Quota TMDB du compte (proxy, 4 000 appels par jour) : 400 titres et 1 200 requêtes automatiques
+/* Quota TMDB du compte (proxy, 8 000 appels amont par jour) : 400 titres et 1 200 requêtes automatiques
    au plus par chargement de la page, 3 en parallèle ; résultats gardés par titre normalisé (mémoire
    + sessionStorage) pour ne jamais refaire la même recherche. Au-delà : recherche à la main. */
 var DET_PAGE=1000,DET_MAX_ROWS=20000,DET_LOOKUP_MAX=400,DET_REQ_MAX=1200,DET_LOOKUP_PARALLEL=3,DET_CACHE_PREFIX='cp.detTmdb.v2:';

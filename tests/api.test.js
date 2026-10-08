@@ -38,7 +38,7 @@ const USERS = {
 };
 let fakeDb;
 function resetDb() {
-  fakeDb = { limits: { tmdb: { user: 4000 }, omdb: { user: 150, global: 900 } }, usage: {}, global: {}, cache: {}, rpcMode: 'ok' };
+  fakeDb = { limits: { tmdb: { user: 8000 }, omdb: { user: 150, global: 900 } }, usage: {}, global: {}, cache: {}, rpcMode: 'ok' };
 }
 function rpcQuota(opts) {
   const h = opts.headers || {};
@@ -365,21 +365,44 @@ test('quota tmdb : la RPC reçoit le jeton de l’utilisateur (jamais la clé se
   assert.deepStrictEqual(JSON.parse(rpc.opts.body), { p_bucket: 'tmdb', p_cost: 1 });
 });
 
-test('quota tmdb dépassé : 429 quota_exceeded + Retry-After, mémorisé, autres comptes intacts', async () => {
+test('quota tmdb : hit cache mémoire gratuit (pas de RPC), miss amont compté', async () => {
+  reset();
+  fakeDb.limits.tmdb.user = 1;
+  assert.strictEqual((await call(tmdb, { url: '/api/tmdb?path=/movie/1', token: GOOD })).statusCode, 200);
+  assert.strictEqual(upstreamCalls('consume_api_quota'), 1);
+  assert.strictEqual(upstreamCalls('themoviedb'), 1);
+  assert.strictEqual(fakeDb.usage['u1:tmdb'], 1);
+  /* 2e fois : cache hit → pas de quota, pas d'appel TMDB */
+  assert.strictEqual((await call(tmdb, { url: '/api/tmdb?path=/movie/1', token: GOOD })).statusCode, 200);
+  assert.strictEqual(upstreamCalls('consume_api_quota'), 1, 'hit cache : pas de RPC quota');
+  assert.strictEqual(upstreamCalls('themoviedb'), 1);
+  assert.strictEqual(fakeDb.usage['u1:tmdb'], 1);
+  /* Nouveau chemin : miss → quota déjà à 1/1 → 429 */
+  const out = await call(tmdb, { url: '/api/tmdb?path=/movie/2', token: GOOD });
+  assert.strictEqual(out.statusCode, 429);
+  assert.strictEqual(JSON.parse(out.body).error, 'quota_exceeded');
+});
+
+test('quota tmdb dépassé : 429 quota_exceeded + Retry-After, mémorisé ; hit cache reste servi', async () => {
   reset();
   fakeDb.limits.tmdb.user = 2;
   assert.strictEqual((await call(tmdb, { url: '/api/tmdb?path=/movie/1', token: GOOD })).statusCode, 200);
   assert.strictEqual((await call(tmdb, { url: '/api/tmdb?path=/movie/2', token: GOOD })).statusCode, 200);
-  let out = await call(tmdb, { url: '/api/tmdb?path=/movie/1', token: GOOD });
+  let out = await call(tmdb, { url: '/api/tmdb?path=/movie/3', token: GOOD });
   assert.strictEqual(out.statusCode, 429);
   assert.strictEqual(JSON.parse(out.body).error, 'quota_exceeded');
   assert.match(JSON.parse(out.body).message, /quota quotidien/i);
   assert.ok(Number(out.headers['retry-after']) > 0 && Number(out.headers['retry-after']) <= 86400);
   assert.strictEqual(out.headers['cache-control'], 'no-store');
   const rpcBefore = upstreamCalls('consume_api_quota');
-  out = await call(tmdb, { url: '/api/tmdb?path=/movie/1', token: GOOD });
-  assert.strictEqual(out.statusCode, 429, 'toujours refusé, même en cache mémoire');
+  /* Miss non caché : toujours refusé, refus mémorisé (plus d'appel RPC) */
+  out = await call(tmdb, { url: '/api/tmdb?path=/movie/3', token: GOOD });
+  assert.strictEqual(out.statusCode, 429, 'miss amont toujours refusé');
   assert.strictEqual(upstreamCalls('consume_api_quota'), rpcBefore, 'refus mémorisé : plus d’appel RPC');
+  /* Hit cache d'une fiche déjà vue : servi sans consommer de quota (ni regarder le refus) */
+  out = await call(tmdb, { url: '/api/tmdb?path=/movie/1', token: GOOD });
+  assert.strictEqual(out.statusCode, 200, 'hit cache servi même après quota atteint');
+  assert.strictEqual(upstreamCalls('consume_api_quota'), rpcBefore, 'hit cache : pas de RPC');
   out = await call(tmdb, { url: '/api/tmdb?path=/movie/1', token: OTHER });
   assert.strictEqual(out.statusCode, 200, 'un autre compte n’est pas affecté');
 });
