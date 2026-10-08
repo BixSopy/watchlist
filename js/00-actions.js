@@ -68,6 +68,7 @@ uiOn('menuStats',function(){openStats();toggleMenu();});
 uiOn('menuExportJson',function(){exportJSON();toggleMenu();});
 uiOn('menuAccount',function(){openAuthModal();toggleMenu();});
 uiOn('menuExportAccount',function(){exportAccountData();toggleMenu();});
+uiOn('menuFeedback',function(){toggleMenu();openFeedback('app');});
 uiOn('settingToggle',function(el,e,key){_onSettingToggle(key,el);});
 var _UI_SETTING_FNS={toggleCompact:function(){toggleCompact();},toggleSound:function(){toggleSound();},toggleSuiviSection:function(){toggleSuiviSection();}};
 uiOn('settingFn',function(el,e,name){var f=_UI_SETTING_FNS[name];if(!f)return;f();renderSettingsMenu();});
@@ -147,6 +148,12 @@ uiOn('authGo',function(el,e,view,ctx){authGo(view,ctx);});
 /* Page d'accueil (js/23-landing.js) */
 uiOn('lpAuth',function(el,e,view){if(e&&e.preventDefault)e.preventDefault();lpShowAuth(view);});
 uiOn('lpOpenApp',function(){lpOpenApp();});
+/* Avis (js/24-feedback.js) */
+uiOn('openFeedback',function(el,e,ctx){openFeedback(ctx);});
+uiOn('closeFeedback',function(){closeFeedback();});
+uiOn('fbKind',function(el,e,k){fbSetKind(k);});
+uiOn('fbInput',function(){fbOnInput();});
+uiOn('fbEmail',function(){fbOnEmail();});
 uiOn('authHaveCodeEmail',function(){authGo('emailSent',{newEmail:_val('authNewEmail').trim()});});
 uiOn('authResend',function(el){authResend(el);});
 uiOn('togglePw',function(el,e,id){togglePwVisibility(id,el);});

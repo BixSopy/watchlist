@@ -93,6 +93,16 @@ footer a{color:#9a9aa3}
 <p>The extension contains no analytics, no advertising and no tracker, and contacts no server other than netflix.com and Cinepisode's server.</p>
 <p><strong>Limited Use.</strong> The use of information received from the extension adheres to the <a href="https://developer.chrome.com/docs/webstore/program-policies/" rel="noopener">Chrome Web Store User Data Policy</a>, including the Limited Use requirements. This data is used only to update your list and fill your “Detected” tab. It is never sold, never used for advertising, profiling or creditworthiness, never shared with third parties, and nobody reads it except with your consent (for example when you ask for support), for security, or when required by law.</p>
 
+<h2>Feedback sent with “Send feedback”</h2>
+<p>The “Send feedback” form (app menu and home page footer) is optional and works with or without an account.</p>
+<ul>
+  <li><strong>What is stored:</strong> the feedback type (idea, bug, other), your message, the email address you give for a reply (optional, can be cleared before sending), the page you write from, the interface language, your browser and system in a short form (for example “Chrome 154 · Android”), the site version, the date, and your profile if you are signed in.</li>
+  <li><strong>Why:</strong> to reply to you if you wish, to understand and fix bugs, and to improve Cinepisode. Legal basis: your request and our legitimate interest in improving the service (Article 6(1)(f) GDPR).</li>
+  <li><strong>Abuse prevention:</strong> your IP address is never stored. The server computes an encrypted fingerprint of it, which changes every day, only to limit the number of submissions; it is erased after 2 days.</li>
+  <li><strong>Where:</strong> in our Supabase database (Frankfurt, EU), unreadable by other users. A copy is emailed to contact@cinepisode.com (via Resend, then ImprovMX and the publisher's Gmail mailbox, see below). Nobody else has access; nothing is sold or used for advertising.</li>
+  <li><strong>How long:</strong> 24 months at most, then automatic deletion. You can ask at any time for a message to be deleted by writing to contact@cinepisode.com; deleting your account also erases feedback sent while signed in.</li>
+</ul>
+
 <h2>Storage in your browser</h2>
 <p>Cinepisode uses <strong>no advertising or audience-measurement cookies</strong>. Your browser keeps your list (IndexedDB), your settings, your language and your sign-in session (localStorage). These are strictly necessary for the service to work and therefore don't require consent. You can delete them from your browser settings or when you delete your account.</p>
 
@@ -100,8 +110,8 @@ footer a{color:#9a9aa3}
 <ul>
   <li><strong>Vercel Inc.</strong> (United States) hosts the website and the server functions, which run in Frankfurt (fra1). Transfers are covered by the EU–US Data Privacy Framework and the standard contractual clauses.</li>
   <li><strong>Supabase Inc.</strong> provides authentication and the database, hosted in Frankfurt (EU).</li>
-  <li><strong>Resend</strong> (Resend, Inc., United States), the service that sends account emails: receives your address and the content of these emails, only to send them.</li>
-  <li><strong>Forwarding of the contact address</strong> (ImprovMX, then the publisher's Gmail mailbox): if you write to contact@cinepisode.com, your message and your address pass through these services.</li>
+  <li><strong>Resend</strong> (Resend, Inc., United States), the service that sends account emails and feedback notifications: receives your address and the content of these emails, only to send them.</li>
+  <li><strong>Forwarding of the contact address</strong> (ImprovMX, then the publisher's Gmail mailbox): if you write to contact@cinepisode.com or send feedback, your message and your address pass through these services.</li>
   <li><strong>Cloudflare Turnstile</strong> (if enabled): anti-bot check loaded <em>only</em> on the sign-up, sign-in and forgotten-password forms. Cloudflare then receives your IP address and technical information about your browser. Turnstile doesn't use advertising tracking cookies.</li>
 </ul>
 
@@ -116,6 +126,7 @@ footer a{color:#9a9aa3}
   <li>Detected titles: pending ones until you add, ignore or clear them; added or ignored ones as long as your account exists.</li>
   <li>Account and list: as long as your account exists. Deleting your account immediately and permanently erases this data from our database.</li>
   <li>Quota counters: a few days.</li>
+  <li>Feedback sent with “Send feedback”: 24 months at most (IP fingerprint: 2 days), or less on request.</li>
   <li>Technical logs: according to the periods applied by Vercel and Supabase (from a few hours to a few days).</li>
 </ul>
 
@@ -126,7 +137,7 @@ footer a{color:#9a9aa3}
   <li><strong>Change email address or password</strong>;</li>
   <li><strong>Delete my account</strong>: erases your account, your synced list, your detected titles, your counters and your tracking token.</li>
 </ul>
-<p>For any other request: <a href="mailto:contact@cinepisode.com">contact@cinepisode.com</a>. You can also lodge a complaint with the French data protection authority, the <a href="https://www.cnil.fr/en/complaints" rel="noopener">CNIL</a>, or with the supervisory authority of your country of residence.</p>
+<p>For any other request, including deleting feedback you sent: <a href="mailto:contact@cinepisode.com">contact@cinepisode.com</a>. You can also lodge a complaint with the French data protection authority, the <a href="https://www.cnil.fr/en/complaints" rel="noopener">CNIL</a>, or with the supervisory authority of your country of residence.</p>
 
 <h2>Minimum age</h2>
 <p>The service is intended for people aged 15 and over. Under that age, a parent's consent is required.</p>

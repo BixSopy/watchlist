@@ -168,6 +168,12 @@ html.lp-guest{scroll-behavior:smooth;scroll-padding-top:84px}
 .lp-foot-nav a{color:var(--lp-muted);text-decoration:none;padding:4px 0}
 .lp-foot-nav a.lp-mail{color:var(--lp-muted)!important;text-decoration:none}
 .lp-foot-nav a:hover{color:var(--lp-text);text-decoration:underline;text-underline-offset:3px}
+/* « Donner mon avis » (js/24-feedback.js) : bouton présenté comme les liens du pied de page */
+.lp-foot-nav{align-items:center}
+.lp-foot-nav .lp-foot-fb{background:none;border:0;padding:4px 0;margin:0;font:inherit;color:var(--lp-muted);cursor:pointer;text-align:left}
+.lp-foot-nav .lp-foot-fb:hover{color:var(--lp-text);text-decoration:underline;text-underline-offset:3px}
+.lp-foot-nav .lp-foot-fb:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+@media (pointer:coarse){.lp-foot-nav .lp-foot-fb{min-height:44px}}
 .lp-foot-tmdb{display:flex;align-items:center;gap:12px;margin-top:40px;padding-top:24px;border-top:1px solid var(--lp-line);font-size:12.5px;color:var(--lp-faint)}
 .lp-foot-tmdb img{opacity:.75;flex:none}
 

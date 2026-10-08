@@ -537,6 +537,30 @@ body.suivi-providers-off .suivi-providers{display:none}
 .alert-text{font-size:13px;color:var(--text);flex:1}.alert-text b{color:var(--accent);font-weight:600}
 .alert-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 6px}
 
+/* AVIS (« Donner mon avis », js/24-feedback.js) */
+.modal-add.auth-modal.fb-modal{max-width:460px}
+@media (max-width:768px){.modal-add.auth-modal.fb-modal{max-width:100%}}
+.fb-lbl{display:block;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.fb-kinds{display:flex;gap:8px}
+.field .fb-kind{flex:1;min-width:0;position:relative;cursor:pointer;display:block;margin:0;text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:500;color:inherit}
+.fb-kind input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.fb-kind span{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 8px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--text2);font-size:13.5px;font-weight:500;text-align:center;transition:var(--tr)}
+.fb-kind:hover span{color:var(--text);border-color:var(--border2)}
+.fb-kind input:checked+span{border-color:rgba(var(--accent-rgb),.6);background:rgba(var(--accent-rgb),.13);color:var(--text)}
+.fb-kind input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.fb-modal textarea{display:block;width:100%;min-height:140px;max-height:45vh;resize:vertical;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;line-height:1.5;padding:11px 13px;border-radius:10px;outline:none;transition:var(--tr)}
+.fb-modal textarea::placeholder,.fb-modal input::placeholder{color:var(--text3)}
+.fb-modal textarea:focus,.fb-modal .field input:focus{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.12)}
+.fb-modal .field input[type=email]{font-size:16px}
+.fb-count{font-size:11.5px;color:var(--text2);text-align:right;margin-top:5px;font-variant-numeric:tabular-nums}.fb-count.warn{color:#f0a33a}
+.fb-opt{text-transform:none;letter-spacing:0;font-weight:400;color:var(--text2)}
+.fb-hint{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5}
+.fb-hp{position:absolute!important;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+.fb-privacy{margin:4px 0 16px}.fb-privacy a{color:var(--accent)}
+.auth-msg a{color:inherit;text-decoration:underline}
+.fb-done p{margin-bottom:10px}
+.fb-done .mtitle.auth-title{padding:0;margin-bottom:12px}
+.fb-done+.mact{margin-top:18px}
 /* TOAST */
 .toast-wrap{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .toast{background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r-md);padding:11px 16px;font-size:13px;color:var(--text);display:flex;align-items:center;gap:9px;animation:toastSlide .3s ease;max-width:300px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -1387,6 +1411,7 @@ html.lp-member #landing{display:none!important}
       <a href="#lp-faq" data-i18n="lp.nav.faq">FAQ</a>
       <a href="/confidentialite" data-legal="privacy" data-i18n="legal.privacy">Confidentialité</a>
       <a href="/conditions" data-legal="terms" data-i18n="legal.terms">Conditions &amp; mentions légales</a>
+      <button type="button" class="lp-foot-fb" data-click="openFeedback" data-args="[&quot;landing&quot;]" data-i18n="fb.menu">Donner mon avis</button>
       <!--brand:contact--><a class="lp-mail" href="mailto:contact@cinepisode.com">contact@cinepisode.com</a><!--/brand:contact-->
     </nav>
     <div class="lp-foot-lang" id="lpLang"></div>
@@ -1419,6 +1444,7 @@ html.lp-member #landing{display:none!important}
       <button class="opt-btn" data-click="openSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> <span data-i18n="menu.settings">Réglages</span><svg class="opt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 6 15 12 9 18"/></svg></button>
       <div class="opt-sep"></div>
       <button class="opt-btn" data-click="menuExportJson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="menu.exportJson">Exporter JSON</span></button>
+      <button class="opt-btn" data-click="menuFeedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span data-i18n="fb.menu">Donner mon avis</span></button>
       <div class="opt-sep"></div>
       <button class="opt-btn" data-click="menuAccount"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span data-i18n="set.accountSync">Compte &amp; synchronisation</span></button>
     </div>
@@ -1570,6 +1596,14 @@ html.lp-member #landing{display:none!important}
   <div class="modal-add auth-modal">
     <button type="button" class="auth-close" data-click="closeAuth" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div id="authView"></div>
+  </div>
+</div>
+
+<!-- AVIS (« Donner mon avis ») : formulaire rendu par js/24-feedback.js, envoi à /api/feedback -->
+<div class="mbk" id="fbMbk" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+  <div class="modal-add auth-modal fb-modal">
+    <button type="button" class="auth-close" data-click="closeFeedback" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div id="fbView"></div>
   </div>
 </div>
 
@@ -1750,5 +1784,6 @@ html.lp-member #landing{display:none!important}
 <script src="js/21-detected.js"></script>
 <script src="js/22-modal-history.js"></script>
 <script src="js/23-landing.js"></script>
+<script src="js/24-feedback.js"></script>
 </body>
 </html>

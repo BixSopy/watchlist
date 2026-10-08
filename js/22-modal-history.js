@@ -1,5 +1,5 @@
 /* MODULE: Bouton / geste « retour » (Android, navigateur) : ferme la fenêtre ouverte au lieu de quitter le site.
-   Chaque fenêtre (fiche, ajout/édition, compte, statistiques, saga, catalogue, menu, panneau Recommandations)
+   Chaque fenêtre (fiche, ajout/édition, compte, avis, statistiques, saga, catalogue, menu, panneau Recommandations)
    ajoute une entrée d'historique à son ouverture (history.pushState, même URL). « Retour » retire cette entrée
    et on ferme la fenêtre du dessus. Une fermeture par ×, le fond ou Échap retire l'entrée (history.back()).
    Les fenêtres sont suivies par leurs classes (MutationObserver) : aucune fonction d'ouverture n'est modifiée. */
@@ -11,6 +11,7 @@
     {id:'plexMbk',cls:'on',close:function(){closePlex();}},
     {id:'addMbk',cls:'on',close:function(){closeAdd();}},
     {id:'authMbk',cls:'on',close:function(){closeAuthModal();}},
+    {id:'fbMbk',cls:'on',close:function(){if(typeof closeFeedback==='function')closeFeedback();}},
     {id:'statsMbk',cls:'on',close:function(){byId('statsMbk').classList.remove('on');}},
     {id:'folderMbk',cls:'on',close:function(){closeFolder();}},
     {id:'optMenu',cls:'on',close:function(){byId('optMenu').classList.remove('on');closeSettingsView();}},

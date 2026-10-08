@@ -274,7 +274,7 @@ function failQuota(res, q, label) {
 
 module.exports = {
   send, fail, failQuota, makeCache, verifySession, guard, queryParams, bearerToken,
-  consumeQuota, sharedCacheGet, sharedCachePut, secondsUntilUtcMidnight, serviceKey,
+  consumeQuota, sharedCacheGet, sharedCachePut, secondsUntilUtcMidnight, serviceKey, serviceHeaders,
   supabaseUrl, timeoutSignal, UPSTREAM_TIMEOUT_MS,
   _authCache: authCache, _buckets: buckets, _quotaDenied: quotaDenied, _quotaState: quotaState,
 };
