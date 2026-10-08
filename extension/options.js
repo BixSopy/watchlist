@@ -237,6 +237,12 @@ function setPlatformState(name, granted, note) {
   var state = box.querySelector('[data-role="state"]');
   state.textContent = note === 'denied' ? msg('platformDenied') : granted ? msg('platformEnabled') : '';
   state.className = note === 'denied' ? 'state err' : 'state';
+  /* Reflète le même état dans la bande de statut en haut (vue d'ensemble des 3 plateformes) */
+  var chip = document.querySelector('.platsum-chip[data-chip="' + name + '"]');
+  if (chip) {
+    chip.querySelector('[data-role="dot"]').classList.toggle('on', granted);
+    chip.querySelector('[data-role="sub"]').textContent = granted ? msg('platformActive') : msg('platformInactive');
+  }
 }
 function refreshPlatform(name, note) {
   if (!chrome.permissions || !PLATFORMS[name]) return;

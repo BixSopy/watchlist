@@ -278,6 +278,18 @@
   "platformEnabled": {
     "message": "Enabled: live detection and history import."
   },
+  "platformsSummaryTitle": {
+    "message": "3 platforms integrated"
+  },
+  "platformNetflixAlways": {
+    "message": "Always active"
+  },
+  "platformInactive": {
+    "message": "Inactive"
+  },
+  "platformActive": {
+    "message": "Active"
+  },
   "platformDenied": {
     "message": "Access denied by Chrome: nothing was enabled."
   },

@@ -278,6 +278,18 @@
   "platformEnabled": {
     "message": "Activé : détection en direct et import de l'historique."
   },
+  "platformsSummaryTitle": {
+    "message": "3 plateformes intégrées"
+  },
+  "platformNetflixAlways": {
+    "message": "Toujours active"
+  },
+  "platformInactive": {
+    "message": "Inactif"
+  },
+  "platformActive": {
+    "message": "Actif"
+  },
   "platformDenied": {
     "message": "Accès refusé par Chrome : rien n'a été activé."
   },
