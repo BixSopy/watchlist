@@ -1,0 +1,9 @@
+subject: Tu es invité·e sur [[name]]
+preheader: Crée ton compte [[name]] en choisissant ton mot de passe.
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Tu es invité·e sur [[name]]</h1>
+<p>Un compte a été préparé pour <strong>{{ .Email }}</strong>. Accepte l'invitation puis choisis ton mot de passe pour commencer à suivre tes films, séries et anime.</p>
+[[button||Accepter l'invitation||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}]]
+<p class="small">Ce lien ne sert qu'une fois et expire rapidement. Si tu ne connais pas l'expéditeur, ignore cet email.</p>
+[[fallback||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}]]

@@ -3,9 +3,12 @@
  * Proxy TMDB authentifié : GET /api/tmdb?path=/movie/603&language=fr-FR
  * - clé lue dans TMDB_API_KEY (clé v3, ou jeton de lecture v4 « eyJ... ») ;
  * - seuls les chemins et paramètres utilisés par l'app sont acceptés (pas de proxy ouvert) ;
- * - session Supabase obligatoire (voir _lib/common.js).
+ * - session Supabase d'un compte confirmé obligatoire (voir _lib/common.js) ;
+ * - quota quotidien par compte (bucket « tmdb », chaque requête compte, cache compris :
+ *   c'est le nombre d'appels au proxy qu'on limite, pas seulement les appels à TMDB) ;
+ * - cache mémoire partagé entre utilisateurs (données TMDB publiques), borné à ~40 Mo.
  */
-const { send, fail, makeCache, guard, queryParams } = require('./_lib/common');
+const { send, fail, failQuota, makeCache, guard, queryParams, consumeQuota, timeoutSignal, UPSTREAM_TIMEOUT_MS } = require('./_lib/common');
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 
@@ -38,7 +41,7 @@ const PARAMS = {
   'first_air_date.gte': /^\d{4}-\d{2}-\d{2}$/,
 };
 
-const cache = makeCache(400);
+const cache = makeCache(3000, 40 * 1024 * 1024);
 
 function buildUpstream(params) {
   const path = params.get('path') || '';
@@ -69,6 +72,9 @@ async function handler(req, res) {
   if (up.error === 'path') return fail(res, 400, 'path_not_allowed', 'Chemin non autorisé');
   if (up.error === 'param') return fail(res, 400, 'bad_param', 'Paramètre invalide : ' + up.name);
 
+  const q = await consumeQuota(auth, 'tmdb', 1);
+  if (!q.allowed) return failQuota(res, q, 'du catalogue');
+
   const cacheKey = up.path + '?' + up.query;
   const browserCache = 'private, max-age=' + Math.min(up.ttl, 3600);
   const hit = cache.get(cacheKey);
@@ -78,12 +84,15 @@ async function handler(req, res) {
   const url = TMDB_BASE + up.path + '?' + up.query + (isBearer ? '' : (up.query ? '&' : '') + 'api_key=' + encodeURIComponent(key));
   let r;
   try {
-    r = await fetch(url, { headers: isBearer ? { Authorization: 'Bearer ' + key, accept: 'application/json' } : { accept: 'application/json' } });
+    r = await fetch(url, {
+      headers: isBearer ? { Authorization: 'Bearer ' + key, accept: 'application/json' } : { accept: 'application/json' },
+      signal: timeoutSignal(UPSTREAM_TIMEOUT_MS),
+    });
   } catch (e) {
     return fail(res, 502, 'upstream_unreachable', 'TMDB injoignable');
   }
   if (r.status === 404) return fail(res, 404, 'not_found', 'Introuvable');
-  if (r.status === 429) return fail(res, 429, 'upstream_rate_limited', 'TMDB limite les requêtes');
+  if (r.status === 429) return fail(res, 503, 'upstream_rate_limited', 'TMDB limite les requêtes, réessaie dans un instant', 10);
   if (!r.ok) return fail(res, 502, 'upstream_error', 'Erreur TMDB (' + r.status + ')');
 
   let text;

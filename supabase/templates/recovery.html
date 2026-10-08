@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Réinitialise ton mot de passe · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#5cc8ff}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#0a0a0c;" bgcolor="#0a0a0c">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Choisis un nouveau mot de passe pour ton compte Cinepisode.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0a0c" style="background-color:#0a0a0c;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="30" height="30" align="center" valign="middle" bgcolor="#5cc8ff" style="width:30px;height:30px;background-color:#5cc8ff;border-radius:9px;color:#06070a;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:30px;mso-line-height-rule:exactly;">&#9654;&#65038;</td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#5cc8ff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:20px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">Nouveau mot de passe</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">Quelqu'un (sans doute toi) a demandé à réinitialiser le mot de passe du compte <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong>. Clique sur le bouton pour en choisir un nouveau.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#5cc8ff" style="background-color:#5cc8ff;border-radius:12px;"><a href="{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#06070a;text-decoration:none;border-radius:12px;">Choisir un nouveau mot de passe</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">Ou, dans Cinepisode («&nbsp;Se connecter&nbsp;» puis «&nbsp;J'ai un code&nbsp;»), entre ce code&nbsp;:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:14px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">Le lien et le code expirent au bout d'une heure et ne servent qu'une fois. Si tu n'es pas à l'origine de cette demande, ignore cet email&nbsp;: ton mot de passe actuel reste valable.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">Le bouton ne fonctionne pas&nbsp;? Copie ce lien dans ton navigateur&nbsp;:<br><a href="{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            Tu reçois cet email suite à une action sur un compte Cinepisode.<br>
+            Cinepisode · Ton suivi de films, séries et anime<br>
+            Une question&nbsp;? <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

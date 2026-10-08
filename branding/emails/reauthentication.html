@@ -1,0 +1,7 @@
+subject: {{ .Token }} est ton code de vérification · [[name]]
+preheader: Code de sécurité pour confirmer une action sensible sur ton compte.
+---
+<h1>Code de vérification</h1>
+<p>Pour confirmer une action sensible sur ton compte <strong>{{ .Email }}</strong> (par exemple un changement de mot de passe), entre ce code dans [[name]]&nbsp;:</p>
+[[code||{{ .Token }}]]
+<p class="small">Ce code expire rapidement et ne sert qu'une fois. Si tu n'as rien demandé, quelqu'un utilise peut-être ta session&nbsp;: déconnecte-toi de tes appareils et change ton mot de passe.</p>

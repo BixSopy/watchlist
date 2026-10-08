@@ -1,0 +1,56 @@
+{
+  "$comment": "SOURCE UNIQUE de l'identité de l'app. Pour renommer l'app ou changer le domaine/les couleurs : modifier ce fichier puis lancer `node scripts/build-brand.mjs` (régénère js/00-brand.js, manifest.json, les blocs marqués d'index.html, les pages légales et les gabarits d'emails Supabase). `node scripts/build-brand.mjs --check` (lancé par les tests) échoue si un fichier généré n'est pas à jour.",
+  "name": "Cinepisode",
+  "shortName": "Cinepisode",
+  "wordmark": {
+    "main": "cin",
+    "accent": "episode"
+  },
+  "tagline": "Ton suivi de films, séries et anime",
+  "description": "Suivi personnel de films, séries et anime",
+  "baseUrl": "https://cinepisode.com",
+  "$comment_baseUrl": "Domaine de production (origine https, sans « / » final). Utilisé dans les textes, les balises Open Graph et les instructions ; l'app elle-même fonctionne sur n'importe quel domaine (tout est en chemins relatifs).",
+  "domains": {
+    "$comment": "Redirections générées dans vercel.json UNIQUEMENT si redirects=true. www → domaine principal est déjà fait par Vercel (Domains). À n'activer que pour rediriger aussi les anciens domaines (legacyHosts).",
+    "redirects": false,
+    "www": false,
+    "legacyHosts": [
+      "watchlist-omega-three.vercel.app"
+    ]
+  },
+  "indexable": true,
+  "$comment_indexable": "true = pages indexables sur le domaine de baseUrl uniquement (meta robots index + canonical, robots.txt, sitemap.xml) ; X-Robots-Tag noindex reste envoyé sur tout autre hôte (previews, *.vercel.app) et sur /api/. false = noindex partout.",
+  "contactEmail": "contact@cinepisode.com",
+  "senderName": "Cinepisode",
+  "senderEmail": "noreply@cinepisode.com",
+  "$comment_sender": "Expéditeur des emails d'authentification (à saisir dans Supabase › Authentication › SMTP). Le domaine doit être vérifié chez le fournisseur SMTP (Resend).",
+  "editor": {
+    "name": "",
+    "$comment_name": "Laisser vide pour un éditeur particulier non professionnel (LCEN art. 6-III-2 : identité communiquée à l'hébergeur). Sinon : nom ou raison sociale."
+  },
+  "colors": {
+    "accent": "#5cc8ff",
+    "accentHover": "#7ad4ff",
+    "onAccent": "#06070a",
+    "bg": "#0a0a0c",
+    "surface": "#101013",
+    "surface2": "#17171b",
+    "border": "#26262c",
+    "text": "#f0f0f0",
+    "textMuted": "#9a9aa3",
+    "textFaint": "#5c5c66",
+    "danger": "#ff7070",
+    "themeColor": "#06070a"
+  },
+  "logo": {
+    "icon192": "/icons/icon-192.png",
+    "icon512": "/icons/icon-512.png",
+    "maskable512": "/icons/icon-maskable-512.png",
+    "appleTouch": "/icons/apple-touch-icon.png"
+  },
+  "fonts": {
+    "display": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    "body": "'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    "mono": "'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace"
+  }
+}

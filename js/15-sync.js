@@ -62,90 +62,8 @@ function supabaseToLocal(row){
   };
 }
 
-/* --- Auth UI --- */
-var authMode='login';
-function openAuthModal(){
-  sfx('click');
-  authMode='login';
-  document.getElementById('authMbk').classList.add('on');
-  refreshAuthModalView();
-}
-function closeAuthModal(){document.getElementById('authMbk').classList.remove('on');}
-document.getElementById('authMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closeAuthModal();}});
-
-function switchAuthTab(mode){
-  if(authMode===mode)return;
-  sfx('click');
-  authMode=mode;
-  document.getElementById('authTabLogin').classList.toggle('on',mode==='login');
-  document.getElementById('authTabSignup').classList.toggle('on',mode==='signup');
-  document.getElementById('authPasswordConfirmField').style.display=mode==='signup'?'block':'none';
-  document.getElementById('authPassword').setAttribute('autocomplete',mode==='signup'?'new-password':'current-password');
-  document.getElementById('authSubmitBtn').textContent=mode==='signup'?'Creer mon compte':'Se connecter';
-  document.getElementById('authLocalNote').innerHTML=mode==='signup'
-    ?'La creation de compte est libre et gratuite : email + mot de passe suffisent.<br>Tes donnees sont isolees des autres comptes.'
-    :'Sans connexion, ta liste reste locale et le catalogue TMDB (recherche, recommandations) est desactive.<br>Se connecter active le catalogue et la synchronisation multi-appareils.';
-  showAuthMsg('');
-}
-
-function refreshAuthModalView(){
-  var out=document.getElementById('authLoggedOutView'),inn=document.getElementById('authLoggedInView');
-  if(authUser){
-    out.style.display='none';inn.style.display='block';
-    document.getElementById('authAccountEmail').textContent=authUser.email||'';
-    var dot=document.getElementById('authAccountDot');
-    dot.className='sync-dot '+(navigator.onLine?'synced':'offline');
-    var pending=memDB.filter(function(i){return i.needsSync}).length;
-    document.getElementById('authSyncInfo').textContent=pending?(pending+' element'+(pending>1?'s':'')+' en attente de synchronisation.'):'Tout est synchronise.';
-  }else{
-    out.style.display='block';inn.style.display='none';
-  }
-}
-
-function showAuthMsg(msg,kind){
-  var m=document.getElementById('authMsg');
-  m.textContent=msg;m.className='auth-msg'+(msg?' on '+(kind||'err'):'');
-}
-
-function submitAuth(){
-  if(!supa){showAuthMsg('Client Supabase indisponible');return;}
-  var email=(document.getElementById('authEmail').value||'').trim();
-  var pass=document.getElementById('authPassword').value||'';
-  if(!email||!pass){showAuthMsg('Email et mot de passe requis');return;}
-  sfx('click');
-  var btn=document.getElementById('authSubmitBtn');btn.disabled=true;
-  var after=function(){btn.disabled=false;};
-  if(authMode==='signup'){
-    var confirm=document.getElementById('authPasswordConfirm').value||'';
-    if(pass.length<6){after();showAuthMsg('Mot de passe trop court (6 caracteres minimum)');return;}
-    if(pass!==confirm){after();showAuthMsg('Les mots de passe ne correspondent pas');return;}
-    supa.auth.signUp({email:email,password:pass}).then(function(res){
-      after();
-      if(res.error){showAuthMsg(res.error.message);return;}
-      if(res.data&&res.data.session){
-        toast('Compte créé','ok');
-        refreshAuthModalView();
-      }else{
-        showAuthMsg('Compte cree. Verifie ta boite mail pour confirmer avant de te connecter.','ok');
-      }
-    }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
-  }else{
-    supa.auth.signInWithPassword({email:email,password:pass}).then(function(res){
-      after();
-      if(res.error){showAuthMsg(res.error.message);return;}
-      toast('Connecté','ok');
-      refreshAuthModalView();
-    }).catch(function(e){after();showAuthMsg(e.message||'Erreur');});
-  }
-}
-
-function signOutUser(){
-  if(!supa)return;
-  supa.auth.signOut().then(function(){
-    toast('Déconnecté','nfo');
-    closeAuthModal();
-  });
-}
+/* --- Interface des comptes : voir js/20-account.js (connexion, inscription, mot de passe,
+   suppression de compte…). Ce module ne garde que la session et la synchronisation. --- */
 
 /* Cree/verifie la ligne profiles correspondante */
 /* Un seul appel à la fois par utilisateur : getSession() et onAuthStateChange('SIGNED_IN')
@@ -198,11 +116,15 @@ function initAuth(){
     var session=res.data&&res.data.session;
     if(session&&session.user)onAuthResolved(session.user);
     else updateSyncStatusUI('anon');
+    /* Retour depuis un lien email (confirmation, mot de passe oublié…) : js/20-account.js */
+    if(typeof handleAuthLanding==='function')handleAuthLanding();
   }).catch(function(){updateSyncStatusUI('anon');});
 
   supa.auth.onAuthStateChange(function(event,session){
     if(event=='SIGNED_IN'&&session&&session.user){
       onAuthResolved(session.user);
+    }else if(event=='USER_UPDATED'&&session&&session.user&&authUser&&authUser.id===session.user.id){
+      authUser=session.user;refreshAuthModalView();
     }else if(event=='SIGNED_OUT'){
       authUser=null;authProfileId=null;
       stopSyncLoop();
@@ -215,8 +137,13 @@ function initAuth(){
 function onAuthResolved(user){
   /* Déjà initialisé pour ce compte (SIGNED_IN peut être réémis) : rien à refaire */
   if(authUser&&authUser.id===user.id&&authProfileId)return;
+  /* Changement de compte sans déconnexion (ex. lien email d'un autre compte) */
+  if(authUser&&authUser.id!==user.id){stopSyncLoop();authProfileId=null;}
   authUser=user;
+  /* La liste locale appartient-elle à ce compte ? (voir claimLocalDataFor, js/20-account.js) */
+  if(typeof claimLocalDataFor==='function')claimLocalDataFor(user);
   ensureProfile(user).then(function(profileId){
+    if(!authUser||authUser.id!==user.id)return;/* déconnecté entre-temps */
     authProfileId=profileId;
     markLegacyItemsDirtyOnce(user.id);
     _onApiAuthRestored();
@@ -347,9 +274,9 @@ function generatePlexWebhookToken(){
 function updateSyncStatusUI(state){
   var dot=document.getElementById('syncDot'),txt=document.getElementById('syncStatusText');
   if(!dot||!txt)return;
-  if(state=='anon'){dot.className='sync-dot anon';txt.textContent='Non connecte';}
-  else if(state=='syncing'){dot.className='sync-dot syncing';txt.textContent='Synchronisation...';}
+  if(state=='anon'){dot.className='sync-dot anon';txt.textContent='Se connecter';}
+  else if(state=='syncing'){dot.className='sync-dot syncing';txt.textContent='Synchronisation…';}
   else if(state=='offline'){dot.className='sync-dot offline';txt.textContent='Hors ligne';}
-  else{dot.className='sync-dot synced';txt.textContent='Synchronise';}
+  else{dot.className='sync-dot synced';txt.textContent='Synchronisé';}
 }
 

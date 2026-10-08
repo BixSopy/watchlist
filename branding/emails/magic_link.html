@@ -1,0 +1,11 @@
+subject: Ton lien de connexion · [[name]]
+preheader: Connecte-toi à [[name]] en un clic, sans mot de passe.
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Connexion sans mot de passe</h1>
+<p>Voici ton lien pour te connecter à [[name]] avec <strong>{{ .Email }}</strong>.</p>
+[[button||Me connecter||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}]]
+<p class="muted">Ou, dans [[name]] («&nbsp;Se connecter&nbsp;» puis «&nbsp;J'ai un code&nbsp;»), entre ce code&nbsp;:</p>
+[[code||{{ .Token }}]]
+<p class="small">Le lien et le code expirent au bout d'une heure et ne servent qu'une fois. Si tu n'as rien demandé, ignore cet email&nbsp;: personne ne pourra se connecter sans lui.</p>
+[[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}]]

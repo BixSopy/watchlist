@@ -1,6 +1,6 @@
 /* MODULE: Proxy API TMDB/OMDb (auth, cache 24h), détection de genre anime, bande-annonce. */
 /* API PROXY — TMDB/OMDb via /api (session Supabase obligatoire, clés jamais côté client) */
-var _apiAuthState=null;/* null | 'login' | 'forbidden' */
+var _apiAuthState=null;/* null | 'login' | 'forbidden' | 'unconfirmed' | 'quota' */
 var _apiAuthToastAt=0;
 /* /api/tmdb/movie/1?language=fr-FR → /api/tmdb?path=%2Fmovie%2F1&language=fr-FR */
 function _toProxyUrl(url){
@@ -15,7 +15,9 @@ function _getAccessToken(){
     var s=r&&r.data&&r.data.session;return s&&s.access_token?s.access_token:null;
   }).catch(function(){return null;});
 }
-function _authError(state){var e=new Error(state==='forbidden'?'FORBIDDEN':'AUTH_REQUIRED');e.code=state==='forbidden'?'FORBIDDEN':'AUTH_REQUIRED';return e;}
+function _authError(state){var e=new Error(state.toUpperCase());e.code=({forbidden:'FORBIDDEN',quota:'QUOTA',unconfirmed:'UNCONFIRMED'})[state]||'AUTH_REQUIRED';return e;}
+/* Lit le code d'erreur JSON du proxy sans consommer la réponse d'origine */
+function _proxyErrorCode(r){return r.clone().json().then(function(d){return (d&&d.error)||'';}).catch(function(){return '';});}
 function apiFetch(url){
   /* Kitsu/TVmaze (sans clé) : appel direct, jamais de jeton Supabase envoyé à un tiers */
   if(url.indexOf('/api/')!==0)return fetch(url,{credentials:'omit'});
@@ -23,28 +25,46 @@ function apiFetch(url){
     if(!tok){_notifyLoginRequired('login');throw _authError('login');}
     return fetch(_toProxyUrl(url),{headers:{Authorization:'Bearer '+tok},credentials:'omit'}).then(function(r){
       if(r.status===401){_notifyLoginRequired('login');throw _authError('login');}
-      if(r.status===403){_notifyLoginRequired('forbidden');throw _authError('forbidden');}
+      if(r.status===403||r.status===429){
+        return _proxyErrorCode(r).then(function(code){
+          if(r.status===403){var st=code==='email_unconfirmed'?'unconfirmed':'forbidden';_notifyLoginRequired(st);throw _authError(st);}
+          if(code==='quota_exceeded'){_notifyLoginRequired('quota');throw _authError('quota');}
+          return r;/* rafale (rate_limited) : erreur ordinaire, gérée par l'appelant */
+        });
+      }
       return r;
     });
   });
 }
+var _API_STATE_MSG={
+  login:'Connecte-toi ou crée un compte gratuit pour accéder au catalogue (recherche, recommandations, nouveautés).',
+  forbidden:'Ce compte n\'a pas accès au catalogue.',
+  unconfirmed:'Confirme ton adresse email (lien reçu à l\'inscription) pour accéder au catalogue.',
+  quota:'Tu as atteint ton quota quotidien de catalogue. Ta liste reste utilisable ; le catalogue revient demain.'
+};
 function _loginMsgHtml(){
-  var m=_apiAuthState==='forbidden'
-    ?'Ce compte n\'est pas autorisé à charger le catalogue TMDB.'
-    :'Connecte-toi (menu Compte) pour charger le catalogue TMDB.';
-  return '<div class="sb-loading">'+esc(m)+'</div>';
+  var st=_apiAuthState||'login';
+  var cta=st==='login'?'<div class="sb-cta"><button class="btn btn-primary" onclick="openAuthModal(\'signup\')">Créer un compte</button><button class="btn btn-ghost" onclick="openAuthModal(\'login\')">Se connecter</button></div>'
+    :st==='unconfirmed'?'<div class="sb-cta"><button class="btn btn-ghost" onclick="openAuthModal(\'account\')">Mon compte</button></div>':'';
+  return '<div class="sb-loading sb-auth-msg">'+esc(_API_STATE_MSG[st]||_API_STATE_MSG.login)+cta+'</div>';
 }
 function _paintLoginRequired(){
   if(!_apiAuthState)return;
   var sb=document.getElementById('sbContent');if(sb)sb.innerHTML=_loginMsgHtml();
   var ds=document.getElementById('discoverSection');if(ds)ds.innerHTML=_loginMsgHtml();
 }
+var _API_STATE_TOAST={
+  login:'Connecte-toi pour charger le catalogue',
+  forbidden:'Compte non autorisé pour le catalogue',
+  unconfirmed:'Confirme ton adresse email pour accéder au catalogue',
+  quota:'Quota quotidien du catalogue atteint, retour demain'
+};
 function _notifyLoginRequired(state){
   _apiAuthState=state||'login';
   setTimeout(_paintLoginRequired,0);
   if(Date.now()-_apiAuthToastAt>60000){
     _apiAuthToastAt=Date.now();
-    toast(_apiAuthState==='forbidden'?'Compte non autorisé pour le catalogue':'Connecte-toi pour charger le catalogue TMDB','nfo');
+    toast(_API_STATE_TOAST[_apiAuthState]||_API_STATE_TOAST.login,'nfo');
   }
 }
 /* Après connexion : on relance ce qui avait échoué faute de session */

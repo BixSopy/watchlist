@@ -1,0 +1,12 @@
+{
+  "name": "watchlist-e2e",
+  "private": true,
+  "description": "Tests de bout en bout des écrans de compte (Supabase simulé, Chrome du système)",
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 ."
+  },
+  "devDependencies": {
+    "playwright-core": "1.64.0"
+  }
+}
