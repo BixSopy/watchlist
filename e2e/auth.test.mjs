@@ -314,3 +314,13 @@ test('adresse /en et ?lang= : langue imposée, paramètre retiré, balises de la
   await pageShot(page, 'en-07-terms');
   assert.deepEqual(problems, []);
 });
+
+test('lien piégé : le texte error_description de l’adresse n’est jamais affiché', async t => {
+  const { page, problems } = await newPage(t, { locale: 'en-US' });
+  await page.goto(server.url + '/#error=access_denied&error_code=account_locked&error_description=Security+alert%3A+call+%2B33+6+00+00+00+00+now');
+  await title(page).filter({ hasText: 'Invalid link' }).waitFor();
+  const body = await page.locator('#authMbk .auth-modal').textContent();
+  assert.doesNotMatch(body, /Security alert|00 00/, 'message de l’adresse non affiché');
+  assert.match(body, /expired|invalid/i);
+  assert.deepEqual(problems, []);
+});

@@ -22,23 +22,34 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      # Actions épinglées sur un commit (une étiquette déplacée chez un tiers ne peut pas
+      # injecter de code dans ce job, qui reçoit la clé de signature des mises à jour).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Installer Rust stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
 
       - name: Determiner le tag de release
         id: tag
         shell: bash
+        # Entrées passées par l'environnement (jamais interpolées dans le script) et validées
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "name=desktop-v${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            name="desktop-v$INPUT_VERSION"
           else
-            echo "name=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            name="$REF_NAME"
           fi
+          [[ "$name" =~ ^desktop-v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Version invalide : $name"; exit 1; }
+          echo "name=$name" >> "$GITHUB_OUTPUT"
 
       - name: Construire et publier (Tauri)
-        uses: tauri-apps/tauri-action@v1
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}

@@ -168,4 +168,19 @@ select pg_temp.check(public.mark_watched_by_title(repeat('cd', 24), 'Severance',
 reset role;
 select pg_temp.check((select episode from public.watchlist_items where local_id = 'ok2') = 3, 'progression mise à jour par le webhook');
 
+-- ---------- keep_alive : une ligne par heure au plus ----------
+set role anon;
+insert into public.keep_alive (pinged_at) values (now());
+do $$
+declare v_blocked boolean := false;
+begin
+  begin
+    insert into public.keep_alive (pinged_at) values (now()), (now()), (now());
+  exception when unique_violation then v_blocked := true;
+  end;
+  perform pg_temp.check(v_blocked, 'keep_alive : une 2e ligne dans la même heure est refusée (pas de remplissage de la base)');
+end $$;
+reset role;
+select pg_temp.check((select count(*) from public.keep_alive) = 1, 'keep_alive : une seule ligne enregistrée');
+
 do $$ begin raise notice 'Tous les tests SQL sont passés.'; end $$;

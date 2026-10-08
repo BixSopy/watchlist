@@ -182,6 +182,15 @@ Variables d'environnement Vercel (Production **et** Preview) :
 
 Projet Supabase `batfulcvvquffgfeppcx`, projet Vercel `prj_FnDTFQQIs17MYUdwon10sPbndXQu`.
 
+**0. Clés d'API à renouveler** (audit du 08/10/2026) : la clé TMDB v3 et la clé OMDb ont été
+publiques (code client servi en ligne de juin au 25/09/2026, et toujours visibles dans l'historique
+git). Tant qu'elles ne sont pas renouvelées, n'importe qui peut les utiliser sans passer par le proxy
+ni par les quotas.
+- TMDB › Settings › API : régénérer la clé (ou passer au jeton de lecture v4) ; OMDb : demander une
+  nouvelle clé et désactiver l'ancienne.
+- Vercel › Settings › Environment Variables : remplacer `TMDB_API_KEY` et `OMDB_API_KEY` en les
+  recréant avec le type **Sensitive** (valeur illisible après enregistrement), puis redéployer.
+
 **1. Base de données** (avant ou après le déploiement, l'ancienne version est compatible)
 - SQL Editor : exécuter `supabase/migrations/20261008100000_ouverture_publique.sql` en une fois.
 - Facultatif : `supabase migration repair --status applied 20260925151457` (cette migration est

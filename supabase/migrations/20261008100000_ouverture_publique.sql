@@ -275,6 +275,18 @@ revoke insert, update on table public.profiles from authenticated;
 grant insert (account_id, name) on table public.profiles to authenticated;
 grant update (name, avatar, avatar_color, plex_webhook_token) on table public.profiles to authenticated;
 
+-- -----------------------------------------------------------------------------
+-- 6. keep_alive : au plus une ligne par heure (UTC)
+--    La clé publishable (publique, dans le code de l'app) suffit pour insérer dans
+--    keep_alive : sans limite, n'importe qui pouvait y écrire des millions de lignes
+--    (une requête PostgREST accepte un tableau) et remplir les 500 Mo du plan gratuit,
+--    ce qui passe la base en lecture seule. Le workflow quotidien n'insère qu'une ligne
+--    par jour : cet index unique ne le gêne pas (vérifié le 08/10/2026 : 4 lignes,
+--    toutes dans des heures différentes).
+-- -----------------------------------------------------------------------------
+create unique index if not exists keep_alive_une_par_heure
+  on public.keep_alive ((date_trunc('hour', pinged_at at time zone 'utc')));
+
 commit;
 
 -- -----------------------------------------------------------------------------

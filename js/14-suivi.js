@@ -171,7 +171,7 @@ function renderSuivi(){
     var poster=item.poster?'<img class="suivi-poster" src=\"'+IB+'w92'+esc(item.poster)+'\" alt="">':'<div class="suivi-poster-ph">'+icon(item.type)+'</div>';
     var provHtml='';
     if(item.streamingProviders&&item.streamingProviders.length){
-      provHtml='<div class="suivi-providers">'+item.streamingProviders.map(function(p){return p.logo?'<img class="suivi-provider-logo" src="'+p.logo+'" title="'+esc(p.name)+'" alt="'+esc(p.name)+'">':'';}).join('')+'</div>';
+      provHtml='<div class="suivi-providers">'+item.streamingProviders.map(function(p){return p.logo?'<img class="suivi-provider-logo" src="'+esc(p.logo)+'" title="'+esc(p.name)+'" alt="'+esc(p.name)+'">':'';}).join('')+'</div>';
     }
     var tomorrowBadge=st.tomorrow?'<span class="suivi-badge tomorrow">&#9200; '+esc(t('suivi.tomorrow'))+'</span>':'';
     return '<div class="suivi-item" data-id="'+esc(item.id)+'" onclick="sfx(\'click\');openPlex('+jsArg(item.id)+')" style="cursor:pointer">'+poster+
