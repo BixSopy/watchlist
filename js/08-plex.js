@@ -119,6 +119,21 @@ function fillPlexDetails(det){
       var sel=document.getElementById('sSelWrap');
       sel.innerHTML='<button class="s-btn on" data-s="0" data-sfx-hover'+uiAct('plexSeason',[0])+'>'+esc(t('plex.overview'))+'</button>'+seasons.map(function(s){return '<button class="s-btn" data-s="'+s.season_number+'" data-sfx-hover'+uiAct('plexSeason',[s.season_number])+'>S'+s.season_number+'</button>';}).join('');
     }
+    /* Episodes de la saison en cours (cache local, pas item.totalEp = total de la série) :
+       recalcul exact ici (on a déjà det.seasons), mis à jour aussi pour les cartes/grille. */
+    if(d.item&&d.item.saison){
+      var curS=seasons.filter(function(s){return s.season_number===d.item.saison;})[0];
+      if(curS&&curS.episode_count){
+        d.item.seasonEpCount=curS.episode_count;d.item.seasonEpCountSeason=d.item.saison;
+        if(d.item.episode){
+          var ppct=Math.min(100,Math.round((d.item.episode/curS.episode_count)*100));
+          var pf=document.getElementById('plexProgFill'),pl=document.getElementById('plexProgLbl');
+          if(pf)pf.style.width=ppct+'%';
+          if(pl)pl.textContent=d.item.episode+'/'+curS.episode_count+' ep ('+ppct+'%)';
+        }
+        dbPut(d.item,function(){});
+      }
+    }
   }
   /* Next air */
   if(det.next_episode_to_air&&det.next_episode_to_air.air_date&&d.item){var ne=document.getElementById('plexNep');ne.innerHTML=esc(t('plex.nextEp'))+' <b>S'+pad(det.next_episode_to_air.season_number)+' E'+pad(det.next_episode_to_air.episode_number)+'</b> &bull; '+esc(fmtDate(det.next_episode_to_air.air_date+'T12:00:00'));ne.classList.add('on');}
@@ -206,7 +221,12 @@ function plexSeason(num){
 function nextEpPlex(){
   var d=plexData;if(!d||!d.item)return;
   var item=d.item;var ep=(item.episode||1)+1;var sai=item.saison||1;
-  if(plexSeasons.length){var cur=plexSeasons.find(function(s){return s.season_number==sai});if(cur&&cur.episode_count&&ep>cur.episode_count){var nx=plexSeasons.find(function(s){return s.season_number==sai+1});if(nx){sai++;ep=1;}else{ep=cur.episode_count;}}}
+  if(plexSeasons.length){
+    var cur=plexSeasons.find(function(s){return s.season_number==sai});
+    if(cur&&cur.episode_count&&ep>cur.episode_count){var nx=plexSeasons.find(function(s){return s.season_number==sai+1});if(nx){sai++;ep=1;}else{ep=cur.episode_count;}}
+    var now=plexSeasons.find(function(s){return s.season_number==sai});
+    if(now&&now.episode_count){item.seasonEpCount=now.episode_count;item.seasonEpCountSeason=sai;}
+  }
   item.episode=ep;item.saison=sai;item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
   for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
   dbPut(item,function(){sfx('next');render();document.getElementById('plexProgVal').textContent='S'+pad(sai)+' E'+pad(ep);toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
@@ -221,17 +241,31 @@ function plexDelete(id){
 }
 document.getElementById('plexMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closePlex();}});
 
-/* Marquer l'episode suivant vu en un clic, directement depuis une carte (sans ouvrir
-   la fiche détail). Pas de connaissance du nombre d'episodes par saison ici (pas de
-   fetch TMDB) : avance simplement dans la saison en cours, comme la saisie manuelle. */
+/* Marquer l'episode suivant vu en un clic, directement depuis une carte (sans ouvrir la
+   fiche détail). Même règle de fin de saison que nextEpPlex (passage à la saison suivante) :
+   un petit fetch TMDB (mis en cache côté serveur, pas de coût de quota au clic suivant) donne
+   les saisons de la série ; sans réponse, on avance sans dépasser comme avant ce correctif. */
 function quickNextEp(id,ev){
   if(ev){ev.stopPropagation();ev.preventDefault();}
   var item=memDB.find(function(i){return i.id==id;});
   if(!item||item.type=='film')return;
-  item.episode=(item.episode||0)+1;
-  if(!item.saison)item.saison=1;
-  item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
-  for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
-  dbPut(item,function(){sfx('next');render();toast('S'+pad(item.saison)+' E'+pad(item.episode)+' - '+item.title,'nfo');});
+  function apply(seasons){
+    var ep=(item.episode||0)+1,sai=item.saison||1;
+    if(seasons&&seasons.length){
+      var cur=seasons.find(function(s){return s.season_number==sai;});
+      if(cur&&cur.episode_count&&ep>cur.episode_count){
+        var nx=seasons.find(function(s){return s.season_number==sai+1;});
+        if(nx){sai++;ep=1;}else{ep=cur.episode_count;}
+      }
+      var now=seasons.find(function(s){return s.season_number==sai;});
+      if(now&&now.episode_count){item.seasonEpCount=now.episode_count;item.seasonEpCountSeason=sai;}
+    }
+    item.episode=ep;item.saison=sai;item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
+    for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
+    dbPut(item,function(){sfx('next');render();toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
+  }
+  if(item.tmdbId&&(item.tmdbType||'tv')==='tv'){
+    tf(TB+'/tv/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){apply((d&&d.seasons)||null);}).catch(function(){apply(null);});
+  }else apply(null);
 }
 

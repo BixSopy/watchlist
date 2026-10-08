@@ -42,7 +42,9 @@ function checkAllAir(){
 /* ===== MODULE SUIVI ===== */
 var suiviCollapsed=(localStorage.getItem('wl_suivi_collapsed')=='1');
 var SUIVI_MAX=9;
+var suiviExpanded=false;/* état d'affichage seulement, pas persisté */
 
+function suiviToggleAll(){suiviExpanded=!suiviExpanded;renderSuivi();}
 function toggleSuiviSection(){
   suiviCollapsed=!suiviCollapsed;
   localStorage.setItem('wl_suivi_collapsed',suiviCollapsed?'1':'0');
@@ -99,25 +101,16 @@ function fetchFilmRelease(item){
 }
 
 function fetchNextAirDate(item){
-  var afterTvmaze=function(){
-    tf(TB+'/tv/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){
-      /* Pas de prochain episode programme (serie terminee/annulee, ou pause entre saisons) :
-         on efface une eventuelle ancienne date, sinon elle reste figee pour toujours et
-         remonte comme "nouvel episode sorti" (ex. une serie finie depuis des annees). */
-      item.nextAirDate=(d.next_episode_to_air&&d.next_episode_to_air.air_date)||null;
-      item.nextAir=item.nextAirDate;
-      item.lastEpisodeCheck=Date.now();
-      persistSuiviItem(item);
-      renderSuivi();
-    }).catch(function(){item.lastEpisodeCheck=Date.now();persistSuiviItem(item);});
-  };
-  /* Mapping TVMaze best-effort — n'affecte pas nextAirDate si échec, TMDB reste la source */
-  if(!item.tvmazeId){
-    fetch('https://api.tvmaze.com/singlesearch/shows?q='+encodeURIComponent(item.title))
-      .then(function(r){return r.ok?r.json():null;})
-      .then(function(d){if(d&&d.id)item.tvmazeId=d.id;afterTvmaze();})
-      .catch(function(){afterTvmaze();});
-  }else{afterTvmaze();}
+  tf(TB+'/tv/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){
+    /* Pas de prochain episode programme (serie terminee/annulee, ou pause entre saisons) :
+       on efface une eventuelle ancienne date, sinon elle reste figee pour toujours et
+       remonte comme "nouvel episode sorti" (ex. une serie finie depuis des annees). */
+    item.nextAirDate=(d.next_episode_to_air&&d.next_episode_to_air.air_date)||null;
+    item.nextAir=item.nextAirDate;
+    item.lastEpisodeCheck=Date.now();
+    persistSuiviItem(item);
+    renderSuivi();
+  }).catch(function(){item.lastEpisodeCheck=Date.now();persistSuiviItem(item);});
 }
 
 /* TMDB watch/providers en priorité, JustWatch en best-effort seulement */
@@ -165,7 +158,7 @@ function renderSuivi(){
   var tracked=memDB.map(function(i){var st=suiviStatusFor(i);return st?{item:i,status:st}:null;}).filter(Boolean);
   tracked.sort(function(a,b){return new Date(a.item.nextAirDate)-new Date(b.item.nextAirDate);});
   if(!tracked.length){body.innerHTML='<div class="suivi-empty">'+esc(t('suivi.empty'))+'</div>';return;}
-  var shown=tracked.slice(0,SUIVI_MAX);
+  var shown=suiviExpanded?tracked:tracked.slice(0,SUIVI_MAX);
   var html=shown.map(function(tt){
     var item=tt.item,st=tt.status;
     var poster=item.poster?'<img class="suivi-poster" src=\"'+IB+'w92'+esc(item.poster)+'\" alt="">':'<div class="suivi-poster-ph">'+icon(item.type)+'</div>';
@@ -181,7 +174,7 @@ function renderSuivi(){
       '</div>';
   }).join('');
   if(tracked.length>SUIVI_MAX){
-    html+='<button class="suivi-more" data-click="sfxClick">'+esc(t('suivi.seeAll',{n:tracked.length}))+'</button>';
+    html+='<button type="button" class="suivi-more"'+uiAct('suiviToggleAll')+'>'+esc(suiviExpanded?t('suivi.seeLess'):t('suivi.seeAll',{n:tracked.length}))+'</button>';
   }
   body.innerHTML=html;
 }

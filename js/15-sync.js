@@ -175,6 +175,8 @@ function preserveSuiviFields(local,remote){
   remote.kitsuRating=local.kitsuRating;
   remote.collectionChecked=local.collectionChecked;
   remote.tmdbCollectionId=local.tmdbCollectionId;
+  remote.seasonEpCount=local.seasonEpCount;
+  remote.seasonEpCountSeason=local.seasonEpCountSeason;
   return remote;
 }
 /* Empreinte de ce qu'affiche un titre (sans les champs purement techniques) : sert à savoir si un

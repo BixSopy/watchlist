@@ -632,6 +632,12 @@ function detAddSel(){
         seenTmdb[k]=true;
         return(cand.tmdbType==='tv'?_detTvDetails(cand.tmdbId):Promise.resolve(null)).then(function(det){
           var f=DET_CORE.newEntryFields(g,cand,det);
+          /* Episodes de la saison en cours (barre de progression des cartes, pas f.totalEp qui
+             est le total de la série) : déjà dans det.seasons, pas de fetch supplémentaire. */
+          if(det&&f.saison){
+            var cs=(det.seasons||[]).filter(function(s){return s.season_number===f.saison;})[0];
+            if(cs&&cs.episode_count){f.seasonEpCount=cs.episode_count;f.seasonEpCountSeason=f.saison;}
+          }
           addEntryFromTmdb({tmdbId:cand.tmdbId,tmdbType:cand.tmdbType,title:cand.title,year:cand.year,poster:cand.poster,overview:cand.overview,tmdbScore:cand.score},f);
           added++;doneKeys.push(g.key);doneIds=doneIds.concat(g.ids);
         });
@@ -642,7 +648,13 @@ function detAddSel(){
       var needDet=g.kind==='show'&&item.tmdbId&&(item.tmdbType||'tv')==='tv';
       return(needDet?_detTvDetails(item.tmdbId):Promise.resolve(null)).then(function(det){
         var f=DET_CORE.updateFields(item,g,det);
-        if(f){updateEntryProgress(item.id,f);updated++;}
+        if(f){
+          if(det&&f.saison){
+            var cs2=(det.seasons||[]).filter(function(s){return s.season_number===f.saison;})[0];
+            if(cs2&&cs2.episode_count){f.seasonEpCount=cs2.episode_count;f.seasonEpCountSeason=f.saison;}
+          }
+          updateEntryProgress(item.id,f);updated++;
+        }
         doneKeys.push(g.key);doneIds=doneIds.concat(g.ids);
       });
     }).catch(function(e){failed++;if(typeof _logErr==='function')_logErr('[détectés] ajout',e);});
