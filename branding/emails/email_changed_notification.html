@@ -1,0 +1,8 @@
+subject: Ton adresse email a été modifiée · [[name]]
+preheader: L'adresse de connexion de ton compte [[name]] a changé.
+---
+{{ $base := .SiteURL }}
+<h1>Adresse email modifiée</h1>
+<p>L'adresse de connexion de ton compte [[name]] est passée de <strong>{{ .OldEmail }}</strong> à <strong>{{ .Email }}</strong>.</p>
+<p class="muted">Ce n'était pas toi&nbsp;? Écris-nous tout de suite à <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>.</p>
+[[button||Ouvrir [[name]]||{{ $base }}]]

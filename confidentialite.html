@@ -1,0 +1,118 @@
+<!-- Fichier généré par scripts/build-brand.mjs depuis brand.config.json — ne pas modifier à la main. -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Politique de confidentialité · Cinepisode</title>
+<meta name="description" content="Politique de confidentialité de Cinepisode">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="strict-origin">
+<meta name="theme-color" content="#06070a">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:#0a0a0c;color:#f0f0f0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:1.65}
+.wrap{max-width:760px;margin:0 auto;padding:28px 22px 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px}
+.logo{display:flex;align-items:center;gap:9px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-weight:900;font-size:21px;letter-spacing:-.5px;color:#fff;text-decoration:none}
+.logo em{color:#5cc8ff;font-style:normal}
+.logo svg{width:22px;height:22px}
+.back{font-size:13px;color:#9a9aa3;text-decoration:none;border:1px solid #26262c;border-radius:10px;padding:7px 12px}
+.back:hover{color:#fff}
+h1{font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:30px;line-height:1.2;letter-spacing:-.4px;margin:0 0 6px}
+.updated{color:#5c5c66;font-size:13px;margin:0 0 30px}
+h2{font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:#5cc8ff;margin:34px 0 10px}
+p,li{color:#f0f0f0}
+.muted{color:#9a9aa3}
+a{color:#5cc8ff}
+ul{padding-left:20px}
+li{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 6px}
+th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid #26262c}
+th{color:#9a9aa3;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.card{background:#101013;border:1px solid #26262c;border-radius:16px;padding:16px 18px;margin:12px 0}
+.tmdb{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tmdb img{height:14px;width:auto}
+footer{margin-top:44px;padding-top:18px;border-top:1px solid #26262c;font-size:12px;color:#5c5c66;display:flex;gap:16px;flex-wrap:wrap}
+footer a{color:#9a9aa3}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="logo" href="/"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" fill="#5cc8ff"/><path d="M9 7.3 17 12 9 16.7z" fill="#06070a"/></svg>cin<em>episode</em></a>
+    <a class="back" href="/">Retour à l'app</a>
+  </div>
+  <h1>Politique de confidentialité</h1>
+  <p class="updated">Dernière mise à jour&nbsp;: 8 octobre 2026</p>
+<p>Cinepisode est un service gratuit, sans publicité, sans traceur et sans revente de données. Cette page décrit exactement ce qui est collecté, où c'est stocké et comment tout supprimer.</p>
+
+<h2>Responsable du traitement</h2>
+<p>particulier, éditeur non professionnel (identité communiquée à l'hébergeur conformément à l'article 6-III-2 de la loi pour la confiance dans l'économie numérique). Contact pour toute question ou demande relative à tes données&nbsp;: <a href="mailto:contact@cinepisode.com">contact@cinepisode.com</a>.</p>
+
+<h2>Sans compte</h2>
+<p>Tu peux utiliser Cinepisode sans compte&nbsp;: ta liste reste alors uniquement dans ton navigateur (IndexedDB et localStorage) et rien n'est envoyé à nos serveurs. Le catalogue (recherche, recommandations) nécessite un compte, car il passe par notre serveur pour protéger les clés d'API.</p>
+
+<h2>Données traitées avec un compte</h2>
+<table>
+  <tr><th>Donnée</th><th>Pourquoi</th><th>Où</th></tr>
+  <tr><td>Adresse email, mot de passe (stocké uniquement sous forme chiffrée irréversible), dates de création et de dernière connexion</td><td>Créer et sécuriser ton compte, t'envoyer les emails de confirmation et de réinitialisation</td><td>Supabase (Auth), région <strong>eu-central-1, Francfort (UE)</strong></td></tr>
+  <tr><td>Ta liste&nbsp;: titres, type, statut, progression (saison/épisode), notes, tags, sagas, identifiants TMDB</td><td>Synchroniser ta liste entre tes appareils</td><td>Supabase (base de données), Francfort (UE)</td></tr>
+  <tr><td>Jeton de suivi automatique (si tu en génères un)</td><td>Permettre à l'extension navigateur ou à Tautulli/Plex de mettre à jour ta progression</td><td>Supabase, Francfort (UE)</td></tr>
+  <tr><td>Compteurs d'utilisation du catalogue (nombre de requêtes par jour)</td><td>Appliquer les quotas quotidiens et empêcher les abus</td><td>Supabase, Francfort (UE)&nbsp;; effacés automatiquement après quelques jours</td></tr>
+  <tr><td>Adresse IP, navigateur, horodatage des requêtes (journaux techniques)</td><td>Sécurité, limitation des abus, diagnostic des pannes</td><td>Journaux de Vercel et de Supabase, conservation courte selon leurs offres</td></tr>
+</table>
+<p class="muted">Bases légales&nbsp;: l'exécution du service que tu demandes en créant un compte (article 6.1.b du RGPD) et notre intérêt légitime à sécuriser le service (article 6.1.f) pour les journaux, le CAPTCHA et les quotas.</p>
+
+<h2>Stockage dans ton navigateur</h2>
+<p>Cinepisode n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
+
+<h2>Hébergement et sous-traitants</h2>
+<ul>
+  <li><strong>Vercel Inc.</strong> (États-Unis) héberge le site et les fonctions serveur, exécutées à Francfort (fra1). Transferts encadrés par le Data Privacy Framework UE–États-Unis et les clauses contractuelles types.</li>
+  <li><strong>Supabase Inc.</strong> fournit l'authentification et la base de données, hébergées à Francfort (UE).</li>
+  <li><strong>Resend</strong> (Resend, Inc., États-Unis), service d'envoi des emails de compte&nbsp;: reçoit ton adresse et le contenu de ces emails, uniquement pour les envoyer.</li>
+  <li><strong>Transfert de l'adresse de contact</strong> (ImprovMX, puis une messagerie Gmail de l'éditeur)&nbsp;: si tu écris à contact@cinepisode.com, ton message et ton adresse transitent par ces services.</li>
+  <li><strong>Cloudflare Turnstile</strong> (si activé)&nbsp;: vérification anti-robot chargée <em>uniquement</em> sur les formulaires d'inscription, de connexion et de mot de passe oublié. Cloudflare reçoit alors ton adresse IP et des informations techniques sur ton navigateur. Turnstile n'utilise pas de cookie de suivi publicitaire.</li>
+</ul>
+
+<h2>Sources de données sur les films et séries</h2>
+<ul>
+  <li><strong>TMDB</strong> et <strong>OMDb</strong>&nbsp;: interrogés par notre serveur. Ils ne reçoivent ni ton adresse IP, ni ton email, ni ta liste&nbsp;: seulement la requête (par exemple un identifiant de film).</li>
+  <li><strong>Affiches TMDB</strong> (image.tmdb.org), <strong>Kitsu</strong> et <strong>TVmaze</strong>&nbsp;: chargés directement par ton navigateur, ces services voient donc ton adresse IP (comme pour toute image ou ressource web), mais aucune donnée de compte.</li>
+</ul>
+
+<h2>Durées de conservation</h2>
+<ul>
+  <li>Compte et liste&nbsp;: tant que ton compte existe. La suppression du compte efface immédiatement et définitivement ces données de notre base.</li>
+  <li>Compteurs de quotas&nbsp;: quelques jours.</li>
+  <li>Journaux techniques&nbsp;: selon les durées appliquées par Vercel et Supabase (de quelques heures à quelques jours).</li>
+</ul>
+
+<h2>Tes droits</h2>
+<p>Tu disposes des droits d'accès, de rectification, d'effacement, de portabilité, de limitation et d'opposition. Directement dans l'app (menu Compte)&nbsp;:</p>
+<ul>
+  <li><strong>Exporter mes données</strong>&nbsp;: télécharge un fichier JSON avec ton compte et toute ta liste&nbsp;;</li>
+  <li><strong>Changer d'adresse email ou de mot de passe</strong>&nbsp;;</li>
+  <li><strong>Supprimer mon compte</strong>&nbsp;: efface ton compte, ta liste synchronisée, tes compteurs et ton jeton de suivi.</li>
+</ul>
+<p>Pour toute autre demande&nbsp;: <a href="mailto:contact@cinepisode.com">contact@cinepisode.com</a>. Tu peux aussi adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" rel="noopener">CNIL</a>.</p>
+
+<h2>Âge minimum</h2>
+<p>Le service s'adresse aux personnes de 15 ans et plus. En dessous, l'accord d'un parent est nécessaire.</p>
+
+<h2>Sécurité</h2>
+<p>Connexions chiffrées (HTTPS), mots de passe d'au moins 12 caractères vérifiés contre les fuites connues, isolation stricte des données de chaque compte dans la base (Row Level Security), clés d'API conservées uniquement côté serveur, politique de sécurité du contenu stricte.</p>
+
+  <footer>
+    <a href="/confidentialite">Confidentialité</a>
+    <a href="/conditions">Conditions &amp; mentions légales</a>
+    <a href="mailto:contact@cinepisode.com">Contact</a>
+    <span>Cinepisode · service gratuit et non commercial</span>
+  </footer>
+</div>
+</body>
+</html>

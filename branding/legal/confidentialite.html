@@ -1,0 +1,61 @@
+title: Politique de confidentialité
+updated: 8 octobre 2026
+---
+<p>[[name]] est un service gratuit, sans publicité, sans traceur et sans revente de données. Cette page décrit exactement ce qui est collecté, où c'est stocké et comment tout supprimer.</p>
+
+<h2>Responsable du traitement</h2>
+<p>[[editorLine]] Contact pour toute question ou demande relative à tes données&nbsp;: <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>.</p>
+
+<h2>Sans compte</h2>
+<p>Tu peux utiliser [[name]] sans compte&nbsp;: ta liste reste alors uniquement dans ton navigateur (IndexedDB et localStorage) et rien n'est envoyé à nos serveurs. Le catalogue (recherche, recommandations) nécessite un compte, car il passe par notre serveur pour protéger les clés d'API.</p>
+
+<h2>Données traitées avec un compte</h2>
+<table>
+  <tr><th>Donnée</th><th>Pourquoi</th><th>Où</th></tr>
+  <tr><td>Adresse email, mot de passe (stocké uniquement sous forme chiffrée irréversible), dates de création et de dernière connexion</td><td>Créer et sécuriser ton compte, t'envoyer les emails de confirmation et de réinitialisation</td><td>Supabase (Auth), région <strong>eu-central-1, Francfort (UE)</strong></td></tr>
+  <tr><td>Ta liste&nbsp;: titres, type, statut, progression (saison/épisode), notes, tags, sagas, identifiants TMDB</td><td>Synchroniser ta liste entre tes appareils</td><td>Supabase (base de données), Francfort (UE)</td></tr>
+  <tr><td>Jeton de suivi automatique (si tu en génères un)</td><td>Permettre à l'extension navigateur ou à Tautulli/Plex de mettre à jour ta progression</td><td>Supabase, Francfort (UE)</td></tr>
+  <tr><td>Compteurs d'utilisation du catalogue (nombre de requêtes par jour)</td><td>Appliquer les quotas quotidiens et empêcher les abus</td><td>Supabase, Francfort (UE)&nbsp;; effacés automatiquement après quelques jours</td></tr>
+  <tr><td>Adresse IP, navigateur, horodatage des requêtes (journaux techniques)</td><td>Sécurité, limitation des abus, diagnostic des pannes</td><td>Journaux de Vercel et de Supabase, conservation courte selon leurs offres</td></tr>
+</table>
+<p class="muted">Bases légales&nbsp;: l'exécution du service que tu demandes en créant un compte (article 6.1.b du RGPD) et notre intérêt légitime à sécuriser le service (article 6.1.f) pour les journaux, le CAPTCHA et les quotas.</p>
+
+<h2>Stockage dans ton navigateur</h2>
+<p>[[name]] n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
+
+<h2>Hébergement et sous-traitants</h2>
+<ul>
+  <li><strong>Vercel Inc.</strong> (États-Unis) héberge le site et les fonctions serveur, exécutées à Francfort (fra1). Transferts encadrés par le Data Privacy Framework UE–États-Unis et les clauses contractuelles types.</li>
+  <li><strong>Supabase Inc.</strong> fournit l'authentification et la base de données, hébergées à Francfort (UE).</li>
+  <li><strong>Resend</strong> (Resend, Inc., États-Unis), service d'envoi des emails de compte&nbsp;: reçoit ton adresse et le contenu de ces emails, uniquement pour les envoyer.</li>
+  <li><strong>Transfert de l'adresse de contact</strong> (ImprovMX, puis une messagerie Gmail de l'éditeur)&nbsp;: si tu écris à [[contactEmail]], ton message et ton adresse transitent par ces services.</li>
+  <li><strong>Cloudflare Turnstile</strong> (si activé)&nbsp;: vérification anti-robot chargée <em>uniquement</em> sur les formulaires d'inscription, de connexion et de mot de passe oublié. Cloudflare reçoit alors ton adresse IP et des informations techniques sur ton navigateur. Turnstile n'utilise pas de cookie de suivi publicitaire.</li>
+</ul>
+
+<h2>Sources de données sur les films et séries</h2>
+<ul>
+  <li><strong>TMDB</strong> et <strong>OMDb</strong>&nbsp;: interrogés par notre serveur. Ils ne reçoivent ni ton adresse IP, ni ton email, ni ta liste&nbsp;: seulement la requête (par exemple un identifiant de film).</li>
+  <li><strong>Affiches TMDB</strong> (image.tmdb.org), <strong>Kitsu</strong> et <strong>TVmaze</strong>&nbsp;: chargés directement par ton navigateur, ces services voient donc ton adresse IP (comme pour toute image ou ressource web), mais aucune donnée de compte.</li>
+</ul>
+
+<h2>Durées de conservation</h2>
+<ul>
+  <li>Compte et liste&nbsp;: tant que ton compte existe. La suppression du compte efface immédiatement et définitivement ces données de notre base.</li>
+  <li>Compteurs de quotas&nbsp;: quelques jours.</li>
+  <li>Journaux techniques&nbsp;: selon les durées appliquées par Vercel et Supabase (de quelques heures à quelques jours).</li>
+</ul>
+
+<h2>Tes droits</h2>
+<p>Tu disposes des droits d'accès, de rectification, d'effacement, de portabilité, de limitation et d'opposition. Directement dans l'app (menu Compte)&nbsp;:</p>
+<ul>
+  <li><strong>Exporter mes données</strong>&nbsp;: télécharge un fichier JSON avec ton compte et toute ta liste&nbsp;;</li>
+  <li><strong>Changer d'adresse email ou de mot de passe</strong>&nbsp;;</li>
+  <li><strong>Supprimer mon compte</strong>&nbsp;: efface ton compte, ta liste synchronisée, tes compteurs et ton jeton de suivi.</li>
+</ul>
+<p>Pour toute autre demande&nbsp;: <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>. Tu peux aussi adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" rel="noopener">CNIL</a>.</p>
+
+<h2>Âge minimum</h2>
+<p>Le service s'adresse aux personnes de 15 ans et plus. En dessous, l'accord d'un parent est nécessaire.</p>
+
+<h2>Sécurité</h2>
+<p>Connexions chiffrées (HTTPS), mots de passe d'au moins 12 caractères vérifiés contre les fuites connues, isolation stricte des données de chaque compte dans la base (Row Level Security), clés d'API conservées uniquement côté serveur, politique de sécurité du contenu stricte.</p>

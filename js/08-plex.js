@@ -37,7 +37,7 @@ function fillPlex(){
   document.getElementById('plexTitle').textContent=d.title||'';
   document.getElementById('plexMeta').textContent=d.year||'';
   document.getElementById('plexBadges').innerHTML='';
-  document.getElementById('plexScore').innerHTML=d.score?'<svg viewBox="0 0 24 24" width="16" height="16"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#5cc8ff"/></svg> '+parseFloat(d.score).toFixed(1):'';
+  document.getElementById('plexScore').innerHTML=d.score?'<svg viewBox="0 0 24 24" width="16" height="16"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" style="fill:var(--accent)"/></svg> '+parseFloat(d.score).toFixed(1):'';
   document.getElementById('plexOverview').textContent=d.overview||'Chargement...';
   /* Actions */
   buildPlexActions();

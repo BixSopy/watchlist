@@ -1,0 +1,42 @@
+{
+  "$comment": "Fichier généré par scripts/build-brand.mjs depuis brand.config.json — ne pas modifier à la main.",
+  "smtp": {
+    "senderEmail": "noreply@cinepisode.com",
+    "senderName": "Cinepisode",
+    "host": "smtp.resend.com",
+    "port": 465,
+    "username": "resend"
+  },
+  "confirmation": {
+    "dashboard": "Confirm sign up",
+    "subject": "Confirme ton adresse email · Cinepisode"
+  },
+  "invite": {
+    "dashboard": "Invite user",
+    "subject": "Tu es invité·e sur Cinepisode"
+  },
+  "magic_link": {
+    "dashboard": "Magic link",
+    "subject": "Ton lien de connexion · Cinepisode"
+  },
+  "email_change": {
+    "dashboard": "Change email address",
+    "subject": "Confirme ta nouvelle adresse email · Cinepisode"
+  },
+  "recovery": {
+    "dashboard": "Reset password",
+    "subject": "Réinitialise ton mot de passe · Cinepisode"
+  },
+  "reauthentication": {
+    "dashboard": "Reauthentication",
+    "subject": "{{ .Token }} est ton code de vérification · Cinepisode"
+  },
+  "password_changed_notification": {
+    "dashboard": "Password changed (notification de sécurité)",
+    "subject": "Ton mot de passe a été modifié · Cinepisode"
+  },
+  "email_changed_notification": {
+    "dashboard": "Email address changed (notification de sécurité)",
+    "subject": "Ton adresse email a été modifiée · Cinepisode"
+  }
+}
