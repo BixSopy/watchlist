@@ -55,6 +55,8 @@ function buildPlexActions(){
   var inList=d.item||memDB.find(function(i){return i.tmdbId==d.tmdbId});
   if(inList&&d.item){
     var eb=document.createElement('button');eb.className='btn btn-ghost';eb.textContent=t('common.edit');eb.onclick=function(){sfx('open');closePlex();openEdit(d.item.id);};acts.appendChild(eb);
+    /* Supprimer depuis la fiche : sur écran tactile, c'est le seul accès (boutons de carte masqués) */
+    var db=document.createElement('button');db.type='button';db.className='btn btn-ghost btn-del-plex';db.textContent=t('common.delete');db.setAttribute('data-click','plexDelete');db.setAttribute('data-args',JSON.stringify([String(d.item.id)]));acts.appendChild(db);
     if(d.item.type!='film'&&d.item.saison&&d.item.episode){
       var pg=document.getElementById('plexProg');pg.style.display='block';
       document.getElementById('plexProgVal').textContent='S'+pad(d.item.saison)+' E'+pad(d.item.episode);
@@ -210,6 +212,13 @@ function nextEpPlex(){
   dbPut(item,function(){sfx('next');render();document.getElementById('plexProgVal').textContent='S'+pad(sai)+' E'+pad(ep);toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
 }
 function closePlex(){document.getElementById('plexMbk').classList.remove('on');plexData=null;}
+/* Suppression depuis la fiche : même confirmation que le bouton de la carte, puis fermeture */
+function plexDelete(id){
+  var before=memDB.filter(function(i){return i.id==id&&!i.deleted;}).length;
+  delEntry(id);
+  var after=memDB.filter(function(i){return i.id==id&&!i.deleted;}).length;
+  if(before&&!after)closePlex();
+}
 document.getElementById('plexMbk').addEventListener('click',function(e){if(e.target===this){sfx('close');closePlex();}});
 
 /* Marquer l'episode suivant vu en un clic, directement depuis une carte (sans ouvrir

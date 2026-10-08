@@ -26,7 +26,7 @@ function cardHtml(item,idx){
   var newep=item.hasNewEp?'<div class="card-newep">'+esc(t('card.newEp'))+'</div>':'';
   var todof=(item.status==='todo'||item.needsConfig)?'<div class="card-todo-flag" title="'+esc(t('status.todo'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>':'';
   var id=item.id;var delay=idx*0.02;
-  var nextBtn=(item.status=='encours'&&item.type!='film')?'<div class="ibtn"'+uiAct('quickNextEp',[id])+' title="'+esc(t('card.nextEp'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>':'';
+  var nextBtn=(item.status=='encours'&&item.type!='film')?'<div class="ibtn ibtn-next"'+uiAct('quickNextEp',[id])+' title="'+esc(t('card.nextEp'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>':'';
   return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s" data-sfx-hover'+uiAct('openPlex',[id])+'>'+newep+todof+po+ph+'<div class="cact">'+nextBtn+'<div class="ibtn"'+uiAct('editEntry',[id])+' title="'+esc(t('common.edit'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del"'+uiAct('delEntry',[id])+' title="'+esc(t('common.delete'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(item.title)+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
 }
 
@@ -81,6 +81,7 @@ function loadMoreSec(secId,btn){
   if(left<=0){if(btn&&btn.parentElement)btn.parentElement.style.display='none';}
   else if(btn)btn.textContent=tn('sec.loadMore',left);
 }
+var _secSeq=0;
 var STATUS_SEC_CLASS={encours:'sec-status-encours',avoir:'sec-status-avoir',termine:'sec-status-termine'};
 function secHtml(label,items,statusClass){
   if(!items.length)return'';
@@ -91,7 +92,8 @@ function secHtml(label,items,statusClass){
   Object.keys(colGroups).forEach(function(cid){var g=colGroups[cid];var minAt=Math.min.apply(null,g.map(function(i){return i.addedAt||0;}));blocks.push({type:'folder',cid:cid,items:g,at:minAt});});
   singles.forEach(function(item){blocks.push({type:'card',item:item,at:item.addedAt||0});});
   blocks.sort(function(a,b){return b.at-a.at;});
-  var secId='s'+Math.random().toString(36).slice(2,8);
+  /* Identifiant stable d'un rendu à l'autre (même HTML = grille non redessinée, voir render()) */
+  var secId='sec'+(++_secSeq);
   var gridClass='grid'+(compactOn?' cpt':'');
   var initVisible=_initVisibleRows();
   var h='<div class="sec'+(statusClass?' '+statusClass:'')+'" id="'+secId+'"><div class="sec-hd"><div class="sec-title">'+label+'</div><div class="sec-count">'+blocks.length+'</div></div><div class="'+gridClass+'">';
@@ -126,6 +128,7 @@ function renderHero(){
   if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;document.getElementById('heroDots').innerHTML='';return;}
   if(_heroIdx>=_heroItems.length)_heroIdx=0;
   band.classList.add('on');
+  _heroSwipeInit(band);
   _showHeroItem(_heroIdx);
   _scheduleHeroRotate();
 }
@@ -149,6 +152,17 @@ function _scheduleHeroRotate(){
   },7000);
 }
 function _heroGoTo(i){_heroIdx=i;_showHeroItem(i);_scheduleHeroRotate();}
+/* Glisser le doigt sur le bandeau = titre suivant / précédent (les points sont masqués sur téléphone) */
+function _heroSwipeInit(band){
+  if(band._swipe)return;band._swipe=1;
+  var x0=null,y0=0;
+  band.addEventListener('touchstart',function(e){var p=e.touches[0];x0=p.clientX;y0=p.clientY;},{passive:true});
+  band.addEventListener('touchend',function(e){
+    if(x0===null)return;var p=e.changedTouches[0],dx=p.clientX-x0,dy=p.clientY-y0;x0=null;
+    if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5||_heroItems.length<2)return;
+    var n=_heroItems.length;_heroGoTo((_heroIdx+(dx<0?1:n-1))%n);
+  },{passive:true});
+}
 function _showHeroItem(idx){
   var item=_heroItems[idx];if(!item)return;
   document.getElementById('heroTitle').textContent=item.title;
@@ -172,12 +186,18 @@ function _showHeroItem(idx){
   }).catch(function(){});
 }
 
-function render(){
+/* Contenu de #mc au dernier rendu : un rendu identique ne touche pas au DOM (pas d'affiches
+   rechargées ni d'animations rejouées, cartes « Charger plus » déjà dépliées conservées). */
+var _lastMcHtml=null,_lastViewKey=null;
+/* Écran tactile sans survol (téléphone, tablette) */
+function _isTouchUi(){try{return window.matchMedia('(hover:none)').matches;}catch(e){return false;}}
+function render(opts){
+  var quiet=!!(opts&&opts.quiet);
   renderHero();
   var total0=memDB.filter(function(i){return !i.deleted}).length,ec0=memDB.filter(function(i){return i.status=='encours'&&!i.deleted}).length,te0=memDB.filter(function(i){return i.status=='termine'&&!i.deleted}).length;
   document.getElementById('hstats').innerHTML='<div class="pill">'+tn('pill.titles',total0,{n:'<b>'+fmtNum(total0)+'</b>'})+'</div><div class="pill">'+esc(t('status.encours'))+' <b>'+fmtNum(ec0)+'</b></div><div class="pill">'+esc(t('sec.termines'))+' <b>'+fmtNum(te0)+'</b></div>';
   if(activeTab==='discover'||activeTab==='detectes'){
-    document.getElementById('mc').innerHTML='';
+    document.getElementById('mc').innerHTML='';_lastMcHtml='';_lastViewKey=null;
     if(typeof updateStatsFooter==='function')updateStatsFooter();
     return;
   }
@@ -185,6 +205,12 @@ function render(){
   var tab=activeTab,stat=activeStat,q=fq;
   var items=getItems(tab,stat,q);
   var html='';
+  _secSeq=0;
+  /* Même vue qu'au rendu précédent (onglet, filtre, recherche, tri, mode compact, langue) : c'est une mise à
+     jour des données (synchro, épisode suivant, détection de sagas…), donc rendu discret, sans animation. */
+  var viewKey=[tab,stat,q,sortBy,compactOn?1:0,document.documentElement.lang].join('|');
+  if(viewKey===_lastViewKey)quiet=true;
+  _lastViewKey=viewKey;
 
   if(tab=='all'){
     var ec=items.filter(function(i){return i.status=='encours'});
@@ -215,8 +241,48 @@ function render(){
     });
   }
 
-  if(!html)html=memDB.length==0?'<div class="empty-state"><div class="empty-state-icon">🎬</div><p>'+esc(t('empty.title'))+'</p><small>'+t('empty.hint',{key:'<strong style="color:var(--accent)">N</strong>'})+'</small></div>':'<div class="empty-state"><div class="empty-state-icon">🔍</div><p>'+esc(t('empty.noResult'))+'</p><small>'+esc(t('empty.noResultHint'))+'</small></div>';
-  document.getElementById('mc').innerHTML=html;
+  if(!html){
+    var hasItems=memDB.some(function(i){return !i.deleted;});
+    if(!hasItems){
+      /* Sur écran tactile, pas de « touche N » : on renvoie au bouton Ajouter */
+      var hint=_isTouchUi()?esc(t('empty.hintTouch')):t('empty.hint',{key:'<strong style="color:var(--accent)">N</strong>'});
+      html='<div class="empty-state"><div class="empty-state-icon">🎬</div><p>'+esc(t('empty.title'))+'</p><small>'+hint+'</small></div>';
+    }else if(stat!='all'){
+      /* Le filtre de statut suit d'un onglet à l'autre : on le dit, avec un bouton pour l'enlever */
+      var stLbl=stat=='avoir'?t('status.avoir'):stat=='encours'?t('status.encours'):t('status.termine');
+      html='<div class="empty-state"><div class="empty-state-icon">🔍</div><p>'+esc(t('empty.noResult'))+'</p><small>'+esc(t('empty.filtered',{status:stLbl}))+'</small>'+
+        '<button type="button" class="btn btn-ghost empty-clear"'+uiAct('clearStatFilter')+'>'+esc(t('empty.clearFilter'))+'</button></div>';
+    }else html='<div class="empty-state"><div class="empty-state-icon">🔍</div><p>'+esc(t('empty.noResult'))+'</p><small>'+esc(t('empty.noResultHint'))+'</small></div>';
+  }
+  var mc=document.getElementById('mc');
+  if(html!==_lastMcHtml||!mc.firstChild){_swapMc(mc,html,quiet);_lastMcHtml=html;}
   if(typeof updateStatsFooter==='function')updateStatsFooter();
 }
 
+/* Remplace le contenu de #mc. En mode « discret » (rendu déclenché par la synchro, pas par l'utilisateur) :
+   - pas d'animation d'entrée des cartes (classe mc-quiet) ;
+   - les éléments <img> existants sont réutilisés tels quels (affiche déjà décodée : pas de clignotement) ;
+   - les cartes dépliées par « Charger plus » le restent, et la bande « En cours » garde son défilement. */
+function _swapMc(mc,html,quiet){
+  if(!quiet){mc.classList.remove('mc-quiet');mc.innerHTML=html;return;}
+  var keep={},open={},strip=mc.querySelector('.ec-strip'),stripX=strip?strip.scrollLeft:0;
+  mc.querySelectorAll('img').forEach(function(im){var k=im.getAttribute('src');(keep[k]=keep[k]||[]).push(im);});
+  mc.querySelectorAll('[data-more="1"].revealed').forEach(function(el){open[(el.getAttribute('data-click')||'')+(el.getAttribute('data-args')||'')]=1;});
+  mc.classList.add('mc-quiet');
+  mc.innerHTML=html;
+  mc.querySelectorAll('img').forEach(function(im){
+    var l=keep[im.getAttribute('src')];
+    if(l&&l.length){var old=l.shift();old.className=im.className;im.replaceWith(old);}
+  });
+  if(Object.keys(open).length){
+    mc.querySelectorAll('[data-more="1"]').forEach(function(el){
+      if(open[(el.getAttribute('data-click')||'')+(el.getAttribute('data-args')||'')])el.classList.add('revealed');
+    });
+    mc.querySelectorAll('.sec').forEach(function(sec){
+      var btn=sec.querySelector('.load-more-btn');if(!btn)return;
+      var left=sec.querySelectorAll('[data-more="1"]:not(.revealed)').length;
+      if(!left)btn.parentElement.style.display='none';else btn.textContent=tn('sec.loadMore',left);
+    });
+  }
+  var ns=mc.querySelector('.ec-strip');if(ns&&stripX)ns.scrollLeft=stripX;
+}

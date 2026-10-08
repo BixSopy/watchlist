@@ -177,31 +177,47 @@ function preserveSuiviFields(local,remote){
   remote.tmdbCollectionId=local.tmdbCollectionId;
   return remote;
 }
-function syncPull(){
-  if(!supa||!authProfileId)return Promise.resolve();
+/* Empreinte de ce qu'affiche un titre (sans les champs purement techniques) : sert à savoir si un
+   pull a réellement changé quelque chose. Sans changement, la grille n'est pas redessinée (avant, le
+   polling de 30 s appelait render() à chaque fois : affiches rechargées et animations rejouées). */
+function _syncSig(i){
+  if(!i)return '';
+  return JSON.stringify([i.tmdbId,i.tmdbType,i.type,i.status,i.title,i.year,i.poster,i.tmdbScore,i.myRating,i.overview,i.tags||[],
+    i.saison,i.episode,i.totalEp,i.animeGenre,i.collectionId,i.collectionName,i.tmdbCollectionId,!!i.hasNewEp,i.nextAir,!!i.deleted,i.addedAt]);
+}
+/* Récupère la liste distante. Renvoie une promesse de « true » si quelque chose a changé localement.
+   deferRender : c'est l'appelant (syncNow) qui redessine, une seule fois, et seulement si besoin. */
+function syncPull(deferRender){
+  if(!supa||!authProfileId)return Promise.resolve(false);
   return supa.from('watchlist_items').select('*').eq('profile_id',authProfileId).then(function(res){
     if(res.error){throw res.error;}
-    var rows=res.data||[];
+    var rows=res.data||[],changed=false;
     rows.forEach(function(row){
       var localItem=memDB.find(function(i){return i.id===row.local_id;});
       var remoteTime=new Date(row.updated_at).getTime();
       if(!localItem){
         var mapped=supabaseToLocal(row);
-        if(!mapped.deleted){memDB.push(mapped);dbPut(mapped,function(){});}
+        if(!mapped.deleted){memDB.push(mapped);dbPut(mapped,function(){});changed=true;}
         else{dbPut(mapped,function(){});} /* tombstone distant jamais vu localement : on le stocke marque supprime, filtré du rendu */
       }else if(remoteTime>(localItem.updatedAtLocal||0)){
         var updated=supabaseToLocal(row);
         for(var j=0;j<memDB.length;j++){if(memDB[j].id===updated.id){
           /* Préserve les champs Suivi (Session 9) non gérés par Supabase */
           updated=preserveSuiviFields(memDB[j],updated);
+          if(_syncSig(memDB[j])!==_syncSig(updated))changed=true;
           memDB[j]=updated;break;
         }}
         dbPut(updated,function(){});
       }
     });
-    render();
-    if(typeof renderSuivi==='function')renderSuivi();
+    if(changed&&!deferRender)_syncRender();
+    return changed;
   });
+}
+function _syncRender(){
+  /* Rendu « discret » : pas d'animation d'entrée rejouée, affiches déjà chargées conservées (js/05-render.js) */
+  render({quiet:true});
+  if(typeof renderSuivi==='function')renderSuivi();
 }
 
 function syncPush(){
@@ -232,10 +248,14 @@ function syncNow(){
   if(!supa||!authProfileId||syncInProgress)return;
   if(!navigator.onLine){updateSyncStatusUI('offline');return;}
   syncInProgress=true;updateSyncStatusUI('syncing');
-  syncPull().then(function(){return syncPush();}).then(function(){return syncPull();}).then(function(){
-    syncInProgress=false;updateSyncStatusUI('synced');refreshAuthModalView();
+  /* Au plus un rendu par synchro, et aucun si rien n'a changé (cas normal du polling de 30 s) */
+  var changed=false;
+  function note(c){if(c)changed=true;}
+  syncPull(true).then(note).then(function(){return syncPush();}).then(function(){return syncPull(true);}).then(note).then(function(){
+    syncInProgress=false;if(changed)_syncRender();updateSyncStatusUI('synced');refreshAuthModalView();
   }).catch(function(e){
     syncInProgress=false;
+    if(changed)_syncRender();
     _logErr('[sync]',e);
     updateSyncStatusUI(navigator.onLine?'synced':'offline');
     var now=Date.now();

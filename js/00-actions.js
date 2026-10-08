@@ -98,6 +98,7 @@ uiOn('detAddAll',function(){detAddAll();});
 uiOn('detClearAll',function(){detClearAll();});
 uiOn('detReload',function(){sfx('click');detReload();});
 uiOn('statSelMobile',function(el){var b=document.querySelector('.stab[data-s="'+String(el.value).replace(/["\\]/g,'')+'"]');if(b)b.click();});
+uiOn('clearStatFilter',function(){var b=document.querySelector('#stabs .stab[data-s="all"]');if(b)b.click();});
 uiOn('closeAlert',function(){document.getElementById('alertWrap').classList.remove('on');});
 uiOn('switchDiscoverCat',function(el){switchDiscoverCat(el);});
 uiOn('openPlex',function(el,e,id){sfx('open');openPlex(_uiId(id));});
@@ -128,6 +129,11 @@ uiOn('openFolder',function(el,e,id){sfx('open');openFolder(_uiId(id));});
 uiOn('folderItem',function(el,e,id){id=_uiId(id);sfx('open');closeFolder();setTimeout(function(){openPlex(id);},80);});
 uiOn('closeFolder',function(){sfx('close');closeFolder();});
 uiOn('closeStats',function(){sfx('close');document.getElementById('statsMbk').classList.remove('on');});
+/* × en haut des fenêtres plein écran (téléphone) : mêmes actions que « Annuler » / « Fermer » en bas */
+uiOn('closeAddTop',function(){sfx('close');closeAdd();});
+uiOn('closeStatsTop',function(){sfx('close');document.getElementById('statsMbk').classList.remove('on');});
+uiOn('closePlexBtn',function(){sfx('close');closePlex();});
+uiOn('plexDelete',function(el,e,id){plexDelete(_uiId(id));});
 /* Recherche */
 uiOn('closeSearch',function(){sfx('close');closeSearchModal();});
 uiOn('searchPage',function(el,e,d){searchPage(d);});
