@@ -11,7 +11,8 @@
 -- supabase/migrations/20261008120000_mark_watched_fiable.sql (correspondance par titre fiable) et
 -- supabase/migrations/20261008150000_import_historique.sql et
 -- supabase/migrations/20261008160000_titres_detectes.sql (titres détectés par l'extension, onglet
--- « Détectés ») et supabase/migrations/20261008210000_feedback.sql (avis des utilisateurs) ;
+-- « Détectés ») et supabase/migrations/20261008210000_feedback.sql (avis des utilisateurs) et
+-- supabase/migrations/20261008220000_tmdb_quota_8000.sql (quota TMDB 8 000/jour) ;
 -- recopiées telles quelles en fin de fichier.
 -- Sert de référence pour recréer le projet ; ne pas exécuter sur la base existante.
 -- Tables : profiles, watchlist_items, keep_alive, api_quota_limits, api_usage,
@@ -380,7 +381,7 @@ end $$;
 -- -----------------------------------------------------------------------------
 -- 1. Quotas quotidiens par compte (et global pour OMDb)
 --    Les limites vivent dans api_quota_limits : les ajuster par un simple UPDATE.
---    tmdb : chaque requête au proxy /api/tmdb (cache compris) ;
+--    tmdb : appels réels à TMDB via /api/tmdb (hits du cache mémoire serveur gratuits) ;
 --    omdb : uniquement les appels réels à OMDb (les réponses en cache ne comptent pas).
 --    La clé OMDb gratuite autorise 1 000 requêtes/jour : 900 laissent une marge.
 -- -----------------------------------------------------------------------------
@@ -390,7 +391,7 @@ create table if not exists public.api_quota_limits (
   global_daily    integer check (global_daily > 0)
 );
 insert into public.api_quota_limits (bucket, per_user_daily, global_daily) values
-  ('tmdb', 4000, null),
+  ('tmdb', 8000, null),
   ('omdb', 150, 900)
 on conflict (bucket) do nothing;
 
@@ -629,7 +630,7 @@ commit;
 --   select proname, proacl from pg_proc where pronamespace = 'public'::regnamespace;
 --     -- consume_api_quota / delete_my_account : EXECUTE pour authenticated seulement
 --   select conname from pg_constraint where conname like '%tailles_check';
--- Ajuster un quota : update public.api_quota_limits set per_user_daily = 6000 where bucket = 'tmdb';
+-- Ajuster un quota : update public.api_quota_limits set per_user_daily = 8000 where bucket = 'tmdb';
 -- -----------------------------------------------------------------------------
 
 -- =============================================================================

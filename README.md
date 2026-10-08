@@ -169,8 +169,9 @@ serverless Vercel (`api/tmdb.js`, `api/omdb.js`, `api/config.js`) qui :
 - exigent une session Supabase valide (`Authorization: Bearer <access_token>`, vérifiée auprès
   de `/auth/v1/user`) d'un compte à l'email confirmé ;
 - n'acceptent qu'une liste blanche de chemins et de paramètres (pas de proxy ouvert) ;
-- appliquent un quota quotidien par compte (TMDB 4 000/jour, OMDb 150/jour par compte et
-  900/jour au total ; modifiables dans la table `api_quota_limits`) ;
+- appliquent un quota quotidien par compte (TMDB 8 000/jour — seuls les appels réels à TMDB comptent, hits du cache mémoire
+  gratuits —, OMDb 150/jour par compte et 900/jour au total ; modifiables dans la
+  table `api_quota_limits`) ;
 - ne mettent jamais les erreurs en cache. Il n'y a **pas** de liste d'origines autorisées :
   rien à changer dans `/api` lors d'un changement de domaine.
 

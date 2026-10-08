@@ -4,8 +4,9 @@
  * - clé lue dans TMDB_API_KEY (clé v3, ou jeton de lecture v4 « eyJ... ») ;
  * - seuls les chemins et paramètres utilisés par l'app sont acceptés (pas de proxy ouvert) ;
  * - session Supabase d'un compte confirmé obligatoire (voir _lib/common.js) ;
- * - quota quotidien par compte (bucket « tmdb », chaque requête compte, cache compris :
- *   c'est le nombre d'appels au proxy qu'on limite, pas seulement les appels à TMDB) ;
+ * - quota quotidien par compte (bucket « tmdb ») : seuls les appels réellement faits à
+ *   TMDB comptent ; un hit du cache mémoire serveur est gratuit (auth + limite de rafale
+ *   restent appliqués à toutes les requêtes) ;
  * - cache mémoire partagé entre utilisateurs (données TMDB publiques), borné à ~40 Mo.
  */
 const { send, fail, failQuota, makeCache, guard, queryParams, consumeQuota, timeoutSignal, UPSTREAM_TIMEOUT_MS } = require('./_lib/common');
@@ -75,13 +76,15 @@ async function handler(req, res) {
   if (up.error === 'path') return fail(res, 400, 'path_not_allowed', 'Chemin non autorisé');
   if (up.error === 'param') return fail(res, 400, 'bad_param', 'Paramètre invalide : ' + up.name);
 
-  const q = await consumeQuota(auth, 'tmdb', 1);
-  if (!q.allowed) return failQuota(res, q, 'du catalogue');
-
   const cacheKey = up.path + '?' + up.query;
   const browserCache = 'private, max-age=' + Math.min(up.ttl, 3600);
   const hit = cache.get(cacheKey);
+  /* Hit cache : gratuit pour le quota (pas d'appel TMDB). Auth et rate limit déjà faits
+     par guard() ; le cache de refus quotidien ne bloque pas non plus ces lectures. */
   if (hit) return send(res, 200, hit, browserCache);
+
+  const q = await consumeQuota(auth, 'tmdb', 1);
+  if (!q.allowed) return failQuota(res, q, 'du catalogue');
 
   const isBearer = /^eyJ/.test(key);
   const url = TMDB_BASE + up.path + '?' + up.query + (isBearer ? '' : (up.query ? '&' : '') + 'api_key=' + encodeURIComponent(key));
