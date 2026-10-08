@@ -62,6 +62,13 @@ const TMDB = {
   'tv:JUJUTSU KAISEN': [{ id: 95479, name: 'JUJUTSU KAISEN', original_name: '呪術廻戦', first_air_date: '2020-10-03', popularity: 150, vote_average: 8.5, poster_path: '/jjk.jpg', overview: 'Anime', genre_ids: [16, 10759], origin_country: ['JP'] }],
   'tv:The Boys': [{ id: 76479, name: 'The Boys', original_name: 'The Boys', first_air_date: '2019-07-25', popularity: 400, vote_average: 8.4, poster_path: '/boys.jpg', overview: 'Supes', genre_ids: [10765], origin_country: ['US'] }],
 };
+Object.assign(TMDB, {
+  'tv:Stranger Things': [{ id: 66732, name: 'Stranger Things', original_name: 'Stranger Things', first_air_date: '2016-07-15', popularity: 300, vote_average: 8.6, poster_path: '/st.jpg', overview: 'Hawkins' }],
+  'tv:Mercredi@en-US': [{ id: 119051, name: 'Wednesday', original_name: 'Wednesday', first_air_date: '2022-11-23', popularity: 200, vote_average: 8.5, poster_path: '/wed.jpg' }],
+  'tv:Mercredi@fr-FR': [{ id: 119051, name: 'Mercredi', original_name: 'Wednesday', first_air_date: '2022-11-23', popularity: 200, vote_average: 8.5, poster_path: '/wed.jpg' }],
+  'multi:Le Jeu de la dame': [{ media_type: 'person', id: 9, name: 'Le Jeu de la dame' }, { media_type: 'tv', id: 87739, name: 'Le Jeu de la dame', original_name: "The Queen's Gambit", first_air_date: '2020-10-23', popularity: 90, vote_average: 8.6, poster_path: '/qg.jpg' }],
+  'multi:Game of Thrones': [{ media_type: 'tv', id: 1399, name: 'Game of Thrones', original_name: 'Game of Thrones', first_air_date: '2011-04-17', popularity: 400, vote_average: 8.5, poster_path: '/got.jpg' }],
+});
 const TV_DETAILS = {
   94605: { id: 94605, status: 'Returning Series', in_production: true, number_of_episodes: 18, seasons: [{ season_number: 1, episode_count: 9 }, { season_number: 2, episode_count: 9 }] },
   2996: { id: 2996, status: 'Ended', in_production: false, number_of_episodes: 14, seasons: [{ season_number: 1, episode_count: 6 }, { season_number: 2, episode_count: 6 }] },
@@ -84,10 +91,11 @@ async function newPage(t, opts = {}) {
   await page.route(u => u.pathname === '/api/tmdb', route => {
     const u = new URL(route.request().url());
     const tp = u.searchParams.get('path') || '';
-    tmdbCalls.push({ path: tp, query: u.searchParams.get('query'), auth: route.request().headers()['authorization'] || '' });
+    const lang = u.searchParams.get('language') || '';
+    tmdbCalls.push({ path: tp, query: u.searchParams.get('query'), lang, auth: route.request().headers()['authorization'] || '' });
     let body = { results: [] };
-    const m = tp.match(/^\/search\/(tv|movie)$/);
-    if (m) body = { page: 1, results: TMDB[m[1] + ':' + u.searchParams.get('query')] || [] };
+    const m = tp.match(/^\/search\/(tv|movie|multi)$/);
+    if (m) { const k = m[1] + ':' + u.searchParams.get('query'); body = { page: 1, results: TMDB[k + '@' + lang] || TMDB[k] || [] }; }
     const d = tp.match(/^\/tv\/(\d+)$/);
     if (d) body = TV_DETAILS[d[1]] || { id: +d[1], status: 'Returning Series', seasons: [] };
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
@@ -147,7 +155,9 @@ test('Détectés : onglet caché sans compte, badge, groupes, filtres, correspon
   await page.click('.det-filters .stab:has-text("Tous")');
   // TMDB par le proxy du site, avec la session (jamais de clé dans la page)
   const searches = tmdbCalls.filter(c => c.path.startsWith('/search/'));
-  assert.deepEqual(searches.map(c => c.query).sort(), ['Arcane', 'Glass Onion', 'The Office', 'Titre Introuvable'], 'pas de recherche pour les titres déjà dans la liste');
+  assert.deepEqual([...new Set(searches.map(c => c.query))].sort(), ['Arcane', 'Glass Onion', 'The Office', 'Titre Introuvable'], 'pas de recherche pour les titres déjà dans la liste');
+  assert.deepEqual(searches.filter(c => c.query === 'Arcane').map(c => c.path + '@' + c.lang), ['/search/tv@fr-FR'], 'fiche trouvée : pas de requête de plus');
+  assert.deepEqual(searches.filter(c => c.query === 'Titre Introuvable').map(c => c.path + '@' + c.lang), ['/search/tv@fr-FR', '/search/tv@en-US', '/search/multi@fr-FR'], 'introuvable : fr, en, puis multi');
   assert.ok(searches.every(c => /^Bearer /.test(c.auth)));
   // Lignes de l'autre compte : jamais demandées hors RLS
   assert.ok(db.calls.filter(c => c.path === '/rest/v1/detected_media' && c.method === 'GET').every(c => /state=eq\.pending/.test(c.search)));
@@ -213,6 +223,40 @@ test('Détectés : ajouter la sélection (ajouts identiques au formulaire, mises
   await page.click('.ntab[data-tab="all"]');
   assert.equal(new URL(page.url()).hash, '');
   assert.equal(await page.locator('#detectedSection').isHidden(), true);
+  assert.deepEqual(problems, []);
+});
+
+test('Détectés : titres Netflix FR nettoyés (saison, mini-série), fiche de l\'autre type via multi, recherche manuelle', async t => {
+  const { page, problems, tmdbCalls } = await newPage(t, { detected: [
+    { raw_title: 'Stranger Things : Saison 4', normalized_title: 'stranger things saison 4', season: 4, episode: 2 },
+    { raw_title: 'Mercredi : Saison 1', normalized_title: 'mercredi saison 1', season: 1, episode: 3 },
+    { raw_title: 'Le Jeu de la dame : Mini-série', normalized_title: 'jeu de la dame mini serie', media_type: 'movie', season: null, episode: null },
+  ] });
+  await page.goto(server.url + '/');
+  await login(page);
+  await page.locator('#detTab').waitFor({ state: 'visible' });
+  await page.click('#detTab');
+  await page.locator('.det-row').first().waitFor();
+  await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche'));
+  assert.match(await row(page, 'Stranger Things : Saison 4').textContent(), /Ajouter Stranger Things \(2016\) en cours/);
+  assert.match(await row(page, 'Mercredi : Saison 1').textContent(), /Ajouter Mercredi \(2022\) en cours/);
+  assert.match(await row(page, 'Le Jeu de la dame : Mini-série').textContent(), /Ajouter Le Jeu de la dame \(2020\)/, 'série trouvée par /search/multi');
+  const searches = tmdbCalls.filter(c => c.path.startsWith('/search/'));
+  assert.deepEqual(searches.filter(c => /Stranger/.test(c.query)).map(c => [c.path, c.query, c.lang]), [['/search/tv', 'Stranger Things', 'fr-FR']], 'requête nettoyée, une seule');
+  const keys = searches.map(c => c.path + '|' + c.query + '|' + c.lang);
+  assert.equal(new Set(keys).size, keys.length, 'jamais deux fois la même requête');
+  // Cache de session par titre normalisé
+  assert.ok(await page.evaluate(() => !!sessionStorage.getItem('cp.detTmdb.v2:fr-FR:show:stranger things saison 4')));
+  // Recherche manuelle dans la ligne d'un titre sans fiche
+  const r = row(page, 'Titre Introuvable');
+  assert.match(await r.textContent(), /Aucune fiche trouvée/);
+  await r.locator('.det-q').fill('Game of Thrones');
+  await r.locator('.det-qbtn').click();
+  await page.waitForFunction(() => /Game of Thrones \(2011\)/.test(document.querySelector('#detectedSection').textContent));
+  assert.match(await row(page, 'Titre Introuvable').textContent(), /Ajouter Game of Thrones \(2011\)/);
+  assert.ok(tmdbCalls.some(c => c.path === '/search/multi' && c.query === 'Game of Thrones' && /^Bearer /.test(c.auth)));
+  assert.equal(await row(page, 'Titre Introuvable').locator('.det-cb').isDisabled(), false, 'ajout possible');
+  assert.equal(await page.evaluate(() => document.querySelectorAll('[onclick],[onchange],[oninput]').length), 0);
   assert.deepEqual(problems, []);
 });
 

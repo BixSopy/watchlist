@@ -226,3 +226,86 @@ test('onglet « Détectés » : pastille par plateforme, textes dans les deux la
     for (const k of ['det.src.netflix', 'det.src.crunchyroll', 'det.src.prime', 'det.crNumbering']) assert.ok(txt.includes('"' + k + '"'), l + ' ' + k);
   }
 });
+
+/* ---------- Correspondance TMDB des titres Netflix (0.6.1) ---------- */
+test('TMDB : requêtes nettoyées pour les titres Netflix FR (saison, partie, série limitée, année…)', () => {
+  const q = (t) => D.searchQueries(t);
+  assert.deepStrictEqual(q('Stranger Things : Saison 4')[0], 'Stranger Things');
+  assert.deepStrictEqual(q('La Casa de Papel : Partie 5')[0], 'La Casa de Papel');
+  assert.deepStrictEqual(q('Mercredi : Saison 1')[0], 'Mercredi');
+  assert.deepStrictEqual(q('Lupin : Partie 3')[0], 'Lupin');
+  assert.deepStrictEqual(q('Squid Game : Saison 2')[0], 'Squid Game');
+  assert.deepStrictEqual(q('The Witcher : Le sang des origines : Série limitée').slice(0, 2), ['The Witcher : Le sang des origines', 'The Witcher']);
+  assert.deepStrictEqual(q('Glass Onion (2022)')[0], 'Glass Onion');
+  assert.deepStrictEqual(q('Arcane : Volume 2')[0], 'Arcane');
+  assert.deepStrictEqual(q('Le Jeu de la dame : Mini-série')[0], 'Le Jeu de la dame');
+  assert.deepStrictEqual(q('Maid (Limited Series)')[0], 'Maid');
+  assert.deepStrictEqual(q('Bird Box Barcelona : Le film')[0], 'Bird Box Barcelona');
+  assert.deepStrictEqual(q('Mercredi : Saison 1 : Le jour de la rentrée')[0], 'Mercredi', 'reste d\'un titre d\'épisode');
+  assert.deepStrictEqual(q("L'Attaque des Titans : Saison finale")[0], "L'Attaque des Titans");
+  assert.deepStrictEqual(q('Demon Slayer: Kimetsu no Yaiba : Saison 3').slice(0, 2), ['Demon Slayer: Kimetsu no Yaiba', 'Demon Slayer']);
+  assert.deepStrictEqual(q('JUJUTSU KAISEN : Saison 2')[0], 'JUJUTSU KAISEN');
+  assert.deepStrictEqual(q('Dark'), ['Dark']);
+  assert.deepStrictEqual(q('Black Mirror: Bandersnatch').slice(0, 2), ['Black Mirror: Bandersnatch', 'Black Mirror']);
+});
+
+test('TMDB : plan de recherche fr-FR puis en-US, variantes, puis /search/multi, sans doublon', () => {
+  const plan = D.lookupPlan(G('Stranger Things : Saison 4', 'show'), 'fr-FR');
+  assert.deepStrictEqual(plan.map(p => [p.path, p.query, p.lang]), [
+    ['/search/tv', 'Stranger Things', 'fr-FR'], ['/search/tv', 'Stranger Things', 'en-US'],
+    ['/search/tv', 'Stranger Things : Saison 4', 'fr-FR'], ['/search/tv', 'Stranger Things : Saison 4', 'en-US'],
+    ['/search/multi', 'Stranger Things', 'fr-FR'],
+  ]);
+  const en = D.lookupPlan(G('Glass Onion', 'movie'), 'en-US');
+  assert.deepStrictEqual(en.map(p => [p.path, p.lang]), [['/search/movie', 'en-US'], ['/search/movie', 'fr-FR'], ['/search/multi', 'en-US']]);
+});
+
+test('TMDB : titres FR difficiles retrouvés (nom, nom original, autre langue) et retenus d\'office', () => {
+  const cases = [
+    ['Stranger Things : Saison 4', TV(66732, 'Stranger Things', '2016-07-15', 300)],
+    ['La Casa de Papel : Partie 5', TV(71446, 'La casa de papel', '2017-05-02', 100, { original_name: 'La casa de papel' })],
+    ['Mercredi : Saison 1', TV(119051, 'Mercredi', '2022-11-23', 200, { original_name: 'Wednesday' })],
+    ['Lupin : Partie 3', TV(96677, 'Lupin', '2021-01-08', 80)],
+    ['Squid Game : Saison 2', TV(93405, 'Squid Game', '2021-09-17', 300, { original_name: '오징어 게임' })],
+    ['JUJUTSU KAISEN : Saison 2', TV(95479, 'Jujutsu Kaisen', '2020-10-03', 150, { original_name: '呪術廻戦' })],
+    ["L'Attaque des Titans : Saison finale", TV(1429, "L'Attaque des Titans", '2013-04-07', 200, { original_name: '進撃の巨人' })],
+  ];
+  for (const [title, res] of cases) {
+    const r = D.rankCandidates(G(title, 'show'), [res]);
+    assert.strictEqual(r.length, 1, title);
+    assert.ok(D.isUnambiguous(r), title);
+    assert.ok(D.goodEnough(r), title + ' : pas de requête de plus');
+  }
+  // Titre anglais seulement (réponse en-US fusionnée avec la réponse fr-FR de la même fiche)
+  const g = G('Wednesday', 'show');
+  let r = D.rankCandidates(g, [TV(119051, 'Mercredi', '2022-11-23', 200, { original_name: 'Mercredi' })]);
+  assert.strictEqual(r.length, 0);
+  r = D.rankCandidates(g, [TV(119051, 'Wednesday', '2022-11-23', 200)], { previous: D.rankCandidates(G('Mercredi', 'show'), [TV(119051, 'Mercredi', '2022-11-23', 200)]) });
+  assert.strictEqual(r.length, 1, 'même fiche fusionnée');
+  assert.strictEqual(r[0].title, 'Mercredi', 'titre de la langue du site gardé');
+  assert.deepStrictEqual(r[0].altTitles, ['Wednesday']);
+  assert.ok(D.isUnambiguous(r));
+});
+
+test('TMDB : nom avant les deux-points seulement proposé, jamais retenu d\'office ; film/série de l\'autre type via multi', () => {
+  const witcher = G('The Witcher : Le sang des origines : Série limitée', 'show');
+  let r = D.rankCandidates(witcher, [TV(71912, 'The Witcher', '2019-12-20', 300)]);
+  assert.strictEqual(r.length, 1, 'proposée');
+  assert.ok(!D.isUnambiguous(r), 'pas retenue d\'office');
+  r = D.rankCandidates(witcher, [TV(71912, 'The Witcher', '2019-12-20', 300), TV(106541, 'The Witcher : Le sang des origines', '2022-12-25', 60, { original_name: 'The Witcher: Blood Origin' })]);
+  assert.strictEqual(r[0].tmdbId, 106541);
+  assert.ok(D.isUnambiguous(r));
+  // /search/multi : série classée « film » par Netflix (ou l'inverse), personnes ignorées
+  const g = G('Arcane', 'movie');
+  r = D.rankCandidates(g, [{ media_type: 'person', id: 5, name: 'Arcane' }, Object.assign(TV(94605, 'Arcane', '2021-11-06', 120), { media_type: 'tv' })]);
+  assert.strictEqual(r.length, 1);
+  assert.strictEqual(r[0].tmdbType, 'tv');
+  assert.ok(r[0].match < 1 && D.isUnambiguous(r));
+  // Recherche manuelle : aucun seuil, la requête tapée compte comme variante
+  r = D.rankCandidates(G('Titre Introuvable', 'show'), [Object.assign(TV(1399, 'Game of Thrones', '2011-04-17', 400), { media_type: 'tv' })], { manual: true, query: 'game of thrones' });
+  assert.strictEqual(r.length, 1);
+  assert.strictEqual(r[0].manual, true);
+  const c = D.classify(G('Titre Introuvable', 'show'), [], { state: 'skipped', candidates: [] }, null);
+  assert.deepStrictEqual([c.kind, c.reason], ['new', 'skipped']);
+  assert.deepStrictEqual(D.classify(G('X', 'show'), [], { state: 'manualNone', candidates: [] }, null).reason, 'manualNone');
+});

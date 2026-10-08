@@ -366,7 +366,7 @@ test('fenêtre : chaque statut a un texte dans les deux langues, sans marqueur $
       for (const [, name] of msgs[k].message.matchAll(/\$(\w+)\$/g)) assert.ok(msgs[k].placeholders && msgs[k].placeholders[name.toLowerCase()], l + ' ' + k + ' : ' + name);
     }
   }
-  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.6.0');
+  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.6.1');
 });
 
 test('service worker : détections en direct sans correspondance envoyées à l\'onglet « Détectés » (extension_push_detections)', async () => {

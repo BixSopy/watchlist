@@ -311,15 +311,76 @@
     "message": "Active d'abord la plateforme (bouton « Activer » ci-dessus)."
   },
   "importErrCrunchyrollAuth": {
-    "message": "Connecte-toi à Crunchyroll dans ce navigateur, puis réessaie."
+    "message": "Crunchyroll ne reconnaît pas ta session : connecte-toi sur www.crunchyroll.com dans ce navigateur, puis réessaie."
   },
   "importErrCrunchyroll": {
-    "message": "Crunchyroll a répondu de façon inattendue (ou limite le nombre de requêtes). Réessaie plus tard."
+    "message": "Crunchyroll a répondu de façon inattendue. Réessaie plus tard ; si ça recommence, copie le diagnostic ci-dessous et envoie-le-nous."
   },
   "importErrPrimeAuth": {
     "message": "Connecte-toi sur www.primevideo.com dans ce navigateur (et choisis ton profil), puis réessaie."
   },
   "importErrPrime": {
     "message": "Prime Video a répondu de façon inattendue. Réessaie plus tard."
+  },
+  "importErrCrunchyrollBlocked": {
+    "message": "Crunchyroll (Cloudflare) a bloqué la requête. Ouvre www.crunchyroll.com dans un onglet, passe la vérification si elle s'affiche, puis réessaie."
+  },
+  "importErrCrunchyrollRate": {
+    "message": "Crunchyroll limite le nombre de requêtes pour le moment. Réessaie dans quelques minutes."
+  },
+  "importErrCrunchyrollTab": {
+    "message": "Impossible d'ouvrir www.crunchyroll.com dans un onglet. Ouvre le site toi-même, puis réessaie."
+  },
+  "importErrStep": {
+    "message": "Étape $STEP$ : $STATUS$",
+    "placeholders": {
+      "step": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "importErrHttp": {
+    "message": "HTTP $CODE$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoResponse": {
+    "message": "pas de réponse (réseau ou blocage)"
+  },
+  "importErrBadAnswer": {
+    "message": "réponse illisible"
+  },
+  "importStepNameTab": {
+    "message": "onglet"
+  },
+  "importStepNameToken": {
+    "message": "jeton"
+  },
+  "importStepNameAccount": {
+    "message": "compte"
+  },
+  "importStepNameHistory": {
+    "message": "historique"
+  },
+  "importStepNamePush": {
+    "message": "envoi à Cinepisode"
+  },
+  "importCopyDiag": {
+    "message": "Copier le diagnostic"
+  },
+  "importDiagCopied": {
+    "message": "Diagnostic copié (aucun jeton ni mot de passe dedans)."
+  },
+  "importDiagCopyFailed": {
+    "message": "Copie impossible : sélectionne le texte du diagnostic à la main."
+  },
+  "importStepCrunchyrollTab": {
+    "message": "Ouverture de www.crunchyroll.com…"
   }
 }

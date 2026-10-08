@@ -1,4 +1,4 @@
-/* Extension 0.6.0 de bout en bout, dans un vrai Chrome : Crunchyroll et Prime Video (sites simulés).
+/* Extension 0.6.1 de bout en bout, dans un vrai Chrome : Crunchyroll et Prime Video (sites simulés).
    - extension telle que publiée : plateformes désactivées (permission facultative non accordée),
      aucun accès aux sites, import refusé avec un message clair ;
    - copie de test où les permissions facultatives sont accordées d'avance (Chrome ne permet pas de
@@ -25,6 +25,8 @@ const SUPA = 'https://batfulcvvquffgfeppcx.supabase.co';
 const TOKEN = 'c9'.repeat(24);
 let ctx, cdp, extId, grantedId, profileDir, tmpDir, video;
 const log = { push: [], mark: [], cr: [], pv: [], other: [] };
+let crMode = 'ok';
+const CR_SITE_DEVICE = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
 
 function hasFfmpeg() { try { execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' }); return true; } catch { return false; } }
 
@@ -73,12 +75,16 @@ before(async () => {
     log.other.push(req.url());
     return json(route, {});
   });
-  /* crunchyroll.com simulé : jeton, historique (2 pages), page /watch/ et lecteur (iframe) */
+  /* crunchyroll.com simulé : accueil, jeton, historique (2 pages), page /watch/ et lecteur (iframe) */
   await ctx.route(/^https:\/\/(www|static)\.crunchyroll\.com\//, async route => {
     const req = route.request();
     const u = new URL(req.url());
     log.cr.push({ url: req.url(), method: req.method(), headers: req.headers(), body: req.postData() });
-    if (u.pathname === '/auth/v1/token') return json(route, { access_token: 'cr-at', account_id: 'acc-123', expires_in: 300, token_type: 'Bearer' });
+    if (u.pathname === '/' && req.method() === 'GET') return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>Crunchyroll</title><p>Accueil</p>' });
+    if (u.pathname === '/auth/v1/token') {
+      if (crMode === 'challenge') return route.fulfill({ status: 403, contentType: 'text/html', headers: { 'cf-mitigated': 'challenge' }, body: '<!doctype html><title>Just a moment...</title><div id="challenge-platform"></div>' });
+      return json(route, { access_token: 'cr-at', account_id: 'acc-123', expires_in: 300, token_type: 'Bearer' });
+    }
     if (u.pathname === '/content/v2/acc-123/watch-history') {
       if (req.headers().authorization !== 'Bearer cr-at') return json(route, { error: 'unauthorized' }, 401);
       return json(route, fixture(u.searchParams.get('page') === '1' ? 'crunchyroll-history-p1.json' : 'crunchyroll-history-p2.json'));
@@ -142,7 +148,7 @@ async function closeDetectedTabs() { for (const p of ctx.pages()) if (p.url().st
 test('extension publiée : plateformes désactivées, aucun accès aux sites, import refusé clairement', async () => {
   const { page, errors } = await optionsPage(extId);
   const manifest = await page.evaluate(() => chrome.runtime.getManifest());
-  assert.equal(manifest.version, '0.6.0');
+  assert.equal(manifest.version, '0.6.1');
   assert.deepEqual(manifest.host_permissions, [SUPA + '/*', 'https://www.netflix.com/*'], 'avertissement à l\'installation inchangé');
   await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="enable"]').hidden);
   assert.equal(await box(page, 'crunchyroll').locator('[data-role="enable"]').textContent(), 'Activer Crunchyroll');
@@ -160,6 +166,12 @@ test('extension publiée : plateformes désactivées, aucun accès aux sites, im
 
 test('plateformes activées : scripts en direct enregistrés ; import Crunchyroll -> détections « crunchyroll »', async () => {
   log.push.length = 0;
+  /* Cookie device_id posé par le site (non HttpOnly, lisible par la page) */
+  await ctx.addCookies([{ name: 'device_id', value: CR_SITE_DEVICE, domain: 'www.crunchyroll.com', path: '/', secure: true, sameSite: 'Lax' }]);
+  /* Onglet www.crunchyroll.com déjà ouvert (site simulé) : l'import s'en sert. L'ouverture d'un onglet
+     en arrière-plan quand il n'y en a pas est vérifiée par tests/extension-platforms.test.js. */
+  const crTab = await ctx.newPage();
+  await crTab.goto('https://www.crunchyroll.com/');
   const { page, errors } = await optionsPage(grantedId);
   await page.waitForFunction(async () => (await chrome.scripting.getRegisteredContentScripts()).length === 3);
   const ids = (await page.evaluate(() => chrome.scripting.getRegisteredContentScripts())).map(c => c.id).sort();
@@ -168,10 +180,18 @@ test('plateformes activées : scripts en direct enregistrés ; import Crunchyrol
   await box(page, 'crunchyroll').locator('[data-role="import"]').click();
   await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok');
   assert.match(await page.textContent('#importStatus'), /^3 titres envoyés/);
-  const tok = log.cr.find(r => r.url.endsWith('/auth/v1/token'));
+  const tok = log.cr.find(r => r.url.includes('/auth/v1/token?_='));
   assert.equal(tok.method, 'POST');
   assert.match(tok.headers.authorization, /^Basic /);
-  assert.match(tok.body, /^grant_type=etp_rt_cookie&scope=offline_access&device_id=[0-9a-f-]{36}&/);
+  assert.equal(tok.body.split('&')[0], 'grant_type=etp_rt_cookie');
+  assert.ok(tok.body.includes('device_id=' + CR_SITE_DEVICE + '&'), 'même identifiant d\'appareil que le site');
+  assert.ok(!/scope=/.test(tok.body));
+  // Requêtes faites depuis l'onglet du site (même origine), pas depuis le service worker
+  assert.equal(tok.headers.origin, 'https://www.crunchyroll.com');
+  assert.ok(log.cr.filter(r => /watch-history/.test(r.url)).every(r => !r.headers.origin || r.headers.origin === 'https://www.crunchyroll.com'));
+  assert.ok(!log.cr.some(r => /cdn-cgi/.test(r.url)), 'site simulé seulement');
+  assert.equal(crTab.isClosed(), false, 'onglet de l\'utilisateur jamais fermé');
+  await crTab.close();
   assert.equal(log.push.length, 1);
   assert.deepEqual(log.push[0].p_items.map(i => [i.source, i.title, i.type, i.season, i.episode, i.progress_pct]), [
     ['crunchyroll', 'JUJUTSU KAISEN', 'show', 2, 5, 100], ['crunchyroll', 'JUJUTSU KAISEN 0', 'movie', null, null, 100], ['crunchyroll', 'SPY x FAMILY', 'show', 2, 12, 81]]);
@@ -179,6 +199,35 @@ test('plateformes activées : scripts en direct enregistrés ; import Crunchyrol
   await closeDetectedTabs();
   assert.deepEqual(errors, []);
   await page.close();
+});
+
+test('Crunchyroll bloqué par Cloudflare : étape et statut affichés, « Copier le diagnostic » sans jeton', async () => {
+  crMode = 'challenge';
+  const crTab = await ctx.newPage();
+  try {
+    await crTab.goto('https://www.crunchyroll.com/');
+    const { page, errors } = await optionsPage(grantedId);
+    await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
+    await box(page, 'crunchyroll').locator('[data-role="import"]').click();
+    await page.waitForFunction(() => document.querySelector('#importStatus').className === 'err');
+    const text = await page.textContent('#importStatus');
+    assert.match(text, /Cloudflare/);
+    assert.match(text, /Étape jeton : HTTP 403\./);
+    const st = await page.evaluate(() => new Promise(r => chrome.storage.local.get(['wlImport'], x => r(x.wlImport))));
+    assert.deepEqual([st.error, st.errStep, st.errStatus, st.diag.cloudflare, st.diag.via], ['crunchyroll_blocked', 'token', 403, true, 'tab']);
+    assert.ok(!/cr-at|acc-123|device_id|[0-9a-f]{8}-[0-9a-f]{4}-/.test(JSON.stringify(st.diag)), 'diagnostic sans jeton ni identifiant');
+    await page.evaluate(() => { window.__copied = null; navigator.clipboard.writeText = t => { window.__copied = t; return Promise.resolve(); }; });
+    await page.click('#importStatus button.diag');
+    await page.waitForFunction(() => window.__copied);
+    const copied = await page.evaluate(() => window.__copied);
+    assert.match(copied, /step: token/);
+    assert.match(copied, /status: 403/);
+    assert.match(copied, /cloudflare: true/);
+    assert.match(copied, /v: 0\.6\.1/);
+    assert.match(await page.textContent('#importStatus button.diag'), /Diagnostic copié/);
+    assert.deepEqual(errors, []);
+    await page.close();
+  } finally { crMode = 'ok'; await crTab.close(); }
 });
 
 test('plateformes activées : import Prime Video (région EU, bandes-annonces et lectures courtes écartées)', async () => {

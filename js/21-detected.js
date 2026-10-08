@@ -85,7 +85,9 @@ var DET_CORE=(function(){
   }
 
   /* ---------- Choix de la fiche TMDB ---------- */
-  var MATCH_MIN=0.86,MATCH_GAP=0.06;
+  /* MATCH_MIN : ressemblance pour une fiche retenue d'office ; MATCH_LOW : fiche seulement proposée
+     dans la liste de choix ; MATCH_GOOD : assez bon pour arrêter de chercher (requêtes suivantes évitées) */
+  var MATCH_MIN=0.86,MATCH_GAP=0.06,MATCH_LOW=0.55,MATCH_GOOD=0.92;
   function levenshtein(a,b){
     if(a===b)return 0;if(!a.length||!b.length)return Math.max(a.length,b.length);
     var prev=[],cur=[],i,j;
@@ -97,33 +99,110 @@ var DET_CORE=(function(){
     }
     return prev[b.length];
   }
-  function similarity(norm,cand){
-    var bs=[normalizeTitle(cand.title||''),normalizeTitle(cand.originalTitle||'')].filter(Boolean),score=0;
-    bs.forEach(function(b){var sc=norm===b?1:1-levenshtein(norm,b)/Math.max(norm.length,b.length);if(sc>score)score=sc;});
+  /* Titres « Netflix » -> requêtes TMDB, de la plus précise à la plus large :
+     « Stranger Things : Saison 4 » -> « Stranger Things » ; « La Casa de Papel : Partie 5 » ->
+     « La Casa de Papel » ; « The Witcher : Le sang des origines : Série limitée » ->
+     « The Witcher : Le sang des origines », puis « The Witcher » ; « Glass Onion (2022) » -> « Glass Onion ». */
+  var SUFFIX_RES=[
+    /\s*[:\-–—]\s*(?:saison|season|partie|part|volume|vol\.?|livre|book|chapitre|chapter|[ée]pisode|episode|s[ée]rie limit[ée]e|mini[- ]?s[ée]rie|limited series)\b(?:\s*\d{1,3})?\s*[:\-–—]\s+.*$/i,
+    /\s*[:\-–—,]?\s*\(?(?:saison|season|staffel|temporada|stagione|partie|part|parte|volume|vol\.?|livre|book|chapitre|chapter|collection|cours|cour)\s*\d{1,3}\)?\s*$/i,
+    /\s*[:\-–—,]?\s*\(?(?:s[ée]rie limit[ée]e|mini[- ]?s[ée]rie|limited series|miniseries|mini-series|the movie|le film|la s[ée]rie|the series)\)?\s*$/i,
+    /\s*[:\-–—,]?\s*\(?(?:saison|season|partie|part)\s+(?:un|une|deux|trois|quatre|cinq|one|two|three|four|five|finale?|final)\)?\s*$/i,
+    /\s*[([]\s*(?:18|19|20)\d{2}\s*[)\]]\s*$/,
+    /\s*[:\-–—]\s*$/,
+  ];
+  function cleanSearchTitle(title){
+    var v=String(title||'').replace(/\s+/g,' ').trim(),prev;
+    do{prev=v;for(var i=0;i<SUFFIX_RES.length;i++)v=v.replace(SUFFIX_RES[i],'').trim();}while(v!==prev&&v);
+    return v||String(title||'').trim();
+  }
+  function searchQueries(title){
+    var out=[];
+    function add(q){q=String(q||'').trim();if(q.length>=2&&out.indexOf(q)<0)out.push(q);}
+    var full=cleanSearchTitle(title);
+    add(full);
+    var colon=full.search(/\s*[:：]\s+|\s+[-–—]\s+/);
+    if(colon>1)add(cleanSearchTitle(full.slice(0,colon)));
+    add(String(title||'').trim());
+    return out.slice(0,3);
+  }
+  /* Ressemblance : meilleure paire (variantes du titre détecté) × (titre, titre original, autres
+     titres). Variante pondérée : le nom avant les deux-points (« The Witcher » pour « The Witcher :
+     Le sang des origines ») plafonne sous MATCH_MIN, la fiche est proposée mais jamais retenue d'office. */
+  var PREFIX_WEIGHT=0.85;
+  function similarity(norm,cand,alts){
+    var as=[{n:norm,w:1}].concat((alts||[]).map(function(a){return typeof a==='string'?{n:a,w:1}:a;})).filter(function(a){return a&&a.n;});
+    var bs=[normalizeTitle(cand.title||''),normalizeTitle(cand.originalTitle||'')].concat((cand.altTitles||[]).map(normalizeTitle)).filter(Boolean),score=0;
+    as.forEach(function(a){bs.forEach(function(b){var sc=(a.n===b?1:1-levenshtein(a.n,b)/Math.max(a.n.length,b.length))*a.w;if(sc>score)score=sc;});});
     return score;
   }
-  /* Résultats /search/movie ou /search/tv -> candidats classés (5 au plus) */
-  function rankCandidates(group,results){
-    var isMovie=group.kind==='movie',out=[];
-    (results||[]).forEach(function(r){
-      if(!r||!r.id)return;
-      var c={tmdbId:r.id,tmdbType:isMovie?'movie':'tv',title:(isMovie?r.title:r.name)||'',originalTitle:(isMovie?r.original_title:r.original_name)||'',
-        year:String((isMovie?r.release_date:r.first_air_date)||'').slice(0,4),poster:r.poster_path||null,overview:r.overview||'',
-        score:typeof r.vote_average==='number'&&r.vote_average>0?r.vote_average.toFixed(1):null,popularity:r.popularity||0,
-        genreIds:r.genre_ids||[],originCountry:r.origin_country||[]};
-      c.match=similarity(group.norm,c);
-      if(c.title&&c.match>=MATCH_MIN)out.push(c);
+  function queryNorms(group){
+    var title=String(group.title||''),full=cleanSearchTitle(title),out=[];
+    searchQueries(title).forEach(function(q){
+      var n=normalizeTitle(q);if(!n||n===group.norm)return;
+      var prefix=q.length<full.length&&full.indexOf(q)===0;
+      out.push({n:n,w:prefix?PREFIX_WEIGHT:1});
+    });
+    return out;
+  }
+  /* Un résultat TMDB (search/tv, search/movie ou search/multi) -> candidat, ou null */
+  function toCandidate(group,r){
+    if(!r||!r.id)return null;
+    var mt=r.media_type||(group.kind==='movie'?'movie':'tv');
+    if(mt!=='movie'&&mt!=='tv')return null;
+    var isMovie=mt==='movie';
+    return{tmdbId:r.id,tmdbType:isMovie?'movie':'tv',title:(isMovie?r.title:r.name)||'',originalTitle:(isMovie?r.original_title:r.original_name)||'',altTitles:[],
+      year:String((isMovie?r.release_date:r.first_air_date)||'').slice(0,4),poster:r.poster_path||null,overview:r.overview||'',
+      score:typeof r.vote_average==='number'&&r.vote_average>0?r.vote_average.toFixed(1):null,popularity:r.popularity||0,
+      genreIds:r.genre_ids||[],originCountry:r.origin_country||[]};
+  }
+  /* Résultats TMDB -> candidats classés (5 au plus). opts.previous : candidats déjà trouvés (autre
+     langue, autre requête) fusionnés par fiche ; opts.manual : recherche tapée par l'utilisateur
+     (aucun seuil, type de la fiche libre). Un film/une série de l'autre type est un peu pénalisé. */
+  function rankCandidates(group,results,opts){
+    opts=opts||{};
+    var by={},order=[],alts=queryNorms(group);
+    function put(c){
+      var k=c.tmdbType+':'+c.tmdbId,e=by[k];
+      if(!e){by[k]=c;order.push(k);return;}
+      [c.title,c.originalTitle].concat(c.altTitles||[]).forEach(function(x){if(x&&x!==e.title&&x!==e.originalTitle&&e.altTitles.indexOf(x)<0)e.altTitles.push(x);});
+      if(!e.poster&&c.poster)e.poster=c.poster;
+      if(!e.overview&&c.overview)e.overview=c.overview;
+    }
+    (opts.previous||[]).forEach(function(c){put(Object.assign({},c,{altTitles:(c.altTitles||[]).slice()}));});
+    (results||[]).forEach(function(r){var c=toCandidate(group,r);if(c)put(c);});
+    var wanted=group.kind==='movie'?'movie':'tv',out=[];
+    order.forEach(function(k){
+      var c=by[k];
+      if(!c.title)return;
+      c.match=similarity(group.norm,c,opts.manual?alts.concat([{n:normalizeTitle(opts.query||''),w:1}]):alts);
+      if(c.tmdbType!==wanted)c.match=Math.max(0,c.match-0.04);
+      c.manual=!!opts.manual;
+      if(opts.manual||c.match>=MATCH_LOW)out.push(c);
     });
     out.sort(function(x,y){return y.match-x.match||y.popularity-x.popularity;});
-    return out.slice(0,5);
+    return out.slice(0,opts.manual?8:5);
   }
-  /* Sans ambiguïté : seul candidat, nettement plus ressemblant, ou titre identique bien plus connu */
+  /* Sans ambiguïté : bien ressemblant ET (seul, nettement plus ressemblant, ou titre identique bien
+     plus connu) */
   function isUnambiguous(ranked){
-    if(!ranked.length)return false;
-    if(ranked.length===1)return true;
+    if(!ranked.length||ranked[0].match<MATCH_MIN)return false;
+    if(ranked.length===1||ranked[1].match<MATCH_MIN)return true;
     if(ranked[0].match-ranked[1].match>=MATCH_GAP)return true;
     return ranked[0].match>=0.99&&ranked[0].popularity>=5*Math.max(ranked[1].popularity,0.5);
   }
+  /* Ordre des recherches pour un titre (proxy du site, quota du compte) : type attendu en
+     français puis en anglais pour chaque variante du titre, enfin /search/multi (série classée
+     film par Netflix, ou l'inverse). On s'arrête dès qu'une fiche ressemble assez (goodEnough). */
+  function lookupPlan(group,lang){
+    var type=group.kind==='movie'?'movie':'tv',l1=lang||'fr-FR',l2=/^en/i.test(l1)?'fr-FR':'en-US',plan=[];
+    var qs=searchQueries(group.title||'');
+    qs.slice(0,2).forEach(function(q){plan.push({path:'/search/'+type,query:q,lang:l1});plan.push({path:'/search/'+type,query:q,lang:l2});});
+    plan.push({path:'/search/multi',query:qs[0],lang:l1});
+    var seen={};
+    return plan.filter(function(p){var k=p.path+'|'+p.query+'|'+p.lang;if(seen[k])return false;seen[k]=true;return true;});
+  }
+  function goodEnough(ranked){return !!ranked.length&&ranked[0].match>=MATCH_GOOD;}
   /* Anime : même règle que la recherche du site (« anime » dans le titre ou le résumé), plus
      animation (16) d'origine japonaise */
   function isAnime(cand){
@@ -156,6 +235,8 @@ var DET_CORE=(function(){
     if(m.length===1)return{kind:movesForward(m[0],group)?'update':'uptodate',item:m[0]};
     if(!tmdb||tmdb.state==='pending')return{kind:'new',reason:'pending'};
     if(tmdb.state==='error')return{kind:'new',reason:'error'};
+    if(tmdb.state==='skipped')return{kind:'new',reason:'skipped'};
+    if(tmdb.state==='manualNone')return{kind:'new',reason:'manualNone'};
     var cands=tmdb.candidates||[];
     if(!cands.length)return{kind:'new',reason:'none'};
     var unamb=isUnambiguous(cands);
@@ -204,14 +285,18 @@ var DET_CORE=(function(){
 
   return{normalizeTitle:normalizeTitle,groupRows:groupRows,furthest:furthest,listMatches:listMatches,movesForward:movesForward,
     itemByTmdb:itemByTmdb,levenshtein:levenshtein,similarity:similarity,rankCandidates:rankCandidates,isUnambiguous:isUnambiguous,
+    cleanSearchTitle:cleanSearchTitle,searchQueries:searchQueries,lookupPlan:lookupPlan,goodEnough:goodEnough,
     isAnime:isAnime,isSeriesFinished:isSeriesFinished,classify:classify,actionable:actionable,defaultChecked:defaultChecked,
     filterOf:filterOf,newEntryFields:newEntryFields,updateFields:updateFields};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=DET_CORE;
 
 /* ======================= Interface (navigateur) ======================= */
-var DET={rows:[],groups:[],loadedAt:0,loading:null,filter:'all',sel:{},tmdb:{},busy:false,lookups:0,queue:[],active:0,renderTimer:null};
-var DET_PAGE=1000,DET_MAX_ROWS=20000,DET_LOOKUP_MAX=200,DET_LOOKUP_PARALLEL=3;
+var DET={rows:[],groups:[],loadedAt:0,loading:null,filter:'all',sel:{},tmdb:{},busy:false,lookups:0,requests:0,stopped:false,queue:[],active:0,renderTimer:null};
+/* Quota TMDB du compte (proxy, 4 000 appels par jour) : 400 titres et 1 200 requêtes automatiques
+   au plus par chargement de la page, 3 en parallèle ; résultats gardés par titre normalisé (mémoire
+   + sessionStorage) pour ne jamais refaire la même recherche. Au-delà : recherche à la main. */
+var DET_PAGE=1000,DET_MAX_ROWS=20000,DET_LOOKUP_MAX=400,DET_REQ_MAX=1200,DET_LOOKUP_PARALLEL=3,DET_CACHE_PREFIX='cp.detTmdb.v2:';
 
 function _detItems(){return(typeof memDB!=='undefined'?memDB:[]).filter(function(i){return !i.deleted;});}
 function _detSel(key){return DET.sel[key]||(DET.sel[key]={checked:false,touched:false});}
@@ -274,29 +359,86 @@ function updateDetectedBadge(){
 }
 
 /* ---------- Recherche TMDB des titres absents (proxy du site, quota du compte) ---------- */
+function _detCacheKey(g){return DET_CACHE_PREFIX+TMDB_LANG+':'+g.kind+':'+g.norm;}
+function _detCacheGet(g){
+  try{var v=sessionStorage.getItem(_detCacheKey(g));return v?JSON.parse(v):null;}catch(e){return null;}
+}
+function _detCacheSet(g,cands){
+  try{
+    var slim=cands.map(function(c){return Object.assign({},c,{overview:String(c.overview||'').slice(0,400)});});
+    sessionStorage.setItem(_detCacheKey(g),JSON.stringify(slim));
+  }catch(e){/* stockage plein ou refusé : le cache mémoire suffit */}
+}
+function _detSearchUrl(step){
+  return TB+step.path+'?query='+encodeURIComponent(step.query)+'&language='+encodeURIComponent(step.lang)+'&include_adult=false';
+}
 function _detQueueLookups(){
   DET.groups.forEach(function(g){
     if(DET.tmdb[g.key])return;/* déjà cherché ou en cours */
     if(DET_CORE.listMatches(g,_detItems()).length)return;
-    if(DET.lookups>=DET_LOOKUP_MAX)return;
+    var cached=_detCacheGet(g);
+    if(cached){DET.tmdb[g.key]={state:'done',candidates:cached,cached:true};return;}
+    if(DET.stopped||DET.lookups>=DET_LOOKUP_MAX){DET.tmdb[g.key]={state:'skipped',candidates:[]};return;}
     DET.lookups++;DET.tmdb[g.key]={state:'pending',candidates:[]};DET.queue.push(g.key);
   });
   _detPump();
+}
+/* Recherches successives d'un titre (DET_CORE.lookupPlan) jusqu'à une fiche assez ressemblante */
+function _detLookup(g){
+  var plan=DET_CORE.lookupPlan(g,TMDB_LANG),ranked=[],i=0;
+  function next(){
+    if(i>=plan.length||DET_CORE.goodEnough(ranked))return Promise.resolve(ranked);
+    if(DET.requests>=DET_REQ_MAX||DET.stopped){var e=new Error('budget');e.budget=true;return ranked.length?Promise.resolve(ranked):Promise.reject(e);}
+    var step=plan[i++];DET.requests++;
+    return tf(_detSearchUrl(step)).then(function(d){
+      ranked=DET_CORE.rankCandidates(g,(d&&d.results)||[],{previous:ranked});
+      return next();
+    });
+  }
+  return next();
 }
 function _detPump(){
   while(DET.active<DET_LOOKUP_PARALLEL&&DET.queue.length){
     var key=DET.queue.shift();
     var g=DET.groups.find(function(x){return x.key===key;});
     if(!g)continue;
+    if(DET.stopped){DET.tmdb[g.key]={state:'skipped',candidates:[]};continue;}
     DET.active++;
     (function(g){
-      var url=TB+'/search/'+(g.kind==='movie'?'movie':'tv')+'?query='+encodeURIComponent(g.title)+'&language='+TMDB_LANG+'&include_adult=false';
-      tf(url).then(function(d){
-        DET.tmdb[g.key]={state:'done',candidates:DET_CORE.rankCandidates(g,(d&&d.results)||[])};
-      }).catch(function(){DET.tmdb[g.key]={state:'error',candidates:[]};})
-        .then(function(){DET.active--;_detScheduleRender();_detPump();});
+      _detLookup(g).then(function(cands){
+        DET.tmdb[g.key]={state:'done',candidates:cands};
+        _detCacheSet(g,cands);
+      }).catch(function(err){
+        /* Quota du jour atteint (429) : on arrête les recherches automatiques, la saisie manuelle reste */
+        if(err&&(err.status===429||err.budget)){DET.stopped=DET.stopped||err.status===429;DET.tmdb[g.key]={state:'skipped',candidates:[]};}
+        else DET.tmdb[g.key]={state:'error',candidates:[]};
+      }).then(function(){DET.active--;_detScheduleRender();_detPump();});
     })(g);
   }
+}
+/* Recherche tapée dans la ligne d'un titre sans fiche : /search/multi, aucun seuil de ressemblance */
+function detSearchInput(key,value){_detSel(key).q=String(value||'').slice(0,120);}
+function detSearch(key,value){
+  var g=DET.groups.find(function(x){return x.key===key;});if(!g)return;
+  var s=_detSel(key),q=String(value==null?s.q||'':value).trim().slice(0,120);
+  if(q.length<2)return;
+  var cur=DET.tmdb[key];
+  if(cur&&cur.manual&&cur.state==='pending'&&s.q===q)return;/* même recherche déjà en cours */
+  s.q=q;
+  delete s.cand;
+  DET.tmdb[key]={state:'pending',candidates:[],manual:true};
+  renderDetected();
+  tf(_detSearchUrl({path:'/search/multi',query:q,lang:TMDB_LANG})).then(function(d){
+    var cands=DET_CORE.rankCandidates(g,(d&&d.results)||[],{manual:true,query:q});
+    DET.tmdb[key]={state:cands.length?'done':'manualNone',candidates:cands,manual:true};
+  }).catch(function(){DET.tmdb[key]={state:'error',candidates:[],manual:true};})
+    .then(function(){_detScheduleRender();});
+}
+function detSearchBtn(key){
+  var row=null;
+  document.querySelectorAll('.det-row').forEach(function(r){if(r.getAttribute('data-key')===key)row=r;});
+  var inp=row&&row.querySelector('.det-q');
+  detSearch(key,inp?inp.value:null);
 }
 function _detScheduleRender(){
   clearTimeout(DET.renderTimer);
@@ -354,17 +496,19 @@ function _detRowHtml(g,c){
   }else if(c.reason==='pending'){
     detail=esc(t('det.searching'));
   }else if(c.reason==='error'){
-    detail=esc(t('det.searchError'));
-  }else if(c.reason==='none'){
-    detail=esc(t('det.noMatch'));
+    detail=esc(t('det.searchError'))+_detSearchHtml(g,s);
+  }else if(c.reason==='none'||c.reason==='skipped'||c.reason==='manualNone'){
+    detail=esc(t({none:'det.noMatch',skipped:'det.skipped',manualNone:'det.manualNone'}[c.reason]))+_detSearchHtml(g,s);
   }else{
     var cands=(c.cands||[]),sel=typeof s.cand==='number'?s.cand:(cand?cands.indexOf(cand):-1);
     var addTxt=cand?t(g.kind==='movie'?'det.addMovie':g.progress?'det.addShow':'det.addShowNoEp',{title:cand.title+(cand.year?' ('+cand.year+')':''),ep:_detEp(g.progress)}):'';
     detail=(cand?esc(addTxt):esc(t('det.chooseTmdb')));
     if(cands.length>1||!cand){
       detail+=' <select class="det-select" aria-label="'+esc(t('det.chooseTmdb'))+'"'+uiAct('detCand',[g.key],'change')+'>'+(cand?'':'<option value="">'+esc(t('det.choose'))+'</option>')
-        +cands.map(function(x,i){return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+esc(x.title+(x.year?' ('+x.year+')':'')+(x.originalTitle&&x.originalTitle!==x.title?' — '+x.originalTitle:''))+'</option>';}).join('')+'</select>';
+        +cands.map(function(x,i){return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+esc(x.title+(x.year?' ('+x.year+')':'')+(x.originalTitle&&x.originalTitle!==x.title?' — '+x.originalTitle:'')+(x.tmdbType!==(g.kind==='movie'?'movie':'tv')?' · '+t(x.tmdbType==='movie'?'det.kindMovie':'det.kindShow'):''))+'</option>';}).join('')+'</select>';
     }
+    /* Pas la bonne fiche parmi celles proposées : recherche à la main */
+    if(!cand||c.cands&&c.cands[0]&&c.cands[0].manual)detail+=_detSearchHtml(g,s);
   }
   return '<div class="det-row'+(s.checked?' on':'')+'" data-key="'+esc(g.key)+'">'
     +'<input type="checkbox" class="det-cb" aria-label="'+esc(t('det.select',{title:g.title}))+'"'+(s.checked?' checked':'')+(act?'':' disabled')+uiAct('detToggle',[g.key],'change')+'>'
@@ -372,6 +516,12 @@ function _detRowHtml(g,c){
     +'<div class="det-meta"><span class="det-tag '+tagCls+'">'+esc(tagTxt)+'</span>'+badges+'<span>'+esc(meta.join(' · '))+'</span></div>'
     +'<div class="det-detail">'+detail+'</div></div>'
     +'<button type="button" class="btn btn-ghost det-ign"'+uiAct('detIgnore',[g.key])+'>'+esc(t('det.ignore'))+'</button></div>';
+}
+function _detSearchHtml(g,s){
+  return '<span class="det-search"><input type="search" class="det-q" maxlength="120" value="'+esc(s.q!=null?s.q:DET_CORE.searchQueries(g.title)[0]||g.title)+'"'
+    +' placeholder="'+esc(t('det.searchPh'))+'" aria-label="'+esc(t('det.searchLabel',{title:g.title}))+'" data-key="'+esc(g.key)+'"'
+    +uiAct('detSearchInput',[g.key],'input')+uiAct('detSearch',[g.key],'change')+'>'
+    +'<button type="button" class="btn btn-ghost det-qbtn"'+uiAct('detSearchBtn',[g.key])+'>'+esc(t('det.searchBtn'))+'</button></span>';
 }
 function _detVisible(){
   var out=[];
@@ -400,6 +550,8 @@ function renderDetected(){
     return '<button type="button" class="stab'+(DET.filter===f?' on':'')+'" data-sfx-hover'+uiAct('detFilter',[f])+'>'+esc(t('det.filter.'+f))+' <span class="det-n">'+fmtNum(counts[f])+'</span></button>';
   }).join('');
   var busy=DET.busy?' disabled':'';
+  var ae=document.activeElement,focusKey=ae&&ae.classList&&ae.classList.contains('det-q')?ae.getAttribute('data-key'):null;
+  var caret=focusKey!=null?[ae.selectionStart,ae.selectionEnd]:null;
   box.innerHTML='<div class="det-wrap">'
     +'<div class="det-head"><div><div class="det-title">'+esc(t('det.title'))+'</div><div class="det-sub">'+esc(t('det.intro',{name:BRAND.name}))+'</div></div>'
     +'<button type="button" class="btn btn-ghost"'+busy+uiAct('detReload')+'>'+esc(t('det.reload'))+'</button></div>'
@@ -412,6 +564,12 @@ function renderDetected(){
       +'<div class="det-list">'+(rows||'<div class="det-empty">'+esc(t('det.emptyFilter'))+'</div>')+'</div>'
       :'<div class="det-empty">'+esc(DET.loading&&!DET.loadedAt?t('det.loading'):t('det.empty'))+'</div>')
     +'<div class="det-foot">'+esc(t('det.privacy'))+'</div></div>';
+  if(focusKey!=null){
+    box.querySelectorAll('.det-q').forEach(function(inp){
+      if(inp.getAttribute('data-key')!==focusKey)return;
+      inp.focus();try{inp.setSelectionRange(caret[0],caret[1]);}catch(e){}
+    });
+  }
 }
 
 /* ---------- Actions ---------- */
@@ -499,12 +657,12 @@ function detAddSel(){
     if(failed)toast(t('det.saveError'),'err');
   });
 }
-function detReload(){DET.loadedAt=0;Object.keys(DET.tmdb).forEach(function(k){if(DET.tmdb[k].state==='error'){delete DET.tmdb[k];DET.lookups--;}});loadDetected(true).then(function(){_detQueueLookups();renderDetected();});}
+function detReload(){DET.loadedAt=0;Object.keys(DET.tmdb).forEach(function(k){var st=DET.tmdb[k].state;if(st==='error'||st==='skipped'){if(st==='error'&&!DET.tmdb[k].manual)DET.lookups--;delete DET.tmdb[k];}});loadDetected(true).then(function(){_detQueueLookups();renderDetected();});}
 
 /* Appelé par updateSyncStatusUI (js/15-sync.js) : 'anon' à la déconnexion, 'synced' après une synchro */
 function onDetectedAuthState(state){
   if(state==='anon'||!authUser){
-    DET.rows=[];DET.groups=[];DET.sel={};DET.tmdb={};DET.loadedAt=0;DET.lookups=0;DET.queue=[];
+    DET.rows=[];DET.groups=[];DET.sel={};DET.tmdb={};DET.loadedAt=0;DET.lookups=0;DET.requests=0;DET.stopped=false;DET.queue=[];
     updateDetectedBadge();
     if(activeTab==='detectes'){var all=document.querySelector('.ntab[data-tab="all"]');if(all)switchTab(all);}
     return;

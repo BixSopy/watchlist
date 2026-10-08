@@ -1,10 +1,16 @@
 'use strict';
 /*
- * Historique Crunchyroll (extension Cinepisode 0.6.0).
+ * Historique Crunchyroll (extension Cinepisode 0.6.1).
  * Avec la session crunchyroll.com de ce navigateur (cookie etp_rt, jamais lu par l'extension :
  * le navigateur l'ajoute lui-même à la requête), on obtient un jeton d'accès de courte durée puis
- * on lit l'historique page par page (/content/v2/{compte}/watch-history). Regroupé par série :
- * dernier épisode fini (saison/épisode tels que Crunchyroll les numérote), date, pourcentage.
+ * on lit l'historique page par page (/content/v2/{compte}/watch-history, sinon l'ancienne adresse
+ * /content/v1/watch-history/{compte}). Regroupé par série : dernier épisode fini (saison/épisode
+ * tels que Crunchyroll les numérote), date, pourcentage.
+ *
+ * 0.6.1 : les requêtes partent de l'onglet www.crunchyroll.com (background.js, crRelayFetch : même
+ * origine, cookies propriétaires, comme le site lui-même) et plus du service worker, que Cloudflare
+ * ou l'API pouvaient refuser. Chaque erreur dit l'étape (jeton, compte, historique) et le statut
+ * HTTP, pour un diagnostic copiable sans aucun jeton.
  *
  * Saisons d'animés : Crunchyroll et TMDB ne numérotent pas toujours pareil (saisons « cours »,
  * numérotation absolue, OAV). La saison est envoyée telle quelle ; le site ne coche pas ces lignes
@@ -23,7 +29,10 @@
    * le même pour tous les visiteurs du site, ce n'est pas un secret de l'utilisateur. */
   var CR_WEB_CLIENT = 'Basic bm9haWhkZXZtXzZpeWcwYThsMHE6';
   var CR_PAGE_SIZE = 100;
-  var CR_MAX_PAGES = 100;          /* 10 000 éléments au plus (au-delà : import tronqué, signalé) */
+  var CR_V1_PAGE_SIZE = 20;        /* ancienne adresse : taille de page du site (UTS) */
+  var CR_MAX_ITEMS = 10000;        /* au-delà : import tronqué, signalé */
+  var CR_MAX_PAGES = 100;
+  var CR_MAX_REFRESH = 5;          /* le jeton d'accès dure ~5 min : renouvelé si l'import dure plus */
   var CR_DONE_RATIO = 0.8;         /* même règle que Netflix : 80 % d'un épisode = vu */
   var CR_DUB_RE = /\s+\((?:[\w\u00C0-\u017F-]+\s+)?(?:Dub|Dubbed|Sub|Subbed|Subtitled|VF|VOSTFR|Doublage)\)\s*$/i;
   var CR_MOVIE_RE = /(?:^|[-\s])(?:movie|film|the-movie|le-film|gekijouban)(?:$|[-\s])/i;
@@ -36,13 +45,15 @@
   }
   function cleanTitle(t) { return str(t).replace(CR_DUB_RE, '').trim(); }
 
-  function tokenRequest(deviceId) {
+  /* Jeton à partir du cookie de session etp_rt (même requête que le site ; sans « scope », le
+   * paramètre anti-cache « _ » comme UTS). Le cookie n'est jamais lu : le navigateur l'ajoute. */
+  function tokenRequest(deviceId, nowMs) {
     return {
-      url: CR_ORIGIN + '/auth/v1/token',
+      url: CR_ORIGIN + '/auth/v1/token?_=' + (typeof nowMs === 'number' ? nowMs : Date.now()),
       opts: {
         method: 'POST', credentials: 'include',
         headers: { 'Authorization': CR_WEB_CLIENT, 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'grant_type=etp_rt_cookie&scope=offline_access&device_id=' + encodeURIComponent(deviceId || '')
+        body: 'grant_type=etp_rt_cookie&device_id=' + encodeURIComponent(deviceId || '')
           + '&device_type=' + encodeURIComponent('Cinepisode (navigateur)'),
       },
     };
@@ -55,6 +66,17 @@
   function historyUrl(accountId, page, locale) {
     return CR_ORIGIN + '/content/v2/' + encodeURIComponent(accountId) + '/watch-history?page=' + page
       + '&page_size=' + CR_PAGE_SIZE + '&locale=' + encodeURIComponent(locale || 'fr-FR');
+  }
+  function historyUrlV1(accountId, locale) {
+    return CR_ORIGIN + '/content/v1/watch-history/' + encodeURIComponent(accountId) + '?locale=' + encodeURIComponent(locale || 'fr-FR')
+      + '&page=1&page_size=' + CR_V1_PAGE_SIZE;
+  }
+  /* next_page de la v1 : chemin relatif (« /content/v1/watch-history/…?page=2… ») ; jamais une autre origine */
+  function nextUrlV1(next) {
+    if (typeof next !== 'string' || !next) return null;
+    if (next.indexOf(CR_ORIGIN + '/content/') === 0) return next;
+    if (/^\/content\/v1\/watch-history\//.test(next)) return CR_ORIGIN + next;
+    return null;
   }
 
   /* Un élément de l'historique -> {kind, seriesId, title, season, episode, dateMs, pct, done} ou null */
@@ -135,53 +157,121 @@
     return out;
   }
 
-  function codeError(code, msg) { var e = new Error(msg || code); e.code = code; return e; }
+  /* Erreur avec l'étape (token, account, history) et le statut HTTP : affichés dans la fenêtre de
+   * l'extension et dans le diagnostic copiable (jamais de jeton ni de contenu de réponse). */
+  function codeError(code, step, res, extra) {
+    var e = new Error(code + (step ? ' ' + step : '') + (res && typeof res.status === 'number' ? ' ' + res.status : ''));
+    e.code = code; e.step = step || null;
+    e.status = res && typeof res.status === 'number' ? res.status : null;
+    e.cloudflare = !!(res && isChallenge(res));
+    if (extra) for (var k in extra) e[k] = extra[k];
+    return e;
+  }
   function jsonOf(res) { try { return JSON.parse(res.body); } catch (e) { return null; } }
+  /* Page de contrôle Cloudflare (ou autre page HTML) au lieu de JSON */
+  function isChallenge(res) {
+    if (!res) return false;
+    if (res.cf) return true;
+    var body = typeof res.body === 'string' ? res.body.slice(0, 4096) : '';
+    if (!/^\s*</.test(body)) return false;
+    return /cloudflare|cf-chl|challenge-platform|just a moment|attention required|cf-ray/i.test(body) || res.status === 403 || res.status === 503;
+  }
+  /* Réponse -> code d'erreur, ou null si 2xx */
+  function failureCode(res, authStatuses) {
+    if (!res || typeof res.status !== 'number' || res.status === 0) return 'crunchyroll_http';
+    if (res.status >= 200 && res.status < 300) return null;
+    if (isChallenge(res)) return 'crunchyroll_blocked';
+    if (res.status === 429) return 'crunchyroll_rate';
+    if (authStatuses.indexOf(res.status) >= 0) return 'crunchyroll_auth';
+    return 'crunchyroll_http';
+  }
 
-  /* Lit tout l'historique. fetchFn(url, opts) -> {status, body}. opts : deviceId, locale, sinceMs,
-   * onProgress(pages, éléments), sleep(ms). Renvoie {items (groupes), truncated, pages}. */
+  /* Lit tout l'historique. fetchFn(url, opts) -> {status, body[, cf]}. opts : deviceId, locale,
+   * sinceMs, onProgress(pages, éléments), sleep(ms), now(). Renvoie {items (groupes), truncated,
+   * pages, api ('v2' | 'v1')}. Erreurs : e.code (crunchyroll_auth | _blocked | _rate | _http),
+   * e.step, e.status, e.cloudflare. */
   async function fetchHistory(fetchFn, opts) {
     opts = opts || {};
     var sleep = opts.sleep || function () { return Promise.resolve(); };
-    var tr = tokenRequest(opts.deviceId);
-    var tres = await fetchFn(tr.url, tr.opts);
-    if (!tres || tres.status === 400 || tres.status === 401 || tres.status === 403) throw codeError('crunchyroll_auth');
-    if (tres.status < 200 || tres.status >= 300) throw codeError('crunchyroll_http', 'token ' + tres.status);
-    var tok = parseToken(jsonOf(tres));
-    if (!tok) throw codeError('crunchyroll_auth');
+    var now = opts.now || function () { return Date.now(); };
+    var refreshes = 0;
+
+    async function getToken() {
+      var tr, tres, tries = 0;
+      for (;;) {
+        tr = tokenRequest(opts.deviceId, now());
+        tres = await fetchFn(tr.url, tr.opts);
+        if (tres && tres.status === 429 && tries < 2) { tries++; await sleep(4000 * tries); continue; }
+        break;
+      }
+      var code = failureCode(tres, [400, 401, 403]);
+      if (code) throw codeError(code, 'token', tres);
+      var tok = parseToken(jsonOf(tres));
+      if (!tok) throw codeError(isChallenge(tres) ? 'crunchyroll_blocked' : 'crunchyroll_auth', 'token', tres, { parse: true });
+      return tok;
+    }
+    var tok = await getToken();
     var headers = { 'Authorization': 'Bearer ' + tok.accessToken };
     if (!tok.accountId) {
       var me = await fetchFn(CR_ORIGIN + '/accounts/v1/me', { method: 'GET', credentials: 'include', headers: headers });
-      var mj = me && me.status === 200 ? jsonOf(me) : null;
+      var meCode = failureCode(me, [401, 403]);
+      if (meCode) throw codeError(meCode, 'account', me);
+      var mj = jsonOf(me);
       tok.accountId = mj && str(mj.account_id) ? str(mj.account_id) : null;
-      if (!tok.accountId) throw codeError('crunchyroll_auth');
+      if (!tok.accountId) throw codeError('crunchyroll_auth', 'account', me, { parse: true });
     }
+    var accountId = tok.accountId;
+
     var sinceMs = typeof opts.sinceMs === 'number' ? opts.sinceMs : null;
-    var all = [], page = 1, truncated = false, reachedKnown = false, retried = 0;
+    var all = [], page = 1, truncated = false, reachedKnown = false, retried = 0, api = 'v2', url = historyUrl(accountId, 1, opts.locale);
+    var maxPages = CR_MAX_PAGES, pageSize = CR_PAGE_SIZE, seen = 0;
     while (!reachedKnown) {
-      if (page > CR_MAX_PAGES) { truncated = true; break; }
-      var res = await fetchFn(historyUrl(tok.accountId, page, opts.locale), { method: 'GET', credentials: 'include', headers: headers });
-      if (res && res.status === 429 && retried < 3) { retried++; await sleep(5000 * retried); continue; } /* trop de requêtes (Cloudflare) : pause */
-      if (!res || res.status === 401 || res.status === 403) throw codeError('crunchyroll_auth');
-      if (res.status === 404 && page > 1) break; /* au-delà de la dernière page */
-      if (res.status < 200 || res.status >= 300) throw codeError('crunchyroll_http', 'history ' + res.status);
-      var parsed = parseHistoryPage(jsonOf(res));
-      if (!parsed) throw codeError('crunchyroll_http', 'parse');
+      if (page > maxPages || seen >= CR_MAX_ITEMS) { truncated = true; break; }
+      var res = await fetchFn(url, { method: 'GET', credentials: 'include', headers: headers });
+      if (res && res.status === 429 && retried < 3) { retried++; await sleep(5000 * retried); continue; } /* trop de requêtes : pause */
+      /* Jeton expiré pendant un long import : on en redemande un (cookie de session toujours là) */
+      if (res && res.status === 401 && page > 1 && refreshes < CR_MAX_REFRESH && !isChallenge(res)) {
+        refreshes++;
+        tok = await getToken();
+        headers = { 'Authorization': 'Bearer ' + tok.accessToken };
+        continue;
+      }
+      if (res && res.status === 404 && page > 1) break; /* au-delà de la dernière page */
+      var parsed = res && res.status >= 200 && res.status < 300 ? parseHistoryPage(jsonOf(res)) : null;
+      /* v2 refusée (paramètres, adresse retirée, réponse d'une autre forme) : ancienne adresse v1 */
+      if (api === 'v2' && page === 1 && !parsed && res && !isChallenge(res)
+        && ((res.status >= 200 && res.status < 300) || [400, 404, 405, 410, 422].indexOf(res.status) >= 0)) {
+        api = 'v1'; url = historyUrlV1(accountId, opts.locale); pageSize = CR_V1_PAGE_SIZE; maxPages = Math.ceil(CR_MAX_ITEMS / CR_V1_PAGE_SIZE);
+        continue;
+      }
+      var hCode = failureCode(res, [401, 403]);
+      if (hCode) throw codeError(hCode, 'history', res, { api: api, page: page });
+      if (!parsed) throw codeError('crunchyroll_http', 'history', res, { api: api, page: page, parse: true });
+      seen += parsed.raw;
       for (var i = 0; i < parsed.entries.length; i++) {
         var e = parsed.entries[i];
         if (sinceMs !== null && e.dateMs !== null && e.dateMs < sinceMs) { reachedKnown = true; continue; }
         all.push(e);
       }
       if (opts.onProgress) opts.onProgress(page, all.length);
-      if (!parsed.raw || parsed.raw < CR_PAGE_SIZE && !parsed.next) break;
+      if (api === 'v1') {
+        var nu = nextUrlV1(parsed.next);
+        if (!parsed.raw || !nu) break;
+        url = nu;
+      } else {
+        if (!parsed.raw || parsed.raw < pageSize && !parsed.next) break;
+        url = historyUrl(accountId, page + 1, opts.locale);
+      }
       page++;
+      retried = 0;
       await sleep(250);
     }
-    return { items: aggregate(all), truncated: truncated, pages: page };
+    return { items: aggregate(all), truncated: truncated, pages: page, api: api };
   }
 
-  var api = { CR_ORIGIN: CR_ORIGIN, CR_PAGE_SIZE: CR_PAGE_SIZE, CR_MAX_PAGES: CR_MAX_PAGES,
+  var api = { CR_ORIGIN: CR_ORIGIN, CR_PAGE_SIZE: CR_PAGE_SIZE, CR_V1_PAGE_SIZE: CR_V1_PAGE_SIZE, CR_MAX_PAGES: CR_MAX_PAGES,
     cleanTitle: cleanTitle, tokenRequest: tokenRequest, parseToken: parseToken, historyUrl: historyUrl,
+    historyUrlV1: historyUrlV1, nextUrlV1: nextUrlV1, isChallenge: isChallenge,
     parseHistoryEntry: parseHistoryEntry, parseHistoryPage: parseHistoryPage, aggregate: aggregate, fetchHistory: fetchHistory };
   root.CinepisodeCrunchyroll = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

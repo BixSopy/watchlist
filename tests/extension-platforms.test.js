@@ -1,6 +1,6 @@
 'use strict';
 /*
- * Extension 0.6.0 : Crunchyroll et Prime Video.
+ * Extension 0.6.0 et 0.6.1 : Crunchyroll et Prime Video.
  *  - historique : lecture des réponses (fixtures réalistes dans tests/fixtures), regroupement,
  *    éléments envoyés à extension_push_detections ;
  *  - détection en direct : règles communes (80 % / générique / 20 s), scripts de page ;
@@ -61,7 +61,7 @@ function crFetch({ token = resp(200, { access_token: 'at-1', account_id: 'acc-12
   const queue = pages || [resp(200, fixture('crunchyroll-history-p1.json')), resp(429, ''), resp(200, fixture('crunchyroll-history-p2.json'))];
   const fn = async (url, opts) => {
     calls.push({ url, opts });
-    if (url.endsWith('/auth/v1/token')) return token;
+    if (url.includes('/auth/v1/token')) return typeof token === 'function' ? token() : token;
     return queue.length ? queue.shift() : resp(200, { data: [], meta: {} });
   };
   return { fn, calls };
@@ -70,13 +70,14 @@ function crFetch({ token = resp(200, { access_token: 'at-1', account_id: 'acc-12
 test('Crunchyroll : jeton etp_rt_cookie, pages, pause sur 429, regroupement (épisode fini le plus avancé)', async () => {
   const { fn, calls } = crFetch();
   const progress = [];
-  const out = await CR.fetchHistory(fn, { deviceId: 'dev-1', locale: 'fr-FR', onProgress: (p, n) => progress.push([p, n]) });
+  const out = await CR.fetchHistory(fn, { deviceId: 'dev-1', locale: 'fr-FR', now: () => 1760000000000, onProgress: (p, n) => progress.push([p, n]) });
   const tok = calls[0];
-  assert.strictEqual(tok.url, 'https://www.crunchyroll.com/auth/v1/token');
+  assert.strictEqual(tok.url, 'https://www.crunchyroll.com/auth/v1/token?_=1760000000000', 'paramètre anti-cache, comme le site');
   assert.strictEqual(tok.opts.method, 'POST');
   assert.strictEqual(tok.opts.credentials, 'include', 'cookie de session ajouté par le navigateur, jamais lu');
   assert.match(tok.opts.headers.Authorization, /^Basic /);
-  assert.match(tok.opts.body, /^grant_type=etp_rt_cookie&scope=offline_access&device_id=dev-1&device_type=/);
+  assert.match(tok.opts.body, /^grant_type=etp_rt_cookie&device_id=dev-1&device_type=/);
+  assert.ok(!/scope=/.test(tok.opts.body), 'pas de scope offline_access (absent de la requête du site)');
   assert.strictEqual(calls[1].url, 'https://www.crunchyroll.com/content/v2/acc-123/watch-history?page=1&page_size=100&locale=fr-FR');
   assert.strictEqual(calls[1].opts.headers.Authorization, 'Bearer at-1');
   assert.deepStrictEqual(calls.slice(1).map(c => /page=(\d+)/.exec(c.url)[1]), ['1', '2', '2'], 'page 2 redemandée après le 429');
@@ -95,10 +96,57 @@ test('Crunchyroll : réimport incrémental, session absente, erreur serveur', as
   const out = await CR.fetchHistory(a.fn, { sinceMs: Date.parse('2026-09-11T00:00:00Z') });
   assert.strictEqual(a.calls.length, 2, 'éléments déjà lus atteints : pas de page 2');
   assert.deepStrictEqual(out.items.map(g => g.title), ['JUJUTSU KAISEN']);
-  await assert.rejects(CR.fetchHistory(crFetch({ token: resp(401, { error: 'invalid_grant' }) }).fn, {}), e => e.code === 'crunchyroll_auth');
-  await assert.rejects(CR.fetchHistory(crFetch({ token: resp(200, { error: 'x' }) }).fn, {}), e => e.code === 'crunchyroll_auth');
-  await assert.rejects(CR.fetchHistory(crFetch({ pages: [resp(500, 'boom')] }).fn, {}), e => e.code === 'crunchyroll_http');
-  await assert.rejects(CR.fetchHistory(crFetch({ pages: [resp(403, '<html>Cloudflare</html>')] }).fn, {}), e => e.code === 'crunchyroll_auth');
+  const is = (code, step, status) => e => { assert.deepStrictEqual([e.code, e.step, e.status], [code, step, status]); return true; };
+  await assert.rejects(CR.fetchHistory(crFetch({ token: resp(401, { error: 'invalid_grant' }) }).fn, {}), is('crunchyroll_auth', 'token', 401));
+  await assert.rejects(CR.fetchHistory(crFetch({ token: resp(200, { error: 'x' }) }).fn, {}), is('crunchyroll_auth', 'token', 200));
+  await assert.rejects(CR.fetchHistory(crFetch({ pages: [resp(500, 'boom')] }).fn, {}), is('crunchyroll_http', 'history', 500));
+  await assert.rejects(CR.fetchHistory(crFetch({ token: { status: 0, body: '' } }).fn, {}), is('crunchyroll_http', 'token', 0));
+});
+
+test('Crunchyroll : Cloudflare reconnu (page HTML, en-tête cf-mitigated), 429 -> limite, 401 -> session', async () => {
+  const is = (code, step, status, cf) => e => { assert.deepStrictEqual([e.code, e.step, e.status, e.cloudflare], [code, step, status, cf]); return true; };
+  const html = '<!DOCTYPE html><html><head><title>Just a moment...</title></head><body>challenge-platform</body></html>';
+  await assert.rejects(CR.fetchHistory(crFetch({ token: resp(403, html) }).fn, {}), is('crunchyroll_blocked', 'token', 403, true));
+  await assert.rejects(CR.fetchHistory(crFetch({ token: { status: 403, body: '', cf: true } }).fn, {}), is('crunchyroll_blocked', 'token', 403, true));
+  await assert.rejects(CR.fetchHistory(crFetch({ token: resp(200, html) }).fn, {}), is('crunchyroll_blocked', 'token', 200, true), 'page de contrôle avec statut 200');
+  await assert.rejects(CR.fetchHistory(crFetch({ pages: [resp(403, '<html>Cloudflare</html>')] }).fn, {}), is('crunchyroll_blocked', 'history', 403, true));
+  const slept = [];
+  await assert.rejects(CR.fetchHistory(crFetch({ token: resp(429, '') }).fn, { sleep: async ms => { slept.push(ms); } }), is('crunchyroll_rate', 'token', 429, false));
+  assert.deepStrictEqual(slept, [4000, 8000], 'deux nouvelles tentatives espacées');
+  await assert.rejects(CR.fetchHistory(crFetch({ pages: [resp(401, { code: 'unauthorized' })] }).fn, {}), is('crunchyroll_auth', 'history', 401, false));
+  assert.strictEqual(CR.isChallenge({ status: 200, body: '{"data":[]}' }), false);
+});
+
+test('Crunchyroll : v2 refusée -> ancienne adresse v1 (next_page relatif, jamais une autre origine)', async () => {
+  const v1p1 = { items: fixture('crunchyroll-history-p1.json').data, next_page: '/content/v1/watch-history/acc-123?locale=fr-FR&page=2&page_size=20' };
+  const v1p2 = { items: fixture('crunchyroll-history-p2.json').data, next_page: null };
+  const { fn, calls } = crFetch({ pages: [resp(400, { code: 'bad_request' }), resp(200, v1p1), resp(200, v1p2)] });
+  const out = await CR.fetchHistory(fn, { locale: 'fr-FR' });
+  assert.strictEqual(out.api, 'v1');
+  assert.deepStrictEqual(calls.slice(1).map(c => c.url), [
+    'https://www.crunchyroll.com/content/v2/acc-123/watch-history?page=1&page_size=100&locale=fr-FR',
+    'https://www.crunchyroll.com/content/v1/watch-history/acc-123?locale=fr-FR&page=1&page_size=20',
+    'https://www.crunchyroll.com/content/v1/watch-history/acc-123?locale=fr-FR&page=2&page_size=20',
+  ]);
+  assert.deepStrictEqual(out.items.map(g => g.title), ['JUJUTSU KAISEN', 'JUJUTSU KAISEN 0', 'SPY x FAMILY']);
+  assert.strictEqual(CR.nextUrlV1('https://evil.example/content/v1/watch-history/x'), null);
+  assert.strictEqual(CR.nextUrlV1('//evil.example/x'), null);
+  // v1 aussi en échec : étape historique, statut, adresse v1 notée
+  await assert.rejects(CR.fetchHistory(crFetch({ pages: [resp(404, ''), resp(404, '')] }).fn, {}), e => e.code === 'crunchyroll_http' && e.step === 'history' && e.status === 404 && e.api === 'v1');
+  // Réponse 200 d'une autre forme en v2 : v1 essayée aussi
+  const b = crFetch({ pages: [resp(200, { unexpected: true }), resp(200, v1p2)] });
+  assert.strictEqual((await CR.fetchHistory(b.fn, {})).api, 'v1');
+});
+
+test('Crunchyroll : jeton expiré pendant un long import -> redemandé, puis la page reprend', async () => {
+  let n = 0;
+  const token = () => resp(200, { access_token: 'at-' + (++n), account_id: 'acc-123' });
+  const p1 = fixture('crunchyroll-history-p1.json');
+  const { fn, calls } = crFetch({ token, pages: [resp(200, p1), resp(401, { code: 'expired' }), resp(200, fixture('crunchyroll-history-p2.json'))] });
+  const out = await CR.fetchHistory(fn, {});
+  assert.strictEqual(out.items.length, 3);
+  const hist = calls.filter(c => /watch-history/.test(c.url));
+  assert.deepStrictEqual(hist.map(c => [/page=(\d+)/.exec(c.url)[1], c.opts.headers.Authorization]), [['1', 'Bearer at-1'], ['2', 'Bearer at-1'], ['2', 'Bearer at-2']]);
 });
 
 /* ---------------- Prime Video : historique ---------------- */
@@ -329,8 +377,11 @@ test('Prime Video en direct : film à 90 % ; publicité non comptée ; autre vid
 });
 
 /* ---------------- Service worker ---------------- */
-function serviceWorker({ granted = {}, token = 'tok', routes = () => null } = {}) {
+function serviceWorker({ granted = {}, token = 'tok', routes = () => null, crTabs = [], tabFails = false } = {}) {
   let onMessage;
+  const tabs = crTabs.map(t => Object.assign({ status: 'complete' }, t));
+  const injected = [];
+  const tabsRemoved = [];
   const ev = { added: [], removed: [], installed: [], startup: [] };
   const fetches = [];
   const tabsCreated = [];
@@ -339,12 +390,24 @@ function serviceWorker({ granted = {}, token = 'tok', routes = () => null } = {}
   const isGranted = origins => origins.every(o => Object.entries(granted).some(([name, ok]) => ok && PLATFORMS[name].origins.includes(o)));
   const ctx = {
     chrome: {
-      runtime: { id: 'ext-id', getURL: p => 'chrome-extension://ext-id/' + p, onMessage: { addListener: fn => { onMessage = fn; } },
+      runtime: { id: 'ext-id', getManifest: () => ({ version: JSON.parse(read('extension/manifest.json')).version }), getURL: p => 'chrome-extension://ext-id/' + p, onMessage: { addListener: fn => { onMessage = fn; } },
         onInstalled: { addListener: fn => ev.installed.push(fn) }, onStartup: { addListener: fn => ev.startup.push(fn) } },
       i18n: { getUILanguage: () => 'fr-FR' },
-      tabs: { create: o => { tabsCreated.push(o.url); } },
+      tabs: {
+        create: (o, cb) => {
+          tabsCreated.push(o.url);
+          if (!cb) return;
+          if (tabFails) { ctx.chrome.runtime.lastError = { message: 'no' }; cb(undefined); ctx.chrome.runtime.lastError = undefined; return; }
+          const tab = { id: 100 + tabs.length, url: o.url, status: 'complete' }; tabs.push(tab); cb(tab);
+        },
+        query: (q, cb) => cb(tabs.filter(t => t.url.startsWith(q.url.replace(/\*$/, '')))),
+        get: (id, cb) => cb(tabs.find(t => t.id === id)),
+        remove: (id, cb) => { tabsRemoved.push(id); if (cb) cb(); },
+        onUpdated: { addListener: () => {}, removeListener: () => {} },
+      },
       permissions: { contains: (q, cb) => cb(isGranted(q.origins)), onAdded: { addListener: fn => ev.added.push(fn) }, onRemoved: { addListener: fn => ev.removed.push(fn) } },
       scripting: {
+        executeScript: async ({ target, func, args, world }) => { injected.push({ tabId: target.tabId, func: func.name, world, args }); return [{ result: await func(...(args || [])) }]; },
         getRegisteredContentScripts: async () => [...registered.values()],
         registerContentScripts: async list => { for (const c of list) { if (registered.has(c.id)) throw new Error('dup'); registered.set(c.id, c); } },
         unregisterContentScripts: async q => { for (const id of q.ids) registered.delete(id); },
@@ -363,7 +426,8 @@ function serviceWorker({ granted = {}, token = 'tok', routes = () => null } = {}
       const r = routes(url, opts) || resp(404, '');
       return { ok: r.status >= 200 && r.status < 300, status: r.status, text: async () => r.body };
     },
-    setTimeout: (fn) => setTimeout(fn, 0), URL, Date, Number, JSON, Promise, Object, Math, isFinite, Array, String,
+    setTimeout: (fn) => setTimeout(fn, 0), clearTimeout: () => {}, navigator: { userAgent: 'Mozilla/5.0 Chrome/141.0.0.0 Safari/537.36' },
+    URL, Date, Number, JSON, Promise, Object, Math, isFinite, Array, String, RegExp, Error,
     importScripts: (...files) => files.forEach(f => vm.runInContext(read('extension/' + f), ctx)),
   };
   ctx.self = ctx;
@@ -372,10 +436,10 @@ function serviceWorker({ granted = {}, token = 'tok', routes = () => null } = {}
   const page = { id: 'ext-id', url: 'chrome-extension://ext-id/options.html' };
   const call = (msg, sender = page) => new Promise(res => { const r = onMessage(msg, sender, res); if (r !== true) setTimeout(() => res(undefined), 5); });
   const waitImport = async () => { for (let i = 0; i < 200; i++) { const st = store.wlImport; if (st && st.state !== 'running') return st; await new Promise(r => setTimeout(r, 5)); } return store.wlImport; };
-  return { ctx, call, fetches, store, tabsCreated, registered, ev, granted, waitImport };
+  return { ctx, call, fetches, store, tabsCreated, tabsRemoved, injected, registered, ev, granted, waitImport };
 }
 const crRoutes = (url) => {
-  if (url.endsWith('/auth/v1/token')) return resp(200, { access_token: 'at', account_id: 'acc-123' });
+  if (url.includes('/auth/v1/token?_=')) return resp(200, { access_token: 'at', account_id: 'acc-123' });
   if (/watch-history\?page=1&/.test(url)) return resp(200, fixture('crunchyroll-history-p1.json'));
   if (/watch-history\?page=2&/.test(url)) return resp(200, fixture('crunchyroll-history-p2.json'));
   return null;
@@ -392,11 +456,18 @@ test('service worker : import Crunchyroll (permission accordée) -> détections 
   const body = JSON.parse(push.opts.body);
   assert.strictEqual(body.p_token, 'tok');
   assert.deepStrictEqual(body.p_items.map(i => [i.source, i.title, i.season, i.episode]), [['crunchyroll', 'JUJUTSU KAISEN', 2, 5], ['crunchyroll', 'JUJUTSU KAISEN 0', null, null], ['crunchyroll', 'SPY x FAMILY', 2, 12]]);
-  const tok = sw.fetches.find(f => f.url.endsWith('/auth/v1/token'));
+  const tok = sw.fetches.find(f => f.url.includes('/auth/v1/token'));
   assert.match(tok.opts.body, /device_id=11111111-2222-4333-8444-555555555555/);
   assert.strictEqual(tok.opts.credentials, 'include');
   assert.ok(sw.fetches.every(f => !/cinepisode\.com/.test(f.url)));
-  assert.deepStrictEqual(sw.tabsCreated, ['https://cinepisode.com/#detectes']);
+  // Requêtes faites DANS l'onglet www.crunchyroll.com (ouvert en arrière-plan puis refermé)
+  assert.deepStrictEqual(sw.tabsCreated, ['https://www.crunchyroll.com/', 'https://cinepisode.com/#detectes']);
+  const relayed = sw.injected.filter(i => i.func === 'crRelayFetch');
+  assert.ok(relayed.length >= 3 && relayed.every(i => i.tabId === 100 && i.world === 'ISOLATED'), 'monde isolé, onglet Crunchyroll');
+  assert.deepStrictEqual(relayed.map(i => i.args[0].replace(/\?.*/, '')).slice(0, 2), ['https://www.crunchyroll.com/auth/v1/token', 'https://www.crunchyroll.com/content/v2/acc-123/watch-history']);
+  assert.ok(sw.injected.some(i => i.func === 'crReadDeviceId'));
+  assert.deepStrictEqual(sw.tabsRemoved, [100], 'onglet ouvert par l\'import refermé');
+  assert.strictEqual(st.diag == null, true, 'pas de diagnostic après un import réussi');
   assert.strictEqual(sw.store.wlImportMeta.crunchyrollLastMs, Date.parse('2026-09-30T20:40:00Z'));
   assert.ok(!JSON.stringify(sw.store.wlImport).includes('tok'), 'jamais le jeton dans l\'état affiché');
 });
@@ -417,9 +488,55 @@ test('service worker : import Prime Video ; plateforme non activée ; expéditeu
   assert.strictEqual(off.fetches.length, 0, 'aucune requête sans la permission');
   assert.strictEqual((await off.call({ type: 'wl_import_prime' }, { id: 'ext-id', tab: { id: 1 }, url: 'https://www.primevideo.com/detail/x' })).reason, 'sender');
 
-  const noSession = serviceWorker({ granted: { crunchyroll: true }, routes: url => (url.endsWith('/auth/v1/token') ? resp(400, { error: 'invalid_grant' }) : null) });
+  const noSession = serviceWorker({ granted: { crunchyroll: true }, routes: url => (url.includes('/auth/v1/token') ? resp(400, { error: 'invalid_grant' }) : null) });
   await noSession.call({ type: 'wl_import_crunchyroll' });
-  assert.strictEqual((await noSession.waitImport()).error, 'crunchyroll_auth');
+  const ns = await noSession.waitImport();
+  assert.deepStrictEqual([ns.error, ns.errStep, ns.errStatus], ['crunchyroll_auth', 'token', 400]);
+});
+
+test('service worker : Crunchyroll dans un onglet déjà ouvert ; échec -> étape, statut et diagnostic sans secret', async () => {
+  const html = '<html><title>Just a moment...</title>cf-chl</html>';
+  const sw = serviceWorker({ granted: { crunchyroll: true }, crTabs: [{ id: 7, url: 'https://www.crunchyroll.com/fr/watch/X' }],
+    routes: url => (url.includes('/auth/v1/token') ? resp(200, { access_token: 'SECRET-AT', account_id: 'acc-SECRET' }) : /watch-history/.test(url) ? resp(403, html) : null) });
+  await sw.call({ type: 'wl_import_crunchyroll' });
+  const st = await sw.waitImport();
+  assert.deepStrictEqual([st.state, st.error, st.errStep, st.errStatus], ['error', 'crunchyroll_blocked', 'history', 403]);
+  assert.deepStrictEqual(sw.tabsCreated, [], 'onglet existant réutilisé');
+  assert.deepStrictEqual(sw.tabsRemoved, [], 'onglet de l\'utilisateur jamais fermé');
+  assert.ok(sw.injected.every(i => i.tabId === 7));
+  assert.strictEqual(st.diag.platform, 'crunchyroll');
+  assert.strictEqual(st.diag.step, 'history');
+  assert.strictEqual(st.diag.status, 403);
+  assert.strictEqual(st.diag.cloudflare, true);
+  assert.strictEqual(st.diag.via, 'tab');
+  assert.strictEqual(st.diag.api, 'v2');
+  assert.strictEqual(st.diag.v, JSON.parse(read('extension/manifest.json')).version);
+  assert.strictEqual(st.diag.browser, 'Chrome 141');
+  const all = JSON.stringify(st);
+  assert.ok(!/SECRET|1111-2222|tok\b/.test(all), 'ni jeton, ni compte, ni identifiant d\'appareil dans l\'état');
+  // Onglet impossible à ouvrir
+  const noTab = serviceWorker({ granted: { crunchyroll: true }, tabFails: true, routes: crRoutes });
+  await noTab.call({ type: 'wl_import_crunchyroll' });
+  const nt = await noTab.waitImport();
+  assert.deepStrictEqual([nt.error, nt.errStep], ['crunchyroll_tab', 'tab']);
+  assert.ok(!noTab.fetches.some(f => /crunchyroll/.test(f.url)), 'aucune requête Crunchyroll hors onglet');
+  // Nouvel import : l'ancien diagnostic disparaît
+  noTab.store.wlImport.state = 'error';
+  await noTab.call({ type: 'wl_import_prime' });
+  assert.strictEqual(noTab.store.wlImport.diag, null);
+});
+
+test('service worker : crRelayFetch refuse toute adresse hors www.crunchyroll.com', async () => {
+  const sw = serviceWorker({ granted: { crunchyroll: true }, routes: () => resp(200, '{}') });
+  for (const u of ['https://evil.example/x', 'https://www.crunchyroll.com.evil.example/x', 'http://www.crunchyroll.com/x', 'https://static.crunchyroll.com/x', null]) {
+    const r = await sw.ctx.crRelayFetch(u, { method: 'GET' });
+    assert.strictEqual(r.status, 0, String(u));
+  }
+  assert.strictEqual(sw.fetches.length, 0);
+  const ok = await sw.ctx.crRelayFetch('https://www.crunchyroll.com/auth/v1/token?_=1', { method: 'POST', body: 'grant_type=etp_rt_cookie' });
+  assert.strictEqual(ok.status, 200);
+  assert.strictEqual(sw.fetches[0].opts.credentials, 'include');
+  assert.strictEqual(sw.fetches[0].opts.cache, 'no-store');
 });
 
 test('service worker : requêtes directes limitées aux adresses de la plateforme', async () => {
@@ -514,11 +631,13 @@ function popup({ granted = {}, answer = true } = {}) {
       storage: { local: { get: (k, cb) => cb({}), set: (o, cb) => cb && cb(), remove: (k, cb) => cb && cb() }, onChanged: { addListener: fn => listeners.push(fn) } },
     },
     CinepisodePlatforms: PLATFORMS, Date, Number, String, Object,
+    navigator: { clipboard: { writeText: async t => { copied.push(t); } } },
   };
+  const copied = [];
   ctx.self = ctx;
   vm.createContext(ctx);
   vm.runInContext(read('extension/options.js'), ctx);
-  return { boxes, requests, sent, els, updateImport: v => listeners.forEach(fn => fn({ wlImport: { newValue: v } }, 'local')) };
+  return { ctx, boxes, requests, sent, els, copied, updateImport: v => listeners.forEach(fn => fn({ wlImport: { newValue: v } }, 'local')) };
 }
 
 test('fenêtre : « Activer Crunchyroll » demande seulement les sites Crunchyroll, puis le bouton d\'import apparaît', () => {
@@ -538,9 +657,40 @@ test('fenêtre : « Activer Crunchyroll » demande seulement les sites Crunchyro
   assert.match(p.els.importStatus.textContent, /^Connexion à Crunchyroll/);
   assert.strictEqual(cr.import.disabled, true, 'import en cours : bouton désactivé');
   p.updateImport({ state: 'error', error: 'crunchyroll_auth', at: Date.now() });
-  assert.match(p.els.importStatus.textContent, /^Connecte-toi à Crunchyroll/);
+  assert.match(p.els.importStatus.textContent, /^Crunchyroll ne reconnaît pas ta session/);
   cr.disable.click();
   assert.strictEqual(cr.enable.hidden, false);
+});
+
+test('fenêtre : échec Crunchyroll -> « Étape jeton : HTTP 401 » et « Copier le diagnostic » sans aucun secret', async () => {
+  const p = popup({ granted: { crunchyroll: true } });
+  const diag = { v: '0.6.1', platform: 'crunchyroll', via: 'tab', step: 'token', status: 401, code: 'crunchyroll_auth', cloudflare: false, tabOpened: true, siteDeviceId: true, browser: 'Chrome 141', at: '2026-10-08T16:00:00.000Z',
+    accessToken: 'SECRET-at', etp_rt: 'SECRET-cookie', account: 'acc-SECRET' };
+  p.updateImport({ state: 'error', error: 'crunchyroll_auth', errStep: 'token', errStatus: 401, diag, at: Date.now() });
+  const box = p.els.importStatus;
+  assert.match(box.textContent, /Étape jeton : HTTP 401\./);
+  const btn = box.children.find(c => c.textContent === 'Copier le diagnostic');
+  assert.ok(btn, 'bouton présent');
+  btn.click();
+  await new Promise(r => setTimeout(r, 5));
+  assert.strictEqual(p.copied.length, 1);
+  const text = p.copied[0];
+  assert.match(text, /platform: crunchyroll/);
+  assert.match(text, /step: token/);
+  assert.match(text, /status: 401/);
+  assert.match(text, /v: 0\.6\.1/);
+  assert.ok(!/SECRET/.test(text), 'champs inconnus jamais copiés (jeton, cookie, compte)');
+  assert.match(btn.textContent, /Diagnostic copié/);
+  // Autres étapes / statuts
+  p.updateImport({ state: 'error', error: 'crunchyroll_http', errStep: 'history', errStatus: 0, diag: { step: 'history', status: 0 }, at: Date.now() });
+  assert.match(box.textContent, /Étape historique : pas de réponse \(réseau ou blocage\)\./);
+  p.updateImport({ state: 'error', error: 'crunchyroll_blocked', errStep: 'token', errStatus: 403, diag: { cloudflare: true }, at: Date.now() });
+  assert.match(box.textContent, /Cloudflare.*Étape jeton : HTTP 403/s);
+  p.updateImport({ state: 'error', error: 'crunchyroll_tab', errStep: 'tab', errStatus: null, diag: { step: 'tab' }, at: Date.now() });
+  assert.match(box.textContent, /Impossible d'ouvrir www\.crunchyroll\.com.*Étape onglet\./s);
+  p.updateImport({ state: 'error', error: 'network', at: Date.now() });
+  assert.ok(!box.children.some(c => c.textContent === 'Copier le diagnostic'), 'pas de diagnostic : pas de bouton');
+  assert.ok(!/Étape/.test(box.textContent));
 });
 
 test('fenêtre : permission refusée, Prime Video déjà activé, textes de l\'import Prime', () => {

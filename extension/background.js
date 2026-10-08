@@ -16,7 +16,11 @@
  * 0.6.0 : Crunchyroll et Prime Video, activables séparément (permissions facultatives demandées
  * depuis la fenêtre de l'extension). Historique lu directement par le service worker avec la
  * session du navigateur (lib/crunchyroll.js, lib/prime.js), détection en direct par des scripts
- * enregistrés seulement quand la permission est accordée (lib/platforms.js). */
+ * enregistrés seulement quand la permission est accordée (lib/platforms.js).
+ *
+ * 0.6.1 : Crunchyroll lu depuis un onglet www.crunchyroll.com (existant, sinon ouvert en arrière-plan
+ * puis refermé) par chrome.scripting : requêtes même origine, comme le site. En cas d'échec, l'étape
+ * et le statut HTTP sont affichés, avec un diagnostic copiable sans aucun secret. */
 importScripts('lib/import.js', 'lib/platforms.js', 'lib/crunchyroll.js', 'lib/prime.js');
 var I = self.CinepisodeImport;
 var PLATFORMS = self.CinepisodePlatforms;
@@ -161,7 +165,9 @@ function setImportState(patch) {
   return new Promise(function (resolve) {
     chrome.storage.local.get(['wlImport'], function (res) {
       var cur = (res && res.wlImport && typeof res.wlImport === 'object') ? res.wlImport : {};
-      var next = Object.assign({}, cur, patch, { at: Date.now() });
+      /* Nouvel import : le diagnostic du précédent échec disparaît */
+      var reset = patch.state === 'running' && patch.source ? { errStep: null, errStatus: null, diag: null } : {};
+      var next = Object.assign({}, cur, reset, patch, { at: Date.now() });
       chrome.storage.local.set({ wlImport: next }, function () { resolve(next); });
     });
   });
@@ -348,19 +354,100 @@ function uiLocale() {
   return /^fr/i.test(l || 'fr') ? { cr: 'fr-FR', pv: 'fr_FR' } : { cr: 'en-US', pv: 'en_US' };
 }
 
+/* ---------- Crunchyroll : requêtes depuis l'onglet www.crunchyroll.com (0.6.1) ----------
+ * Depuis le service worker, les requêtes partaient avec l'origine chrome-extension:// : Cloudflare
+ * et l'API de Crunchyroll pouvaient les refuser (statut inattendu, page HTML de contrôle). Depuis un
+ * onglet du site, c'est une requête même origine, avec les cookies du site, comme le site lui-même. */
+var CR_TAB_ORIGIN = 'https://www.crunchyroll.com';
+/* Exécutée DANS l'onglet www.crunchyroll.com (monde isolé de l'extension) : fetch même origine.
+ * Refuse toute autre adresse. Renvoie {status, body, cf, net} au service worker seulement ; cf :
+ * en-tête cf-mitigated (contrôle Cloudflare), net : nom de l'erreur réseau. */
+function crRelayFetch(url, opts) {
+  if (typeof url !== 'string' || url.indexOf('https://www.crunchyroll.com/') !== 0) return Promise.resolve({ status: 0, body: '', net: 'refused' });
+  opts = opts || {};
+  return fetch(url, { method: opts.method === 'POST' ? 'POST' : 'GET', headers: opts.headers || {}, body: opts.method === 'POST' ? opts.body : undefined,
+    credentials: 'include', redirect: 'follow', cache: 'no-store' })
+    .then(function (r) {
+      var cf = !!(r.headers && r.headers.get && r.headers.get('cf-mitigated'));
+      return r.text().then(function (text) { return { status: r.status, body: text.length > 8 * 1024 * 1024 ? '' : text, cf: cf }; });
+    })
+    .catch(function (e) { return { status: 0, body: '', net: String((e && e.name) || 'error').slice(0, 40) }; });
+}
+/* Exécutée DANS l'onglet : identifiant d'appareil du site (cookie device_id, s'il est lisible), pour
+ * que le jeton soit demandé avec le même identifiant que le site. Jamais stocké ni affiché. */
+function crReadDeviceId() {
+  try {
+    var m = /(?:^|;\s*)device_id=([0-9a-fA-F-]{36})(?:;|$)/.exec(document.cookie || '');
+    return m ? m[1] : null;
+  } catch (e) { return null; }
+}
+/* Onglet existant du site (déjà chargé), sinon ouvert en arrière-plan ; opened : à refermer après */
+function platformTab(origin, path) {
+  return new Promise(function (resolve, reject) {
+    chrome.tabs.query({ url: origin + '/*' }, function (tabs) {
+      if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
+      var ready = (tabs || []).filter(function (tb) { return tb.status === 'complete'; });
+      if (ready.length) return resolve({ id: ready[0].id, opened: false });
+      if (tabs && tabs.length) return waitTabComplete(tabs[0].id, 30000).then(function () { resolve({ id: tabs[0].id, opened: false }); }, reject);
+      chrome.tabs.create({ url: origin + path, active: false }, function (tab) {
+        if (chrome.runtime.lastError || !tab) return reject(new Error((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'tab'));
+        waitTabComplete(tab.id, 45000).then(function () { setTimeout(function () { resolve({ id: tab.id, opened: true }); }, 1500); }, reject);
+      });
+    });
+  });
+}
+function closeTab(tab) { try { if (tab && tab.opened) chrome.tabs.remove(tab.id, function () { void chrome.runtime.lastError; }); } catch (e) { /* déjà fermé */ } }
+function extVersion() { try { return chrome.runtime.getManifest().version; } catch (e) { return '?'; } }
+function browserVersion() {
+  try { var m = /(?:Chrome|Chromium|Edg|Firefox)\/(\d+)/.exec(navigator.userAgent || ''); return m ? m[0].split('/')[0] + ' ' + m[1] : null; } catch (e) { return null; }
+}
+/* Diagnostic d'un import en échec : étape, statut, quelques indications. JAMAIS de jeton, cookie,
+ * identifiant de compte ou d'appareil, ni de contenu de réponse : il est fait pour être copié. */
+function importDiag(platform, err, extra) {
+  err = err || {};
+  var d = { v: extVersion(), platform: platform, step: err.step || null, status: typeof err.status === 'number' ? err.status : null,
+    code: err.code || null, cloudflare: !!err.cloudflare, at: new Date().toISOString() };
+  if (err.api) d.api = err.api;
+  if (typeof err.page === 'number') d.page = err.page;
+  if (err.parse) d.parse = true;
+  if (err.net) d.net = String(err.net).slice(0, 40);
+  var b = browserVersion(); if (b) d.browser = b;
+  if (extra) Object.keys(extra).forEach(function (k) { d[k] = extra[k]; });
+  return d;
+}
+var CR_ERRORS = ['crunchyroll_auth', 'crunchyroll_blocked', 'crunchyroll_rate', 'crunchyroll_http', 'crunchyroll_tab'];
+
 /* Import commun : lit l'historique (fetchHistory de la plateforme), envoie, mémorise la date */
 async function runPlatformImport(token, platform) {
   var lib = platform === 'crunchyroll' ? CR : PV;
-  await setImportState({ state: 'running', source: platform, step: 'session', pages: 0, items: 0, done: 0, total: 0, error: null, sent: null, truncated: false, metaFailed: false, profile: null });
+  await setImportState({ state: 'running', source: platform, step: 'session', pages: 0, items: 0, done: 0, total: 0, error: null, sent: null, truncated: false, metaFailed: false, profile: null, });
   if (!(await permissionsContains(PLATFORMS[platform].origins))) { await setImportState({ state: 'error', error: 'permission' }); return; }
   var meta = (await storageGet(['wlImportMeta'])).wlImportMeta || {};
   var lastKey = platform + 'LastMs';
   var since = typeof meta[lastKey] === 'number' ? meta[lastKey] - 3 * 86400000 : null;
   var loc = uiLocale();
+  var fetchFn = platformFetch(platform), ownDev = await deviceId(), dev = ownDev, tab = null, via = 'worker', lastNet = null;
+  if (platform === 'crunchyroll') {
+    via = 'tab';
+    await setImportState({ step: 'tab' });
+    try { tab = await platformTab(CR_TAB_ORIGIN, '/'); } catch (e) {
+      await setImportState({ state: 'error', error: 'crunchyroll_tab', errStep: 'tab', errStatus: null, diag: importDiag(platform, { step: 'tab', code: 'crunchyroll_tab' }, { via: via }) });
+      return;
+    }
+    await setImportState({ step: 'session' });
+    var siteDev = await inTab(tab.id, crReadDeviceId, []).catch(function () { return null; });
+    if (siteDev) dev = siteDev;
+    fetchFn = function (url, opts) {
+      return inTab(tab.id, crRelayFetch, [url, opts]).then(function (r) {
+        if (r && r.net) lastNet = r.net;
+        return r || { status: 0, body: '', net: 'script' };
+      }, function () { lastNet = 'script'; return { status: 0, body: '', net: 'script' }; });
+    };
+  }
   var hist;
   try {
-    hist = await lib.fetchHistory(platformFetch(platform), {
-      deviceId: await deviceId(), locale: loc.cr, uxLocale: loc.pv, sinceMs: since, sleep: sleep,
+    hist = await lib.fetchHistory(fetchFn, {
+      deviceId: dev, locale: loc.cr, uxLocale: loc.pv, sinceMs: since, sleep: sleep,
       onProgress: function (a, b, c) {
         if (a === 'meta') { setImportState({ step: 'meta', done: b, total: c }); return; }
         if (a === 'history') { setImportState({ step: 'history', pages: b, items: c }); return; }
@@ -368,10 +455,16 @@ async function runPlatformImport(token, platform) {
       },
     });
   } catch (e) {
+    closeTab(tab);
     var code = e && e.code;
-    await setImportState({ state: 'error', error: code === platform + '_auth' ? platform + '_auth' : platform + '_http' });
+    var error = platform === 'crunchyroll' ? (CR_ERRORS.indexOf(code) >= 0 ? code : 'crunchyroll_http')
+      : (code === platform + '_auth' ? platform + '_auth' : platform + '_http');
+    var errInfo = { step: e && e.step, status: e && e.status, code: error, cloudflare: e && e.cloudflare, api: e && e.api, page: e && e.page, parse: e && e.parse, net: e && e.status === 0 ? lastNet : null };
+    await setImportState({ state: 'error', error: error, errStep: errInfo.step || null, errStatus: typeof errInfo.status === 'number' ? errInfo.status : null,
+      diag: importDiag(platform, errInfo, { via: via, tabOpened: !!(tab && tab.opened), siteDeviceId: platform === 'crunchyroll' ? dev !== ownDev : undefined }) });
     return;
   }
+  closeTab(tab);
   var items = I.pushItemsFromGroups(hist.items, platform);
   await setImportState({ step: 'push', done: 0, total: items.length });
   var sent = { inserted: 0, updated: 0, unchanged: 0, invalid: 0 };
@@ -379,7 +472,7 @@ async function runPlatformImport(token, platform) {
     try {
       sent = await pushDetections(token, items, function (d, n) { setImportState({ done: d, total: n }); });
     } catch (e) {
-      await setImportState({ state: 'error', error: (e && e.code) || 'network' });
+      await setImportState({ state: 'error', error: (e && e.code) || 'network', errStep: 'push', errStatus: null, diag: importDiag(platform, { step: 'push', code: (e && e.code) || 'network' }, { via: via }) });
       return;
     }
   }

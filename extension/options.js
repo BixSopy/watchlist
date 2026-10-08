@@ -109,13 +109,50 @@ var IMPORT_ERRORS = { no_token: 'importErrNoToken', invalid_token: 'importErrTok
   netflix_auth: 'importErrNetflixAuth', netflix_http: 'importErrNetflix', csv: 'importErrCsv', limit: 'importErrLimit',
   server_error: 'importErrServer', network: 'importErrNetwork', busy: 'importBusy',
   permission: 'importErrPermission', crunchyroll_auth: 'importErrCrunchyrollAuth', crunchyroll_http: 'importErrCrunchyroll',
+  crunchyroll_blocked: 'importErrCrunchyrollBlocked', crunchyroll_rate: 'importErrCrunchyrollRate', crunchyroll_tab: 'importErrCrunchyrollTab',
   prime_auth: 'importErrPrimeAuth', prime_http: 'importErrPrime' };
 var PLATFORM_SOURCES = ['crunchyroll', 'prime'];
 
+var STEP_NAMES = { tab: 'importStepNameTab', token: 'importStepNameToken', account: 'importStepNameAccount', history: 'importStepNameHistory', push: 'importStepNamePush' };
+/* « Étape jeton : HTTP 401 » (étape et statut de l'échec, s'ils sont connus) */
+function importErrDetail(st) {
+  if (!st || st.state !== 'error' || !st.errStep || !STEP_NAMES[st.errStep]) return '';
+  var status = typeof st.errStatus === 'number' && st.errStatus > 0 ? msgN('importErrHttp', [String(st.errStatus)])
+    : st.errStatus === 0 ? msg('importErrNoResponse')
+    : st.diag && st.diag.parse ? msg('importErrBadAnswer') : '';
+  if (!status) return msgN('importErrStep', [msg(STEP_NAMES[st.errStep]), '?']).replace(/\s*:\s*\?$/, '');
+  return msgN('importErrStep', [msg(STEP_NAMES[st.errStep]), status]);
+}
+/* Texte du diagnostic copiable : seulement des champs connus et sûrs (aucun jeton, cookie,
+ * identifiant de compte ou d'appareil ; le service worker n'en met jamais dans diag). */
+var DIAG_FIELDS = ['v', 'platform', 'via', 'step', 'status', 'code', 'cloudflare', 'api', 'page', 'parse', 'net', 'tabOpened', 'siteDeviceId', 'browser', 'at'];
+function diagText(st) {
+  var d = (st && st.diag) || {};
+  var lines = ['Cinepisode – diagnostic import'];
+  DIAG_FIELDS.forEach(function (k) {
+    var v = d[k];
+    if (v === undefined || v === null || v === '') return;
+    if (typeof v === 'string') v = v.replace(/[^\w .:\/+-]/g, '').slice(0, 60);
+    else if (typeof v !== 'number' && typeof v !== 'boolean') return;
+    lines.push(k + ': ' + v);
+  });
+  if (st && st.error) lines.push('error: ' + String(st.error).replace(/[^\w-]/g, '').slice(0, 40));
+  return lines.join('\n');
+}
+function copyDiag(st, btn) {
+  var text = diagText(st);
+  var done = function (ok) { btn.textContent = msg(ok ? 'importDiagCopied' : 'importDiagCopyFailed'); };
+  try {
+    navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+  } catch (e) { done(false); }
+}
 function isRunning(st) { return !!st && st.state === 'running' && typeof st.at === 'number' && Date.now() - st.at < STALE_MS; }
 function importStatusText(st) {
   if (!st || !st.state) return { text: '', tone: '' };
-  if (st.state === 'error') return { text: msg(IMPORT_ERRORS[st.error] || 'importErrServer'), tone: 'err' };
+  if (st.state === 'error') {
+    var detail = importErrDetail(st);
+    return { text: msg(IMPORT_ERRORS[st.error] || 'importErrServer') + (detail ? ' ' + detail + '.' : ''), tone: 'err', diag: !!st.diag };
+  }
   if (st.state === 'done') {
     var s = st.sent || {};
     if (!st.titles || (s.inserted | 0) + (s.updated | 0) === 0) return { text: msg('importNothing'), tone: 'ok' };
@@ -125,7 +162,7 @@ function importStatusText(st) {
     return { text: text, tone: 'ok' };
   }
   if (!isRunning(st)) return { text: '', tone: '' };
-  if (st.step === 'tab') return { text: msg('importStepTab'), tone: '', pct: 3 };
+  if (st.step === 'tab') return { text: msg(st.source === 'crunchyroll' ? 'importStepCrunchyrollTab' : 'importStepTab'), tone: '', pct: 3 };
   if (st.step === 'session') return { text: msg(st.source === 'crunchyroll' ? 'importStepCrunchyroll' : st.source === 'prime' ? 'importStepPrime' : 'importStepSession'), tone: '', pct: 6 };
   if (st.step === 'history') return { text: msgN('importStepHistory', [String(st.items | 0), String(st.pages | 0)]), tone: '', pct: Math.min(55, 8 + (st.pages | 0)) };
   if (st.step === 'meta') return { text: msgN(st.source === 'prime' ? 'importStepPrimeMeta' : 'importStepMeta', [String(st.done | 0), String(st.total | 0)]), tone: '', pct: 55 + 35 * (st.done | 0) / Math.max(1, st.total | 0) };
@@ -140,6 +177,12 @@ function renderImport(st) {
     var bar = document.createElement('div'); bar.className = 'bar';
     var fill = document.createElement('span'); fill.style.width = Math.max(2, Math.min(100, t.pct)) + '%';
     bar.appendChild(fill); importStatusEl.appendChild(bar);
+  }
+  if (t.diag) {
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'secondary diag'; btn.textContent = msg('importCopyDiag');
+    btn.addEventListener('click', function () { copyDiag(st, btn); });
+    importStatusEl.appendChild(btn);
   }
   var busy = isRunning(st);
   importNetflixBtn.disabled = busy;

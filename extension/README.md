@@ -55,6 +55,25 @@ la RPC à jeton écrit. Un compte supprimé efface ses détections (cascade). L'
 localement le jeton, la dernière détection et l'état de l'import (`wlImport`, `wlImportMeta` : date
 du dernier import, jamais le jeton ni la liste des titres).
 
+## Correctifs 0.6.1
+
+- **Crunchyroll** : l'historique est lu depuis un onglet `www.crunchyroll.com` (un onglet déjà
+  ouvert, sinon un onglet ouvert en arrière-plan puis refermé), par `chrome.scripting` : requêtes
+  même origine avec les cookies du site, comme le site lui-même, au lieu du service worker
+  (origine `chrome-extension://`, que Cloudflare ou l'API pouvaient refuser). Jeton demandé comme
+  le site (sans `scope=offline_access`, paramètre anti-cache `_`, identifiant d'appareil du site
+  s'il est lisible), renouvelé si l'import dure plus que sa validité (~5 min), ancienne adresse
+  `/content/v1/watch-history` si la v2 est refusée.
+- **Diagnostic** : en cas d'échec, la fenêtre affiche l'étape et le statut (« Étape jeton : HTTP
+  401 », « Étape historique : pas de réponse… ») et un bouton « Copier le diagnostic » (version,
+  plateforme, étape, statut, Cloudflare oui/non, navigateur ; jamais de jeton, cookie, identifiant
+  de compte ou d'appareil). Erreurs distinctes : session absente, blocage Cloudflare, limite de
+  requêtes, onglet impossible à ouvrir.
+- **Site, onglet « Détectés »** : recherche TMDB plus tolérante (titres Netflix nettoyés :
+  « : Saison 2 », « Partie 1 », « Série limitée », « (Limited Series) », « : Le film », « Volume 2 »,
+  année ; nom avant les deux-points ; fr-FR puis en-US ; /search/multi), résultats gardés par titre,
+  et recherche manuelle dans la ligne des titres sans fiche.
+
 ## Crunchyroll et Prime Video (0.6.0)
 
 Deux plateformes de plus, **désactivées par défaut** : dans la fenêtre de l'extension, section
