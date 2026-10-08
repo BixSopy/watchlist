@@ -17,7 +17,7 @@ function doSearch(q){
 }
 tdd.addEventListener('click',function(e){
   var ib=e.target.closest('[data-act="info"]');
-  if(ib){sfx('click');var r=tdd._res[parseInt(ib.dataset.idx)];if(r)openPlexTmdb(r);return;}
+  if(ib){sfx('open');var r=tdd._res[parseInt(ib.dataset.idx)];if(r)openPlexTmdb(r);return;}
   var dm=e.target.closest('.ddi-main');if(!dm)return;
   var r=tdd._res[parseInt(dm.dataset.idx)];if(!r)return;
   var dup=memDB.find(function(i){return i.tmdbId==r.id});

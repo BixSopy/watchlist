@@ -192,6 +192,7 @@
  "export.done.other": "Export done: {n} titles",
  "set.compact": "Compact mode",
  "set.sounds": "Interface sounds",
+ "set.soundVolume": "Sound volume",
  "set.grid": "Watchlist grid",
  "set.auto": "Automatic",
  "set.cols4": "4 columns",

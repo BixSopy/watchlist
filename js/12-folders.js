@@ -111,7 +111,7 @@ function _removeFromDiscoverUI(tmdbId){
     if(d&&d.items)d.items=d.items.filter(function(x){return x.tmdbId!=tmdbId;});
   });
 }
-function recoPreview(card){sfx('click');var d=getCardData(card);openPlexReco(d);}
+function recoPreview(card){sfx('open');var d=getCardData(card);openPlexReco(d);}
 function recoAdd(card){sfx('click');var d=getCardData(card);var dup=memDB.find(function(i){return i.tmdbId==d.tmdbId});if(dup){toast(t('add.dup',{title:d.title}),'err');return;}recoAddDirect(d);}
 function recoDismiss(card){sfx('click');var id=parseInt(card.dataset.tmdbid);if(id)dismissed.push(id);localStorage.setItem('wl_dis',JSON.stringify(dismissed));card.style.transition='opacity .3s,transform .3s';card.style.opacity='0';card.style.transform='translateX(-16px)';setTimeout(function(){card.remove();},300);}
 function getCardData(card){return{tmdbId:card.dataset.tmdbid?parseInt(card.dataset.tmdbid):null,type:card.dataset.type,title:card.dataset.title,year:card.dataset.year,poster:card.dataset.poster||null,score:card.dataset.score||null,overview:card.dataset.overview||''};}
