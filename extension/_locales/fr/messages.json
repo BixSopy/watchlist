@@ -25,7 +25,7 @@
     "message": "Enregistré."
   },
   "coverage": {
-    "message": "Couverture actuelle : Netflix uniquement. Un épisode est marqué vu à 80 % de sa durée ou dès le générique de fin, un film à 90 % ; un épisode suivant lancé automatiquement puis arrêté n'est pas compté."
+    "message": "Détection en direct : Netflix, et Crunchyroll / Prime Video une fois activés. Un épisode est marqué vu à 80 % de sa durée ou dès le générique de fin, un film à 90 % ; un épisode suivant lancé automatiquement puis arrêté n'est pas compté."
   },
   "openApp": {
     "message": "Ouvrir Cinepisode"
@@ -253,5 +253,137 @@
   },
   "importBusy": {
     "message": "Un import est déjà en cours."
+  },
+  "platformsTitle": {
+    "message": "Crunchyroll et Prime Video"
+  },
+  "platformsIntro": {
+    "message": "Chaque plateforme s'active séparément : Chrome te demande alors l'accès à ce site seulement. L'historique est lu avec ta session de ce navigateur ; rien n'est envoyé ailleurs qu'à Cinepisode."
+  },
+  "enableCrunchyroll": {
+    "message": "Activer Crunchyroll"
+  },
+  "enablePrime": {
+    "message": "Activer Prime Video"
+  },
+  "importCrunchyroll": {
+    "message": "Importer mon historique Crunchyroll"
+  },
+  "importPrime": {
+    "message": "Importer mon historique Prime Video"
+  },
+  "disablePlatform": {
+    "message": "Désactiver"
+  },
+  "platformEnabled": {
+    "message": "Activé : détection en direct et import de l'historique."
+  },
+  "platformDenied": {
+    "message": "Accès refusé par Chrome : rien n'a été activé."
+  },
+  "crunchyrollHint": {
+    "message": "Connecte-toi sur crunchyroll.com dans ce navigateur. Les saisons d'animés sont envoyées comme Crunchyroll les numérote : vérifie-les dans l'onglet « Détectés »."
+  },
+  "primeHint": {
+    "message": "Connecte-toi sur www.primevideo.com dans ce navigateur (la session amazon.fr ne suffit pas). Bandes-annonces, bonus et lectures de moins de 80 % sont ignorés. L'export de données Amazon n'est pas encore pris en charge."
+  },
+  "importStepCrunchyroll": {
+    "message": "Connexion à Crunchyroll…"
+  },
+  "importStepPrime": {
+    "message": "Connexion à Prime Video…"
+  },
+  "importStepPrimeMeta": {
+    "message": "Fiches des épisodes et films : $D$ / $T$…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTruncatedOther": {
+    "message": " Historique très long : seule la partie la plus récente a été lue."
+  },
+  "importPartial": {
+    "message": " L'historique le plus ancien n'a pas pu être lu (Crunchyroll a refusé la suite) : tout ce qui précède a bien été envoyé. Relance l'import plus tard pour réessayer."
+  },
+  "importErrPermission": {
+    "message": "Active d'abord la plateforme (bouton « Activer » ci-dessus)."
+  },
+  "importErrCrunchyrollAuth": {
+    "message": "Crunchyroll ne reconnaît pas ta session : connecte-toi sur www.crunchyroll.com dans ce navigateur, puis réessaie."
+  },
+  "importErrCrunchyroll": {
+    "message": "Crunchyroll a répondu de façon inattendue. Réessaie plus tard ; si ça recommence, copie le diagnostic ci-dessous et envoie-le-nous."
+  },
+  "importErrPrimeAuth": {
+    "message": "Connecte-toi sur www.primevideo.com dans ce navigateur (et choisis ton profil), puis réessaie."
+  },
+  "importErrPrime": {
+    "message": "Prime Video a répondu de façon inattendue. Réessaie plus tard."
+  },
+  "importErrCrunchyrollBlocked": {
+    "message": "Crunchyroll (Cloudflare) a bloqué la requête. Ouvre www.crunchyroll.com dans un onglet, passe la vérification si elle s'affiche, puis réessaie."
+  },
+  "importErrCrunchyrollRate": {
+    "message": "Crunchyroll limite le nombre de requêtes pour le moment. Réessaie dans quelques minutes."
+  },
+  "importErrCrunchyrollTab": {
+    "message": "Impossible d'ouvrir www.crunchyroll.com dans un onglet. Ouvre le site toi-même, puis réessaie."
+  },
+  "importErrStep": {
+    "message": "Étape $STEP$ : $STATUS$",
+    "placeholders": {
+      "step": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "importErrHttp": {
+    "message": "HTTP $CODE$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoResponse": {
+    "message": "pas de réponse (réseau ou blocage)"
+  },
+  "importErrBadAnswer": {
+    "message": "réponse illisible"
+  },
+  "importStepNameTab": {
+    "message": "onglet"
+  },
+  "importStepNameToken": {
+    "message": "jeton"
+  },
+  "importStepNameAccount": {
+    "message": "compte"
+  },
+  "importStepNameHistory": {
+    "message": "historique"
+  },
+  "importStepNamePush": {
+    "message": "envoi à Cinepisode"
+  },
+  "importCopyDiag": {
+    "message": "Copier le diagnostic"
+  },
+  "importDiagCopied": {
+    "message": "Diagnostic copié (aucun jeton ni mot de passe dedans)."
+  },
+  "importDiagCopyFailed": {
+    "message": "Copie impossible : sélectionne le texte du diagnostic à la main."
+  },
+  "importStepCrunchyrollTab": {
+    "message": "Ouverture de www.crunchyroll.com…"
   }
 }

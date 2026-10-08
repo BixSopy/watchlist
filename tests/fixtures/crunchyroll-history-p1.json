@@ -1,0 +1,63 @@
+{
+  "total": 5,
+  "data": [
+    {
+      "panel": {
+        "id": "GRDQPM1ZY", "type": "episode", "title": "Hidden Inventory", "slug_title": "hidden-inventory", "channel_id": "crunchyroll",
+        "episode_metadata": {
+          "series_id": "GRDV0019R", "series_title": "JUJUTSU KAISEN", "series_slug_title": "jujutsu-kaisen",
+          "season_id": "GRVNXG7J4", "season_title": "Hidden Inventory/Premature Death", "season_slug_title": "jujutsu-kaisen-season-2",
+          "season_number": 2, "season_sequence_number": 2, "episode": "5", "episode_number": 5, "sequence_number": 5,
+          "duration_ms": 1420000, "episode_air_date": "2023-08-03T16:00:00Z", "is_dubbed": false, "is_subbed": true
+        }
+      },
+      "parent_id": "GRDV0019R", "parent_type": "series", "id": "GRDQPM1ZY",
+      "date_played": "2026-09-30T20:15:42Z", "playhead": 1418, "fully_watched": true
+    },
+    {
+      "panel": {
+        "id": "GN7UNXWMJ", "type": "episode", "title": "Thunderclap", "slug_title": "thunderclap",
+        "episode_metadata": {
+          "series_id": "GRDV0019R", "series_title": "JUJUTSU KAISEN", "series_slug_title": "jujutsu-kaisen",
+          "season_title": "Hidden Inventory/Premature Death", "season_slug_title": "jujutsu-kaisen-season-2",
+          "season_number": 2, "episode": "6", "episode_number": 6, "sequence_number": 6, "duration_ms": 1420000
+        }
+      },
+      "parent_id": "GRDV0019R", "parent_type": "series", "id": "GN7UNXWMJ",
+      "date_played": "2026-09-30T20:40:00Z", "playhead": 300, "fully_watched": false
+    },
+    {
+      "panel": {
+        "id": "G4VUQ588P", "type": "episode", "title": "Ryomen Sukuna",
+        "episode_metadata": {
+          "series_id": "GRDV0019R", "series_title": "JUJUTSU KAISEN (French Dub)", "series_slug_title": "jujutsu-kaisen",
+          "season_title": "JUJUTSU KAISEN (French Dub)", "season_slug_title": "jujutsu-kaisen-french-dub",
+          "season_number": 1, "episode": "1", "episode_number": 1, "sequence_number": 1, "duration_ms": 1440000
+        }
+      },
+      "parent_id": "GRDV0019R", "parent_type": "series", "id": "G4VUQ588P",
+      "date_played": "2026-09-12T19:00:00Z", "playhead": 1200, "fully_watched": false
+    },
+    {
+      "panel": {
+        "id": "G25FVD45Q", "type": "movie", "title": "JUJUTSU KAISEN 0",
+        "movie_metadata": { "movie_listing_id": "GY8VEQ95Y", "movie_listing_title": "JUJUTSU KAISEN 0 (English Dub)", "duration_ms": 6300000 }
+      },
+      "parent_id": "GY8VEQ95Y", "parent_type": "movie_listing", "id": "G25FVD45Q",
+      "date_played": "2026-09-10T21:00:00Z", "playhead": 6250, "fully_watched": true
+    },
+    {
+      "panel": {
+        "id": "GEVUZ3JQ5", "type": "episode", "title": "The Journey's End",
+        "episode_metadata": {
+          "series_id": "GG5H5XQX4", "series_title": "Frieren: Beyond Journey's End", "series_slug_title": "frieren-beyond-journeys-end",
+          "season_title": "Frieren: Beyond Journey's End", "season_slug_title": "frieren-beyond-journeys-end",
+          "season_number": 1, "episode": "1", "episode_number": 1, "duration_ms": 1480000
+        }
+      },
+      "parent_id": "GG5H5XQX4", "parent_type": "series", "id": "GEVUZ3JQ5",
+      "date_played": "2026-08-01T18:00:00Z", "playhead": 200, "fully_watched": false
+    }
+  ],
+  "meta": { "prev_page": "", "next_page": "/content/v2/acc-123/watch-history?page=2&page_size=100" }
+}

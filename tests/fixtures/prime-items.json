@@ -1,0 +1,133 @@
+{
+  "amzn1.dv.gti.boys-s4e3": {
+    "catalogMetadata": {
+      "catalog": {
+        "entityType": "TV Show",
+        "episodeNumber": 3,
+        "id": "amzn1.dv.gti.boys-s4e3",
+        "title": "Ombres de Washington",
+        "type": "EPISODE"
+      },
+      "family": {
+        "tvAncestors": [
+          {
+            "catalog": {
+              "id": "amzn1.dv.gti.boys-s4",
+              "seasonNumber": 4,
+              "title": "The Boys - Saison 4",
+              "type": "SEASON"
+            }
+          },
+          {
+            "catalog": {
+              "id": "amzn1.dv.gti.boys",
+              "title": "The Boys",
+              "type": "SHOW"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "amzn1.dv.gti.boys-s4e2": {
+    "catalogMetadata": {
+      "catalog": {
+        "entityType": "TV Show",
+        "episodeNumber": 2,
+        "id": "amzn1.dv.gti.boys-s4e2",
+        "title": "Vie et mort de la guerre",
+        "type": "EPISODE"
+      },
+      "family": {
+        "tvAncestors": [
+          {
+            "catalog": {
+              "seasonNumber": 4,
+              "title": "The Boys - Saison 4",
+              "type": "SEASON"
+            }
+          },
+          {
+            "catalog": {
+              "title": "The Boys",
+              "type": "SHOW"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "amzn1.dv.gti.trailer-gladiator": {
+    "catalogMetadata": {
+      "catalog": {
+        "entityType": "Trailer",
+        "id": "amzn1.dv.gti.trailer-gladiator",
+        "title": "Gladiator II - Bande-annonce"
+      }
+    }
+  },
+  "amzn1.dv.gti.reacher-s2e8": {
+    "catalogMetadata": {
+      "catalog": {
+        "entityType": "TV Show",
+        "episodeNumber": 8,
+        "title": "Fly Boy",
+        "type": "EPISODE"
+      },
+      "family": {
+        "tvAncestors": [
+          {
+            "catalog": {
+              "seasonNumber": 2,
+              "title": "Reacher - Season 2 [4K/UHD]",
+              "type": "SEASON"
+            }
+          },
+          {
+            "catalog": {
+              "title": "Reacher [4K/UHD]",
+              "type": "SHOW"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "amzn1.dv.gti.fallout-s1e1": {
+    "catalogMetadata": {
+      "catalog": {
+        "entityType": "TV Show",
+        "episodeNumber": 1,
+        "title": "La Fin",
+        "type": "EPISODE"
+      },
+      "family": {
+        "tvAncestors": [
+          {
+            "catalog": {
+              "seasonNumber": 1,
+              "title": "Fallout - Saison 1",
+              "type": "SEASON"
+            }
+          },
+          {
+            "catalog": {
+              "title": "Fallout",
+              "type": "SHOW"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "amzn1.dv.gti.anatomie": {
+    "catalogMetadata": {
+      "catalog": {
+        "entityType": "Movie",
+        "id": "amzn1.dv.gti.anatomie",
+        "title": "Anatomie d'une chute",
+        "type": "MOVIE"
+      }
+    }
+  }
+}

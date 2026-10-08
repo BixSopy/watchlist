@@ -13,15 +13,20 @@ const vm = require('node:vm');
 const ROOT = path.join(__dirname, '..');
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const EXT_JS = ['extension/background.js', 'extension/options.js',
+  ...fs.readdirSync(path.join(ROOT, 'extension/lib')).map(f => 'extension/lib/' + f),
   ...fs.readdirSync(path.join(ROOT, 'extension/content')).map(f => 'extension/content/' + f)];
 
 test('extension : chaque script du dossier content/ est déclaré dans le manifeste (pas de fichier de diagnostic orphelin)', () => {
   const manifest = JSON.parse(read('extension/manifest.json'));
-  const declared = new Set(manifest.content_scripts.flatMap(c => c.js));
+  /* Netflix : manifeste ; Crunchyroll / Prime Video : enregistrés après la permission (lib/platforms.js) */
+  const platforms = require('../extension/lib/platforms.js');
+  const dynamic = Object.values(platforms).flatMap(p => p.scripts.flatMap(c => c.js));
+  const declared = new Set([...manifest.content_scripts.flatMap(c => c.js), ...dynamic]);
   for (const f of declared) assert.ok(fs.existsSync(path.join(ROOT, 'extension', f)), 'absent : ' + f);
   for (const f of fs.readdirSync(path.join(ROOT, 'extension/content'))) assert.ok(declared.has('content/' + f), 'non déclaré : ' + f);
   assert.ok(!fs.readdirSync(path.join(ROOT, 'extension/content')).some(f => /diag/i.test(f)));
   for (const c of manifest.content_scripts) for (const m of c.matches) assert.match(m, /^https:\/\/www\.netflix\.com\//);
+  for (const c of Object.values(platforms).flatMap(p => p.scripts)) for (const m of c.matches) assert.match(m, /^https:\/\/(www|static)\.crunchyroll\.com\/|^https:\/\/www\.primevideo\.com\//);
 });
 
 test('extension : ni postMessage vers \'*\', ni trace dans la console', () => {
@@ -361,7 +366,7 @@ test('fenêtre : chaque statut a un texte dans les deux langues, sans marqueur $
       for (const [, name] of msgs[k].message.matchAll(/\$(\w+)\$/g)) assert.ok(msgs[k].placeholders && msgs[k].placeholders[name.toLowerCase()], l + ' ' + k + ' : ' + name);
     }
   }
-  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.5.0');
+  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.6.2');
 });
 
 test('service worker : détections en direct sans correspondance envoyées à l\'onglet « Détectés » (extension_push_detections)', async () => {
