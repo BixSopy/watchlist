@@ -167,6 +167,21 @@ function _authBusyBtn(btn,busy,label){
   if(busy){btn.dataset.label=btn.textContent;btn.innerHTML='<span class="auth-spin" aria-hidden="true"></span>'+esc(label||t('common.wait'));}
   else if(btn.dataset.label){btn.textContent=btn.dataset.label;}
 }
+/* Dernière action réelle (non simulée par un script ou une extension) visant l'envoi d'un formulaire du modal */
+var _authIntentAt=0;
+function _authUserIntent(){return Date.now()-_authIntentAt<1000;}
+(function(){
+  function inAuth(el){var r=document.getElementById('authView');return !!(r&&el&&r.contains(el));}
+  document.addEventListener('click',function(e){
+    if(!e.isTrusted)return;
+    var b=e.target&&e.target.closest&&e.target.closest('button[type=submit]');
+    if(b&&inAuth(b))_authIntentAt=Date.now();
+  },true);
+  document.addEventListener('keydown',function(e){
+    if(!e.isTrusted||e.key!=='Enter'||e.isComposing)return;
+    if(e.target&&e.target.tagName==='INPUT'&&inAuth(e.target))_authIntentAt=Date.now();
+  },true);
+})();
 function _val(id){var el=document.getElementById(id);return el?String(el.value||''):'';}
 function _pwField(id,label,autocomplete,withMeter){
   return '<div class="field"><label for="'+id+'">'+label+'</label><div class="pw-wrap">'+
@@ -217,13 +232,21 @@ function refreshAuthModalView(){
   else if(authUser&&(_authView==='login'||_authView==='signup'))authGo('account');
 }
 function authGo(view,ctx){
-  _authView=view;if(ctx)_authCtx=Object.assign({},_authCtx,ctx);
+  _authView=view;_authIntentAt=0;if(ctx)_authCtx=Object.assign({},_authCtx,ctx);
   var v=AUTH_VIEWS[view]||AUTH_VIEWS.login;
   var root=document.getElementById('authView');if(!root)return;
   root.innerHTML='<div class="mtitle auth-title" id="authViewTitle">'+v.title(_authCtx)+'</div><div class="auth-msg" id="authMsg"></div>'+v.html(_authCtx);
   var tabs=root.querySelector('.auth-tabs');if(tabs)tabs.after(document.getElementById('authMsg'));
   var form=root.querySelector('form');
-  if(form)form.addEventListener('submit',function(e){e.preventDefault();if(!_authBusy&&v.submit)v.submit(form.querySelector('[type=submit]'));});
+  /* Formulaires de nouveau mot de passe : envoi uniquement sur action réelle de l'utilisateur
+     (clic sur le bouton ou touche Entrée). Un gestionnaire de mots de passe qui remplit les deux
+     champs ne doit pas valider à sa place, sinon il n'a pas le temps de proposer l'enregistrement. */
+  var manualOnly=!!(form&&form.querySelector('input[autocomplete="new-password"]'));
+  if(form)form.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(manualOnly){if(!_authUserIntent())return;_authIntentAt=0;}
+    if(!_authBusy&&v.submit)v.submit(form.querySelector('[type=submit]'));
+  });
   if(v.after)v.after(_authCtx);
   var cap=root.querySelector('.auth-captcha');if(cap)captchaMount(cap);
   var first=root.querySelector('input:not([type=checkbox]):not([readonly])');
@@ -450,7 +473,7 @@ var AUTH_VIEWS={
         '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('common.save'))+'</button></form>';
     },
     after:function(){_bindPwMeter('authPassword');},
-    submit:function(btn){_submitNewPassword(btn,function(){toast(t('auth.toast.pwSaved'),'ok');authGo('account');});}
+    submit:function(btn){_submitNewPassword(btn,function(){toast(t('auth.toast.pwSaved'),'ok');_pwSavedState(btn,t('auth.toast.pwSaved'));});}
   },
   account:{
     title:function(){return esc(t('auth.myAccount'));},
@@ -482,7 +505,7 @@ var AUTH_VIEWS={
         '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\',{needNonce:false})">'+esc(t('common.cancel'))+'</button></div>';
     },
     after:function(){_bindPwMeter('authPassword');},
-    submit:function(btn){_submitNewPassword(btn,function(){_authCtx.needNonce=false;toast(t('auth.toast.pwChanged'),'ok');authGo('account');},true);}
+    submit:function(btn){_submitNewPassword(btn,function(){_authCtx.needNonce=false;toast(t('auth.toast.pwChanged'),'ok');_pwSavedState(btn,t('auth.toast.pwChanged'));},true);}
   },
   changeEmail:{
     title:function(){return esc(t('auth.account.changeEmail'));},
@@ -591,6 +614,20 @@ function _verifyCode(btn,type,email,onOk){
     if(res.error)return showAuthMsg(authErrorMessage(res.error));
     onOk(res.data);
   }).catch(function(e){_authBusyBtn(btn,false);showAuthMsg(authErrorMessage(e));});
+}
+/* Après enregistrement : on laisse le formulaire affiché (champs verrouillés) au lieu de changer
+   de vue tout de suite, pour que le gestionnaire de mots de passe puisse proposer de l'enregistrer. */
+function _pwSavedState(btn,msg){
+  var form=btn&&btn.form;
+  if(form)Array.prototype.forEach.call(form.querySelectorAll('input'),function(i){i.readOnly=true;});
+  showAuthMsg(msg,'ok');
+  if(btn){
+    var next=document.createElement('button');
+    next.type='button';next.className='btn btn-primary auth-submit';next.textContent=t('common.continue');
+    next.addEventListener('click',function(){authGo('account');});
+    btn.replaceWith(next);
+  }
+  var cancel=document.querySelector('#authView .mact');if(cancel)cancel.remove();
 }
 function _submitNewPassword(btn,onOk,allowNonce){
   var pass=_val('authPassword'),conf=_val('authPasswordConfirm');
