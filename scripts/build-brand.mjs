@@ -325,7 +325,7 @@ function buildApp(out) {
       ...(brand.indexable ? [`<link rel="canonical" href="${escHtml(brand.baseUrl)}/">`,
         ...hreflangLinks(landingUrls(), brand.baseUrl + '/').trim().split('\n')] : []),
     ].join('\n') + '\n',
-    logo: `<div class="logo">${logoSvg().replace(/ fill="[^"]*"/, ' style="fill:var(--accent)"').replace(/ fill="[^"]*"/, ' style="fill:var(--on-accent)"')}${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></div>`,
+    logo: `<div class="logo">${logoSvg().replace(/ fill="[^"]*"/, ' style="fill:var(--accent)"').replace(/ fill="[^"]*"/, ' style="fill:var(--on-accent)"')}<span class="logo-word">${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></span></div>`,
     /* Textes dans la langue par défaut, traduits au chargement (data-i18n, data-legal : js/00-i18n.js) */
     footer: '\n<footer class="app-foot">\n' +
       `  <div class="app-foot-row">${escHtml(brand.name)} &nbsp;·&nbsp; <span id="statsFooter">—</span></div>\n` +
