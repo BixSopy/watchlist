@@ -25,9 +25,120 @@
     "message": "Saved."
   },
   "coverage": {
-    "message": "Currently supported: Netflix only. After you watch an episode on a /watch/ page, your progress updates in Cinepisode."
+    "message": "Currently supported: Netflix only. An episode is marked as watched at 80% of its length or as soon as the end credits start, a movie at 90%; an autoplayed next episode you stop is not counted."
   },
   "openApp": {
     "message": "Open Cinepisode"
+  },
+  "lastTitle": {
+    "message": "Last detection"
+  },
+  "lastNone": {
+    "message": "Nothing detected yet. An episode counts as watched at 80% or at the end credits, a movie at 90%."
+  },
+  "lastAt": {
+    "message": "On $WHEN$",
+    "placeholders": {
+      "when": {
+        "content": "$1",
+        "example": "08/10/2026 21:40"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "Updated: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAlready": {
+    "message": "Already up to date: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNotFound": {
+    "message": "Not in your list: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAmbiguous": {
+    "message": "Several titles match \"$LABEL$\", nothing changed",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidToken": {
+    "message": "Invalid token: generate a new token in Cinepisode and paste it above."
+  },
+  "lastNoToken": {
+    "message": "No token saved: $LABEL$ was not sent.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNetwork": {
+    "message": "Could not reach Cinepisode (connection?): $LABEL$ was not sent.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastServerError": {
+    "message": "Cinepisode server error: $LABEL$ was not saved.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidInput": {
+    "message": "Detection rejected by the server: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidDetection": {
+    "message": "Unreadable Netflix detection, nothing sent."
+  },
+  "lastLegacyUpdated": {
+    "message": "Updated: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastLegacyNoChange": {
+    "message": "No change for $LABEL$ (not in your list or already up to date).",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
   }
 }

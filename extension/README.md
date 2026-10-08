@@ -23,13 +23,37 @@ scripts « diagnostic seulement » de Prime Video, Disney+, Max et Crunchyroll) 
 version 0.3.0 : l'extension ne s'exécute plus que sur `netflix.com/watch/*`. Ils restent dans
 l'historique git si une nouvelle plateforme doit être étudiée.
 
+## Quand un titre est marqué vu (0.4.0)
+
+Plus jamais au simple lancement d'un épisode :
+
+- **épisode** : à **80 %** de sa durée, ou dès que Netflix affiche le générique de fin / le
+  bouton « Épisode suivant » (seulement après 50 %, pour ne pas confondre avec la transition
+  vers l'épisode suivant) ;
+- **film** : à **90 %**, ou au générique de fin après 80 % ;
+- dans tous les cas après au moins 20 secondes de lecture réellement observée sur cette vidéo
+  (un saut dans la barre de progression ne compte pas). Un épisode suivant lancé
+  automatiquement puis arrêté au bout de quelques secondes n'est donc pas marqué.
+
+Les sélecteurs du générique de fin (`next-episode-seamless-button`, `watch-credits-seamless-button`,
+`postplay`) sont un bonus : s'ils changent côté Netflix, le seuil de 80 % suffit.
+
+## Fenêtre de l'extension : dernière détection
+
+Un clic sur l'icône affiche la dernière détection et la réponse du serveur, en clair :
+« Mis à jour : Dark S2E3 », « Déjà à jour : Dark S2E3 », « Pas dans ta liste : X »,
+« Plusieurs titres correspondent à « Lupin », rien modifié », « Jeton invalide »,
+« Aucun jeton enregistré », « Cinepisode injoignable »... Ce résultat est gardé dans
+`chrome.storage.local` (clé `wlLast`, sans le jeton) et effacé quand un nouveau jeton est enregistré.
+
 ## Sécurité des messages
 
 `content/netflix-main.js` (monde MAIN, accès à `window.netflix`) envoie la détection à
 `content/netflix-bridge.js` (monde isolé) par `window.postMessage`, adressé à l'origine exacte de
 la page (jamais `'*'`). Le relai n'accepte que les messages de la même fenêtre (`event.source`),
-de l'origine `https://www.netflix.com` (`event.origin`) et de la forme exacte attendue (titre
-texte de 300 caractères maximum, saison et épisode entiers ou vides). Le service worker revérifie
+de l'origine `https://www.netflix.com` (`event.origin`) et de la forme exacte attendue (type
+`episode` ou `movie`, titre texte de 300 caractères maximum, saison et épisode entiers pour un
+épisode, vides pour un film). Le service worker revérifie
 l'expéditeur (cette extension, onglet Netflix) et la forme avant d'appeler Supabase.
 
 ## Installation (Chrome / Edge / Brave)
@@ -43,13 +67,23 @@ l'expéditeur (cette extension, onglet Netflix) et la forme avant d'appeler Supa
 ## Vérifier Netflix
 
 1. Lance un épisode d'une série de ta watchlist sur Netflix (`netflix.com/watch/...`)
-2. Après quelques secondes, la saison et l'épisode se mettent à jour dans Cinepisode
-   (à la prochaine synchronisation)
+2. Regarde-le jusqu'à 80 % (ou jusqu'au générique de fin) : la fenêtre de l'extension affiche
+   « Mis à jour : Titre S1E3 », et la saison et l'épisode se mettent à jour dans Cinepisode
+   (à la prochaine synchronisation, 30 s maximum)
 
 ## Pourquoi pas de clé TMDB ni de login dans l'extension
 
 La correspondance se fait par **titre** (`mark_watched_by_title` côté Supabase, bornée à
 ta propre watchlist) plutôt que par tmdb_id — ça évite d'exposer une clé API ou de gérer
-une session de connexion dans l'extension. Si le titre affiché diffère trop de celui dans
-ta watchlist, la mise à jour est silencieusement ignorée (aucun risque de modifier le
-mauvais titre).
+une session de connexion dans l'extension.
+
+Depuis la migration `20261008120000_mark_watched_fiable.sql`, la comparaison est **exacte après
+normalisation** : majuscules, accents, ponctuation, article de tête (the, le, la, les, l') et
+année entre parenthèses en fin de titre sont ignorés (« L’Odyssée (2021) » = « odyssee »), mais
+plus aucune correspondance partielle (« Grown Ups » ne touche plus le film « Up »). Un épisode
+ne modifie qu'une série ou un anime, un film qu'un film. Si plusieurs titres correspondent, rien
+n'est modifié. La progression ne recule jamais (revoir un ancien épisode ne change rien).
+
+Compatibilité : l'extension 0.3.0 continue de fonctionner avec la nouvelle fonction, et la 0.4.0
+fonctionne aussi avec l'ancienne (elle réessaie sans `p_type`, et affiche alors un résultat
+simplifié).
