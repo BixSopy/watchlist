@@ -307,6 +307,9 @@
   "importTruncatedOther": {
     "message": " Very long history: only the most recent part was read."
   },
+  "importPartial": {
+    "message": " The oldest part of your history couldn't be read (Crunchyroll refused the rest): everything before it was sent. Run the import again later to retry."
+  },
   "importErrPermission": {
     "message": "Enable the platform first (“Enable” button above)."
   },

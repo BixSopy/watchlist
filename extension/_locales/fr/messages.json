@@ -307,6 +307,9 @@
   "importTruncatedOther": {
     "message": " Historique très long : seule la partie la plus récente a été lue."
   },
+  "importPartial": {
+    "message": " L'historique le plus ancien n'a pas pu être lu (Crunchyroll a refusé la suite) : tout ce qui précède a bien été envoyé. Relance l'import plus tard pour réessayer."
+  },
   "importErrPermission": {
     "message": "Active d'abord la plateforme (bouton « Activer » ci-dessus)."
   },

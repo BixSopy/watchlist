@@ -20,7 +20,10 @@
  *
  * 0.6.1 : Crunchyroll lu depuis un onglet www.crunchyroll.com (existant, sinon ouvert en arrière-plan
  * puis refermé) par chrome.scripting : requêtes même origine, comme le site. En cas d'échec, l'étape
- * et le statut HTTP sont affichés, avec un diagnostic copiable sans aucun secret. */
+ * et le statut HTTP sont affichés, avec un diagnostic copiable sans aucun secret.
+ * 0.6.2 : historique Crunchyroll paginé par curseur (meta.next_page, lib/crunchyroll.js). Si une page
+ * après la première échoue, ce qui a été lu est quand même envoyé ; la fenêtre le signale (partial)
+ * avec un diagnostic, et la date du dernier import n'avance pas (le prochain import relit tout). */
 importScripts('lib/import.js', 'lib/platforms.js', 'lib/crunchyroll.js', 'lib/prime.js');
 var I = self.CinepisodeImport;
 var PLATFORMS = self.CinepisodePlatforms;
@@ -166,7 +169,7 @@ function setImportState(patch) {
     chrome.storage.local.get(['wlImport'], function (res) {
       var cur = (res && res.wlImport && typeof res.wlImport === 'object') ? res.wlImport : {};
       /* Nouvel import : le diagnostic du précédent échec disparaît */
-      var reset = patch.state === 'running' && patch.source ? { errStep: null, errStatus: null, diag: null } : {};
+      var reset = patch.state === 'running' && patch.source ? { errStep: null, errStatus: null, diag: null, partial: false } : {};
       var next = Object.assign({}, cur, reset, patch, { at: Date.now() });
       chrome.storage.local.set({ wlImport: next }, function () { resolve(next); });
     });
@@ -411,6 +414,7 @@ function importDiag(platform, err, extra) {
   if (typeof err.page === 'number') d.page = err.page;
   if (err.parse) d.parse = true;
   if (err.net) d.net = String(err.net).slice(0, 40);
+  if (err.partial) d.partial = true;
   var b = browserVersion(); if (b) d.browser = b;
   if (extra) Object.keys(extra).forEach(function (k) { d[k] = extra[k]; });
   return d;
@@ -465,6 +469,12 @@ async function runPlatformImport(token, platform) {
     return;
   }
   closeTab(tab);
+  /* Lecture interrompue après la première page (0.6.2) : le début de l'historique est envoyé, avec
+   * un diagnostic de la page en échec (aucun jeton ni identifiant) */
+  var partial = hist.partial || null;
+  var partialDiag = partial ? importDiag(platform, { step: partial.step || 'history', status: partial.status, code: partial.code,
+    cloudflare: partial.cloudflare, api: hist.api, page: partial.page, parse: partial.parse, partial: true,
+    net: partial.status === 0 ? lastNet : null }, { via: via }) : null;
   var items = I.pushItemsFromGroups(hist.items, platform);
   await setImportState({ step: 'push', done: 0, total: items.length });
   var sent = { inserted: 0, updated: 0, unchanged: 0, invalid: 0 };
@@ -476,10 +486,12 @@ async function runPlatformImport(token, platform) {
       return;
     }
   }
-  meta[lastKey] = I.latestDate(hist.items, meta[lastKey]);
+  /* Import partiel : la date n'avance pas, pour que le prochain import relise la partie manquante */
+  if (!partial) meta[lastKey] = I.latestDate(hist.items, meta[lastKey]);
   meta[platform + 'LastAt'] = Date.now();
   chrome.storage.local.set({ wlImportMeta: meta });
-  await setImportState({ state: 'done', step: 'done', titles: items.length, sent: sent, truncated: !!hist.truncated, metaFailed: !!hist.metaFailed });
+  await setImportState({ state: 'done', step: 'done', titles: items.length, sent: sent, truncated: !!hist.truncated, metaFailed: !!hist.metaFailed,
+    partial: !!partial, diag: partialDiag });
   if (sent.inserted + sent.updated > 0) openDetected();
 }
 

@@ -1,4 +1,4 @@
-/* Extension 0.6.1 de bout en bout, dans un vrai Chrome : Crunchyroll et Prime Video (sites simulés).
+/* Extension 0.6.2 de bout en bout, dans un vrai Chrome : Crunchyroll et Prime Video (sites simulés).
    - extension telle que publiée : plateformes désactivées (permission facultative non accordée),
      aucun accès aux sites, import refusé avec un message clair ;
    - copie de test où les permissions facultatives sont accordées d'avance (Chrome ne permet pas de
@@ -87,6 +87,15 @@ before(async () => {
     }
     if (u.pathname === '/content/v2/acc-123/watch-history') {
       if (req.headers().authorization !== 'Bearer cr-at') return json(route, { error: 'unauthorized' }, 401);
+      if (crMode === 'cursor') {
+        /* 0.6.2 : curseur opaque dans meta.next_page ; numéro de page > 1 refusé (400), comme l'API réelle ;
+           le 3e curseur est refusé aussi, pour vérifier l'import partiel */
+        const pg = u.searchParams.get('page');
+        const invalid = { code: 'content.get_watch_history_v2.format_validation_error', context: [{ code: 'content.get_watch_history_v2.invalid_value', field: 'page' }] };
+        if (pg === '1') return json(route, crCursorPage(0, 'CUR2'));
+        if (pg === 'CUR2') return json(route, crCursorPage(100, 'CUR3'));
+        return json(route, invalid, 400);
+      }
       return json(route, fixture(u.searchParams.get('page') === '1' ? 'crunchyroll-history-p1.json' : 'crunchyroll-history-p2.json'));
     }
     if (u.pathname.startsWith('/fr/watch/')) {
@@ -131,6 +140,16 @@ before(async () => {
 });
 after(async () => { await cdp?.close().catch(() => {}); await ctx?.close(); fs.rmSync(tmpDir, { recursive: true, force: true }); });
 
+/* Page d'historique de 100 éléments finis (une série chacun) et son curseur suivant */
+function crCursorPage(from, next) {
+  const data = Array.from({ length: 100 }, (_, i) => {
+    const n = from + i;
+    return { panel: { id: 'E' + n, type: 'episode', title: 'Ep', episode_metadata: { series_id: 'S' + n, series_title: 'Série ' + n, season_number: 1, episode_number: 1, duration_ms: 1440000 } },
+      parent_id: 'S' + n, parent_type: 'series', id: 'E' + n, date_played: new Date(Date.parse('2026-10-01T00:00:00Z') - n * 60000).toISOString(), playhead: 1440, fully_watched: true };
+  });
+  return { total: 1500, data, meta: { prev_page: '', next_page: '/content/v2/acc-123/watch-history?page=' + next + '&page_size=100&locale=fr-FR' } };
+}
+
 async function optionsPage(id) {
   const page = await ctx.newPage();
   const errors = [];
@@ -148,7 +167,7 @@ async function closeDetectedTabs() { for (const p of ctx.pages()) if (p.url().st
 test('extension publiée : plateformes désactivées, aucun accès aux sites, import refusé clairement', async () => {
   const { page, errors } = await optionsPage(extId);
   const manifest = await page.evaluate(() => chrome.runtime.getManifest());
-  assert.equal(manifest.version, '0.6.1');
+  assert.equal(manifest.version, '0.6.2');
   assert.deepEqual(manifest.host_permissions, [SUPA + '/*', 'https://www.netflix.com/*'], 'avertissement à l\'installation inchangé');
   await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="enable"]').hidden);
   assert.equal(await box(page, 'crunchyroll').locator('[data-role="enable"]').textContent(), 'Activer Crunchyroll');
@@ -223,8 +242,42 @@ test('Crunchyroll bloqué par Cloudflare : étape et statut affichés, « Copier
     assert.match(copied, /step: token/);
     assert.match(copied, /status: 403/);
     assert.match(copied, /cloudflare: true/);
-    assert.match(copied, /v: 0\.6\.1/);
+    assert.match(copied, /v: 0\.6\.2/);
     assert.match(await page.textContent('#importStatus button.diag'), /Diagnostic copié/);
+    assert.deepEqual(errors, []);
+    await page.close();
+  } finally { crMode = 'ok'; await crTab.close(); }
+});
+
+test('Crunchyroll 0.6.2 : curseur meta.next_page suivi ; page refusée ensuite -> début envoyé, note et diagnostic', async () => {
+  crMode = 'cursor';
+  log.push.length = 0;
+  const before = log.cr.length;
+  const crTab = await ctx.newPage();
+  try {
+    await crTab.goto('https://www.crunchyroll.com/');
+    const { page, errors } = await optionsPage(grantedId);
+    await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
+    await box(page, 'crunchyroll').locator('[data-role="import"]').click();
+    await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok', null, { timeout: 20000 });
+    const text = await page.textContent('#importStatus');
+    assert.match(text, /^200 titres envoyés/);
+    assert.match(text, /L'historique le plus ancien n'a pas pu être lu/);
+    const pages = log.cr.slice(before).filter(r => /watch-history/.test(r.url)).map(r => new URL(r.url).searchParams.get('page'));
+    assert.deepEqual(pages, ['1', 'CUR2', 'CUR3'], 'curseurs suivis, jamais page=2');
+    assert.equal(log.push.length, 1);
+    assert.equal(log.push[0].p_items.length, 200, 'les 2 pages lues sont envoyées');
+    const st = await page.evaluate(() => new Promise(r => chrome.storage.local.get(['wlImport', 'wlImportMeta'], x => r(x))));
+    assert.deepEqual([st.wlImport.state, st.wlImport.partial, st.wlImport.diag.partial, st.wlImport.diag.page, st.wlImport.diag.status], ['done', true, true, 3, 400]);
+    assert.equal(st.wlImportMeta.crunchyrollLastMs, undefined, 'date non avancée : le prochain import relit tout');
+    await page.evaluate(() => { window.__copied = null; navigator.clipboard.writeText = t => { window.__copied = t; return Promise.resolve(); }; });
+    await page.click('#importStatus button.diag');
+    await page.waitForFunction(() => window.__copied);
+    const copied = await page.evaluate(() => window.__copied);
+    assert.match(copied, /partial: true/);
+    assert.match(copied, /page: 3/);
+    assert.doesNotMatch(copied, /cr-at|acc-123/);
+    await closeDetectedTabs();
     assert.deepEqual(errors, []);
     await page.close();
   } finally { crMode = 'ok'; await crTab.close(); }

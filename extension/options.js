@@ -125,7 +125,7 @@ function importErrDetail(st) {
 }
 /* Texte du diagnostic copiable : seulement des champs connus et sûrs (aucun jeton, cookie,
  * identifiant de compte ou d'appareil ; le service worker n'en met jamais dans diag). */
-var DIAG_FIELDS = ['v', 'platform', 'via', 'step', 'status', 'code', 'cloudflare', 'api', 'page', 'parse', 'net', 'tabOpened', 'siteDeviceId', 'browser', 'at'];
+var DIAG_FIELDS = ['v', 'platform', 'via', 'step', 'status', 'code', 'cloudflare', 'api', 'page', 'partial', 'parse', 'net', 'tabOpened', 'siteDeviceId', 'browser', 'at'];
 function diagText(st) {
   var d = (st && st.diag) || {};
   var lines = ['Cinepisode – diagnostic import'];
@@ -136,7 +136,7 @@ function diagText(st) {
     else if (typeof v !== 'number' && typeof v !== 'boolean') return;
     lines.push(k + ': ' + v);
   });
-  if (st && st.error) lines.push('error: ' + String(st.error).replace(/[^\w-]/g, '').slice(0, 40));
+  if (st && st.state === 'error' && st.error) lines.push('error: ' + String(st.error).replace(/[^\w-]/g, '').slice(0, 40));
   return lines.join('\n');
 }
 function copyDiag(st, btn) {
@@ -155,11 +155,14 @@ function importStatusText(st) {
   }
   if (st.state === 'done') {
     var s = st.sent || {};
-    if (!st.titles || (s.inserted | 0) + (s.updated | 0) === 0) return { text: msg('importNothing'), tone: 'ok' };
+    /* 0.6.2 : lecture interrompue après la première page -> le début est envoyé, la note le dit */
+    var partialNote = st.partial ? msg('importPartial') : '';
+    var withDiag = !!(st.partial && st.diag);
+    if (!st.titles || (s.inserted | 0) + (s.updated | 0) === 0) return { text: msg('importNothing') + partialNote, tone: 'ok', diag: withDiag };
     var text = msgN('importDone', [String(st.titles), String(s.inserted | 0), String(s.updated | 0)]);
     if (st.truncated) text += msg(PLATFORM_SOURCES.indexOf(st.source) >= 0 ? 'importTruncatedOther' : 'importTruncated');
     if (st.metaFailed) text += msg('importMetaFailed');
-    return { text: text, tone: 'ok' };
+    return { text: text + partialNote, tone: 'ok', diag: withDiag };
   }
   if (!isRunning(st)) return { text: '', tone: '' };
   if (st.step === 'tab') return { text: msg(st.source === 'crunchyroll' ? 'importStepCrunchyrollTab' : 'importStepTab'), tone: '', pct: 3 };

@@ -1,6 +1,6 @@
 'use strict';
 /*
- * Extension 0.6.0 et 0.6.1 : Crunchyroll et Prime Video.
+ * Extension 0.6.0 à 0.6.2 : Crunchyroll et Prime Video (0.6.2 : pagination par curseur, import partiel).
  *  - historique : lecture des réponses (fixtures réalistes dans tests/fixtures), regroupement,
  *    éléments envoyés à extension_push_detections ;
  *  - détection en direct : règles communes (80 % / générique / 20 s), scripts de page ;
@@ -148,6 +148,80 @@ test('Crunchyroll : jeton expiré pendant un long import -> redemandé, puis la 
   const hist = calls.filter(c => /watch-history/.test(c.url));
   assert.deepStrictEqual(hist.map(c => [/page=(\d+)/.exec(c.url)[1], c.opts.headers.Authorization]), [['1', 'Bearer at-1'], ['2', 'Bearer at-1'], ['2', 'Bearer at-2']]);
 });
+
+/* ---------------- Crunchyroll 0.6.2 : pagination par curseur, import partiel ---------------- */
+/* Élément d'historique fini, une série par numéro (pour compter ce qui est gardé) */
+const crItem = n => ({ panel: { id: 'E' + n, type: 'episode', title: 'Ep', episode_metadata: { series_id: 'S' + n, series_title: 'Série ' + n,
+  season_number: 1, episode_number: 1, duration_ms: 1440000 } }, parent_id: 'S' + n, parent_type: 'series', id: 'E' + n,
+  date_played: new Date(Date.parse('2026-10-01T00:00:00Z') - n * 60000).toISOString(), playhead: 1440, fully_watched: true });
+const crPage = (from, count, next, total) => ({ total: total === undefined ? 5000 : total,
+  data: Array.from({ length: count }, (_, i) => crItem(from + i)), meta: next === undefined ? {} : { prev_page: '', next_page: next } });
+
+test('Crunchyroll 0.6.2 : suit meta.next_page (curseur opaque), langue ajoutée si absente, arrêt sur lien vide', async () => {
+  const { fn, calls } = crFetch({ pages: [
+    resp(200, crPage(0, 100, '/content/v2/acc-123/watch-history?page=eyJjIjoxfQ&page_size=100&locale=fr-FR')),
+    resp(200, crPage(100, 100, 'https://beta-api.crunchyroll.com/content/v2/acc-123/watch-history?page=eyJjIjoyfQ&page_size=100')),
+    resp(200, crPage(200, 100, '')),                                    // page pleine mais lien vide : fin
+  ] });
+  const out = await CR.fetchHistory(fn, { locale: 'fr-FR' });
+  const hist = calls.filter(c => /watch-history/.test(c.url)).map(c => c.url);
+  assert.deepStrictEqual(hist, [
+    'https://www.crunchyroll.com/content/v2/acc-123/watch-history?page=1&page_size=100&locale=fr-FR',
+    'https://www.crunchyroll.com/content/v2/acc-123/watch-history?page=eyJjIjoxfQ&page_size=100&locale=fr-FR',
+    'https://www.crunchyroll.com/content/v2/acc-123/watch-history?page=eyJjIjoyfQ&page_size=100&locale=fr-FR',
+  ], 'curseur suivi tel quel, ramené sur www.crunchyroll.com ; pas de page=2, page=3 inventées');
+  assert.strictEqual(out.items.length, 300);
+  assert.strictEqual(out.partial, null);
+  assert.strictEqual(out.truncated, false);
+  // Liens refusés : autre origine, autre chemin, double barre
+  assert.strictEqual(CR.nextUrlV2('https://evil.example/content/v2/acc/watch-history?page=x'), null);
+  assert.strictEqual(CR.nextUrlV2('//evil.example/content/v2/acc/watch-history'), null);
+  assert.strictEqual(CR.nextUrlV2('/accounts/v1/me'), null);
+  assert.strictEqual(CR.nextUrlV2('/content/v2/acc/watch-history?page=c&locale=en-US', 'fr-FR'), 'https://www.crunchyroll.com/content/v2/acc/watch-history?page=c&locale=en-US');
+});
+
+test('Crunchyroll 0.6.2 : arrêt propre (page vide, total atteint, curseur répété) ; numéro de page seulement sans next_page', async () => {
+  const empty = crFetch({ pages: [resp(200, crPage(0, 100, '/content/v2/acc-123/watch-history?page=c1')), resp(200, crPage(0, 0, '/content/v2/acc-123/watch-history?page=c2'))] });
+  assert.strictEqual((await CR.fetchHistory(empty.fn, {})).items.length, 100);
+  assert.strictEqual(empty.calls.filter(c => /watch-history/.test(c.url)).length, 2, 'page vide : fin, lien ignoré');
+  const total = crFetch({ pages: [resp(200, crPage(0, 100, undefined, 100))] });
+  await CR.fetchHistory(total.fn, {});
+  assert.strictEqual(total.calls.filter(c => /watch-history/.test(c.url)).length, 1, 'total atteint sans next_page : fin');
+  const loop = crFetch({ pages: [resp(200, crPage(0, 100, '/content/v2/acc-123/watch-history?page=same')), resp(200, crPage(100, 100, '/content/v2/acc-123/watch-history?page=same'))] });
+  assert.strictEqual((await CR.fetchHistory(loop.fn, {})).items.length, 200);
+  assert.strictEqual(loop.calls.filter(c => /watch-history/.test(c.url)).length, 2, 'même curseur redonné : fin');
+  const legacy = crFetch({ pages: [resp(200, crPage(0, 100, undefined, 150)), resp(200, crPage(100, 50, undefined, 150))] });
+  assert.strictEqual((await CR.fetchHistory(legacy.fn, {})).items.length, 150);
+  assert.deepStrictEqual(legacy.calls.filter(c => /watch-history/.test(c.url)).map(c => /page=(\d+)/.exec(c.url)[1]), ['1', '2'], 'réponse sans next_page : numéro de page');
+});
+
+test('Crunchyroll 0.6.2 : 400 sur la page 11 (cas réel 0.6.1) -> les 10 premières pages sont gardées, import partiel signalé', async () => {
+  // L'API d'avant 0.6.2 : pas de curseur, numéros de page refusés au-delà de 1 000 éléments
+  const pages = Array.from({ length: 10 }, (_, i) => resp(200, crPage(i * 100, 100)));
+  pages.push(resp(400, { code: 'content.get_watch_history_v2.format_validation_error', context: [{ code: 'content.get_watch_history_v2.invalid_value', field: 'page' }] }));
+  const progress = [];
+  const { fn, calls } = crFetch({ pages });
+  const out = await CR.fetchHistory(fn, { onProgress: (p, n) => progress.push([p, n]) });
+  assert.strictEqual(calls.filter(c => /watch-history/.test(c.url)).length, 11);
+  assert.strictEqual(out.items.length, 1000, 'rien de perdu des pages 1 à 10');
+  assert.deepStrictEqual(plain(out.partial), { page: 11, status: 400, code: 'crunchyroll_http', cloudflare: false });
+  assert.strictEqual(out.api, 'v2');
+  assert.strictEqual(progress.length, 10);
+  // 404, 500, Cloudflare ou réponse illisible après la première page : partiel aussi
+  for (const bad of [resp(404, ''), resp(500, 'boom'), resp(403, '<html>Cloudflare cf-ray</html>'), resp(200, '<html>')]) {
+    const r = await CR.fetchHistory(crFetch({ pages: [resp(200, crPage(0, 100, '/content/v2/acc-123/watch-history?page=c1')), bad] }).fn, {});
+    assert.strictEqual(r.items.length, 100);
+    assert.strictEqual(r.partial.page, 2);
+  }
+  // Jeton impossible à renouveler pendant l'import : partiel, pas d'erreur
+  let n = 0;
+  const token = () => (++n === 1 ? resp(200, { access_token: 'at-1', account_id: 'acc-123' }) : resp(401, { error: 'invalid_grant' }));
+  const exp = await CR.fetchHistory(crFetch({ token, pages: [resp(200, crPage(0, 100, '/content/v2/acc-123/watch-history?page=c1')), resp(401, { code: 'expired' })] }).fn, {});
+  assert.deepStrictEqual([exp.items.length, exp.partial.step, exp.partial.code, exp.partial.status], [100, 'token', 'crunchyroll_auth', 401]);
+  // Première page en échec : toujours une erreur
+  await assert.rejects(CR.fetchHistory(crFetch({ pages: [resp(500, 'boom')] }).fn, {}), e => e.code === 'crunchyroll_http' && e.page === 1);
+});
+
 
 /* ---------------- Prime Video : historique ---------------- */
 test('Prime Video : page d\'historique (enfants aplatis), pourcentages, fiches (bandes-annonces écartées, « [4K/UHD] » retiré)', () => {
@@ -472,6 +546,28 @@ test('service worker : import Crunchyroll (permission accordée) -> détections 
   assert.ok(!JSON.stringify(sw.store.wlImport).includes('tok'), 'jamais le jeton dans l\'état affiché');
 });
 
+test('service worker 0.6.2 : page suivante refusée (400) -> ce qui est lu est envoyé, état « partiel » avec diagnostic, date non avancée', async () => {
+  const p1 = fixture('crunchyroll-history-p1.json');
+  const sw = serviceWorker({ granted: { crunchyroll: true }, routes: url => {
+    if (url.includes('/auth/v1/token?_=')) return resp(200, { access_token: 'SECRET-AT', account_id: 'acc-SECRET' });
+    if (/watch-history\?page=1&/.test(url)) return resp(200, p1);
+    if (/watch-history/.test(url)) return resp(400, { code: 'content.get_watch_history_v2.format_validation_error' });
+    return null;
+  } });
+  await sw.call({ type: 'wl_import_crunchyroll' });
+  const st = await sw.waitImport();
+  assert.strictEqual(st.state, 'done', JSON.stringify(st));
+  assert.strictEqual(st.partial, true);
+  assert.strictEqual(st.titles, 2, 'titres de la page 1 envoyés');
+  const push = sw.fetches.find(f => /extension_push_detections/.test(f.url));
+  assert.deepStrictEqual(JSON.parse(push.opts.body).p_items.map(i => i.title), ['JUJUTSU KAISEN', 'JUJUTSU KAISEN 0']);
+  assert.deepStrictEqual([st.diag.partial, st.diag.step, st.diag.status, st.diag.page, st.diag.code, st.diag.api, st.diag.via],
+    [true, 'history', 400, 2, 'crunchyroll_http', 'v2', 'tab']);
+  assert.ok(!/SECRET|1111-2222/.test(JSON.stringify(st)), 'diagnostic sans jeton ni identifiant');
+  assert.strictEqual(sw.store.wlImportMeta.crunchyrollLastMs, undefined, 'import partiel : le prochain import relit tout');
+  assert.strictEqual(typeof sw.store.wlImportMeta.crunchyrollLastAt, 'number');
+});
+
 test('service worker : import Prime Video ; plateforme non activée ; expéditeur non fiable ; session absente', async () => {
   const pv = pvFetch();
   const sw = serviceWorker({ granted: { prime: true }, routes: (url, opts) => null });
@@ -691,6 +787,29 @@ test('fenêtre : échec Crunchyroll -> « Étape jeton : HTTP 401 » et « Copie
   p.updateImport({ state: 'error', error: 'network', at: Date.now() });
   assert.ok(!box.children.some(c => c.textContent === 'Copier le diagnostic'), 'pas de diagnostic : pas de bouton');
   assert.ok(!/Étape/.test(box.textContent));
+});
+
+test('fenêtre 0.6.2 : import partiel -> titres envoyés, note « historique le plus ancien », « Copier le diagnostic »', async () => {
+  const p = popup({ granted: { crunchyroll: true } });
+  const diag = { v: '0.6.2', platform: 'crunchyroll', via: 'tab', step: 'history', status: 400, code: 'crunchyroll_http', cloudflare: false, api: 'v2', page: 11, partial: true, at: '2026-10-08T18:00:00.000Z' };
+  p.updateImport({ state: 'done', source: 'crunchyroll', titles: 240, sent: { inserted: 200, updated: 40 }, partial: true, diag, at: Date.now() });
+  const box = p.els.importStatus;
+  assert.match(box.textContent, /^240 titres envoyés/);
+  assert.match(box.textContent, /L'historique le plus ancien n'a pas pu être lu/);
+  const btn = box.children.find(c => c.textContent === 'Copier le diagnostic');
+  assert.ok(btn, 'bouton présent');
+  btn.click();
+  await new Promise(r => setTimeout(r, 5));
+  const text = p.copied[0];
+  assert.match(text, /partial: true/);
+  assert.match(text, /page: 11/);
+  assert.match(text, /status: 400/);
+  assert.doesNotMatch(text, /^error:/m, 'pas une erreur');
+  p.updateImport({ state: 'done', source: 'crunchyroll', titles: 0, sent: {}, partial: true, diag, at: Date.now() });
+  assert.match(box.textContent, /^Rien de nouveau.*historique le plus ancien/s);
+  p.updateImport({ state: 'done', source: 'crunchyroll', titles: 3, sent: { inserted: 3, updated: 0 }, at: Date.now() });
+  assert.doesNotMatch(box.textContent, /historique le plus ancien/);
+  assert.ok(!box.children.some(c => c.textContent === 'Copier le diagnostic'), 'import complet : pas de bouton');
 });
 
 test('fenêtre : permission refusée, Prime Video déjà activé, textes de l\'import Prime', () => {

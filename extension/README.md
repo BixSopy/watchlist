@@ -55,6 +55,22 @@ la RPC à jeton écrit. Un compte supprimé efface ses détections (cascade). L'
 localement le jeton, la dernière détection et l'état de l'import (`wlImport`, `wlImportMeta` : date
 du dernier import, jamais le jeton ni la liste des titres).
 
+## Correctifs 0.6.2
+
+- **Crunchyroll, historiques longs** : l'adresse `/content/v2/{compte}/watch-history` pagine
+  désormais par curseur (`meta.next_page`) et refuse un numéro de page (`page=11`) avec un 400
+  `content.get_watch_history_v2.invalid_value` dès ~900–1 000 éléments (constaté aussi par
+  ruflas/crunchyexporter-cli, issue #4). L'extension suit `meta.next_page` (chemin relatif, ou
+  adresse www / beta-api ramenée sur www.crunchyroll.com ; jamais une autre origine), s'arrête
+  quand le lien est vide, la page vide ou incomplète, ou le total atteint ; le numéro de page ne
+  sert plus qu'en dernier recours (réponse sans `next_page`). Pages de 100 (taille utilisée par
+  les clients connus).
+- **Import partiel plutôt qu'échec** : si une page après la première échoue, tout ce qui a déjà été
+  lu est envoyé ; la fenêtre l'indique (« L'historique le plus ancien n'a pas pu être lu… ») avec
+  « Copier le diagnostic » (`partial: true`, page et statut). La date du dernier import n'avance
+  pas, pour que l'import suivant relise la partie manquante. Seul un échec sur la première page
+  reste une erreur.
+
 ## Correctifs 0.6.1
 
 - **Crunchyroll** : l'historique est lu depuis un onglet `www.crunchyroll.com` (un onglet déjà
