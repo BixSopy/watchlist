@@ -3,7 +3,7 @@
   "name": "__MSG_extName__",
   "short_name": "Cinepisode",
   "default_locale": "en",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "__MSG_extDescription__",
   "homepage_url": "https://cinepisode.com",
   "icons": { "16": "icons/icon.png", "48": "icons/icon.png", "128": "icons/icon.png" },
@@ -22,30 +22,6 @@
     {
       "matches": ["https://www.netflix.com/watch/*"],
       "js": ["content/netflix-bridge.js"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://www.primevideo.com/*", "https://www.amazon.com/gp/video/*"],
-      "js": ["content/_common-main.js", "content/primevideo-main.js"],
-      "world": "MAIN",
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://www.disneyplus.com/*"],
-      "js": ["content/_common-main.js", "content/disneyplus-main.js"],
-      "world": "MAIN",
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://play.max.com/*", "https://play.hbomax.com/*"],
-      "js": ["content/_common-main.js", "content/max-main.js"],
-      "world": "MAIN",
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://www.crunchyroll.com/*"],
-      "js": ["content/_common-main.js", "content/crunchyroll-main.js"],
-      "world": "MAIN",
       "run_at": "document_idle"
     }
   ]

@@ -4,7 +4,7 @@
     "description": "Nom de l'extension"
   },
   "extDescription": {
-    "message": "Met à jour ta progression dans Cinepisode pendant que tu regardes Netflix (diagnostic sur Prime Video, Disney+, Max, Crunchyroll)."
+    "message": "Met à jour ta progression dans Cinepisode pendant que tu regardes Netflix."
   },
   "optionsTitle": {
     "message": "Cinepisode — Suivi auto"
@@ -25,7 +25,7 @@
     "message": "Enregistré."
   },
   "coverage": {
-    "message": "Couverture actuelle : Netflix uniquement. Ouvre la console (F12) sur une page /watch/ pour voir ce que l'extension détecte."
+    "message": "Couverture actuelle : Netflix uniquement. Après un épisode regardé sur une page /watch/, ta progression se met à jour dans Cinepisode."
   },
   "openApp": {
     "message": "Ouvrir Cinepisode"
