@@ -83,7 +83,8 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 /* AUTH MODAL */
 .auth-tabs{display:flex;gap:6px;margin-bottom:16px;background:var(--bg3);border-radius:9px;padding:3px}
 .auth-tab{flex:1;text-align:center;padding:7px;font-size:12px;font-weight:600;color:var(--text2);background:none;border:none;border-radius:7px;cursor:pointer;transition:var(--tr-fast);font-family:'IBM Plex Sans',sans-serif}
-.auth-tab.on{background:var(--bg5);color:var(--text)}
+.auth-tab:hover{color:var(--text)}
+.auth-tab.on{background:rgba(var(--accent-rgb),.16);color:var(--accent-hover);box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.4)}
 .auth-msg{font-size:12px;padding:8px 10px;border-radius:8px;margin-bottom:12px;display:none}
 .auth-msg.on{display:block}
 .auth-msg.err{background:rgba(255,90,90,.1);color:#ff7070;border:1px solid rgba(255,90,90,.25)}
@@ -376,7 +377,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .ntab{font-family:'Inter',sans-serif;font-size:14.5px;font-weight:700;padding:8px 16px;cursor:pointer;color:var(--text);border:none;border-radius:999px;background:transparent;transition:var(--tr-slow);letter-spacing:-.2px;white-space:nowrap;position:relative;display:inline-flex;align-items:center;gap:7px}
 .ntab-ic{font-size:14px;line-height:1;opacity:.95}
 .ntab:hover{background:var(--bg3)}
-.ntab.on{color:#000;background:var(--accent);box-shadow:0 4px 14px rgba(var(--accent-rgb),.28)}
+.ntab.on{color:var(--on-accent);background:var(--accent);box-shadow:0 4px 14px rgba(var(--accent-rgb),.28)}
 .ntab.on .ntab-ic{opacity:1}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:9px 22px 9px 0;border-bottom:1px solid var(--border)}
 .csel.stat-sel-mobile{display:none}
@@ -384,7 +385,10 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .add-btn:hover{background:var(--accent-hover);box-shadow:0 4px 16px rgba(var(--accent-rgb),.25)}.add-btn svg{width:13px;height:13px}
 .stabs{display:flex;gap:3px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px}
 .stab{background:none;border:none;color:var(--text2);font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;padding:5px 10px;border-radius:6px;cursor:pointer;transition:var(--tr);white-space:nowrap}
-.stab:hover{color:var(--text);background:var(--bg4)}.stab.on{background:var(--bg5);color:var(--text)}
+.stab:hover{color:var(--text);background:var(--bg4)}
+/* Sous-onglets (statut, catégories de Découvrir, filtres de « Détectés ») : l'actif est teinté de l'accent
+   pour se distinguer nettement des autres, pas seulement par une nuance de gris */
+.stab.on,.stab.on:hover{background:rgba(var(--accent-rgb),.16);color:var(--accent-hover);box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.4)}
 
 .srch{position:relative;width:150px}
 .srch input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:7px 10px 7px 28px;border-radius:10px;outline:none;transition:width .2s,border-color .2s}
@@ -838,7 +842,13 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
 .nav.floating{margin:14px 24px 18px;padding:7px 10px;border-radius:22px;position:relative;z-index:5;flex-wrap:wrap;row-gap:6px}
 .hero-band.on + .nav.floating{margin-top:40px}
 .nav.floating .ntab{background:transparent}
-.nav.floating .ntab:hover{background:rgba(255,255,255,.08)}
+@media (hover:hover){.nav.floating .ntab:hover{background:rgba(255,255,255,.08)}}
+/* Onglet actif : la règle ci-dessus (plus spécifique) effaçait le fond de .ntab.on et laissait un texte
+   noir sur fond sombre. On le rétablit partout (survol compris), texte --on-accent : contraste ≈ 10,7:1 */
+.nav.floating .ntab.on{background:var(--accent);color:var(--on-accent)}
+@media (hover:hover){.ntab.on:hover,.nav.floating .ntab.on:hover{background:var(--accent-hover)}}
+/* Focus clavier visible sur tous les onglets (le contour par défaut, sombre, ne se voyait pas) */
+.ntab:focus-visible,.stab:focus-visible,.auth-tab:focus-visible,.segmented-control button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .nav.floating .nav-right{border-bottom:none;padding:0}
 .nav.floating .add-btn{border-radius:14px}
 @media (max-width:768px){
@@ -848,6 +858,7 @@ body.glow-off .card::before,body.glow-off .ec-card::before,body.glow-off .dr-car
   .hero-meta{font-size:12px;margin-bottom:10px}
   .hero-btn{padding:9px 15px;font-size:12px}
   .nav.floating{margin:10px 14px 0;border-radius:16px;padding:5px 8px}
+  .nav.floating .ntab:not(.on){background:rgba(255,255,255,.055)}
   .hero-band.on + .nav.floating{margin-top:22px}
 }
 
@@ -875,7 +886,7 @@ body.view-detected #mc,body.view-detected #heroBand{display:none}
 body.view-detected #detectedSection{display:block}
 body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,body.view-detected .nav-right .srch{display:none}
 .ntab[hidden]{display:none}
-.det-badge{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--red,#e5484d);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center}
+.det-badge{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#d32f2f;box-shadow:0 0 0 1.5px rgba(10,10,12,.85);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center}
 .det-badge[hidden]{display:none}
 .det-wrap{max-width:980px;margin:0 auto;padding:4px 0 32px}
 .det-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px}
@@ -883,7 +894,7 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 .det-sub,.det-foot{color:var(--text2);font-size:13.5px;margin-top:4px;line-height:1.45}
 .det-foot{margin-top:18px;color:var(--text3);font-size:12.5px}
 .det-filters{display:flex;gap:3px;flex-wrap:wrap;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px;width:fit-content;margin-bottom:10px}
-.det-n{opacity:.7;font-weight:600;margin-left:2px}
+.det-n{font-weight:600;margin-left:2px}
 .det-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .det-all{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
 .det-actions{display:flex;gap:8px;flex-wrap:wrap}
