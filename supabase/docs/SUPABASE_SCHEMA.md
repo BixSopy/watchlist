@@ -1,4 +1,4 @@
-# Schéma Supabase — Watchlist Ciné Premium
+# Schéma Supabase — Cinepisode (dépôt watchlist)
 
 Référence SQL : [`supabase/schema.sql`](../schema.sql) (état cible).
 Migrations : [`supabase/migrations/`](../migrations/) — à lancer à la main dans le SQL Editor.
@@ -6,10 +6,14 @@ Migrations : [`supabase/migrations/`](../migrations/) — à lancer à la main d
 ## Vue d'ensemble
 
 ```
-auth.users (1 compte)
-  └── profiles (1:1, UNIQUE account_id)
-        └── watchlist_items (1:N, UNIQUE (local_id, profile_id))
-keep_alive  ← ping quotidien du workflow GitHub (isolée)
+auth.users (inscriptions ouvertes, email confirmé obligatoire pour le catalogue)
+  ├── profiles (1:1, UNIQUE account_id)
+  │     └── watchlist_items (1:N, UNIQUE (local_id, profile_id), 20 000 max par profil)
+  └── api_usage (compteurs quotidiens par compte et par API, ON DELETE CASCADE)
+api_quota_limits   ← limites par API (tmdb, omdb), modifiables à la main
+api_usage_global   ← compteur quotidien global (OMDb : 1 000/jour pour toute l'app)
+api_cache          ← cache partagé des réponses OMDb (clé secrète du proxy uniquement)
+keep_alive         ← ping quotidien du workflow GitHub (isolée)
 ```
 
 - Projet : `batfulcvvquffgfeppcx` (eu-central-1, Postgres 17, offre gratuite).
@@ -67,19 +71,30 @@ clé publique dans l'en-tête `apikey` (secret GitHub `SUPABASE_ANON_KEY`).
 | `watchlist_items` | `owner watchlist` : le profil appartient à `auth.uid()` | authenticated : SELECT, INSERT, UPDATE ; anon : aucun |
 | `keep_alive` | `keep_alive insert anon` : INSERT, `pinged_at` à ± 10 min de `now()` | anon : INSERT seulement |
 
-Seule fonction du schéma `public` : `update_timestamp()` (trigger, `search_path` figé).
+| `api_quota_limits`, `api_usage`, `api_usage_global` | RLS sans politique | aucun droit pour anon/authenticated (accès via `consume_api_quota` seulement) |
+| `api_cache` | RLS sans politique | service_role uniquement (clé secrète du proxy) |
+
+Colonnes modifiables par l'utilisateur dans `profiles` : INSERT (`account_id`, `name`),
+UPDATE (`name`, `avatar`, `avatar_color`, `plex_webhook_token`). `is_manager`, `has_pin`,
+`pin_hash` ne sont plus modifiables depuis l'app. Contraintes de taille sur
+`watchlist_items` (`watchlist_items_tailles_check`) et `profiles` (`profiles_tailles_check`).
+
+Fonctions du schéma `public` (toutes `search_path = ''`) :
+
+| Fonction | Type | Appelable par | Rôle |
+|---|---|---|---|
+| `update_timestamp()` | trigger | — | met à jour `updated_at` |
+| `mark_watched_by_token(...)` | SECURITY DEFINER | anon (jeton) | webhook Plex/Tautulli |
+| `mark_watched_by_title(...)` | SECURITY DEFINER | anon (jeton) | extension navigateur |
+| `consume_api_quota(p_bucket, p_cost)` | SECURITY DEFINER | authenticated | décompte le quota du compte (`auth.uid()`), renvoie `{allowed, scope, used, limit}` |
+| `delete_my_account()` | SECURITY DEFINER | authenticated | supprime le compte de `auth.uid()` et ses données ; exige une connexion de moins de 15 min (claim `amr`) |
+| `api_housekeeping()` | SECURITY DEFINER | personne (appelée par `consume_api_quota`) | purge compteurs et cache expirés |
+| `watchlist_items_limite()` | trigger | — | refuse au-delà de 20 000 titres par profil |
 
 ## Réglages du tableau de bord (à faire à la main)
 
-1. **Authentication → Sign In / Providers → Email** : désactiver « Allow new users to sign up »
-   (le compte existant continue de fonctionner). Laisser « Confirm email » activé.
-2. **Authentication → Sign In / Providers** : laisser « Allow anonymous sign-ins » désactivé.
-3. **Authentication → Attack Protection** (ou Passwords) : activer « Leaked password
-   protection » (HaveIBeenPwned) et fixer une longueur minimale d'au moins 12 caractères.
-4. **Authentication → URL Configuration** : Site URL = URL de prod Vercel ; Redirect URLs
-   limitées à ce domaine (retirer localhost et les jokers inutiles).
-5. **Authentication → Multi-Factor** : activer TOTP (facultatif, recommandé).
-6. **Advisors → Security** : relancer après la migration ; il ne doit rester aucune alerte
-   sur les fonctions SECURITY DEFINER ni sur `search_path`.
-7. **GitHub → Settings → Secrets → Actions** : vérifier que `SUPABASE_ANON_KEY` contient la
-   clé publique du projet (sinon le workflow keep-alive échoue, désormais visiblement).
+Voir la section « Mise en ligne publique » et « Après l'achat de cinepisode.com » du
+[README](../../README.md) : inscriptions, confirmation d'email, mots de passe, CAPTCHA
+Turnstile, URL de redirection, SMTP Resend, gabarits d'emails (`supabase/templates/`).
+Garder « Allow anonymous sign-ins » désactivé et relancer Advisors › Security après chaque
+migration.
