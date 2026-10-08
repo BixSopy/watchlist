@@ -1,7 +1,15 @@
-# Watchlist Ciné — Suivi auto (extension navigateur)
+# Cinepisode — Suivi auto (extension navigateur)
 
-Marque automatiquement ta progression (saison/épisode) dans Watchlist Ciné Premium pendant
+Marque automatiquement ta progression (saison/épisode) dans Cinepisode pendant
 que tu regardes, sans action manuelle. Même jeton que la synchro Plex/Tautulli.
+
+Textes de l'extension en français et en anglais (`_locales/fr`, `_locales/en`, choisis par
+Chrome selon la langue du navigateur, anglais par défaut). Les messages `[WL]` de la console
+sont des traces de développement et ne sont pas traduits.
+
+*English: automatically marks your progress (season/episode) in Cinepisode while you watch.
+Install: `chrome://extensions` → Developer mode → Load unpacked → `extension/`, then paste the
+token from Cinepisode (Settings › Auto-tracking (Netflix, Plex...) › Generate my token).*
 
 ## Couverture par plateforme
 

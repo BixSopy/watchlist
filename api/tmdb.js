@@ -25,7 +25,10 @@ const ROUTES = [
 
 /* Paramètres autorisés et leur format */
 const PARAMS = {
+  /* Langue de l'interface (fr-FR, en-US…) : fait partie de la clé de cache, comme tous les paramètres */
   language: /^[a-z]{2}(-[A-Z]{2})?$/,
+  region: /^[A-Z]{2}$/,
+  watch_region: /^[A-Z]{2}$/,
   page: /^([1-9]\d{0,2})$/,
   query: /^[\s\S]{1,200}$/,
   include_adult: /^(true|false)$/,

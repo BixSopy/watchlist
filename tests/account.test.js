@@ -19,11 +19,27 @@ function slice(src, from, to) {
   assert.ok(a >= 0 && b > a, 'extrait introuvable : ' + from);
   return src.slice(a, b);
 }
-function loadAccountHelpers() {
-  const src = read('js/20-account.js');
-  const ctx = { BRAND: { name: 'Cinepisode' }, TextEncoder };
+/* Contexte minimal de navigateur avec les dictionnaires et js/00-i18n.js, dans la langue voulue */
+function i18nContext(lang, extra) {
+  const store = {};
+  const ctx = Object.assign({
+    TextEncoder, URLSearchParams, Intl, console,
+    location: { search: '', pathname: '/', hash: '', href: 'https://x.test/' },
+    navigator: { languages: [lang] },
+    localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = String(v); } },
+    sessionStorage: { getItem: () => null, setItem() {} },
+    document: { documentElement: {}, querySelector: () => null, querySelectorAll: () => [] },
+  }, extra || {});
+  ctx.window = ctx;
   vm.createContext(ctx);
-  vm.runInContext(read('js/00-brand.js').replace('var BRAND', 'var _B') + '\n' +
+  vm.runInContext(read('js/00-brand.js') + '\n' + read('js/i18n/fr.js') + '\n' + read('js/i18n/en.js') + '\n' +
+    read('js/00-i18n.js') + '\nthis.LANG=LANG;this.t=t;this.tn=tn;', ctx);
+  return ctx;
+}
+function loadAccountHelpers(lang) {
+  const src = read('js/20-account.js');
+  const ctx = i18nContext(lang || 'fr-FR');
+  vm.runInContext(
     slice(src, 'var AUTH_PW_MIN', '/* ---------- Configuration publique') +
     slice(src, 'var AUTH_ERRORS', '/* ---------- Utilitaires d\'interface'), ctx);
   return ctx;
@@ -48,7 +64,7 @@ test('indicateur de solidité croissant', () => {
   assert.strictEqual(passwordScore('Une-Longue-Phrase-De-Passe-2026'), 4);
 });
 
-test('erreurs Supabase traduites en français', () => {
+test('erreurs Supabase traduites (français)', () => {
   const { authErrorMessage } = loadAccountHelpers();
   assert.strictEqual(authErrorMessage({ code: 'invalid_credentials' }), 'Email ou mot de passe incorrect.');
   assert.match(authErrorMessage({ code: 'weak_password', reasons: ['pwned'] }), /fuites de données/);
@@ -59,6 +75,38 @@ test('erreurs Supabase traduites en français', () => {
   assert.match(authErrorMessage({ status: 429, message: 'x' }), /Trop de tentatives/);
   assert.match(authErrorMessage({ name: 'AuthRetryableFetchError', message: 'Failed to fetch' }), /connexion internet/);
   assert.match(authErrorMessage({ message: 'quelque chose d\'inattendu' }), /Une erreur est survenue/);
+});
+
+test('écrans de compte en anglais : règles, solidité et erreurs Supabase traduites', () => {
+  const en = loadAccountHelpers('en-US');
+  assert.strictEqual(en.LANG, 'en');
+  assert.match(en.passwordProblem('court', 'a@b.fr'), /at least 12/);
+  assert.match(en.passwordProblem('pierre.dupont-2026', 'pierre.dupont@exemple.fr'), /email address/);
+  assert.match(en.passwordProblem('Cinepisode!!', 'x@y.fr'), /too common/);
+  assert.strictEqual(en.passwordProblem('Une-phrase-de-passe-42', 'x@y.fr'), '');
+  assert.strictEqual(en.authErrorMessage({ code: 'invalid_credentials' }), 'Incorrect email or password.');
+  assert.match(en.authErrorMessage({ code: 'weak_password', reasons: ['pwned'] }), /data breach/);
+  assert.match(en.authErrorMessage({ status: 429, message: 'x' }), /Too many attempts/);
+  assert.match(en.authErrorMessage({ message: 'something unexpected' }), /Something went wrong/);
+  /* aucune réponse anglaise ne retombe sur le français */
+  const fr = loadAccountHelpers('fr-FR');
+  for (const c of ['invalid_credentials', 'email_not_confirmed', 'user_already_exists', 'over_email_send_rate_limit', 'captcha_failed', 'same_password']) {
+    assert.notStrictEqual(en.authErrorMessage({ code: c }), fr.authErrorMessage({ code: c }), c);
+  }
+});
+
+test('choix de la langue : adresse > choix enregistré > navigateur (fr* → fr, sinon en)', () => {
+  assert.strictEqual(i18nContext('fr-CA').LANG, 'fr');
+  assert.strictEqual(i18nContext('fr').LANG, 'fr');
+  assert.strictEqual(i18nContext('de-DE').LANG, 'en');
+  assert.strictEqual(i18nContext('es').LANG, 'en');
+  assert.strictEqual(i18nContext('en-GB').LANG, 'en');
+  assert.strictEqual(i18nContext('fr-FR', { location: { search: '?lang=en', pathname: '/', hash: '' } }).LANG, 'en');
+  assert.strictEqual(i18nContext('en-US', { location: { search: '', pathname: '/fr', hash: '' } }).LANG, 'fr');
+  const saved = i18nContext('en-US', { localStorage: { getItem: () => 'fr', setItem() {} } });
+  assert.strictEqual(saved.LANG, 'fr');
+  const en = i18nContext('en-US');
+  assert.strictEqual(en.tn('pill.titles', 1), en.t('pill.titles.one', { n: '1' }));
 });
 
 function landing(url) {

@@ -1,0 +1,62 @@
+title: Privacy policy
+updated: October 8, 2026
+---
+<p>[[name]] is a free service with no ads, no trackers and no data reselling. This page explains exactly what is collected, where it is stored and how to delete all of it.</p>
+
+<h2>Data controller</h2>
+<p>[[editorLine]] Contact for any question or request about your data: <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>.</p>
+
+<h2>Without an account</h2>
+<p>You can use [[name]] without an account: your list then stays only in your browser (IndexedDB and localStorage) and nothing is sent to our servers. The catalog (search, recommendations) requires an account, because it goes through our server to protect the API keys.</p>
+
+<h2>Data processed with an account</h2>
+<table>
+  <tr><th>Data</th><th>Why</th><th>Where</th></tr>
+  <tr><td>Email address, password (stored only in irreversibly hashed form), account creation and last sign-in dates</td><td>Create and secure your account, send you confirmation and password reset emails</td><td>Supabase (Auth), region <strong>eu-central-1, Frankfurt (EU)</strong></td></tr>
+  <tr><td>Your list: titles, type, status, progress (season/episode), ratings, tags, collections, TMDB identifiers</td><td>Sync your list across your devices</td><td>Supabase (database), Frankfurt (EU)</td></tr>
+  <tr><td>Your interface language</td><td>Send you account emails in your language</td><td>Supabase (Auth), Frankfurt (EU)</td></tr>
+  <tr><td>Auto-tracking token (if you generate one)</td><td>Let the browser extension or Tautulli/Plex update your progress</td><td>Supabase, Frankfurt (EU)</td></tr>
+  <tr><td>Catalog usage counters (number of requests per day)</td><td>Enforce daily quotas and prevent abuse</td><td>Supabase, Frankfurt (EU); deleted automatically after a few days</td></tr>
+  <tr><td>IP address, browser, request timestamps (technical logs)</td><td>Security, abuse prevention, troubleshooting</td><td>Vercel and Supabase logs, short retention according to their plans</td></tr>
+</table>
+<p class="muted">Legal bases: performance of the service you request by creating an account (Article 6(1)(b) GDPR) and our legitimate interest in securing the service (Article 6(1)(f)) for logs, the CAPTCHA and quotas.</p>
+
+<h2>Storage in your browser</h2>
+<p>[[name]] uses <strong>no advertising or audience-measurement cookies</strong>. Your browser keeps your list (IndexedDB), your settings, your language and your sign-in session (localStorage). These are strictly necessary for the service to work and therefore don't require consent. You can delete them from your browser settings or when you delete your account.</p>
+
+<h2>Hosting and subprocessors</h2>
+<ul>
+  <li><strong>Vercel Inc.</strong> (United States) hosts the website and the server functions, which run in Frankfurt (fra1). Transfers are covered by the EU–US Data Privacy Framework and the standard contractual clauses.</li>
+  <li><strong>Supabase Inc.</strong> provides authentication and the database, hosted in Frankfurt (EU).</li>
+  <li><strong>Resend</strong> (Resend, Inc., United States), the service that sends account emails: receives your address and the content of these emails, only to send them.</li>
+  <li><strong>Forwarding of the contact address</strong> (ImprovMX, then the publisher's Gmail mailbox): if you write to [[contactEmail]], your message and your address pass through these services.</li>
+  <li><strong>Cloudflare Turnstile</strong> (if enabled): anti-bot check loaded <em>only</em> on the sign-up, sign-in and forgotten-password forms. Cloudflare then receives your IP address and technical information about your browser. Turnstile doesn't use advertising tracking cookies.</li>
+</ul>
+
+<h2>Movie and series data sources</h2>
+<ul>
+  <li><strong>TMDB</strong> and <strong>OMDb</strong>: queried by our server. They receive neither your IP address, nor your email, nor your list: only the request (for example a movie identifier) and its language.</li>
+  <li><strong>TMDB posters</strong> (image.tmdb.org), <strong>Kitsu</strong> and <strong>TVmaze</strong>: loaded directly by your browser, so these services see your IP address (as with any image or web resource), but no account data.</li>
+</ul>
+
+<h2>Retention periods</h2>
+<ul>
+  <li>Account and list: as long as your account exists. Deleting your account immediately and permanently erases this data from our database.</li>
+  <li>Quota counters: a few days.</li>
+  <li>Technical logs: according to the periods applied by Vercel and Supabase (from a few hours to a few days).</li>
+</ul>
+
+<h2>Your rights</h2>
+<p>You have the rights of access, rectification, erasure, portability, restriction and objection. Directly in the app (Account menu):</p>
+<ul>
+  <li><strong>Export my data</strong>: downloads a JSON file with your account and your whole list;</li>
+  <li><strong>Change email address or password</strong>;</li>
+  <li><strong>Delete my account</strong>: erases your account, your synced list, your counters and your tracking token.</li>
+</ul>
+<p>For any other request: <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>. You can also lodge a complaint with the French data protection authority, the <a href="https://www.cnil.fr/en/complaints" rel="noopener">CNIL</a>, or with the supervisory authority of your country of residence.</p>
+
+<h2>Minimum age</h2>
+<p>The service is intended for people aged 15 and over. Under that age, a parent's consent is required.</p>
+
+<h2>Security</h2>
+<p>Encrypted connections (HTTPS), passwords of at least 12 characters checked against known breaches, strict isolation of each account's data in the database (Row Level Security), API keys kept on the server only, strict content security policy.</p>

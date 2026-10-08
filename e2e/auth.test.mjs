@@ -21,9 +21,9 @@ before(async () => {
 });
 after(async () => { await browser?.close(); await server?.close(); });
 
-async function newPage(t, { turnstile = false, mobile = false } = {}) {
+async function newPage(t, { turnstile = false, mobile = false, locale = 'fr-FR' } = {}) {
   server.config = { turnstileSiteKey: turnstile ? '0x4AAAAAAAtestsitekey00' : '', signupsOpen: true };
-  const ctx = await browser.newContext(mobile ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { viewport: { width: 1280, height: 860 } });
+  const ctx = await browser.newContext({ locale, ...(mobile ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { viewport: { width: 1280, height: 860 } }) });
   const page = await ctx.newPage();
   const problems = [];
   page.on('console', m => { const x = m.text(); if (m.type() === 'error' && !/^Failed to load resource: the server responded with a status of (4\d\d)/.test(x)) problems.push(x); if (/Content Security Policy/i.test(x)) problems.push(x); });
@@ -68,6 +68,7 @@ test('inscription : validation du mot de passe, consentement, puis écran « vé
   assert.equal(signup.body.email, 'nouveau@exemple.fr');
   assert.match(signup.body.gotrue_meta_security.captcha_token, /^fake-captcha-token-/, 'le jeton Turnstile est transmis à Supabase');
   assert.equal(new URL(signup.search, 'http://x').searchParams.get('redirect_to'), server.url + '/');
+  assert.deepEqual(signup.body.data, { lang: 'fr' }, 'langue des emails enregistrée à l’inscription');
   assert.equal(await page.locator('#authResendBtn').isDisabled(), true, 'renvoi bloqué pendant 60 s');
   await shot(page, '03-verifie-ta-boite');
   // Code à 6 chiffres reçu par email
@@ -219,5 +220,97 @@ test('pages légales servies avec l’attribution TMDB', async t => {
   }
   assert.match(await page.textContent('body'), /This product uses the TMDB API but is not endorsed or certified by TMDB/);
   assert.equal(await page.locator('img[src*="tmdb-logo"]').evaluate(i => i.naturalWidth > 0), true);
+  assert.deepEqual(problems, []);
+});
+
+/* ---------- Anglais ---------- */
+async function pageShot(page, name, sel) {
+  if (!SHOTS) return;
+  fs.mkdirSync(SHOTS, { recursive: true });
+  await (sel ? page.locator(sel) : page).screenshot({ path: path.join(SHOTS, name + '.png') });
+}
+
+test('navigateur en anglais : interface, modale de connexion et erreurs en anglais', async t => {
+  const { page, db, problems } = await newPage(t, { locale: 'en-US' });
+  await page.goto(server.url + '/');
+  assert.equal(await page.getAttribute('html', 'lang'), 'en');
+  assert.match(await page.locator('#syncStatusText').textContent(), /Sign in/);
+  assert.equal(await page.locator('footer a[data-legal="privacy"]').getAttribute('href'), '/privacy');
+  assert.match(await page.locator('footer a[data-legal="terms"]').textContent(), /Terms/);
+  await pageShot(page, 'en-01-accueil');
+  await page.click('#syncStatusPill');
+  await title(page).filter({ hasText: 'Sign in' }).waitFor();
+  await shot(page, 'en-02-connexion');
+  await page.fill('#authEmail', 'pierre@exemple.fr');
+  await page.fill('#authPassword', 'wrong-password-here');
+  await page.click('.auth-submit');
+  await msg(page).filter({ hasText: 'Incorrect email or password.' }).waitFor({ timeout: 8000 });
+  await page.click('#authTabSignup');
+  await title(page).filter({ hasText: 'Create an account' }).waitFor();
+  await page.fill('#authEmail', 'new@example.com');
+  await page.fill('#authPassword', 'short');
+  await page.fill('#authPasswordConfirm', 'short');
+  await page.click('.auth-submit');
+  assert.match(await msg(page).textContent(), /at least 12 characters/);
+  await page.fill('#authPassword', 'A-long-pass-phrase-42');
+  await page.fill('#authPasswordConfirm', 'A-long-pass-phrase-42');
+  await page.check('#authConsent');
+  await shot(page, 'en-03-inscription');
+  await page.click('.auth-submit');
+  await title(page).filter({ hasText: 'Check your inbox' }).waitFor();
+  assert.deepEqual(db.calls.find(c => c.path === '/auth/v1/signup').body.data, { lang: 'en' }, 'emails en anglais pour ce compte');
+  await shot(page, 'en-04-verifie-ta-boite');
+  assert.deepEqual(problems, []);
+});
+
+test('changement de langue : réglages et modale de connexion, choix mémorisé et envoyé au compte', async t => {
+  const { page, db, problems } = await newPage(t, { locale: 'fr-FR' });
+  await page.goto(server.url + '/');
+  assert.equal(await page.getAttribute('html', 'lang'), 'fr');
+  // Depuis la modale de connexion : la page se recharge en anglais et la modale se rouvre
+  await page.click('#syncStatusPill');
+  await title(page).filter({ hasText: 'Connexion' }).waitFor();
+  await Promise.all([page.waitForEvent('load'), page.click('.lang-switch-auth .lang-btn[lang="en"]')]);
+  await title(page).filter({ hasText: 'Sign in' }).waitFor();
+  assert.equal(await page.getAttribute('html', 'lang'), 'en');
+  assert.equal(await page.evaluate(() => localStorage.getItem('wl_lang')), 'en');
+  // Connexion : le compte (sans langue) reçoit la langue choisie, pour ses prochains emails
+  await page.fill('#authEmail', 'pierre@exemple.fr');
+  await page.fill('#authPassword', 'Correct-Horse-42');
+  await page.click('.auth-submit');
+  await title(page).filter({ hasText: 'My account' }).waitFor();
+  await shot(page, 'en-05-mon-compte');
+  for (let i = 0; i < 50 && !db.users[0].metadata?.lang; i++) await new Promise(r => setTimeout(r, 100));
+  assert.equal(db.users[0].metadata?.lang, 'en');
+  // Depuis les réglages : retour au français, la langue du compte suit, les réglages se rouvrent
+  await page.evaluate(() => closeAuthModal());
+  await page.click('button.hbtn[onclick="toggleMenu()"]');
+  await page.click('#optMenuMain button[onclick="openSettingsView()"]');
+  await page.locator('.lang-switch-settings').waitFor();
+  if (SHOTS) { await page.waitForTimeout(500); await pageShot(page, 'en-06-reglages', '#optMenu'); }
+  await Promise.all([page.waitForEvent('load'), page.click('.lang-switch-settings .lang-btn[lang="fr"]')]);
+  await page.waitForFunction(() => document.documentElement.lang === 'fr');
+  await page.locator('.lang-switch-settings .lang-btn.on[lang="fr"]').waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('wl_lang')), 'fr');
+  assert.equal(db.users[0].metadata?.lang, 'fr');
+  assert.deepEqual(problems, []);
+});
+
+test('adresse /en et ?lang= : langue imposée, paramètre retiré, balises de la page à jour', async t => {
+  const { page, problems } = await newPage(t, { locale: 'fr-FR' });
+  let r = await page.goto(server.url + '/en');
+  assert.equal(r.status(), 200);
+  assert.equal(await page.getAttribute('html', 'lang'), 'en');
+  assert.match(await page.getAttribute('meta[name="description"]', 'content'), /tracker/);
+  await page.goto(server.url + '/?lang=fr');
+  assert.equal(await page.getAttribute('html', 'lang'), 'fr');
+  assert.equal(new URL(page.url()).search, '', 'lang retiré de l’adresse');
+  for (const p of ['/privacy', '/terms']) {
+    r = await page.goto(server.url + p);
+    assert.equal(r.status(), 200, p);
+    assert.equal(await page.getAttribute('html', 'lang'), 'en');
+    assert.match(await page.textContent('body'), /TMDB/);
+  }
+  await pageShot(page, 'en-07-terms');
   assert.deepEqual(problems, []);
 });

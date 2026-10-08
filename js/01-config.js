@@ -23,8 +23,11 @@ var AUTH_LANDING=(function(){
     }else if(h.get('access_token')&&TYPES.indexOf(h.get('type'))>=0){
       out={kind:'session',type:h.get('type')};
     }
-    if(out&&out.kind!=='session'){
-      ['token_hash','type','action','error','error_code','error_description'].forEach(function(k){q.delete(k);});
+    /* ?lang= (liens des emails) est lu par js/00-i18n.js puis retiré de l'adresse */
+    var strip=(out&&out.kind!=='session')?['token_hash','type','action','error','error_code','error_description']:[];
+    if(q.has('lang'))strip.push('lang');
+    if(strip.length){
+      strip.forEach(function(k){q.delete(k);});
       var qs=q.toString();
       history.replaceState(null,'',location.pathname+(qs?'?'+qs:''));
     }

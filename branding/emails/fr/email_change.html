@@ -4,8 +4,8 @@ preheader: Valide le changement d'adresse de ton compte [[name]].
 {{ $base := or .RedirectTo .SiteURL }}
 <h1>Changement d'adresse email</h1>
 <p>Tu as demandé à remplacer <strong>{{ .Email }}</strong> par <strong>{{ .NewEmail }}</strong> pour ton compte [[name]]. Confirme ce changement&nbsp;:</p>
-[[button||Confirmer le changement||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}]]
+[[button||Confirmer le changement||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=fr]]
 <p class="muted">Ou, dans [[name]] (Compte › Changer d'adresse email › «&nbsp;J'ai un code&nbsp;»), entre ce code&nbsp;:</p>
 [[code||{{ .Token }}]]
 <p class="small">Si la confirmation des deux adresses est activée, un email identique est envoyé à l'ancienne et à la nouvelle adresse&nbsp;: il faut valider les deux. Si tu n'es pas à l'origine de cette demande, ignore cet email et change ton mot de passe.</p>
-[[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}]]
+[[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=fr]]

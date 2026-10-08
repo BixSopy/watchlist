@@ -59,7 +59,7 @@ function _noise(ac,t0,dur,vol,cutoff){
    - opts.reverb : quantité envoyée dans la réverbe partagée (sensation d'espace léger)
    L'enveloppe elle-même est douce : attaque courte mais pas instantanée, puis relâchement
    exponentiel qui laisse le son s'éteindre naturellement au lieu d'être coupé sec. */
-function tone(f,d,t,v,dl,opts){
+function tone(f,d,tt,v,dl,opts){
   if(!soundOn)return;var ac=getAC();if(!ac)return;
   opts=opts||{};
   var t0=ac.currentTime+(dl||0);
@@ -88,7 +88,7 @@ function tone(f,d,t,v,dl,opts){
   }
 
   for(var i=0;i<layers;i++){
-    var o=ac.createOscillator();o.type=t||'sine';
+    var o=ac.createOscillator();o.type=tt||'sine';
     var df=(i-((layers-1)/2))*spread;
     o.frequency.setValueAtTime(f+df,t0);
     if(glide!=null)o.frequency.exponentialRampToValueAtTime(Math.max(20,glide+df),t0+attack+release);

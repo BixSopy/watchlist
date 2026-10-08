@@ -102,5 +102,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/:lang(fr|en)",
+      "destination": "/"
+    }
   ]
 }

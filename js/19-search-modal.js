@@ -1,7 +1,7 @@
 /* MODULE: Modale de recherche/catalogue TMDB (recherche, filtres, parseur de requêtes en langage naturel). */
 var searchState={open:false,query:'',page:1,totalPages:1,results:[],selected:{},loading:false,token:0,lastFocus:null,ignoreFocus:false};
 
-function debounce(fn,delay){var t=null;return function(){var ctx=this,a=arguments;clearTimeout(t);t=setTimeout(function(){fn.apply(ctx,a);},delay||300);};}
+function debounce(fn,delay){var tt=null;return function(){var ctx=this,a=arguments;clearTimeout(tt);tt=setTimeout(function(){fn.apply(ctx,a);},delay||300);};}
 
 function _mediaAppType(mt,item){
   if(mt==='movie')return'film';
@@ -11,7 +11,7 @@ function _mediaAppType(mt,item){
 function _normSR(r){
   var isM=r.media_type==='movie';
   return{key:r.media_type+'-'+r.id,tmdbId:r.id,tmdbType:r.media_type,type:_mediaAppType(r.media_type,r),
-    title:(isM?r.title:r.name)||'Sans titre',year:(isM?(r.release_date||''):(r.first_air_date||'')).slice(0,4),
+    title:(isM?r.title:r.name)||t('search.untitled'),year:(isM?(r.release_date||''):(r.first_air_date||'')).slice(0,4),
     poster:r.poster_path||null,overview:r.overview||'',score:r.vote_average?r.vote_average.toFixed(1):null,
     popularity:r.popularity||0,genreIds:r.genre_ids||[]};
 }
@@ -44,15 +44,15 @@ function _setSearchLoad(on){searchState.loading=!!on;}
 function _updateCounter(){
   var n=Object.keys(searchState.selected).filter(function(k){return !!searchState.selected[k];}).length;
   var c=document.getElementById('searchCounter'),b=document.getElementById('searchAddBtn');
-  if(c)c.textContent=n+' sélectionné'+(n>1?'s':'');
-  if(b){b.disabled=n===0;b.textContent='Ajouter '+n+' sélectionné'+(n>1?'s':'');}
+  if(c)c.textContent=tn('search.selected',n);
+  if(b){b.disabled=n===0;b.textContent=tn('search.addSelected',n);}
 }
 function _updatePager(){
-  document.getElementById('searchPageInd').textContent='Page '+searchState.page;
+  document.getElementById('searchPageInd').textContent=t('search.page',{n:searchState.page});
   document.getElementById('searchPrevBtn').disabled=searchState.page<=1||searchState.loading;
   document.getElementById('searchNextBtn').disabled=searchState.page>=searchState.totalPages||searchState.loading||!searchState.results.length;
 }
-function _stateText(t){var el=document.getElementById('searchState');if(el)el.textContent=t;}
+function _stateText(tt){var el=document.getElementById('searchState');if(el)el.textContent=tt;}
 
 function openSearchModal(prefill){
   searchState.open=true;searchState.lastFocus=document.activeElement;
@@ -61,7 +61,7 @@ function openSearchModal(prefill){
   var q=typeof prefill==='string'?prefill:(document.getElementById('tmdbSearchInput').value||'').trim();
   document.getElementById('searchModalInput').value=q;
   searchState.query=q;_updateCounter();_updatePager();
-  _stateText(q.length>=2?'Recherche en cours...':'Tape au moins 2 caractères');
+  _stateText(q.length>=2?t('search.searching'):t('search.min2'));
   /* Focus immédiat : sur iOS le clavier ne s'ouvre que si focus() est appelé pendant le geste (tap) */
   var mi=document.getElementById('searchModalInput');
   try{mi.focus({preventScroll:true});}catch(_){}
@@ -94,7 +94,12 @@ var GENRE_MAP={
   mystere:{movie:9648,tv:9648},romance:{movie:10749,tv:null},scifi:{movie:878,tv:10765},
   sciencefiction:{movie:878,tv:10765},sf:{movie:878,tv:10765},thriller:{movie:53,tv:null},
   guerre:{movie:10752,tv:10768},western:{movie:37,tv:37},kids:{movie:null,tv:10762},
-  enfant:{movie:null,tv:10762}
+  enfant:{movie:null,tv:10762},
+  /* Mots-clés anglais (interface en anglais) */
+  adventure:{movie:12,tv:10759},comedy:{movie:35,tv:35},documentary:{movie:99,tv:99},
+  drama:{movie:18,tv:18},family:{movie:10751,tv:10751},fantasy:{movie:14,tv:10765},
+  history:{movie:36,tv:null},horror:{movie:27,tv:null},music:{movie:10402,tv:null},
+  mystery:{movie:9648,tv:9648},war:{movie:10752,tv:10768}
 };
 function _normTok(s){return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9+>]/g,'');}
 /* Retourne null si rien de structuré n'est reconnu (→ fallback recherche classique) */
@@ -103,16 +108,16 @@ function _parseStructuredQuery(q){
   if(!tokens.length)return null;
   var genreIds={movie:[],tv:[]},year=null,minScore=null,forcedType=null,forceAnime=false,textParts=[],matchedSomething=false,explicit=false;
   tokens.forEach(function(raw){
-    var t=_normTok(raw);
-    if(!t){textParts.push(raw);return;}
-    if(/^(19|20)\d{2}$/.test(t)){year=t;matchedSomething=true;return;}
-    var rm=t.match(/^(?:note)?([1-9])\+$/)||t.match(/^>([1-9])$/);
+    var tt=_normTok(raw);
+    if(!tt){textParts.push(raw);return;}
+    if(/^(19|20)\d{2}$/.test(tt)){year=tt;matchedSomething=true;return;}
+    var rm=tt.match(/^(?:note)?([1-9])\+$/)||tt.match(/^>([1-9])$/);
     if(rm){minScore=parseInt(rm[1],10);matchedSomething=explicit=true;return;}
-    if(t==='film'||t==='films'){forcedType='movie';matchedSomething=explicit=true;return;}
-    if(t==='serie'||t==='series'||t==='tv'){forcedType='tv';matchedSomething=explicit=true;return;}
-    if(t==='anime'){forceAnime=true;forcedType='tv';matchedSomething=explicit=true;return;}
-    if(GENRE_MAP[t]){
-      var g=GENRE_MAP[t];
+    if(tt==='film'||tt==='films'||tt==='movie'||tt==='movies'){forcedType='movie';matchedSomething=explicit=true;return;}
+    if(tt==='serie'||tt==='series'||tt==='tv'||tt==='show'||tt==='shows'){forcedType='tv';matchedSomething=explicit=true;return;}
+    if(tt==='anime'){forceAnime=true;forcedType='tv';matchedSomething=explicit=true;return;}
+    if(GENRE_MAP[tt]){
+      var g=GENRE_MAP[tt];
       if(g.movie)genreIds.movie.push(g.movie);
       if(g.tv)genreIds.tv.push(g.tv);
       matchedSomething=explicit=true;return;
@@ -139,7 +144,7 @@ function _discoverStructured(parsed,page,sortBy){
   var calls=[];
   parsed.mtypes.forEach(function(mt){
     var gids=parsed.genreIds[mt]||[];
-    var params='?language=fr-FR&page='+page+'&sort_by='+(sortBy||'popularity.desc');
+    var params='?language='+TMDB_LANG+'&page='+page+'&sort_by='+(sortBy||'popularity.desc');
     if(gids.length)params+='&with_genres='+gids.join(',');
     if(parsed.year)params+=(mt==='movie'?'&primary_release_date.gte=':'&first_air_date.gte=')+parsed.year+'-01-01';
     if(parsed.minScore)params+='&vote_average.gte='+parsed.minScore;
@@ -215,7 +220,7 @@ function _searchTMDB(q,page){
      filtre d'année, de genre et tri appliqués côté client sur la page de résultats */
   if(typeFilter&&sortFilter){
     var ep=typeFilter==='movie'?'/search/movie':'/search/tv';
-    var params='?language=fr-FR&page='+page+'&include_adult=false&query='+encodeURIComponent(q);
+    var params='?language='+TMDB_LANG+'&page='+page+'&include_adult=false&query='+encodeURIComponent(q);
     var url2=TB+ep+params;
     return tf(url2).then(function(data){
       var mtype=typeFilter;
@@ -238,7 +243,7 @@ function _searchTMDB(q,page){
     });
   }
   /* Sinon search/multi standard + filtres type/genre/année/tri appliqués côté client */
-  var url=TB+'/search/multi?language=fr-FR&query='+encodeURIComponent(q)+'&page='+page+'&include_adult=false';
+  var url=TB+'/search/multi?language='+TMDB_LANG+'&query='+encodeURIComponent(q)+'&page='+page+'&include_adult=false';
   return tf(url).then(function(data){
     var rows=(data.results||[]).filter(function(r){
       if(!(r.media_type==='movie'||r.media_type==='tv'))return false;
@@ -264,13 +269,13 @@ function _searchTMDB(q,page){
 
 function _renderSR(results){
   var wrap=document.getElementById('searchResults');
-  if(!results||!results.length){wrap.innerHTML='<div class="search-empty">Aucun résultat.</div>';_updateCounter();_updatePager();return;}
+  if(!results||!results.length){wrap.innerHTML='<div class="search-empty">'+esc(t('search.noResult'))+'</div>';_updateCounter();_updatePager();return;}
   wrap.innerHTML=results.map(function(d){
     var inList=_inList(d.tmdbId);var sel=!!searchState.selected[d.key];
     var poster=d.poster?'<img class="search-poster" src=\"'+IB+'w185'+esc(d.poster)+'\" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'<div class="search-poster-ph">'+icon(d.type)+'</div>';
-    var chk='<button class="search-check'+(sel?' on':'')+'" type="button" aria-label="Sélectionner '+esc(d.title)+'" aria-pressed="'+(sel?'true':'false')+'" '+(inList?'disabled':'')+' onclick="event.stopPropagation();toggleSCard(\''+esc(d.key)+'\')"><span class="search-check-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg></span></button>';
-    var stag=inList?'<div class="search-status-tag off">Déjà dans ta liste</div>':'<div class="search-status-tag ok">Ajoutable</div>';
-    return '<article class="search-card'+(sel?' selected':'')+(inList?' disabled':'')+'" data-key="'+esc(d.key)+'" tabindex="0">'+chk+'<div class="search-poster-wrap">'+poster+'</div><div class="search-body"><div class="search-title">'+esc(d.title)+'</div><div class="search-meta">'+tbadge(d.type)+'<span class="search-year">'+esc(d.year)+'</span>'+(d.score?'<span class="badge bec">★ '+esc(String(d.score))+'</span>':'')+'</div><div class="search-overview">'+esc(d.overview||'Aucune description.')+'</div>'+stag+'</div></article>';
+    var chk='<button class="search-check'+(sel?' on':'')+'" type="button" aria-label="'+esc(t('search.select',{title:d.title}))+'" aria-pressed="'+(sel?'true':'false')+'" '+(inList?'disabled':'')+' onclick="event.stopPropagation();toggleSCard(\''+esc(d.key)+'\')"><span class="search-check-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg></span></button>';
+    var stag=inList?'<div class="search-status-tag off">'+esc(t('search.inList'))+'</div>':'<div class="search-status-tag ok">'+esc(t('search.addable'))+'</div>';
+    return '<article class="search-card'+(sel?' selected':'')+(inList?' disabled':'')+'" data-key="'+esc(d.key)+'" tabindex="0">'+chk+'<div class="search-poster-wrap">'+poster+'</div><div class="search-body"><div class="search-title">'+esc(d.title)+'</div><div class="search-meta">'+tbadge(d.type)+'<span class="search-year">'+esc(d.year)+'</span>'+(d.score?'<span class="badge bec">★ '+esc(String(d.score))+'</span>':'')+'</div><div class="search-overview">'+esc(d.overview||t('plex.noOverview'))+'</div>'+stag+'</div></article>';
   }).join('');
   _updateCounter();_updatePager();
 }
@@ -289,8 +294,8 @@ function addSelectedBatch(){
   var added=0,skipped=0;
   sel.forEach(function(d){var r=addSearchEntryDirect(d);if(r.ok)added++;else skipped++;});
   searchState.selected={};_updateCounter();
-  if(added){render();loadRecos();toast(added+' titre'+(added>1?'s':'')+' ajouté'+(added>1?'s':'')+' · à qualifier');sfx('add');}
-  else{toast('Aucun titre ajoutable.','nfo');}
+  if(added){render();loadRecos();toast(tn('search.added',added));sfx('add');}
+  else{toast(t('search.noneAddable'),'nfo');}
   _renderSR(searchState.results);
 }
 
@@ -298,21 +303,21 @@ function _runSearch(query,page){
   var q=(query||'').trim();searchState.query=q;searchState.page=page||1;searchState.token++;var tok=searchState.token;
   var sfGenre=document.getElementById('sfGenre');
   var genreOnly=q.length<2&&sfGenre&&sfGenre.value;
-  if(q.length<2&&!genreOnly){searchState.results=[];searchState.totalPages=1;_stateText('Tape au moins 2 caractères');_renderSR([]);return;}
-  _setSearchLoad(true);_stateText(genreOnly?'Parcours en cours…':'Recherche de "'+q+'"…');
+  if(q.length<2&&!genreOnly){searchState.results=[];searchState.totalPages=1;_stateText(t('search.min2'));_renderSR([]);return;}
+  _setSearchLoad(true);_stateText(genreOnly?t('search.browsing'):t('search.searchingFor',{q:q}));
   _searchTMDB(q,searchState.page).then(function(res){
     if(tok!==searchState.token)return;
     searchState.results=res.results||[];searchState.page=res.page||1;searchState.totalPages=res.total_pages||1;
-    _stateText((res.total_results||searchState.results.length)+' résultat'+(((res.total_results||searchState.results.length)>1)?'s':'')+' · page '+searchState.page);
+    _stateText(tn('search.results',(res.total_results||searchState.results.length),{page:searchState.page}));
     _renderSR(searchState.results);
   }).catch(function(e){
     if(tok!==searchState.token)return;
     searchState.results=[];_renderSR([]);
-    if(e&&e.code==='AUTH_REQUIRED'){_stateText('Connecte-toi ou crée un compte gratuit (bouton « Se connecter » en haut) pour rechercher dans le catalogue.');return;}
-    if(e&&e.code==='FORBIDDEN'){_stateText('Ce compte n\'a pas accès au catalogue.');return;}
-    if(e&&e.code==='UNCONFIRMED'){_stateText('Confirme ton adresse email (lien reçu à l\'inscription) pour rechercher dans le catalogue.');return;}
-    if(e&&e.code==='QUOTA'){_stateText('Quota quotidien du catalogue atteint : la recherche revient demain.');return;}
-    _stateText('Erreur réseau / TMDB.');toast('Erreur TMDB','err');sfx('err');
+    if(e&&e.code==='AUTH_REQUIRED'){_stateText(t('search.err.login'));return;}
+    if(e&&e.code==='FORBIDDEN'){_stateText(t('api.msg.forbidden'));return;}
+    if(e&&e.code==='UNCONFIRMED'){_stateText(t('search.err.unconfirmed'));return;}
+    if(e&&e.code==='QUOTA'){_stateText(t('search.err.quota'));return;}
+    _stateText(t('search.err.network'));toast(t('search.err.tmdb'),'err');sfx('err');
   }).finally(function(){if(tok!==searchState.token)return;_setSearchLoad(false);_updatePager();});
 }
 function searchPage(delta){if(searchState.loading)return;var n=searchState.page+delta;if(n<1||n>searchState.totalPages)return;_runSearch(searchState.query,n);}
@@ -352,13 +357,13 @@ function bindSearchModalEvents(){
 
 // ===== DÉTECTION OFFLINE / ONLINE =====
 window.addEventListener('online', function() {
-  console.log('[' + new Date().toLocaleTimeString() + '] ✓ App en ligne');
+  console.log('[' + new Date().toLocaleTimeString(LOCALE) + '] ✓ App en ligne');
   if (typeof loadRecos === 'function') loadRecos();
   if (authProfileId) syncNow();
   else updateSyncStatusUI(authUser?'synced':'anon');
 });
 window.addEventListener('offline', function() {
-  console.warn('[' + new Date().toLocaleTimeString() + '] ⚠ App HORS LIGNE — TMDB inaccessible');
+  console.warn('[' + new Date().toLocaleTimeString(LOCALE) + '] ⚠ App HORS LIGNE — TMDB inaccessible');
   if (authUser) updateSyncStatusUI('offline');
 });
 
@@ -371,6 +376,6 @@ function updateStatsFooter() {
   var termine = items.filter(function(w) { return w.status === 'termine'; }).length;
   var encours = items.filter(function(w) { return w.status === 'encours'; }).length;
   var avoir   = items.filter(function(w) { return w.status === 'avoir'; }).length;
-  el.textContent = items.length + ' titres — ' + termine + ' terminés · ' + encours + ' en cours · ' + avoir + ' à voir';
+  el.textContent = t('footer.stats', {n: fmtNum(items.length), done: fmtNum(termine), watching: fmtNum(encours), towatch: fmtNum(avoir)});
 }
 

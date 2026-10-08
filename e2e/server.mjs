@@ -1,5 +1,5 @@
 /* Mini serveur de test : sert les fichiers du site comme Vercel (liste blanche .vercelignore,
-   en-têtes de vercel.json dont la CSP, cleanUrls) et simule les fonctions /api.
+   en-têtes de vercel.json dont la CSP, cleanUrls, rewrites) et simule les fonctions /api.
    La CSP est appliquée telle quelle (sauf upgrade-insecure-requests, inutile en http local). */
 import http from 'node:http';
 import fs from 'node:fs';
@@ -39,6 +39,11 @@ export function startServer({ config = { turnstileSiteKey: '', signupsOpen: true
       if (p === '/api/config') return send(200, JSON.stringify(state.config), 'application/json');
       if (!req.headers.authorization) return send(401, JSON.stringify({ error: 'unauthorized' }), 'application/json');
       return send(200, JSON.stringify({ results: [], page: 1, total_pages: 1, total_results: 0 }), 'application/json');
+    }
+    /* rewrites de vercel.json (ex. /fr, /en → /), appliquées quand aucun fichier ne correspond */
+    for (const r of vercel.rewrites || []) {
+      const re = new RegExp('^' + r.source.replace(/:(\w+)\(([^)]+)\)/g, '($2)') + '$');
+      if (re.test(p) && !fs.existsSync(path.join(ROOT, p + (vercel.cleanUrls ? '.html' : '')))) { p = r.destination; break; }
     }
     if (p === '/') p = '/index.html';
     if (vercel.cleanUrls && !path.extname(p)) p += '.html';

@@ -1,9 +1,17 @@
-# Watchlist — app de bureau (Windows)
+# Cinepisode — app de bureau (Windows)
 
-Coquille Tauri minimale : la fenêtre affiche directement `https://watchlist-omega-three.vercel.app`
-(aucun code web dupliqué ici — tout changement déployé sur Vercel apparaît instantanément dans
+Coquille Tauri minimale : la fenêtre affiche directement `https://cinepisode.com`
+(`baseUrl` de `brand.config.json` ; aucun code web dupliqué ici — tout changement déployé sur Vercel apparaît instantanément dans
 l'app, sans rebuild). Seule la coquille native (icône, fenêtre, mise à jour automatique) vit dans
-ce dossier.
+ce dossier. Aucun texte d'interface n'est codé ici : l'app est en français ou en anglais comme
+le site (choix enregistré dans l'app, sinon langue de Windows).
+
+> Les installations existantes (1.0.0) pointent vers `watchlist-omega-three.vercel.app` (adresse et canal de mise
+> à jour). Ce domaine doit rester attaché au projet Vercel pour qu’elles se mettent à jour vers une
+> version qui pointe vers `cinepisode.com`. Les données locales (liste hors compte, réglages) sont
+> liées à l'adresse : après cette mise à jour, il faut se reconnecter, et une liste non synchronisée
+> à un compte ne suit pas. L'identifiant `com.watchlistcine.app` et le nom de crate `watchlist`
+> sont conservés volontairement (changer l'un ou l'autre casse la mise à jour des installations).
 
 ## Mise en place (une seule fois)
 

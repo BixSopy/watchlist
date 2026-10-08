@@ -49,16 +49,16 @@ function captchaMount(el){
       if(!document.body.contains(el))return;
       if(_ts.widgetId!=null){try{ts.remove(_ts.widgetId);}catch(e){}_ts.widgetId=null;}
       _ts.widgetId=ts.render(el,{
-        sitekey:cfg.turnstileSiteKey,theme:'dark',language:'fr',size:'flexible',appearance:'interaction-only',
+        sitekey:cfg.turnstileSiteKey,theme:'dark',language:LANG,size:'flexible',appearance:'interaction-only',
         action:'auth',
-        callback:function(t){_ts.token=t;_ts.failed=false;_captchaFlush(null,t);},
+        callback:function(tt){_ts.token=tt;_ts.failed=false;_captchaFlush(null,tt);},
         'expired-callback':function(){_ts.token=null;},
         'error-callback':function(){_ts.token=null;_ts.failed=true;_captchaFlush(new Error('captcha_failed'));}
       });
     });
   }).catch(function(){
     _ts.failed=true;_captchaFlush(new Error('captcha_unavailable'));
-    showAuthMsg('Impossible de charger la vérification anti-robot (bloqueur de contenu ?). Désactive-le pour ce site puis recharge la page.','err');
+    showAuthMsg(t('auth.captchaLoadFailed'),'err');
   });
 }
 /* Promesse du jeton CAPTCHA (undefined si le CAPTCHA n'est pas configuré) */
@@ -69,8 +69,8 @@ function captchaToken(){
     if(_ts.failed){var e=new Error('captcha_failed');e.code='captcha_failed';throw e;}
     return new Promise(function(resolve,reject){
       var done=false;
-      var t=setTimeout(function(){if(done)return;done=true;var e=new Error('captcha_timeout');e.code='captcha_timeout';reject(e);},20000);
-      _ts.waiters.push(function(err,tok){if(done)return;done=true;clearTimeout(t);if(err){err.code='captcha_failed';reject(err);}else resolve(tok);});
+      var tt=setTimeout(function(){if(done)return;done=true;var e=new Error('captcha_timeout');e.code='captcha_timeout';reject(e);},20000);
+      _ts.waiters.push(function(err,tok){if(done)return;done=true;clearTimeout(tt);if(err){err.code='captcha_failed';reject(err);}else resolve(tok);});
     });
   });
 }
@@ -80,65 +80,65 @@ function captchaReset(){
   if(window.turnstile&&_ts.widgetId!=null){try{window.turnstile.reset(_ts.widgetId);}catch(e){}}
 }
 
-/* ---------- Messages d'erreur en français ---------- */
+/* ---------- Messages d'erreur (traduits, voir js/i18n/) ---------- */
 var AUTH_ERRORS={
-  invalid_credentials:'Email ou mot de passe incorrect.',
-  email_not_confirmed:'Ton adresse email n\'est pas encore confirmée. Clique sur le lien reçu par email, ou demande un nouvel envoi.',
-  user_already_exists:'Un compte existe déjà avec cette adresse. Connecte-toi ou réinitialise ton mot de passe.',
-  email_exists:'Un compte existe déjà avec cette adresse.',
-  signup_disabled:'Les inscriptions sont fermées pour le moment.',
-  email_provider_disabled:'Les inscriptions sont fermées pour le moment.',
-  over_email_send_rate_limit:'Trop d\'emails envoyés à cette adresse. Patiente quelques minutes avant de réessayer.',
-  over_request_rate_limit:'Trop de tentatives. Patiente quelques minutes avant de réessayer.',
-  captcha_failed:'La vérification anti-robot a échoué. Réessaie.',
-  captcha_timeout:'La vérification anti-robot prend trop de temps. Réessaie ou recharge la page.',
-  otp_expired:'Ce lien ou ce code a expiré ou a déjà été utilisé. Demandes-en un nouveau.',
-  email_address_invalid:'Cette adresse email n\'est pas acceptée. Utilise une autre adresse.',
-  email_address_not_authorized:'L\'envoi d\'emails vers cette adresse n\'est pas encore configuré. Réessaie plus tard.',
-  same_password:'Le nouveau mot de passe doit être différent de l\'actuel.',
-  reauthentication_needed:'Pour ta sécurité, confirme avec le code envoyé par email.',
-  reauthentication_not_valid:'Code de vérification incorrect ou expiré.',
-  session_not_found:'Ta session a expiré. Reconnecte-toi.',
-  session_expired:'Ta session a expiré. Reconnecte-toi.',
-  refresh_token_not_found:'Ta session a expiré. Reconnecte-toi.',
-  user_banned:'Ce compte est suspendu.',
-  user_not_found:'Aucun compte n\'est associé à cette adresse.',
-  otp_disabled:'Aucun compte n\'est associé à cette adresse.',
-  validation_failed:'Vérifie l\'adresse email saisie.',
-  invite_not_found:'Cette invitation a expiré ou a déjà été utilisée.',
-  conflict:'Opération déjà en cours, réessaie dans un instant.'
+  invalid_credentials:t('autherr.invalid_credentials'),
+  email_not_confirmed:t('autherr.email_not_confirmed'),
+  user_already_exists:t('autherr.user_already_exists'),
+  email_exists:t('autherr.email_exists'),
+  signup_disabled:t('autherr.signup_disabled'),
+  email_provider_disabled:t('autherr.email_provider_disabled'),
+  over_email_send_rate_limit:t('autherr.over_email_send_rate_limit'),
+  over_request_rate_limit:t('autherr.over_request_rate_limit'),
+  captcha_failed:t('autherr.captcha_failed'),
+  captcha_timeout:t('autherr.captcha_timeout'),
+  otp_expired:t('autherr.otp_expired'),
+  email_address_invalid:t('autherr.email_address_invalid'),
+  email_address_not_authorized:t('autherr.email_address_not_authorized'),
+  same_password:t('autherr.same_password'),
+  reauthentication_needed:t('autherr.reauthentication_needed'),
+  reauthentication_not_valid:t('autherr.reauthentication_not_valid'),
+  session_not_found:t('autherr.session_not_found'),
+  session_expired:t('autherr.session_expired'),
+  refresh_token_not_found:t('autherr.refresh_token_not_found'),
+  user_banned:t('autherr.user_banned'),
+  user_not_found:t('autherr.user_not_found'),
+  otp_disabled:t('autherr.otp_disabled'),
+  validation_failed:t('autherr.validation_failed'),
+  invite_not_found:t('autherr.invite_not_found'),
+  conflict:t('autherr.conflict')
 };
 function authErrorMessage(e){
-  if(!e)return 'Une erreur est survenue. Réessaie dans un instant.';
+  if(!e)return t('autherr.generic');
   var code=e.code||e.error_code||'',msg=String(e.message||'');
   if(code==='weak_password'||e.name==='AuthWeakPasswordError'){
     var rs=e.reasons||[];
-    if(rs.indexOf('pwned')>=0)return 'Ce mot de passe figure dans des fuites de données connues. Choisis-en un autre.';
-    if(rs.indexOf('length')>=0)return 'Mot de passe trop court : '+AUTH_PW_MIN+' caractères minimum.';
-    if(rs.indexOf('characters')>=0)return 'Mot de passe trop simple : mélange minuscules, majuscules, chiffres et symboles.';
-    return 'Mot de passe trop faible. Choisis-en un plus long et plus varié.';
+    if(rs.indexOf('pwned')>=0)return t('autherr.pwned');
+    if(rs.indexOf('length')>=0)return t('autherr.pwShort',{n:AUTH_PW_MIN});
+    if(rs.indexOf('characters')>=0)return t('autherr.pwSimple');
+    return t('autherr.pwWeak');
   }
   if(AUTH_ERRORS[code])return AUTH_ERRORS[code];
   if(/captcha/i.test(msg))return AUTH_ERRORS.captcha_failed;
   if(/signups? not allowed for otp/i.test(msg))return AUTH_ERRORS.user_not_found;
   if(/expired|invalid.*(token|otp)|token.*invalid/i.test(msg))return AUTH_ERRORS.otp_expired;
   if(e.status===429)return AUTH_ERRORS.over_request_rate_limit;
-  if(e.name==='AuthRetryableFetchError'||/fetch|network|load failed/i.test(msg))return 'Connexion au serveur impossible. Vérifie ta connexion internet.';
-  return 'Une erreur est survenue. Réessaie dans un instant.';
+  if(e.name==='AuthRetryableFetchError'||/fetch|network|load failed/i.test(msg))return t('autherr.network');
+  return t('autherr.generic');
 }
 
 /* ---------- Validation ---------- */
 function _validEmail(s){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)&&s.length<=254;}
 function _utf8Len(s){try{return new TextEncoder().encode(s).length;}catch(e){return s.length;}}
-var AUTH_WEAK_PW=['motdepasse','password','azerty','qwerty','123456','abcdef','watchlist','cinepisode',String(BRAND.name).toLowerCase().replace(/[^a-z0-9]/g,''),'netflix','soleil','bonjour'];
+var AUTH_WEAK_PW=['motdepasse','password','azerty','qwerty','123456','abcdef','watchlist','cinepisode',String(BRAND.name).toLowerCase().replace(/[^a-z0-9]/g,''),'netflix','soleil','bonjour','sunshine','letmein','iloveyou'];
 /* Renvoie un message d'erreur, ou '' si le mot de passe est acceptable */
 function passwordProblem(pw,email){
-  if(!pw||pw.length<AUTH_PW_MIN)return 'Le mot de passe doit faire au moins '+AUTH_PW_MIN+' caractères.';
-  if(_utf8Len(pw)>AUTH_PW_MAX_BYTES)return 'Le mot de passe est trop long ('+AUTH_PW_MAX_BYTES+' caractères maximum).';
-  if(/^(.)\1+$/.test(pw))return 'Le mot de passe ne peut pas être un seul caractère répété.';
+  if(!pw||pw.length<AUTH_PW_MIN)return t('pw.min',{n:AUTH_PW_MIN});
+  if(_utf8Len(pw)>AUTH_PW_MAX_BYTES)return t('pw.max',{n:AUTH_PW_MAX_BYTES});
+  if(/^(.)\1+$/.test(pw))return t('pw.repeated');
   var low=pw.toLowerCase(),local=String(email||'').split('@')[0].toLowerCase();
-  if(local.length>=4&&low.indexOf(local)>=0)return 'Le mot de passe ne doit pas contenir ton adresse email.';
-  for(var i=0;i<AUTH_WEAK_PW.length;i++){if(low.replace(/[^a-z0-9]/g,'')===AUTH_WEAK_PW[i]||low.replace(/[^a-z0-9]/g,'').replace(/(.+)\1+/,'$1')===AUTH_WEAK_PW[i])return 'Ce mot de passe est trop courant.';}
+  if(local.length>=4&&low.indexOf(local)>=0)return t('pw.containsEmail');
+  for(var i=0;i<AUTH_WEAK_PW.length;i++){if(low.replace(/[^a-z0-9]/g,'')===AUTH_WEAK_PW[i]||low.replace(/[^a-z0-9]/g,'').replace(/(.+)\1+/,'$1')===AUTH_WEAK_PW[i])return t('pw.common');}
   return '';
 }
 /* Score 0..4 indicatif (longueur + variété), affiché sous le champ */
@@ -153,7 +153,7 @@ function passwordScore(pw){
   if(pw.length<AUTH_PW_MIN)s=Math.min(s,1);
   return s;
 }
-var PW_LABELS=['Trop court','Faible','Correct','Solide','Excellent'];
+var PW_LABELS=[t('pw.s0'),t('pw.s1'),t('pw.s2'),t('pw.s3'),t('pw.s4')];
 
 /* ---------- Utilitaires d'interface ---------- */
 function _authRedirect(){return location.origin+'/';}
@@ -164,22 +164,22 @@ function showAuthMsg(msg,kind){
 }
 function _authBusyBtn(btn,busy,label){
   _authBusy=busy;if(!btn)return;btn.disabled=busy;
-  if(busy){btn.dataset.label=btn.textContent;btn.innerHTML='<span class="auth-spin" aria-hidden="true"></span>'+esc(label||'Patiente…');}
+  if(busy){btn.dataset.label=btn.textContent;btn.innerHTML='<span class="auth-spin" aria-hidden="true"></span>'+esc(label||t('common.wait'));}
   else if(btn.dataset.label){btn.textContent=btn.dataset.label;}
 }
 function _val(id){var el=document.getElementById(id);return el?String(el.value||''):'';}
 function _pwField(id,label,autocomplete,withMeter){
   return '<div class="field"><label for="'+id+'">'+label+'</label><div class="pw-wrap">'+
     '<input type="password" id="'+id+'" autocomplete="'+autocomplete+'" maxlength="128" '+(withMeter?'aria-describedby="'+id+'Meter" ':'')+'spellcheck="false">'+
-    '<button type="button" class="pw-eye" onclick="togglePwVisibility(\''+id+'\',this)" aria-label="Afficher le mot de passe">'+
+    '<button type="button" class="pw-eye" onclick="togglePwVisibility(\''+id+'\',this)" aria-label="'+esc(t('pw.show'))+'">'+
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>'+
-    (withMeter?'<div class="pw-meter" id="'+id+'Meter"><div class="pw-meter-bar"><span></span></div><div class="pw-meter-lbl">'+AUTH_PW_MIN+' caractères minimum</div></div>':'')+
+    (withMeter?'<div class="pw-meter" id="'+id+'Meter"><div class="pw-meter-bar"><span></span></div><div class="pw-meter-lbl">'+esc(t('pw.minShort',{n:AUTH_PW_MIN}))+'</div></div>':'')+
     '</div>';
 }
 function togglePwVisibility(id,btn){
   var el=document.getElementById(id);if(!el)return;
   var show=el.type==='password';el.type=show?'text':'password';
-  btn.setAttribute('aria-label',show?'Masquer le mot de passe':'Afficher le mot de passe');
+  btn.setAttribute('aria-label',show?t('pw.hide'):t('pw.show'));
   btn.classList.toggle('on',show);
 }
 function _bindPwMeter(id){
@@ -187,16 +187,16 @@ function _bindPwMeter(id){
   el.addEventListener('input',function(){
     var s=el.value?passwordScore(el.value):0;
     m.className='pw-meter s'+s+(el.value?' on':'');
-    m.querySelector('.pw-meter-lbl').textContent=el.value?(PW_LABELS[s]+(el.value.length<AUTH_PW_MIN?' · encore '+(AUTH_PW_MIN-el.value.length)+' caractère'+(AUTH_PW_MIN-el.value.length>1?'s':''):'')):AUTH_PW_MIN+' caractères minimum';
+    m.querySelector('.pw-meter-lbl').textContent=el.value?(PW_LABELS[s]+(el.value.length<AUTH_PW_MIN?' · '+tn('pw.remaining',AUTH_PW_MIN-el.value.length):'')):t('pw.minShort',{n:AUTH_PW_MIN});
   });
 }
 function _codeField(){
-  return '<div class="field"><label for="authCode">Code reçu par email</label>'+
+  return '<div class="field"><label for="authCode">'+esc(t('auth.codeLabel'))+'</label>'+
     '<input type="text" id="authCode" class="auth-code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" pattern="[0-9]*"></div>';
 }
 function _link(view,label){return '<button type="button" class="auth-link" onclick="authGo(\''+view+'\')">'+label+'</button>';}
 function _legalLinks(){
-  return '<a href="'+BRAND.legal.terms+'" target="_blank" rel="noopener">conditions d\'utilisation</a> et la <a href="'+BRAND.legal.privacy+'" target="_blank" rel="noopener">politique de confidentialité</a>';
+  return t('auth.consent',{terms:'<a href="'+esc(legalUrl('terms'))+'" target="_blank" rel="noopener">'+esc(t('auth.termsLink'))+'</a>',privacy:'<a href="'+esc(legalUrl('privacy'))+'" target="_blank" rel="noopener">'+esc(t('auth.privacyLink'))+'</a>'});
 }
 function _maskEmail(e){return esc(e||'');}
 
@@ -241,26 +241,27 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
 var CAPTCHA_SLOT='<div class="auth-captcha" style="display:none"></div>';
 var AUTH_VIEWS={
   login:{
-    title:function(){return 'Connexion';},
+    title:function(){return esc(t('auth.login'));},
     html:function(c){
-      return '<div class="auth-tabs" role="tablist"><button type="button" class="auth-tab on" role="tab" aria-selected="true">Connexion</button>'+
-        '<button type="button" class="auth-tab" role="tab" aria-selected="false" id="authTabSignup" onclick="authGo(\'signup\')">Créer un compte</button></div>'+
+      return '<div class="auth-tabs" role="tablist"><button type="button" class="auth-tab on" role="tab" aria-selected="true">'+esc(t('auth.login'))+'</button>'+
+        '<button type="button" class="auth-tab" role="tab" aria-selected="false" id="authTabSignup" onclick="authGo(\'signup\')">'+esc(t('auth.createAccount'))+'</button></div>'+
         '<form novalidate autocomplete="on">'+
-        '<div class="field"><label for="authEmail">Email</label><input type="email" id="authEmail" autocomplete="username" placeholder="toi@exemple.com" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
-        _pwField('authPassword','Mot de passe','current-password',false)+
-        '<div class="auth-row-right">'+_link('forgot','Mot de passe oublié&nbsp;?')+'</div>'+CAPTCHA_SLOT+
-        '<button type="submit" class="btn btn-primary auth-submit">Se connecter</button></form>'+
-        '<div class="auth-alt">'+_link('magic','Recevoir un lien de connexion par email')+' · '+_link('code','J\'ai un code')+'</div>'+
-        '<div class="auth-local-note">Sans compte, ta liste reste sur cet appareil et le catalogue (recherche, recommandations) est désactivé.</div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">Continuer sans compte</button></div>';
+        '<div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
+        _pwField('authPassword',esc(t('auth.password')),'current-password',false)+
+        '<div class="auth-row-right">'+_link('forgot',esc(t('auth.forgotLink')))+'</div>'+CAPTCHA_SLOT+
+        '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.signIn'))+'</button></form>'+
+        '<div class="auth-alt">'+_link('magic',esc(t('auth.magicLink')))+' · '+_link('code',esc(t('auth.haveCode')))+'</div>'+
+        '<div class="auth-local-note">'+esc(t('auth.localNote'))+'</div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">'+esc(t('auth.continueWithout'))+'</button></div>'+
+        langSwitcherHtml('lang-switch-auth',"{reopen:{auth:'login'}}");
     },
-    after:function(){loadPublicConfig().then(function(cfg){var t=document.getElementById('authTabSignup');if(t&&!cfg.signupsOpen)t.style.display='none';});},
+    after:function(){loadPublicConfig().then(function(cfg){var tt=document.getElementById('authTabSignup');if(tt&&!cfg.signupsOpen)tt.style.display='none';});},
     submit:function(btn){
       var email=_val('authEmail').trim(),pass=_val('authPassword');
-      if(!_validEmail(email))return showAuthMsg('Saisis une adresse email valide.');
-      if(!pass)return showAuthMsg('Saisis ton mot de passe.');
+      if(!_validEmail(email))return showAuthMsg(t('auth.err.email'));
+      if(!pass)return showAuthMsg(t('auth.err.password'));
       _authCtx.email=email;
-      _authBusyBtn(btn,true,'Connexion…');
+      _authBusyBtn(btn,true,t('auth.busy.signingIn'));
       captchaToken().then(function(captcha){
         return supa.auth.signInWithPassword({email:email,password:pass,options:{captchaToken:captcha}});
       }).then(function(res){
@@ -269,38 +270,39 @@ var AUTH_VIEWS={
           if(res.error.code==='email_not_confirmed')return authGo('check',{email:email,kind:'signup',notice:AUTH_ERRORS.email_not_confirmed});
           return showAuthMsg(authErrorMessage(res.error));
         }
-        toast('Connecté','ok');authGo('account');
+        toast(t('auth.toast.signedIn'),'ok');authGo('account');
       }).catch(function(e){captchaReset();_authBusyBtn(btn,false);showAuthMsg(authErrorMessage(e));});
     }
   },
   signup:{
-    title:function(){return 'Créer un compte';},
+    title:function(){return esc(t('auth.createAccount'));},
     html:function(c){
-      return '<div class="auth-tabs" role="tablist"><button type="button" class="auth-tab" role="tab" aria-selected="false" onclick="authGo(\'login\')">Connexion</button>'+
-        '<button type="button" class="auth-tab on" role="tab" aria-selected="true">Créer un compte</button></div>'+
+      return '<div class="auth-tabs" role="tablist"><button type="button" class="auth-tab" role="tab" aria-selected="false" onclick="authGo(\'login\')">'+esc(t('auth.login'))+'</button>'+
+        '<button type="button" class="auth-tab on" role="tab" aria-selected="true">'+esc(t('auth.createAccount'))+'</button></div>'+
         '<form novalidate autocomplete="on">'+
-        '<div class="field"><label for="authEmail">Email</label><input type="email" id="authEmail" autocomplete="username" placeholder="toi@exemple.com" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
-        _pwField('authPassword','Mot de passe','new-password',true)+
-        _pwField('authPasswordConfirm','Confirmer le mot de passe','new-password',false)+
-        '<label class="auth-check"><input type="checkbox" id="authConsent"><span>J\'accepte les '+_legalLinks()+'.</span></label>'+CAPTCHA_SLOT+
-        '<button type="submit" class="btn btn-primary auth-submit">Créer mon compte</button></form>'+
-        '<div class="auth-local-note">Gratuit, sans publicité. Ta liste actuelle sur cet appareil sera ajoutée à ton compte.</div>';
+        '<div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
+        _pwField('authPassword',esc(t('auth.password')),'new-password',true)+
+        _pwField('authPasswordConfirm',esc(t('auth.confirmPassword')),'new-password',false)+
+        '<label class="auth-check"><input type="checkbox" id="authConsent"><span>'+_legalLinks()+'</span></label>'+CAPTCHA_SLOT+
+        '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.createMine'))+'</button></form>'+
+        '<div class="auth-local-note">'+esc(t('auth.signupNote'))+'</div>'+
+        langSwitcherHtml('lang-switch-auth',"{reopen:{auth:'signup'}}");
     },
     after:function(){_bindPwMeter('authPassword');},
     submit:function(btn){
       var email=_val('authEmail').trim(),pass=_val('authPassword'),conf=_val('authPasswordConfirm');
-      if(!_validEmail(email))return showAuthMsg('Saisis une adresse email valide.');
+      if(!_validEmail(email))return showAuthMsg(t('auth.err.email'));
       var pb=passwordProblem(pass,email);if(pb)return showAuthMsg(pb);
-      if(pass!==conf)return showAuthMsg('Les deux mots de passe ne correspondent pas.');
-      if(!document.getElementById('authConsent').checked)return showAuthMsg('Accepte les conditions d\'utilisation et la politique de confidentialité pour continuer.');
+      if(pass!==conf)return showAuthMsg(t('auth.err.pwMismatch'));
+      if(!document.getElementById('authConsent').checked)return showAuthMsg(t('auth.err.consent'));
       _authCtx.email=email;
-      _authBusyBtn(btn,true,'Création…');
+      _authBusyBtn(btn,true,t('auth.busy.creating'));
       captchaToken().then(function(captcha){
-        return supa.auth.signUp({email:email,password:pass,options:{captchaToken:captcha,emailRedirectTo:_authRedirect()}});
+        return supa.auth.signUp({email:email,password:pass,options:{captchaToken:captcha,emailRedirectTo:_authRedirect(),data:{lang:LANG}}});
       }).then(function(res){
         captchaReset();_authBusyBtn(btn,false);
         if(res.error)return showAuthMsg(authErrorMessage(res.error));
-        if(res.data&&res.data.session){toast('Compte créé, bienvenue !','ok');return authGo('account');}
+        if(res.data&&res.data.session){toast(t('auth.toast.created'),'ok');return authGo('account');}
         _authResendAt=Date.now();
         authGo('check',{email:email,kind:'signup',notice:''});
       }).catch(function(e){captchaReset();_authBusyBtn(btn,false);showAuthMsg(authErrorMessage(e));});
@@ -308,31 +310,31 @@ var AUTH_VIEWS={
   },
   /* Après inscription (ou connexion d'un compte non confirmé) : lien OU code */
   check:{
-    title:function(){return 'Vérifie ta boîte mail';},
+    title:function(){return esc(t('auth.checkInbox'));},
     html:function(c){
       return '<div class="auth-hero"><div class="auth-hero-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/></svg></div>'+
-        '<p>Un email de confirmation part vers <b>'+_maskEmail(c.email)+'</b>. Clique sur le lien qu\'il contient pour activer ton compte.</p>'+
-        '<p class="auth-sub">Rien reçu après quelques minutes&nbsp;? Regarde dans les spams. Si un compte existe déjà avec cette adresse, '+_link('login','connecte-toi')+' ou '+_link('forgot','réinitialise ton mot de passe')+'.</p></div>'+
-        '<form novalidate>'+_codeField()+CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">Valider le code</button></form>'+
-        '<div class="auth-alt"><button type="button" class="auth-link" id="authResendBtn" onclick="authResend(this)">Renvoyer l\'email</button></div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">Retour à la connexion</button></div>';
+        '<p>'+t('auth.check.sent',{email:'<b>'+_maskEmail(c.email)+'</b>'})+'</p>'+
+        '<p class="auth-sub">'+t('auth.check.help',{login:_link('login',esc(t('auth.check.loginLink'))),forgot:_link('forgot',esc(t('auth.check.forgotLink')))})+'</p></div>'+
+        '<form novalidate>'+_codeField()+CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
+        '<div class="auth-alt"><button type="button" class="auth-link" id="authResendBtn" onclick="authResend(this)">'+esc(t('auth.resend'))+'</button></div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     after:function(c){if(c.notice)showAuthMsg(c.notice,'nfo');_tickResend();},
-    submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast('Adresse confirmée, bienvenue !','ok');authGo('account');});}
+    submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast(t('auth.toast.confirmed'),'ok');authGo('account');});}
   },
   forgot:{
-    title:function(){return 'Mot de passe oublié';},
+    title:function(){return esc(t('auth.forgot.title'));},
     html:function(c){
-      return '<p class="auth-p">Saisis l\'adresse de ton compte&nbsp;: tu recevras un lien (et un code) pour choisir un nouveau mot de passe.</p>'+
-        '<form novalidate><div class="field"><label for="authEmail">Email</label><input type="email" id="authEmail" autocomplete="username" placeholder="toi@exemple.com" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
-        CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">Envoyer le lien</button></form>'+
-        '<div class="auth-alt">'+_link('code','J\'ai déjà reçu un code')+'</div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">Retour à la connexion</button></div>';
+      return '<p class="auth-p">'+esc(t('auth.forgot.intro'))+'</p>'+
+        '<form novalidate><div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
+        CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.sendLink'))+'</button></form>'+
+        '<div class="auth-alt">'+_link('code',esc(t('auth.haveCodeAlready')))+'</div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){
       var email=_val('authEmail').trim();
-      if(!_validEmail(email))return showAuthMsg('Saisis une adresse email valide.');
-      _authCtx.email=email;_authBusyBtn(btn,true,'Envoi…');
+      if(!_validEmail(email))return showAuthMsg(t('auth.err.email'));
+      _authCtx.email=email;_authBusyBtn(btn,true,t('auth.busy.sending'));
       captchaToken().then(function(captcha){
         return supa.auth.resetPasswordForEmail(email,{redirectTo:_authRedirect(),captchaToken:captcha});
       }).then(function(res){
@@ -343,27 +345,27 @@ var AUTH_VIEWS={
     }
   },
   forgotSent:{
-    title:function(){return 'Email envoyé';},
+    title:function(){return esc(t('auth.forgotSent.title'));},
     html:function(c){
-      return '<p class="auth-p">Si un compte existe pour <b>'+_maskEmail(c.email)+'</b>, un email vient de partir avec un lien pour choisir un nouveau mot de passe. Tu peux aussi saisir le code qu\'il contient&nbsp;:</p>'+
-        '<form novalidate>'+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">Valider le code</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">Retour à la connexion</button></div>';
+      return '<p class="auth-p">'+t('auth.forgotSent.text',{email:'<b>'+_maskEmail(c.email)+'</b>'})+'</p>'+
+        '<form novalidate>'+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){_verifyCode(btn,'recovery',_authCtx.email,function(){authGo('reset',{mode:'recovery'});});}
   },
   magic:{
-    title:function(){return 'Lien de connexion';},
+    title:function(){return esc(t('auth.magic.title'));},
     html:function(c){
-      return '<p class="auth-p">Reçois un lien (et un code) pour te connecter sans mot de passe. Fonctionne uniquement pour un compte existant.</p>'+
-        '<form novalidate><div class="field"><label for="authEmail">Email</label><input type="email" id="authEmail" autocomplete="username" placeholder="toi@exemple.com" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
-        CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">Envoyer le lien</button></form>'+
-        '<div class="auth-alt">'+_link('code','J\'ai déjà reçu un code')+'</div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">Retour à la connexion</button></div>';
+      return '<p class="auth-p">'+esc(t('auth.magic.intro'))+'</p>'+
+        '<form novalidate><div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
+        CAPTCHA_SLOT+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.sendLink'))+'</button></form>'+
+        '<div class="auth-alt">'+_link('code',esc(t('auth.haveCodeAlready')))+'</div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){
       var email=_val('authEmail').trim();
-      if(!_validEmail(email))return showAuthMsg('Saisis une adresse email valide.');
-      _authCtx.email=email;_authBusyBtn(btn,true,'Envoi…');
+      if(!_validEmail(email))return showAuthMsg(t('auth.err.email'));
+      _authCtx.email=email;_authBusyBtn(btn,true,t('auth.busy.sending'));
       captchaToken().then(function(captcha){
         return supa.auth.signInWithOtp({email:email,options:{shouldCreateUser:false,emailRedirectTo:_authRedirect(),captchaToken:captcha}});
       }).then(function(res){
@@ -374,29 +376,29 @@ var AUTH_VIEWS={
     }
   },
   magicSent:{
-    title:function(){return 'Vérifie ta boîte mail';},
+    title:function(){return esc(t('auth.checkInbox'));},
     html:function(c){
-      return '<p class="auth-p">Un lien de connexion part vers <b>'+_maskEmail(c.email)+'</b>. Clique dessus, ou saisis le code qu\'il contient&nbsp;:</p>'+
-        '<form novalidate>'+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">Se connecter</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">Retour à la connexion</button></div>';
+      return '<p class="auth-p">'+t('auth.magicSent.text',{email:'<b>'+_maskEmail(c.email)+'</b>'})+'</p>'+
+        '<form novalidate>'+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.signIn'))+'</button></form>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
-    submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast('Connecté','ok');authGo('account');});}
+    submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast(t('auth.toast.signedIn'),'ok');authGo('account');});}
   },
   /* Code à 6 chiffres reçu par email (inscription, lien de connexion, mot de passe oublié),
      saisi plus tard ou sur un autre appareil que celui de la demande */
   code:{
-    title:function(){return 'J\'ai un code';},
+    title:function(){return esc(t('auth.haveCode'));},
     html:function(c){
-      return '<p class="auth-p">Saisis ton adresse et le code à 6 chiffres reçu par email (confirmation d\'inscription, lien de connexion ou mot de passe oublié).</p>'+
-        '<form novalidate><div class="field"><label for="authEmail">Email</label><input type="email" id="authEmail" autocomplete="username" placeholder="toi@exemple.com" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
-        _codeField()+'<button type="submit" class="btn btn-primary auth-submit">Valider le code</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">Retour à la connexion</button></div>';
+      return '<p class="auth-p">'+esc(t('auth.code.intro'))+'</p>'+
+        '<form novalidate><div class="field"><label for="authEmail">'+esc(t('auth.email'))+'</label><input type="email" id="authEmail" autocomplete="username" placeholder="'+esc(t('auth.emailPh'))+'" value="'+esc(c.email||'')+'" maxlength="254"></div>'+
+        _codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     submit:function(btn){
       var email=_val('authEmail').trim(),code=_val('authCode').replace(/\s/g,'');
-      if(!_validEmail(email))return showAuthMsg('Saisis une adresse email valide.');
-      if(!/^\d{6,10}$/.test(code))return showAuthMsg('Le code fait 6 chiffres (ou plus), sans espace.');
-      _authCtx.email=email;_authBusyBtn(btn,true,'Vérification…');
+      if(!_validEmail(email))return showAuthMsg(t('auth.err.email'));
+      if(!/^\d{6,10}$/.test(code))return showAuthMsg(t('auth.err.codeFormat'));
+      _authCtx.email=email;_authBusyBtn(btn,true,t('auth.busy.verifying'));
       /* Le type du code n'est pas connu : inscription/connexion d'abord, puis mot de passe oublié */
       supa.auth.verifyOtp({email:email,token:code,type:'email'}).then(function(res){
         if(!res.error)return {res:res,action:'signup'};
@@ -411,14 +413,14 @@ var AUTH_VIEWS={
   /* Lien reçu par email (?token_hash=…) : un clic de confirmation, pour que les antivirus
      de messagerie qui « visitent » les liens ne consomment pas le jeton à ta place. */
   verify:{
-    title:function(c){return ({signup:'Confirme ton adresse',recovery:'Nouveau mot de passe',magiclink:'Connexion',invite:'Invitation',email_change:'Changement d\'adresse'})[c.action]||'Confirmation';},
+    title:function(c){return esc(({signup:t('auth.verify.t.signup'),recovery:t('auth.newPassword'),magiclink:t('auth.login'),invite:t('auth.verify.t.invite'),email_change:t('auth.verify.t.emailChange')})[c.action]||t('auth.verify.t.default'));},
     html:function(c){
-      var label=({signup:'Confirmer mon adresse',recovery:'Continuer',magiclink:'Me connecter',invite:'Accepter l\'invitation',email_change:'Confirmer le changement'})[c.action]||'Confirmer';
-      var txt=({signup:'Dernière étape&nbsp;: confirme ton adresse email pour activer ton compte.',recovery:'Confirme pour choisir un nouveau mot de passe.',magiclink:'Confirme pour te connecter.',invite:'Accepte l\'invitation, puis choisis ton mot de passe.',email_change:'Confirme le changement d\'adresse email de ton compte.'})[c.action]||'';
+      var label=esc(({signup:t('auth.verify.b.signup'),recovery:t('auth.verify.b.recovery'),magiclink:t('auth.verify.b.magiclink'),invite:t('auth.verify.b.invite'),email_change:t('auth.verify.b.emailChange')})[c.action]||t('auth.confirm'));
+      var txt=esc(({signup:t('auth.verify.x.signup'),recovery:t('auth.verify.x.recovery'),magiclink:t('auth.verify.x.magiclink'),invite:t('auth.verify.x.invite'),email_change:t('auth.verify.x.emailChange')})[c.action]||'');
       return '<p class="auth-p">'+txt+'</p><form novalidate><button type="submit" class="btn btn-primary auth-submit">'+label+'</button></form>';
     },
     submit:function(btn){
-      var c=_authCtx;_authBusyBtn(btn,true,'Vérification…');
+      var c=_authCtx;_authBusyBtn(btn,true,t('auth.busy.verifying'));
       supa.auth.verifyOtp({token_hash:c.tokenHash,type:c.type}).then(function(res){
         _authBusyBtn(btn,false);
         if(res.error){_authCtx.tokenHash=null;return authGo('linkError',{code:res.error.code||'otp_expired',action:c.action});}
@@ -428,70 +430,70 @@ var AUTH_VIEWS={
     }
   },
   linkError:{
-    title:function(){return 'Lien invalide';},
+    title:function(){return esc(t('auth.linkError.title'));},
     html:function(c){
-      var next=c.action==='recovery'?_link('forgot','Demander un nouveau lien'):c.action==='magiclink'?_link('magic','Demander un nouveau lien'):_link('login','Se connecter (un nouvel email te sera proposé)');
-      return '<p class="auth-p">'+esc(AUTH_ERRORS[c.code]||c.description||AUTH_ERRORS.otp_expired)+'</p><div class="auth-alt">'+next+'</div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">Fermer</button></div>';
+      var next=c.action==='recovery'?_link('forgot',esc(t('auth.linkError.newLink'))):c.action==='magiclink'?_link('magic',esc(t('auth.linkError.newLink'))):_link('login',esc(t('auth.linkError.login')));
+      return '<p class="auth-p">'+esc(AUTH_ERRORS[c.code]||(LANG==='en'&&c.description)||AUTH_ERRORS.otp_expired)+'</p><div class="auth-alt">'+next+'</div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">'+esc(t('common.close'))+'</button></div>';
     }
   },
   /* Choix d'un nouveau mot de passe (après « mot de passe oublié » ou invitation) */
   reset:{
-    title:function(c){return c.mode==='invite'?'Bienvenue&nbsp;! Choisis ton mot de passe':'Choisis un nouveau mot de passe';},
+    title:function(c){return esc(c.mode==='invite'?t('auth.reset.invite'):t('auth.reset.title'));},
     html:function(){
       return '<form novalidate autocomplete="on"><input type="email" autocomplete="username" value="'+esc(authUser&&authUser.email||'')+'" hidden readonly>'+
-        _pwField('authPassword','Nouveau mot de passe','new-password',true)+_pwField('authPasswordConfirm','Confirmer','new-password',false)+
-        '<button type="submit" class="btn btn-primary auth-submit">Enregistrer</button></form>';
+        _pwField('authPassword',esc(t('auth.newPassword')),'new-password',true)+_pwField('authPasswordConfirm',esc(t('auth.confirm')),'new-password',false)+
+        '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('common.save'))+'</button></form>';
     },
     after:function(){_bindPwMeter('authPassword');},
-    submit:function(btn){_submitNewPassword(btn,function(){toast('Mot de passe enregistré','ok');authGo('account');});}
+    submit:function(btn){_submitNewPassword(btn,function(){toast(t('auth.toast.pwSaved'),'ok');authGo('account');});}
   },
   account:{
-    title:function(){return 'Mon compte';},
+    title:function(){return esc(t('auth.myAccount'));},
     html:function(){
-      if(!authUser)return '<p class="auth-p">Tu n\'es pas connecté.</p><div class="mact"><button type="button" class="btn btn-primary" style="flex:1" onclick="authGo(\'login\')">Se connecter</button></div>';
+      if(!authUser)return '<p class="auth-p">'+esc(t('auth.account.notSignedIn'))+'</p><div class="mact"><button type="button" class="btn btn-primary" style="flex:1" onclick="authGo(\'login\')">'+esc(t('auth.signIn'))+'</button></div>';
       var pending=memDB.filter(function(i){return i.needsSync;}).length;
       var online=navigator.onLine;
       return '<div class="auth-account-row"><span class="sync-dot '+(online?'synced':'offline')+'" id="authAccountDot"></span><span class="auth-account-email" id="authAccountEmail">'+esc(authUser.email||'')+'</span></div>'+
-        '<div class="auth-sync-info" id="authSyncInfo">'+(pending?(pending+' élément'+(pending>1?'s':'')+' en attente de synchronisation.'):'Tout est synchronisé.')+'</div>'+
+        '<div class="auth-sync-info" id="authSyncInfo">'+esc(pending?tn('auth.account.pending',pending):t('auth.account.allSynced'))+'</div>'+
         '<div class="auth-menu">'+
-        _accBtn('syncNow()','Synchroniser maintenant','<path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>')+
-        _accBtn("authGo('changePassword')",'Changer mon mot de passe','<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>')+
-        _accBtn("authGo('changeEmail')",'Changer d\'adresse email','<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/>')+
-        _accBtn('exportAccountData(this)','Exporter mes données (JSON)','<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>')+
-        _accBtn('signOutUser()','Se déconnecter','<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>')+
+        _accBtn('syncNow()',esc(t('auth.account.syncNow')),'<path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>')+
+        _accBtn("authGo('changePassword')",esc(t('auth.account.changePw')),'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>')+
+        _accBtn("authGo('changeEmail')",esc(t('auth.account.changeEmail')),'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/>')+
+        _accBtn('exportAccountData(this)',esc(t('auth.account.export')),'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>')+
+        _accBtn('signOutUser()',esc(t('auth.account.signOut')),'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>')+
         '</div>'+
-        '<div class="auth-danger"><button type="button" class="auth-link danger" onclick="authGo(\'deleteAccount\')">Supprimer mon compte…</button></div>'+
-        '<div class="auth-legal"><a href="'+BRAND.legal.privacy+'" target="_blank" rel="noopener">Confidentialité</a> · <a href="'+BRAND.legal.terms+'" target="_blank" rel="noopener">Conditions</a></div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">Fermer</button></div>';
+        '<div class="auth-danger"><button type="button" class="auth-link danger" onclick="authGo(\'deleteAccount\')">'+esc(t('auth.account.delete'))+'</button></div>'+
+        '<div class="auth-legal"><a href="'+esc(legalUrl('privacy'))+'" target="_blank" rel="noopener">'+esc(t('legal.privacy'))+'</a> · <a href="'+esc(legalUrl('terms'))+'" target="_blank" rel="noopener">'+esc(t('legal.termsShort'))+'</a></div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAuthModal()">'+esc(t('common.close'))+'</button></div>';
     }
   },
   changePassword:{
-    title:function(){return 'Changer de mot de passe';},
+    title:function(){return esc(t('auth.changePw.title'));},
     html:function(c){
       return '<form novalidate autocomplete="on"><input type="email" autocomplete="username" value="'+esc(authUser&&authUser.email||'')+'" hidden readonly>'+
-        _pwField('authPassword','Nouveau mot de passe','new-password',true)+_pwField('authPasswordConfirm','Confirmer','new-password',false)+
-        (c.needNonce?'<p class="auth-sub">Pour ta sécurité, un code vient d\'être envoyé à '+esc(authUser&&authUser.email||'')+'.</p>'+_codeField():'')+
-        '<button type="submit" class="btn btn-primary auth-submit">Enregistrer</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\',{needNonce:false})">Annuler</button></div>';
+        _pwField('authPassword',esc(t('auth.newPassword')),'new-password',true)+_pwField('authPasswordConfirm',esc(t('auth.confirm')),'new-password',false)+
+        (c.needNonce?'<p class="auth-sub">'+esc(t('auth.changePw.nonce',{email:authUser&&authUser.email||''}))+'</p>'+_codeField():'')+
+        '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('common.save'))+'</button></form>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\',{needNonce:false})">'+esc(t('common.cancel'))+'</button></div>';
     },
     after:function(){_bindPwMeter('authPassword');},
-    submit:function(btn){_submitNewPassword(btn,function(){_authCtx.needNonce=false;toast('Mot de passe modifié','ok');authGo('account');},true);}
+    submit:function(btn){_submitNewPassword(btn,function(){_authCtx.needNonce=false;toast(t('auth.toast.pwChanged'),'ok');authGo('account');},true);}
   },
   changeEmail:{
-    title:function(){return 'Changer d\'adresse email';},
+    title:function(){return esc(t('auth.account.changeEmail'));},
     html:function(){
-      return '<p class="auth-p">Adresse actuelle&nbsp;: <b>'+esc(authUser&&authUser.email||'')+'</b>. Un lien de confirmation sera envoyé à la nouvelle adresse (et à l\'ancienne si la double confirmation est activée).</p>'+
-        '<form novalidate><div class="field"><label for="authNewEmail">Nouvelle adresse</label><input type="email" id="authNewEmail" autocomplete="email" maxlength="254"></div>'+
-        '<button type="submit" class="btn btn-primary auth-submit">Envoyer la confirmation</button></form>'+
-        '<div class="auth-alt"><button type="button" class="auth-link" onclick="authGo(\'emailSent\',{newEmail:_val(\'authNewEmail\').trim()})">J\'ai un code</button></div>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">Annuler</button></div>';
+      return '<p class="auth-p">'+t('auth.changeEmail.intro',{email:'<b>'+esc(authUser&&authUser.email||'')+'</b>'})+'</p>'+
+        '<form novalidate><div class="field"><label for="authNewEmail">'+esc(t('auth.newEmail'))+'</label><input type="email" id="authNewEmail" autocomplete="email" maxlength="254"></div>'+
+        '<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.changeEmail.send'))+'</button></form>'+
+        '<div class="auth-alt"><button type="button" class="auth-link" onclick="authGo(\'emailSent\',{newEmail:_val(\'authNewEmail\').trim()})">'+esc(t('auth.haveCode'))+'</button></div>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">'+esc(t('common.cancel'))+'</button></div>';
     },
     submit:function(btn){
       var email=_val('authNewEmail').trim();
-      if(!_validEmail(email))return showAuthMsg('Saisis une adresse email valide.');
-      if(authUser&&email.toLowerCase()===String(authUser.email||'').toLowerCase())return showAuthMsg('C\'est déjà ton adresse actuelle.');
-      _authBusyBtn(btn,true,'Envoi…');
+      if(!_validEmail(email))return showAuthMsg(t('auth.err.email'));
+      if(authUser&&email.toLowerCase()===String(authUser.email||'').toLowerCase())return showAuthMsg(t('auth.err.sameEmail'));
+      _authBusyBtn(btn,true,t('auth.busy.sending'));
       supa.auth.updateUser({email:email},{emailRedirectTo:_authRedirect()}).then(function(res){
         _authBusyBtn(btn,false);
         if(res.error)return showAuthMsg(authErrorMessage(res.error));
@@ -500,18 +502,18 @@ var AUTH_VIEWS={
     }
   },
   emailSent:{
-    title:function(){return 'Confirme ta nouvelle adresse';},
+    title:function(){return esc(t('auth.emailSent.title'));},
     html:function(c){
       var known=_validEmail(c.newEmail||'');
-      return (known?'<p class="auth-p">Clique sur le lien envoyé à <b>'+esc(c.newEmail)+'</b> (et à ton adresse actuelle si on te le demande), ou saisis le code reçu&nbsp;:</p>':'<p class="auth-p">Saisis ta nouvelle adresse et le code reçu par email&nbsp;:</p>')+
-        '<form novalidate>'+(known?'':'<div class="field"><label for="authNewEmail">Nouvelle adresse</label><input type="email" id="authNewEmail" autocomplete="email" maxlength="254"></div>')+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">Valider le code</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">Plus tard</button></div>';
+      return (known?'<p class="auth-p">'+t('auth.emailSent.known',{email:'<b>'+esc(c.newEmail)+'</b>'})+'</p>':'<p class="auth-p">'+esc(t('auth.emailSent.unknown'))+'</p>')+
+        '<form novalidate>'+(known?'':'<div class="field"><label for="authNewEmail">'+esc(t('auth.newEmail'))+'</label><input type="email" id="authNewEmail" autocomplete="email" maxlength="254"></div>')+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">'+esc(t('common.later'))+'</button></div>';
     },
     submit:function(btn){
       var c=_authCtx,code=_val('authCode').replace(/\s/g,'');
-      if(!_validEmail(c.newEmail||'')){var ne=_val('authNewEmail').trim();if(!_validEmail(ne))return showAuthMsg('Saisis ta nouvelle adresse email.');c.newEmail=ne;}
-      if(!/^\d{6,10}$/.test(code))return showAuthMsg('Le code fait 6 chiffres (ou plus), sans espace.');
-      _authBusyBtn(btn,true,'Vérification…');
+      if(!_validEmail(c.newEmail||'')){var ne=_val('authNewEmail').trim();if(!_validEmail(ne))return showAuthMsg(t('auth.err.newEmail'));c.newEmail=ne;}
+      if(!/^\d{6,10}$/.test(code))return showAuthMsg(t('auth.err.codeFormat'));
+      _authBusyBtn(btn,true,t('auth.busy.verifying'));
       supa.auth.verifyOtp({email:c.newEmail,token:code,type:'email_change'}).then(function(res){
         if(res.error&&authUser&&authUser.email)return supa.auth.verifyOtp({email:authUser.email,token:code,type:'email_change'});
         return res;
@@ -523,34 +525,33 @@ var AUTH_VIEWS={
     }
   },
   deleteAccount:{
-    title:function(){return 'Supprimer mon compte';},
+    title:function(){return esc(t('auth.delete.title'));},
     html:function(){
-      return '<div class="auth-warn"><b>Action définitive.</b> Seront effacés&nbsp;: ton compte ('+esc(authUser&&authUser.email||'')+'), ta liste synchronisée, ton jeton de suivi automatique et tes compteurs d\'utilisation. Pense à '+
-        '<button type="button" class="auth-link" onclick="exportAccountData(this)">exporter tes données</button> avant.</div>'+
+      return '<div class="auth-warn">'+t('auth.delete.warn',{email:esc(authUser&&authUser.email||''),export:'<button type="button" class="auth-link" onclick="exportAccountData(this)">'+esc(t('auth.delete.exportLink'))+'</button>'})+'</div>'+
         '<form novalidate autocomplete="on"><input type="email" autocomplete="username" value="'+esc(authUser&&authUser.email||'')+'" hidden readonly>'+
-        _pwField('authPassword','Mot de passe actuel','current-password',false)+
-        '<div class="field"><label for="authDeleteConfirm">Tape SUPPRIMER pour confirmer</label><input type="text" id="authDeleteConfirm" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>'+
-        '<label class="auth-check"><input type="checkbox" id="authDeleteLocal" checked><span>Effacer aussi la liste enregistrée sur cet appareil</span></label>'+
-        CAPTCHA_SLOT+'<button type="submit" class="btn auth-submit btn-danger" id="authDeleteBtn" disabled>Supprimer définitivement</button></form>'+
-        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">Annuler</button></div>';
+        _pwField('authPassword',esc(t('auth.currentPassword')),'current-password',false)+
+        '<div class="field"><label for="authDeleteConfirm">'+esc(t('auth.delete.typeWord',{word:t('auth.delete.word')}))+'</label><input type="text" id="authDeleteConfirm" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>'+
+        '<label class="auth-check"><input type="checkbox" id="authDeleteLocal" checked><span>'+esc(t('auth.delete.wipeLocal'))+'</span></label>'+
+        CAPTCHA_SLOT+'<button type="submit" class="btn auth-submit btn-danger" id="authDeleteBtn" disabled>'+esc(t('auth.delete.submit'))+'</button></form>'+
+        '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" onclick="authGo(\'account\')">'+esc(t('common.cancel'))+'</button></div>';
     },
     after:function(){
       var i=document.getElementById('authDeleteConfirm'),b=document.getElementById('authDeleteBtn');
-      i.addEventListener('input',function(){b.disabled=i.value.trim().toUpperCase()!=='SUPPRIMER';});
+      i.addEventListener('input',function(){b.disabled=i.value.trim().toUpperCase()!==t('auth.delete.word');});
     },
     submit:function(btn){
       if(!authUser)return authGo('login');
       var pass=_val('authPassword'),wipe=document.getElementById('authDeleteLocal').checked;
-      if(_val('authDeleteConfirm').trim().toUpperCase()!=='SUPPRIMER')return showAuthMsg('Tape SUPPRIMER pour confirmer.');
-      if(!pass)return showAuthMsg('Saisis ton mot de passe actuel.');
+      if(_val('authDeleteConfirm').trim().toUpperCase()!==t('auth.delete.word'))return showAuthMsg(t('auth.delete.typeWord',{word:t('auth.delete.word')})+'.');
+      if(!pass)return showAuthMsg(t('auth.err.currentPassword'));
       var email=authUser.email;
-      _authBusyBtn(btn,true,'Suppression…');
+      _authBusyBtn(btn,true,t('auth.busy.deleting'));
       /* Reconnexion immédiate : la fonction SQL exige une authentification de moins de 15 min */
       captchaToken().then(function(captcha){
         return supa.auth.signInWithPassword({email:email,password:pass,options:{captchaToken:captcha}});
       }).then(function(res){
         captchaReset();
-        if(res.error){var e=res.error;if(e.code==='invalid_credentials')e={code:'x',message:'Mot de passe incorrect.'};throw e;}
+        if(res.error){var e=res.error;if(e.code==='invalid_credentials')e={code:'x',message:'wrong_password'};throw e;}
         return supa.rpc('delete_my_account');
       }).then(function(res){
         if(res.error)throw res.error;
@@ -561,11 +562,11 @@ var AUTH_VIEWS={
         _authBusyBtn(btn,false);
         authUser=null;authProfileId=null;updateSyncStatusUI('anon');
         if(wipe){render();if(typeof updateStatsFooter==='function')updateStatsFooter();if(typeof renderSuivi==='function')renderSuivi();}
-        toast('Compte supprimé. Merci d\'avoir utilisé '+BRAND.name+'.','nfo');
+        toast(t('auth.toast.deleted',{name:BRAND.name}),'nfo');
         authGo('login');
       }).catch(function(e){
         captchaReset();_authBusyBtn(btn,false);
-        var msg=e&&e.message==='Mot de passe incorrect.'?e.message:(e&&(e.code==='42501'||/reauthentication/i.test(e.message||''))?'Reconnexion trop ancienne : recommence.':authErrorMessage(e));
+        var msg=e&&e.message==='wrong_password'?t('auth.err.wrongPassword'):(e&&(e.code==='42501'||/reauthentication/i.test(e.message||''))?t('auth.err.reauthOld'):authErrorMessage(e));
         showAuthMsg(msg);
       });
     }
@@ -578,9 +579,9 @@ function _accBtn(onclick,label,svgPath){
 /* ---------- Actions partagées ---------- */
 function _verifyCode(btn,type,email,onOk){
   var code=_val('authCode').replace(/\s/g,'');
-  if(!/^\d{6,10}$/.test(code))return showAuthMsg('Le code fait 6 chiffres (ou plus), sans espace.');
-  if(!email)return showAuthMsg('Adresse email inconnue : recommence depuis l\'écran de connexion.');
-  _authBusyBtn(btn,true,'Vérification…');
+  if(!/^\d{6,10}$/.test(code))return showAuthMsg(t('auth.err.codeFormat'));
+  if(!email)return showAuthMsg(t('auth.err.unknownEmail'));
+  _authBusyBtn(btn,true,t('auth.busy.verifying'));
   supa.auth.verifyOtp({email:email,token:code,type:type}).then(function(res){
     _authBusyBtn(btn,false);
     if(res.error)return showAuthMsg(authErrorMessage(res.error));
@@ -590,14 +591,14 @@ function _verifyCode(btn,type,email,onOk){
 function _submitNewPassword(btn,onOk,allowNonce){
   var pass=_val('authPassword'),conf=_val('authPasswordConfirm');
   var pb=passwordProblem(pass,authUser&&authUser.email);if(pb)return showAuthMsg(pb);
-  if(pass!==conf)return showAuthMsg('Les deux mots de passe ne correspondent pas.');
+  if(pass!==conf)return showAuthMsg(t('auth.err.pwMismatch'));
   var attrs={password:pass};
   if(allowNonce&&_authCtx.needNonce){
     var code=_val('authCode').replace(/\s/g,'');
-    if(!/^\d{6,10}$/.test(code))return showAuthMsg('Saisis le code reçu par email.');
+    if(!/^\d{6,10}$/.test(code))return showAuthMsg(t('auth.err.code'));
     attrs.nonce=code;
   }
-  _authBusyBtn(btn,true,'Enregistrement…');
+  _authBusyBtn(btn,true,t('auth.busy.saving'));
   supa.auth.updateUser(attrs).then(function(res){
     _authBusyBtn(btn,false);
     if(res.error){
@@ -605,7 +606,7 @@ function _submitNewPassword(btn,onOk,allowNonce){
         return supa.auth.reauthenticate().then(function(r2){
           if(r2&&r2.error)return showAuthMsg(authErrorMessage(r2.error));
           authGo('changePassword',{needNonce:true});
-          showAuthMsg('Un code de vérification vient d\'être envoyé par email. Ressaisis ton nouveau mot de passe et le code.','nfo');
+          showAuthMsg(t('auth.changePw.codeSent'),'nfo');
         });
       }
       return showAuthMsg(authErrorMessage(res.error));
@@ -616,8 +617,8 @@ function _submitNewPassword(btn,onOk,allowNonce){
 function _tickResend(){
   var b=document.getElementById('authResendBtn');if(!b)return;
   var left=Math.ceil((_authResendAt+AUTH_RESEND_COOLDOWN_S*1000-Date.now())/1000);
-  if(left>0){b.disabled=true;b.textContent='Renvoyer l\'email ('+left+' s)';setTimeout(_tickResend,1000);}
-  else{b.disabled=false;b.textContent='Renvoyer l\'email';}
+  if(left>0){b.disabled=true;b.textContent=t('auth.resendIn',{n:left});setTimeout(_tickResend,1000);}
+  else{b.disabled=false;b.textContent=t('auth.resend');}
 }
 function authResend(btn){
   var email=_authCtx.email;if(!email||_authBusy)return;
@@ -627,7 +628,7 @@ function authResend(btn){
   }).then(function(res){
     captchaReset();
     if(res.error){btn.disabled=false;return showAuthMsg(authErrorMessage(res.error));}
-    _authResendAt=Date.now();_tickResend();showAuthMsg('Email renvoyé.','ok');
+    _authResendAt=Date.now();_tickResend();showAuthMsg(t('auth.resent'),'ok');
   }).catch(function(e){captchaReset();btn.disabled=false;showAuthMsg(authErrorMessage(e));});
 }
 function _afterEmailVerified(action,data){
@@ -635,10 +636,10 @@ function _afterEmailVerified(action,data){
   if(action==='recovery')return authGo('reset',{mode:'recovery'});
   if(action==='invite')return authGo('reset',{mode:'invite'});
   if(action==='email_change'){
-    if(!hasSession&&!(data&&data.user)){authGo('account');return showAuthMsg('Confirmation enregistrée. Confirme aussi depuis le lien envoyé à ton autre adresse.','nfo');}
-    toast('Adresse email mise à jour','ok');return authGo('account');
+    if(!hasSession&&!(data&&data.user)){authGo('account');return showAuthMsg(t('auth.emailChange.half'),'nfo');}
+    toast(t('auth.toast.emailUpdated'),'ok');return authGo('account');
   }
-  if(action==='signup')toast('Adresse confirmée, bienvenue !','ok');else toast('Connecté','ok');
+  if(action==='signup')toast(t('auth.toast.confirmed'),'ok');else toast(t('auth.toast.signedIn'),'ok');
   authGo('account');
 }
 
@@ -647,13 +648,46 @@ function signOutUser(){
   supa.auth.signOut().then(function(res){
     if(res&&res.error)return supa.auth.signOut({scope:'local'});
   }).catch(function(){return supa.auth.signOut({scope:'local'});}).then(function(){
-    toast('Déconnecté','nfo');closeAuthModal();
+    toast(t('auth.toast.signedOut'),'nfo');closeAuthModal();
   });
+}
+
+/* ---------- Langue du compte = langue des emails (user_metadata.lang, lu par les modèles
+   d'emails Supabase via {{ .Data.lang }} ; sans valeur, les emails partent en français) ---------- */
+function saveLangToAccount(code){
+  if(!supa||!authUser)return null;
+  if((authUser.user_metadata||{}).lang===code)return null;
+  return supa.auth.updateUser({data:{lang:code}}).then(function(res){
+    if(res&&res.data&&res.data.user)authUser=res.data.user;
+  },function(){});
+}
+/* À la connexion : un compte sans langue enregistrée (comptes créés avant l'anglais) reçoit
+   celle de l'interface ; une langue choisie explicitement sur cet appareil (sélecteur, /en,
+   ?lang=) remplace celle du compte. La langue seulement déduite du navigateur ne l'écrase pas. */
+function syncAccountLang(user){
+  if(!supa||!user)return;
+  var acc=(user.user_metadata||{}).lang,chosen=null;
+  try{chosen=i18nNormalize(localStorage.getItem(I18N_STORAGE_KEY));}catch(e){}
+  if(acc&&(!chosen||chosen===acc))return;
+  setTimeout(function(){if(authUser&&authUser.id===user.id)saveLangToAccount(chosen||LANG);},0);
+}
+/* Après un changement de langue (rechargement de la page) : rouvre l'écran d'où il a été fait */
+function reopenAfterLangChange(){
+  var r=null;
+  try{r=JSON.parse(sessionStorage.getItem('wl_reopen')||'null');sessionStorage.removeItem('wl_reopen');}catch(e){}
+  if(!r)return;
+  if(r==='settings'){
+    var menu=document.getElementById('optMenu');
+    if(menu&&!menu.classList.contains('on'))menu.classList.add('on');
+    openSettingsView();
+  }else if(r.auth&&AUTH_VIEWS[r.auth]){
+    openAuthModal(authUser&&(r.auth==='login'||r.auth==='signup')?'account':r.auth);
+  }
 }
 
 /* ---------- Export RGPD : compte + liste synchronisée + copie locale ---------- */
 function exportAccountData(btn){
-  if(!supa||!authUser){toast('Connecte-toi pour exporter tes données','err');return;}
+  if(!supa||!authUser){toast(t('export.loginFirst'),'err');return;}
   if(btn)btn.disabled=true;
   var out={app:BRAND.name,exportedAt:new Date().toISOString(),format:'watchlist-export-compte/1'};
   supa.auth.getUser().then(function(r){
@@ -680,13 +714,13 @@ function exportAccountData(btn){
     var blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     var a=document.createElement('a'),d=new Date();
     a.href=URL.createObjectURL(blob);
-    a.download=String(BRAND.shortName||'watchlist').toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-mes-donnees-'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.json';
+    a.download=String(BRAND.shortName||'watchlist').toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-'+t('export.fileSuffix')+'-'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.json';
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
     if(btn)btn.disabled=false;
-    toast('Export téléchargé ('+rows.length+' titre'+(rows.length>1?'s':'')+' synchronisé'+(rows.length>1?'s':'')+')','ok');
+    toast(tn('export.account',rows.length),'ok');
   }).catch(function(e){
-    if(btn)btn.disabled=false;_logErr('[export]',e);toast('Export impossible pour le moment','err');
+    if(btn)btn.disabled=false;_logErr('[export]',e);toast(t('export.failed'),'err');
   });
 }
 
@@ -718,13 +752,13 @@ function claimLocalDataFor(user){
   var owner=null;try{owner=localStorage.getItem(LOCAL_OWNER_KEY);}catch(e){}
   if(!owner||owner===user.id){try{localStorage.setItem(LOCAL_OWNER_KEY,user.id);}catch(e){}return false;}
   var pending=memDB.filter(function(i){return i.needsSync;}).length;
-  if(pending&&memDB.length&&window.confirm('Cet appareil contient '+pending+' modification'+(pending>1?'s':'')+' non synchronisée'+(pending>1?'s':'')+' d\'un autre compte. Elles vont être retirées de cet appareil.\n\nOK : télécharger d\'abord une sauvegarde JSON.\nAnnuler : continuer sans sauvegarde.')){
+  if(pending&&memDB.length&&window.confirm(tn('auth.otherAccountPending',pending))){
     try{exportJSON();}catch(e){}
   }
   clearLocalData();
   try{localStorage.setItem(LOCAL_OWNER_KEY,user.id);}catch(e){}
   render();if(typeof updateStatsFooter==='function')updateStatsFooter();
-  toast('Liste de cet appareil remplacée par celle de ton compte','nfo');
+  toast(t('auth.listReplaced'),'nfo');
   return true;
 }
 
@@ -738,8 +772,8 @@ function handleAuthLanding(){
     /* Ancien format de lien (#access_token=…) : supabase-js ouvre la session tout seul */
     if(l.type==='recovery')openAuthModal('reset',{mode:'recovery'});
     else if(l.type==='invite')openAuthModal('reset',{mode:'invite'});
-    else if(l.type==='signup'){toast('Adresse confirmée, bienvenue !','ok');}
-    else if(l.type==='email_change'){toast('Adresse email mise à jour','ok');}
+    else if(l.type==='signup'){toast(t('auth.toast.confirmed'),'ok');}
+    else if(l.type==='email_change'){toast(t('auth.toast.emailUpdated'),'ok');}
   }
 }
 if(supa){
@@ -747,3 +781,6 @@ if(supa){
     if(event==='PASSWORD_RECOVERY'&&!(document.getElementById('authMbk').classList.contains('on')&&_authView==='reset'))openAuthModal('reset',{mode:'recovery'});
   });
 }
+setTimeout(reopenAfterLangChange,0);
+/* Sélecteur de langue du pied de page (visible aussi sans compte) */
+(function(){var f=document.getElementById('footLang');if(f)f.innerHTML=langSwitcherHtml('lang-switch-foot');})();

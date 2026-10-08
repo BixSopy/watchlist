@@ -1,7 +1,7 @@
 [package]
 name = "watchlist"
 version = "1.0.0"
-description = "Watchlist Cine Premium - application de bureau"
+description = "Cinepisode - desktop app"
 edition = "2021"
 
 [build-dependencies]

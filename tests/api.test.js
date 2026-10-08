@@ -226,6 +226,22 @@ test('cache mémoire : 2e appel sans requête amont, mais session toujours véri
   assert.strictEqual(out.statusCode, 401, 'le cache ne court-circuite pas l’authentification');
 });
 
+test('cache mémoire : une entrée par langue (fr-FR et en-US ne se mélangent pas)', async () => {
+  reset();
+  const tm = () => calls.filter((c) => c.url.includes('themoviedb'));
+  await call(tmdb, { url: '/api/tmdb?path=/movie/603&language=fr-FR', token: GOOD });
+  await call(tmdb, { url: '/api/tmdb?path=/movie/603&language=en-US', token: GOOD });
+  assert.strictEqual(tm().length, 2, 'la langue fait partie de la clé de cache');
+  assert.ok(tm()[0].url.includes('language=fr-FR') && tm()[1].url.includes('language=en-US'));
+  await call(tmdb, { url: '/api/tmdb?path=/movie/603&language=en-US', token: GOOD });
+  assert.strictEqual(tm().length, 2, 'en-US resservi depuis le cache');
+  const a = tmdb._buildUpstream(new URLSearchParams('path=/discover/movie&language=en-US&region=US&watch_region=US'));
+  const b = tmdb._buildUpstream(new URLSearchParams('path=/discover/movie&language=fr-FR&region=FR&watch_region=FR'));
+  assert.notStrictEqual(a.query, b.query);
+  assert.match(a.query, /region=US/);
+  assert.strictEqual(tmdb._buildUpstream(new URLSearchParams('path=/discover/movie&region=usa')).error, 'param');
+});
+
 test('ALLOWED_EMAILS : 403 hors liste, insensible à la casse', async () => {
   reset();
   process.env.ALLOWED_EMAILS = ' moi@example.com ';

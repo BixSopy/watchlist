@@ -1,7 +1,7 @@
 /* MODULE: Défilement automatique de la sidebar recommandations. */
 /* AUTO SCROLL — RAF UNIQUE, ANNULABLE, SANS SMOOTH NATIF */
 var autoRAF2=0,autoSeq2=0;
-function easeInOutCubic(t){return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+function easeInOutCubic(tt){return tt<0.5?4*tt*tt*tt:1-Math.pow(-2*tt+2,3)/2;}
 function stopAutoScroll(){autoSeq2++;if(autoRAF2)cancelAnimationFrame(autoRAF2);autoRAF2=0;if(autoTimer){clearTimeout(autoTimer);autoTimer=null;}}
 function _animScrollTo(el,to,dur){return new Promise(function(resolve){var seq=autoSeq2,from=el.scrollTop,start=performance.now();var max=Math.max(0,el.scrollHeight-el.clientHeight);to=Math.max(0,Math.min(to,max));var wasPaused=false;function frame(now){if(seq!==autoSeq2)return resolve(false);if(autoPaused){wasPaused=true;autoRAF2=requestAnimationFrame(frame);return;}if(wasPaused){/* recale : on repart avec la position actuelle comme nouveau point de départ */from=el.scrollTop;start=now;wasPaused=false;}var p=Math.min(1,(now-start)/dur);el.scrollTop=from+(to-from)*easeInOutCubic(p);if(p<1){autoRAF2=requestAnimationFrame(frame);}else{el.scrollTop=to;autoRAF2=0;resolve(true);}}autoRAF2=requestAnimationFrame(frame);});}
 

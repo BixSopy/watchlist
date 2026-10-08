@@ -1,4 +1,4 @@
-name: Release app de bureau (Windows)
+name: Release app de bureau Cinepisode (Windows)
 
 # Se déclenche en poussant un tag "desktop-vX.Y.Z" (ex: git tag desktop-v1.0.0 && git push origin desktop-v1.0.0),
 # ou manuellement (Actions -> ce workflow -> Run workflow, en renseignant "version").
@@ -45,8 +45,8 @@ jobs:
         with:
           projectPath: desktop
           tagName: ${{ steps.tag.outputs.name }}
-          releaseName: 'Watchlist ${{ steps.tag.outputs.name }}'
-          releaseBody: 'Installateur Windows (MSI/NSIS) avec mise à jour automatique.'
+          releaseName: 'Cinepisode ${{ steps.tag.outputs.name }}'
+          releaseBody: 'Installateur Windows (MSI/NSIS) avec mise à jour automatique. · Windows installer (MSI/NSIS) with automatic updates.'
           releaseDraft: false
           prerelease: false
           uploadUpdaterJson: true

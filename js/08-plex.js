@@ -38,12 +38,12 @@ function fillPlex(){
   document.getElementById('plexMeta').textContent=d.year||'';
   document.getElementById('plexBadges').innerHTML='';
   document.getElementById('plexScore').innerHTML=d.score?'<svg viewBox="0 0 24 24" width="16" height="16"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" style="fill:var(--accent)"/></svg> '+parseFloat(d.score).toFixed(1):'';
-  document.getElementById('plexOverview').textContent=d.overview||'Chargement...';
+  document.getElementById('plexOverview').textContent=d.overview||t('common.loading');
   /* Actions */
   buildPlexActions();
   /* Fetch details */
   if(d.tmdbId){
-    tf(TB+'/'+d.type+'/'+d.tmdbId+'?language=fr-FR&append_to_response=credits,images,keywords,watch%2Fproviders,external_ids').then(function(det){fillPlexDetails(det);}).catch(function(){});
+    tf(TB+'/'+d.type+'/'+d.tmdbId+'?language='+TMDB_LANG+'&append_to_response=credits,images,keywords,watch%2Fproviders,external_ids').then(function(det){fillPlexDetails(det);}).catch(function(){});
   }
   document.getElementById('plexMbk').classList.add('on');
 }
@@ -51,10 +51,10 @@ function fillPlex(){
 function buildPlexActions(){
   var d=plexData;var acts=document.getElementById('plexActs');acts.innerHTML='';
   /* Trailer */
-  if(d.tmdbId){var tb=document.createElement('button');tb.className='btn btn-trailer';tb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>Bande annonce';tb.onclick=function(){sfx('click');getTrailer(d.type,d.tmdbId,null,openYT);};acts.appendChild(tb);}
+  if(d.tmdbId){var tb=document.createElement('button');tb.className='btn btn-trailer';tb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>'+esc(t('plex.trailer'));tb.onclick=function(){sfx('click');getTrailer(d.type,d.tmdbId,null,openYT);};acts.appendChild(tb);}
   var inList=d.item||memDB.find(function(i){return i.tmdbId==d.tmdbId});
   if(inList&&d.item){
-    var eb=document.createElement('button');eb.className='btn btn-ghost';eb.textContent='Modifier';eb.onclick=function(){sfx('click');closePlex();openEdit(d.item.id);};acts.appendChild(eb);
+    var eb=document.createElement('button');eb.className='btn btn-ghost';eb.textContent=t('common.edit');eb.onclick=function(){sfx('click');closePlex();openEdit(d.item.id);};acts.appendChild(eb);
     if(d.item.type!='film'&&d.item.saison&&d.item.episode){
       var pg=document.getElementById('plexProg');pg.style.display='block';
       document.getElementById('plexProgVal').textContent='S'+pad(d.item.saison)+' E'+pad(d.item.episode);
@@ -64,7 +64,7 @@ function buildPlexActions(){
       document.getElementById('plexNextBtn').onclick=nextEpPlex;
     }
   }else{
-    var ab=document.createElement('button');ab.className='btn btn-primary';ab.textContent='+ Ajouter a ma liste';
+    var ab=document.createElement('button');ab.className='btn btn-primary';ab.textContent=t('plex.addToList');
     ab.onclick=function(){sfx('click');closePlex();recoAddDirect(d);};acts.appendChild(ab);
   }
 }
@@ -82,15 +82,15 @@ function fillPlexDetails(det){
     applyAmbient(IB+'w780'+imgs[0].file_path, document.getElementById('plexHero'), 0.18);
   }
   /* Meta */
-  var m=[];if(d.year)m.push(d.year);if(det.runtime)m.push(det.runtime+' min');if(det.number_of_seasons)m.push(det.number_of_seasons+' saison'+(det.number_of_seasons>1?'s':''));if(det.genres&&det.genres.length)m.push(det.genres.slice(0,2).map(function(g){return g.name}).join(', '));
+  var m=[];if(d.year)m.push(d.year);if(det.runtime)m.push(det.runtime+' min');if(det.number_of_seasons)m.push(tn('plex.seasons',det.number_of_seasons));if(det.genres&&det.genres.length)m.push(det.genres.slice(0,2).map(function(g){return g.name}).join(', '));
   document.getElementById('plexMeta').innerHTML=m.map(esc).join('<span class="plex-sep"> &bull; </span>');
-  document.getElementById('plexOverview').textContent=det.overview||d.overview||'Aucune description.';
+  document.getElementById('plexOverview').textContent=det.overview||d.overview||t('plex.noOverview');
   /* Stats */
   var st='';
-  if(det.vote_average)st+='<div><div class="p-stat-l">Note TMDB</div><div class="p-stat-v gold">'+det.vote_average.toFixed(1)+'</div></div>';
-  if(d.item&&d.item.myRating)st+='<div><div class="p-stat-l">Ma note</div><div class="p-stat-v">'+d.item.myRating+'<span style="font-size:12px;color:var(--text3)">/10</span></div></div>';
-  if(det.number_of_episodes)st+='<div><div class="p-stat-l">Episodes</div><div class="p-stat-v">'+det.number_of_episodes+'</div></div>';
-  if(d.item&&d.item.addedAt)st+='<div><div class="p-stat-l">Ajoute le</div><div class="p-stat-v" style="font-size:13px">'+new Date(d.item.addedAt).toLocaleDateString('fr-FR')+'</div></div>';
+  if(det.vote_average)st+='<div><div class="p-stat-l">'+esc(t('plex.tmdbScore'))+'</div><div class="p-stat-v gold">'+det.vote_average.toFixed(1)+'</div></div>';
+  if(d.item&&d.item.myRating)st+='<div><div class="p-stat-l">'+esc(t('plex.myRating'))+'</div><div class="p-stat-v">'+d.item.myRating+'<span style="font-size:12px;color:var(--text3)">/10</span></div></div>';
+  if(det.number_of_episodes)st+='<div><div class="p-stat-l">'+esc(t('plex.episodes'))+'</div><div class="p-stat-v">'+det.number_of_episodes+'</div></div>';
+  if(d.item&&d.item.addedAt)st+='<div><div class="p-stat-l">'+esc(t('plex.addedOn'))+'</div><div class="p-stat-v" style="font-size:13px">'+esc(fmtDate(d.item.addedAt))+'</div></div>';
   document.getElementById('plexStats').innerHTML=st;
   /* Cast */
   if(det.credits&&det.credits.cast&&det.credits.cast.length){
@@ -102,11 +102,11 @@ function fillPlexDetails(det){
   }
   /* Providers FR */
   var wp=det['watch/providers'];
-  if(wp&&wp.results&&wp.results.FR){
-    var fr=wp.results.FR;var prov=(fr.flatrate||fr.free||fr.ads||[]);
+  if(wp&&wp.results&&wp.results[TMDB_REGION]){
+    var fr=wp.results[TMDB_REGION];var prov=(fr.flatrate||fr.free||fr.ads||[]);
     if(prov.length){
-      var ph='<div style="margin-bottom:14px"><div class="sec-lbl">Disponible sur</div><div class="providers">';
-      prov.forEach(function(p){var logo=p.logo_path?'<img class="prov-logo" src=\"'+IB+'original'+esc(p.logo_path)+'\" alt="">':'';var url='https://www.justwatch.com/fr/'+encodeURIComponent(d.title||'');ph+='<a class="prov-btn" href="'+url+'" target="_blank" rel="noopener">'+logo+esc(p.provider_name)+'</a>';});
+      var ph='<div style="margin-bottom:14px"><div class="sec-lbl">'+esc(t('plex.availableOn'))+'</div><div class="providers">';
+      prov.forEach(function(p){var logo=p.logo_path?'<img class="prov-logo" src=\"'+IB+'original'+esc(p.logo_path)+'\" alt="">':'';var url=(I18N_META.justwatch||'https://www.justwatch.com/fr/recherche?q=')+encodeURIComponent(d.title||'');ph+='<a class="prov-btn" href="'+url+'" target="_blank" rel="noopener">'+logo+esc(p.provider_name)+'</a>';});
       ph+='</div></div>';document.getElementById('plexProviders').innerHTML=ph;
     }
   }
@@ -115,11 +115,11 @@ function fillPlexDetails(det){
     var seasons=det.seasons.filter(function(s){return s.season_number>0});plexSeasons=seasons;
     if(seasons.length>1){
       var sel=document.getElementById('sSelWrap');
-      sel.innerHTML='<button class="s-btn on" data-s="0" onmouseenter="sfx(\'hover\')" onclick="plexSeason(0)">Apercu</button>'+seasons.map(function(s){return '<button class="s-btn" data-s="'+s.season_number+'" onmouseenter="sfx(\'hover\')" onclick="plexSeason('+s.season_number+')">S'+s.season_number+'</button>';}).join('');
+      sel.innerHTML='<button class="s-btn on" data-s="0" onmouseenter="sfx(\'hover\')" onclick="plexSeason(0)">'+esc(t('plex.overview'))+'</button>'+seasons.map(function(s){return '<button class="s-btn" data-s="'+s.season_number+'" onmouseenter="sfx(\'hover\')" onclick="plexSeason('+s.season_number+')">S'+s.season_number+'</button>';}).join('');
     }
   }
   /* Next air */
-  if(det.next_episode_to_air&&det.next_episode_to_air.air_date&&d.item){var ne=document.getElementById('plexNep');ne.innerHTML='Prochain ep : <b>S'+pad(det.next_episode_to_air.season_number)+' E'+pad(det.next_episode_to_air.episode_number)+'</b> &bull; '+esc(det.next_episode_to_air.air_date);ne.classList.add('on');}
+  if(det.next_episode_to_air&&det.next_episode_to_air.air_date&&d.item){var ne=document.getElementById('plexNep');ne.innerHTML=esc(t('plex.nextEp'))+' <b>S'+pad(det.next_episode_to_air.season_number)+' E'+pad(det.next_episode_to_air.episode_number)+'</b> &bull; '+esc(fmtDate(det.next_episode_to_air.air_date+'T12:00:00'));ne.classList.add('on');}
   /* Notes croisées OMDb + Kitsu — jamais bloquant, se rendent quelques centaines de ms après le reste */
   loadCrossRatings(det);
 }
@@ -193,10 +193,10 @@ function plexSeason(num){
   sfx('click');document.querySelectorAll('#sSelWrap .s-btn').forEach(function(b){b.classList.toggle('on',b.dataset.s==num);});
   if(num==0){if(plexData)fillPlex();return;}
   var d=plexData;if(!d||!d.tmdbId)return;
-  tf(TB+'/tv/'+d.tmdbId+'/season/'+num+'?language=fr-FR').then(function(s){
+  tf(TB+'/tv/'+d.tmdbId+'/season/'+num+'?language='+TMDB_LANG).then(function(s){
     document.getElementById('plexOverview').textContent=s.overview||d.overview||'';
     if(s.poster_path)document.getElementById('plexPosterWrap').innerHTML='<img class="plex-poster" src=\"'+IB+'w342'+esc(s.poster_path)+'\" alt="">';
-    var st='';if(s.vote_average)st+='<div><div class="p-stat-l">Note saison</div><div class="p-stat-v gold">'+s.vote_average.toFixed(1)+'</div></div>';if(s.episodes)st+='<div><div class="p-stat-l">Episodes</div><div class="p-stat-v">'+s.episodes.length+'</div></div>';document.getElementById('plexStats').innerHTML=st;
+    var st='';if(s.vote_average)st+='<div><div class="p-stat-l">'+esc(t('plex.seasonScore'))+'</div><div class="p-stat-v gold">'+s.vote_average.toFixed(1)+'</div></div>';if(s.episodes)st+='<div><div class="p-stat-l">'+esc(t('plex.episodes'))+'</div><div class="p-stat-v">'+s.episodes.length+'</div></div>';document.getElementById('plexStats').innerHTML=st;
     getTrailer('tv',d.tmdbId,num,function(key){var tb=document.querySelector('#plexActs .btn-trailer');if(tb&&key)tb.onclick=function(){sfx('click');openYT(key);};});
   }).catch(function(){});
 }

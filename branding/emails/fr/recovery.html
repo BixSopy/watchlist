@@ -4,8 +4,8 @@ preheader: Choisis un nouveau mot de passe pour ton compte [[name]].
 {{ $base := or .RedirectTo .SiteURL }}
 <h1>Nouveau mot de passe</h1>
 <p>Quelqu'un (sans doute toi) a demandé à réinitialiser le mot de passe du compte <strong>{{ .Email }}</strong>. Clique sur le bouton pour en choisir un nouveau.</p>
-[[button||Choisir un nouveau mot de passe||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}]]
+[[button||Choisir un nouveau mot de passe||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=fr]]
 <p class="muted">Ou, dans [[name]] («&nbsp;Se connecter&nbsp;» puis «&nbsp;J'ai un code&nbsp;»), entre ce code&nbsp;:</p>
 [[code||{{ .Token }}]]
 <p class="small">Le lien et le code expirent au bout d'une heure et ne servent qu'une fois. Si tu n'es pas à l'origine de cette demande, ignore cet email&nbsp;: ton mot de passe actuel reste valable.</p>
-[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}]]
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=fr]]
