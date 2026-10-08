@@ -187,6 +187,16 @@ Variables d'environnement Vercel (Production **et** Preview) :
 | `SIGNUPS_OPEN` | non | `0` masque l'onglet « Créer un compte » (les inscriptions se ferment vraiment dans Supabase) |
 | `ALLOWED_EMAILS` | non | **À vider pour l'ouverture publique.** Si renseignée, seuls ces emails accèdent au catalogue |
 | `GITHUB_TOKEN` | non | Pour `api/releases.js` (mises à jour de l'app de bureau) |
+| `RESEND_API_KEY` | pour les avis | Clé API Resend **« Sending access » limitée au domaine `cinepisode.com`** (à créer à part, ne pas réutiliser celle du SMTP Supabase) : email de notification de `api/feedback.js`. Sans elle, les avis sont seulement enregistrés en base |
+| `FEEDBACK_TO` | non | Destinataire des avis (défaut : `contact@cinepisode.com`, transféré vers Gmail par ImprovMX) |
+| `FEEDBACK_FROM` | non | Expéditeur des avis (défaut : `Cinepisode <noreply@cinepisode.com>`, domaine vérifié dans Resend) |
+
+**Avis (« Donner mon avis »)** : `POST /api/feedback` (avec ou sans compte) valide le message, filtre les
+robots (champ piège, délai minimum, même origine), enregistre l'avis par `submit_feedback()` avec
+`SUPABASE_SECRET_KEY` (migration `20261008210000_feedback.sql` : table `feedback` sans aucun accès client,
+limites par profil, par empreinte d'IP du jour et globale, conservation 24 mois) puis envoie un email
+texte `[Cinepisode] Avis · <type> · <extrait>` avec `Reply-To` = l'adresse donnée. `SUPABASE_SECRET_KEY`
+et `RESEND_API_KEY` doivent être définies en **Production** (et en Preview pour tester un aperçu).
 
 ## 🌍 Mise en ligne publique (à faire à la main, dans cet ordre)
 

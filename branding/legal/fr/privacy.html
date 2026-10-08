@@ -35,6 +35,16 @@ updated: 8 octobre 2026
 <p>L'extension ne contient ni statistiques, ni publicité, ni traceur, et ne contacte aucun autre serveur que netflix.com et celui de [[name]].</p>
 <p><strong>Utilisation limitée.</strong> L'utilisation des informations reçues de l'extension respecte le <a href="https://developer.chrome.com/docs/webstore/program-policies/" rel="noopener">règlement du Chrome Web Store sur les données des utilisateurs</a>, y compris les exigences d'utilisation limitée («&nbsp;Limited Use&nbsp;»). Ces données servent uniquement à mettre à jour ta liste et à remplir ton onglet « Détectés ». Elles ne sont jamais vendues, jamais utilisées pour de la publicité, du profilage ou l'évaluation de ta solvabilité, jamais partagées avec des tiers, et personne ne les lit, sauf avec ton accord (par exemple quand tu demandes de l'aide), pour la sécurité ou si la loi l'exige.</p>
 
+<h2>Avis envoyés avec « Donner mon avis »</h2>
+<p>Le formulaire « Donner mon avis » (menu de l'app et pied de la page d'accueil) est facultatif et fonctionne avec ou sans compte.</p>
+<ul>
+  <li><strong>Ce qui est enregistré&nbsp;:</strong> le type d'avis (idée, bug, autre), ton message, l'adresse email que tu indiques pour la réponse (facultative, effaçable avant l'envoi), la page d'où tu écris, la langue de l'interface, le navigateur et le système sous une forme courte (par exemple «&nbsp;Chrome 154 · Android&nbsp;»), la version du site, la date, et ton profil si tu es connecté.</li>
+  <li><strong>Pourquoi&nbsp;:</strong> te répondre si tu le souhaites, comprendre et corriger les bugs, améliorer [[name]]. Base légale&nbsp;: ta demande et notre intérêt légitime à améliorer le service (article 6.1.f du RGPD).</li>
+  <li><strong>Lutte contre les abus&nbsp;:</strong> ton adresse IP n'est jamais enregistrée. Le serveur en calcule une empreinte chiffrée, qui change chaque jour, uniquement pour limiter le nombre d'envois&nbsp;; elle est effacée au bout de 2 jours.</li>
+  <li><strong>Où&nbsp;:</strong> dans notre base Supabase (Francfort, UE), illisible pour les autres utilisateurs. Une copie est envoyée par email à [[contactEmail]] (via Resend, puis ImprovMX et la messagerie Gmail de l'éditeur, voir ci-dessous). Personne d'autre n'y a accès, rien n'est vendu ni utilisé pour de la publicité.</li>
+  <li><strong>Combien de temps&nbsp;:</strong> 24 mois au plus, puis suppression automatique. Tu peux demander à tout moment la suppression d'un avis en écrivant à [[contactEmail]]&nbsp;; supprimer ton compte efface aussi les avis envoyés en étant connecté.</li>
+</ul>
+
 <h2>Stockage dans ton navigateur</h2>
 <p>[[name]] n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages, ta langue et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
 
@@ -42,8 +52,8 @@ updated: 8 octobre 2026
 <ul>
   <li><strong>Vercel Inc.</strong> (États-Unis) héberge le site et les fonctions serveur, exécutées à Francfort (fra1). Transferts encadrés par le Data Privacy Framework UE–États-Unis et les clauses contractuelles types.</li>
   <li><strong>Supabase Inc.</strong> fournit l'authentification et la base de données, hébergées à Francfort (UE).</li>
-  <li><strong>Resend</strong> (Resend, Inc., États-Unis), service d'envoi des emails de compte&nbsp;: reçoit ton adresse et le contenu de ces emails, uniquement pour les envoyer.</li>
-  <li><strong>Transfert de l'adresse de contact</strong> (ImprovMX, puis une messagerie Gmail de l'éditeur)&nbsp;: si tu écris à [[contactEmail]], ton message et ton adresse transitent par ces services.</li>
+  <li><strong>Resend</strong> (Resend, Inc., États-Unis), service d'envoi des emails de compte et des notifications d'avis&nbsp;: reçoit ton adresse et le contenu de ces emails, uniquement pour les envoyer.</li>
+  <li><strong>Transfert de l'adresse de contact</strong> (ImprovMX, puis une messagerie Gmail de l'éditeur)&nbsp;: si tu écris à [[contactEmail]] ou envoies un avis, ton message et ton adresse transitent par ces services.</li>
   <li><strong>Cloudflare Turnstile</strong> (si activé)&nbsp;: vérification anti-robot chargée <em>uniquement</em> sur les formulaires d'inscription, de connexion et de mot de passe oublié. Cloudflare reçoit alors ton adresse IP et des informations techniques sur ton navigateur. Turnstile n'utilise pas de cookie de suivi publicitaire.</li>
 </ul>
 
@@ -58,6 +68,7 @@ updated: 8 octobre 2026
   <li>Titres détectés&nbsp;: ceux en attente jusqu'à ce que tu les ajoutes, les ignores ou les effaces&nbsp;; ceux ajoutés ou ignorés tant que ton compte existe.</li>
   <li>Compte et liste&nbsp;: tant que ton compte existe. La suppression du compte efface immédiatement et définitivement ces données de notre base.</li>
   <li>Compteurs de quotas&nbsp;: quelques jours.</li>
+  <li>Avis envoyés avec « Donner mon avis »&nbsp;: 24 mois au plus (empreinte d'IP&nbsp;: 2 jours), ou moins sur simple demande.</li>
   <li>Journaux techniques&nbsp;: selon les durées appliquées par Vercel et Supabase (de quelques heures à quelques jours).</li>
 </ul>
 
@@ -68,7 +79,7 @@ updated: 8 octobre 2026
   <li><strong>Changer d'adresse email ou de mot de passe</strong>&nbsp;;</li>
   <li><strong>Supprimer mon compte</strong>&nbsp;: efface ton compte, ta liste synchronisée, tes titres détectés, tes compteurs et ton jeton de suivi.</li>
 </ul>
-<p>Pour toute autre demande&nbsp;: <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>. Tu peux aussi adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" rel="noopener">CNIL</a>.</p>
+<p>Pour toute autre demande, y compris la suppression d'un avis envoyé&nbsp;: <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>. Tu peux aussi adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" rel="noopener">CNIL</a>.</p>
 
 <h2>Âge minimum</h2>
 <p>Le service s'adresse aux personnes de 15 ans et plus. En dessous, l'accord d'un parent est nécessaire.</p>
