@@ -1,0 +1,33 @@
+{
+  "extName": {
+    "message": "Cinepisode — Suivi auto",
+    "description": "Nom de l'extension"
+  },
+  "extDescription": {
+    "message": "Met à jour ta progression dans Cinepisode pendant que tu regardes Netflix (diagnostic sur Prime Video, Disney+, Max, Crunchyroll)."
+  },
+  "optionsTitle": {
+    "message": "Cinepisode — Suivi auto"
+  },
+  "optionsIntro": {
+    "message": "Génère ce jeton depuis Cinepisode : Réglages › Suivi auto (Netflix, Plex...) › Générer mon jeton (le même jeton sert à Tautulli et à cette extension). Colle-le ci-dessous."
+  },
+  "tokenLabel": {
+    "message": "Jeton"
+  },
+  "save": {
+    "message": "Enregistrer"
+  },
+  "tokenEmpty": {
+    "message": "Jeton vide."
+  },
+  "saved": {
+    "message": "Enregistré."
+  },
+  "coverage": {
+    "message": "Couverture actuelle : Netflix uniquement. Ouvre la console (F12) sur une page /watch/ pour voir ce que l'extension détecte."
+  },
+  "openApp": {
+    "message": "Ouvrir Cinepisode"
+  }
+}

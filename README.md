@@ -106,8 +106,9 @@ Pour renommer l'app, changer de domaine, de couleurs ou de logo :
    et les PNG de `icons/` aux chemins indiqués dans `logo`).
 2. Lancer `node scripts/build-brand.mjs`. Il régénère `js/00-brand.js`, `manifest.json`, les
    blocs `<!--brand:…-->` / `/*brand:css*/` d'`index.html` (titre, balises Open Graph, couleurs
-   CSS, logo, pied de page), `confidentialite.html`, `conditions.html`, `vercel.json`
-   (`X-Robots-Tag` par hôte, redirections), `robots.txt`, `sitemap.xml` et les gabarits
+   CSS, logo, pied de page, balises de script des langues), `confidentialite.html`,
+   `conditions.html`, `privacy.html`, `terms.html`, `vercel.json` (`X-Robots-Tag` par hôte,
+   redirections, réécritures `/fr` et `/en`), `robots.txt`, `sitemap.xml` et les gabarits
    d'emails `supabase/templates/*.html` +
    `subjects.json`.
 3. Recoller les gabarits et sujets dans Supabase (voir ci-dessous) et `scripts/email-previews.sh`
@@ -119,6 +120,36 @@ fichiers générés à la main : `node --test tests/` échoue s'ils ne sont plus
 (`node scripts/build-brand.mjs --check`). Aucun domaine n'est codé en dur dans le code de
 l'app : elle fonctionne sur n'importe quel domaine (chemins relatifs, liens d'emails basés sur
 l'adresse depuis laquelle la demande a été faite).
+
+## 🌐 Langues (français / anglais)
+
+Tout existe en français et en anglais : interface, messages d'erreur (y compris ceux de
+Supabase), emails, pages légales, extension navigateur. L'app de bureau affiche le site, donc
+suit la même langue.
+
+- **Interface** : `js/i18n/fr.js` et `js/i18n/en.js` (mêmes clés, vérifiées par
+  `tests/i18n.test.js`), lus par `js/00-i18n.js` (`t('clé', {var})`, `tn()` pour les pluriels,
+  `fmtDate` / `fmtNum` via `Intl`). Textes d'`index.html` : attributs `data-i18n` et
+  `data-i18n-attr`. Choix de la langue : `/fr`, `/en` ou `?lang=` dans l'adresse > choix
+  enregistré (`localStorage` `wl_lang`) > langue du navigateur (`fr*` → français, sinon
+  anglais). Sélecteur dans les réglages, la fenêtre de connexion et le pied de page.
+- **Catalogue** : TMDB est interrogé en `fr-FR` (plateformes FR) ou `en-US` (plateformes US) ;
+  la langue fait partie de la clé de cache du proxy. Les titres déjà enregistrés dans une liste
+  ne sont jamais réécrits.
+- **Emails** : un seul modèle par type dans Supabase, qui contient les deux versions et choisit
+  avec `{{ .Data.lang }}` (= `user_metadata.lang`, enregistré à l'inscription et à chaque
+  changement de langue). Sans langue (comptes existants) : français. Les objets ne pouvant pas
+  être conditionnels dans l'interface Supabase, `subjects.json` donne un objet bilingue
+  (`subject`) ; `subjectConditional` est une variante qui choisit la langue, non testée chez
+  Supabase. Après toute modification, recoller les 8 modèles et objets (voir plus bas).
+- **Pages légales** : `branding/legal/fr/*` → `/confidentialite`, `/conditions` ;
+  `branding/legal/en/*` → `/privacy`, `/terms` (en cas de divergence, la version française
+  prévaut).
+- **Ajouter une langue** : copier `js/i18n/en.js` en `js/i18n/<code>.js`, traduire, puis
+  `node scripts/build-brand.mjs` (balise de script, hreflang, sitemap, réécriture `/<code>`).
+  Facultatif : `branding/emails/<code>/` et `branding/legal/<code>/` (sinon emails dans la
+  langue par défaut, pages légales en anglais) ; la bascule des emails est générée pour chaque
+  langue disposant de modèles.
 
 ## ⚙️ Configuration
 
@@ -184,7 +215,8 @@ Secret keys) ; garder les autres. Redéployer.
   possède (impossible avec `vercel.app`) : voir « Domaine cinepisode.com » plus bas.
   Ensuite *Rate Limits* : « emails envoyés » à 30/h ou plus.
 - *Emails › Templates* : pour chaque modèle, coller le contenu de `supabase/templates/<fichier>.html`
-  et le sujet indiqué dans `supabase/templates/subjects.json` :
+  (versions française et anglaise dans le même fichier) et le sujet bilingue (`subject`) indiqué
+  dans `supabase/templates/subjects.json` :
   Confirm sign up = `confirmation`, Invite user = `invite`, Magic link = `magic_link`,
   Change email address = `email_change`, Reset password = `recovery`,
   Reauthentication = `reauthentication`. Dans *Security notifications* (si disponible),

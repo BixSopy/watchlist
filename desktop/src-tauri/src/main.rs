@@ -1,6 +1,8 @@
 // Point d'entree : le shell natif se contente d'afficher la fenetre pointee sur
-// l'app web en production (https://watchlist-omega-three.vercel.app). Aucune logique
-// metier ici : tout reste dans index.html/app.js, deployes normalement sur Vercel.
+// l'app web en production (https://cinepisode.com, baseUrl de brand.config.json). Aucune
+// logique metier ni aucun texte d'interface ici : tout reste dans index.html/js/*.js,
+// deployes normalement sur Vercel. La langue (francais/anglais) est donc celle de l'app web :
+// choix enregistre, sinon langue du systeme (WebView2).
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
@@ -24,5 +26,5 @@ fn main() {
         })
         .plugin(tauri_plugin_updater::Builder::new().build())
         .run(tauri::generate_context!())
-        .expect("erreur au demarrage de l'application Watchlist");
+        .expect("Cinepisode failed to start");
 }
