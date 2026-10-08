@@ -652,6 +652,7 @@ function detAddSel(){
   }).then(function(){
     DET.busy=false;
     _detRemoveGroups(doneKeys);
+    if(typeof loadBingeSignal==='function')loadBingeSignal(true);
     render();if(typeof loadRecos==='function')loadRecos();
     if(added||updated){sfx('add');toast(t('det.done',{added:fmtNum(added),updated:fmtNum(updated)}));}
     if(failed)toast(t('det.saveError'),'err');
