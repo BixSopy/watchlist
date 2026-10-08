@@ -25,9 +25,120 @@
     "message": "Enregistré."
   },
   "coverage": {
-    "message": "Couverture actuelle : Netflix uniquement. Après un épisode regardé sur une page /watch/, ta progression se met à jour dans Cinepisode."
+    "message": "Couverture actuelle : Netflix uniquement. Un épisode est marqué vu à 80 % de sa durée ou dès le générique de fin, un film à 90 % ; un épisode suivant lancé automatiquement puis arrêté n'est pas compté."
   },
   "openApp": {
     "message": "Ouvrir Cinepisode"
+  },
+  "lastTitle": {
+    "message": "Dernière détection"
+  },
+  "lastNone": {
+    "message": "Rien détecté pour l'instant. Un épisode est compté vu à 80 % ou au générique de fin, un film à 90 %."
+  },
+  "lastAt": {
+    "message": "Le $WHEN$",
+    "placeholders": {
+      "when": {
+        "content": "$1",
+        "example": "08/10/2026 21:40"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "Mis à jour : $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAlready": {
+    "message": "Déjà à jour : $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNotFound": {
+    "message": "Pas dans ta liste : $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAmbiguous": {
+    "message": "Plusieurs titres correspondent à « $LABEL$ », rien modifié",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidToken": {
+    "message": "Jeton invalide : génère un nouveau jeton dans Cinepisode et colle-le ci-dessus."
+  },
+  "lastNoToken": {
+    "message": "Aucun jeton enregistré : $LABEL$ n'a pas été envoyé.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNetwork": {
+    "message": "Cinepisode injoignable (connexion ?) : $LABEL$ n'a pas été envoyé.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastServerError": {
+    "message": "Erreur du serveur Cinepisode : $LABEL$ n'a pas été enregistré.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidInput": {
+    "message": "Détection refusée par le serveur : $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidDetection": {
+    "message": "Détection Netflix illisible, rien envoyé."
+  },
+  "lastLegacyUpdated": {
+    "message": "Mis à jour : $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastLegacyNoChange": {
+    "message": "Aucun changement pour $LABEL$ (pas dans ta liste ou déjà à jour).",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
   }
 }

@@ -164,7 +164,7 @@ select pg_temp.check(exists (select 1 from auth.users where id = '22222222-2222-
 
 -- ---------- Webhook Plex inchangé ----------
 set role anon;
-select pg_temp.check(public.mark_watched_by_title(repeat('cd', 24), 'Severance', 1, 3), 'mark_watched_by_title fonctionne toujours (anon + jeton)');
+select pg_temp.check(public.mark_watched_by_title(repeat('cd', 24), 'Severance', 1, 3) ->> 'status' = 'updated', 'mark_watched_by_title fonctionne toujours (anon + jeton)');
 reset role;
 select pg_temp.check((select episode from public.watchlist_items where local_id = 'ok2') = 3, 'progression mise à jour par le webhook');
 
@@ -183,4 +183,4 @@ end $$;
 reset role;
 select pg_temp.check((select count(*) from public.keep_alive) = 1, 'keep_alive : une seule ligne enregistrée');
 
-do $$ begin raise notice 'Tous les tests SQL sont passés.'; end $$;
+do $$ begin raise notice 'Tests 10_ouverture_publique passés.'; end $$;

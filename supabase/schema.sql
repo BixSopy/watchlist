@@ -5,9 +5,10 @@
 -- Reflète la base après les migrations
 -- supabase/migrations/20260925151457_nettoyage_et_securite.sql,
 -- supabase/migrations/20261006000550_plex_webhook_token_and_mark_watched.sql,
--- supabase/migrations/20261006054213_mark_watched_by_title.sql et
+-- supabase/migrations/20261006054213_mark_watched_by_title.sql,
 -- supabase/migrations/20261008100000_ouverture_publique.sql (quotas, cache, suppression
--- de compte, garde-fous de taille ; recopiée telle quelle en fin de fichier).
+-- de compte, garde-fous de taille ; recopiée telle quelle en fin de fichier) et
+-- supabase/migrations/20261008120000_mark_watched_fiable.sql (correspondance par titre fiable).
 -- Sert de référence pour recréer le projet ; ne pas exécuter sur la base existante.
 -- Tables : profiles, watchlist_items, keep_alive, api_quota_limits, api_usage,
 -- api_usage_global, api_cache. Aucun reste de laco-app
@@ -176,80 +177,153 @@ revoke all on function public.mark_watched_by_token(text, integer, integer, inte
 grant execute on function public.mark_watched_by_token(text, integer, integer, integer) to anon, authenticated;
 
 -- -----------------------------------------------------------------------------
--- FONCTION : mark_watched_by_title — extension navigateur (Netflix/..., Session 19)
--- Variante par titre de mark_watched_by_token() : pas de tmdb_id fiable sans appel
--- TMDB côté client (clé API jamais exposée hors serveur). Correspondance bornée au
--- profil du jeton, exacte puis partielle en secours.
+-- FONCTIONS : normalize_title_for_match + mark_watched_by_title — extension navigateur
+-- Variante par titre de mark_watched_by_token() (pas de tmdb_id côté extension, clé TMDB
+-- jamais exposée). État après 20261008120000_mark_watched_fiable.sql : titre normalisé
+-- (minuscules, accents, ponctuation, article initial, année entre parenthèses), égalité
+-- exacte uniquement, type vérifié, résultat jsonb (updated / already_up_to_date / not_found /
+-- ambiguous / invalid_token / invalid_input).
 -- -----------------------------------------------------------------------------
+create or replace function public.normalize_title_for_match(p_title text)
+returns text
+language plpgsql
+immutable
+parallel safe
+set search_path = ''
+as $$
+declare
+  v text;
+begin
+  if p_title is null then
+    return null;
+  end if;
+  -- Ligatures (plusieurs lettres), puis accents latins (majuscules et minuscules, indépendant de la
+  -- locale de la base), puis minuscules.
+  v := replace(replace(replace(replace(replace(p_title, 'Œ', 'oe'), 'œ', 'oe'), 'Æ', 'ae'), 'æ', 'ae'), 'ß', 'ss');
+  v := translate(v,
+    'ÀÁÂÃÄÅĀĂĄÇĆĈĊČĎĐÈÉÊËĒĔĖĘĚĜĞĠĢĤĦÌÍÎÏĨĪĬĮİĴĶĹĻĽĿŁÑŃŅŇÒÓÔÕÖØŌŎŐŔŖŘŚŜŞŠŢŤŦÙÚÛÜŨŪŬŮŰŲŴÝŸŶŹŻŽ'
+    || 'àáâãäåāăąçćĉċčďđèéêëēĕėęěĝğġģĥħìíîïĩīĭįıĵķĺļľŀłñńņňòóôõöøōŏőŕŗřśŝşšţťŧùúûüũūŭůűųŵýÿŷźżž',
+    'AAAAAAAAACCCCCDDEEEEEEEEEGGGGHHIIIIIIIIIJKLLLLLNNNNOOOOOOOOORRRSSSSTTTUUUUUUUUUUWYYYZZZ'
+    || 'aaaaaaaaacccccddeeeeeeeeegggghhiiiiiiiiijklllllnnnnooooooooorrrsssstttuuuuuuuuuuwyyyzzz');
+  v := lower(v);
+  -- Année entre parenthèses ou crochets en fin de titre : « Dune (2021) » -> « Dune ».
+  -- (Une année nue n'est PAS retirée : « 1917 », « Blade Runner 2049 » sont des titres.)
+  v := regexp_replace(v, '\s*[\(\[]\s*(18|19|20)[0-9]{2}\s*[\)\]]\s*$', '');
+  -- Ponctuation et espaces (liste explicite : même résultat quelle que soit la locale) -> espace.
+  -- Les lettres de toutes les écritures (japonais, etc.) et les chiffres sont conservés.
+  v := regexp_replace(v, '[][[:space:]!"#$%&''()*+,./:;<=>?@\\^_`{|}~’‘‛`´“”„«»‹›¡¿…–—―·•°-]+', ' ', 'g');
+  v := btrim(v);
+  -- Article initial (anglais, français) : « The Office » = « Office », « L'Odyssée » = « Odyssée ».
+  -- Jamais si le titre ne contient que l'article (« Les » reste « les »).
+  v := regexp_replace(v, '^(the|le|la|les|l) (.)', '\2');
+  return nullif(v, '');
+end;
+$$;
+
+revoke all on function public.normalize_title_for_match(text) from public;
+revoke all on function public.normalize_title_for_match(text) from anon, authenticated;
+
+
+-- mark_watched_by_title : extension navigateur (Netflix). Correspondance exacte sur le titre
+-- normalisé, type vérifié, aucune modification si 0 ou plusieurs titres correspondent.
 create or replace function public.mark_watched_by_title(
   p_token text,
   p_title text,
   p_season integer,
-  p_episode integer
+  p_episode integer,
+  p_type text default null
 )
-returns boolean
+returns jsonb
 language plpgsql
 security definer
 set search_path = ''
 as $$
 declare
   v_profile_id uuid;
-  v_item_id uuid;
+  v_norm text;
+  v_is_episode boolean;
+  v_count integer;
+  v_item record;
   v_updated integer;
 begin
-  if p_token is null or p_token = '' or p_title is null or trim(p_title) = '' then
-    return false;
+  if p_token is null or p_token = '' then
+    return jsonb_build_object('status', 'invalid_token');
   end if;
 
   select id into v_profile_id from public.profiles where plex_webhook_token = p_token;
   if v_profile_id is null then
-    return false;
+    return jsonb_build_object('status', 'invalid_token');
   end if;
 
-  select id into v_item_id
-  from public.watchlist_items
-  where profile_id = v_profile_id
-    and deleted = false
-    and lower(trim(title)) = lower(trim(p_title))
-  order by added_at desc
-  limit 1;
-
-  if v_item_id is null then
-    select id into v_item_id
-    from public.watchlist_items
-    where profile_id = v_profile_id
-      and deleted = false
-      and (lower(title) like '%'||lower(trim(p_title))||'%' or lower(trim(p_title)) like '%'||lower(title)||'%')
-    order by length(title) asc, added_at desc
-    limit 1;
+  -- Type : explicite (extension 0.4.0+) ou déduit (extension 0.3.0 : saison+épisode = épisode)
+  if p_type is null then
+    v_is_episode := p_season is not null and p_episode is not null;
+  elsif p_type = 'episode' then
+    v_is_episode := true;
+  elsif p_type = 'movie' then
+    v_is_episode := false;
+  else
+    return jsonb_build_object('status', 'invalid_input');
   end if;
 
-  if v_item_id is null then
-    return false;
+  v_norm := public.normalize_title_for_match(p_title);
+  if v_norm is null or length(p_title) > 300
+     or (v_is_episode and (p_season is null or p_episode is null or p_season < 0 or p_episode < 0))
+     or (not v_is_episode and (p_season is not null or p_episode is not null)) then
+    return jsonb_build_object('status', 'invalid_input');
   end if;
 
-  if p_season is not null and p_episode is not null then
+  -- Titres candidats : même profil, non supprimés, bon type, même titre normalisé
+  select count(*) into v_count
+  from public.watchlist_items w
+  where w.profile_id = v_profile_id
+    and w.deleted = false
+    and (case when v_is_episode then w.type in ('serie', 'anime') else w.type = 'film' end)
+    and public.normalize_title_for_match(w.title) = v_norm;
+
+  if v_count = 0 then
+    return jsonb_build_object('status', 'not_found', 'title', p_title, 'season', p_season, 'episode', p_episode);
+  elsif v_count > 1 then
+    return jsonb_build_object('status', 'ambiguous', 'title', p_title, 'season', p_season, 'episode', p_episode, 'count', v_count);
+  end if;
+
+  select w.id, w.title, w.saison, w.episode, w.status into v_item
+  from public.watchlist_items w
+  where w.profile_id = v_profile_id
+    and w.deleted = false
+    and (case when v_is_episode then w.type in ('serie', 'anime') else w.type = 'film' end)
+    and public.normalize_title_for_match(w.title) = v_norm;
+
+  if v_is_episode then
+    -- Episode vu : avance la progression, jamais en arrière (un revisionnage ne fait pas régresser)
     update public.watchlist_items
     set saison = p_season,
         episode = p_episode,
-        status = case when status in ('avoir','todo') then 'encours' else status end
-    where id = v_item_id
+        status = case when status in ('avoir', 'todo') then 'encours' else status end
+    where id = v_item.id
       and (saison is null or episode is null
            or p_season > saison
-           or (p_season = saison and p_episode >= episode));
+           or (p_season = saison and p_episode > episode)
+           or (p_season = saison and p_episode = episode and status in ('avoir', 'todo')));
   else
+    -- Film vu : terminé
     update public.watchlist_items
     set status = 'termine'
-    where id = v_item_id and status <> 'termine';
+    where id = v_item.id and status <> 'termine';
   end if;
 
   get diagnostics v_updated = row_count;
-  return v_updated > 0;
+  if v_updated > 0 then
+    return jsonb_build_object('status', 'updated', 'title', v_item.title, 'season', p_season, 'episode', p_episode);
+  end if;
+  return jsonb_build_object('status', 'already_up_to_date', 'title', v_item.title,
+    'season', case when v_is_episode then v_item.saison end,
+    'episode', case when v_is_episode then v_item.episode end);
 end;
 $$;
 
-revoke all on function public.mark_watched_by_title(text, text, integer, integer) from public;
-grant execute on function public.mark_watched_by_title(text, text, integer, integer) to anon, authenticated;
+revoke all on function public.mark_watched_by_title(text, text, integer, integer, text) from public;
+grant execute on function public.mark_watched_by_title(text, text, integer, integer, text) to anon, authenticated;
 
 -- -----------------------------------------------------------------------------
 -- Row Level Security

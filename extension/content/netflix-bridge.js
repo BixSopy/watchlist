@@ -10,18 +10,23 @@
  * fonction Supabase est bornée à la watchlist du propriétaire du jeton. */
 var WL_ALLOWED_ORIGINS = ['https://www.netflix.com'];
 
+/* Forme attendue : épisode = saison et épisode entiers ; film = saison et épisode vides */
 function wlValidDetection(d) {
   if (!d || typeof d !== 'object' || d.__wl !== true || d.type !== 'wl_watched') return null;
+  if (d.kind !== 'episode' && d.kind !== 'movie') return null;
   if (typeof d.title !== 'string') return null;
   var title = d.title.trim();
   if (!title || title.length > 300) return null;
   function num(v) {
-    if (v === null || v === undefined) return null;
     return (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 100000) ? v : undefined;
   }
-  var season = num(d.season), episode = num(d.episode);
-  if (season === undefined || episode === undefined) return null;
-  return { title: title, season: season, episode: episode };
+  if (d.kind === 'episode') {
+    var season = num(d.season), episode = num(d.episode);
+    if (season === undefined || episode === undefined) return null;
+    return { kind: 'episode', title: title, season: season, episode: episode };
+  }
+  if (d.season !== null || d.episode !== null) return null;
+  return { kind: 'movie', title: title, season: null, episode: null };
 }
 
 window.addEventListener('message', function (ev) {
@@ -29,7 +34,7 @@ window.addEventListener('message', function (ev) {
   if (ev.origin !== window.location.origin || WL_ALLOWED_ORIGINS.indexOf(ev.origin) < 0) return;
   var det = wlValidDetection(ev.data);
   if (!det) return;
-  chrome.runtime.sendMessage({ type: 'wl_watched', title: det.title, season: det.season, episode: det.episode }, function () {
+  chrome.runtime.sendMessage({ type: 'wl_watched', kind: det.kind, title: det.title, season: det.season, episode: det.episode }, function () {
     void chrome.runtime.lastError; /* pas de réponse (service worker relancé) : rien à faire */
   });
 });

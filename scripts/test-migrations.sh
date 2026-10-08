@@ -20,5 +20,11 @@ for f in "$ROOT"/supabase/migrations/20260925*.sql "$ROOT"/supabase/migrations/2
          "$ROOT"/supabase/migrations/20261008*.sql "$ROOT"/supabase/migrations/20261008*.sql; do
   echo "→ $(basename "$f")"; "${PSQL[@]}" -f "$f" >/dev/null
 done
-PGOPTIONS="" "${PSQL[@]}" -f "$ROOT/supabase/tests/10_ouverture_publique.test.sql" 2>&1 >/dev/null | sed -E "s/^psql:[^ ]+ NOTICE:  //"
-exit "${PIPESTATUS[0]}"
+# Tests SQL dans l'ordre (10_, 20_…), chacun dans sa propre session ; arrêt au premier échec.
+for t in "$ROOT"/supabase/tests/[0-9][0-9]_*.test.sql; do
+  echo "→ $(basename "$t")"
+  PGOPTIONS="" "${PSQL[@]}" -f "$t" 2>&1 >/dev/null | sed -E "s/^psql:[^ ]+ NOTICE:  //"
+  status="${PIPESTATUS[0]}"
+  [ "$status" -eq 0 ] || exit "$status"
+done
+echo "Tous les tests SQL sont passés."
