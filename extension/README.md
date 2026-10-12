@@ -55,6 +55,26 @@ la RPC à jeton écrit. Un compte supprimé efface ses détections (cascade). L'
 localement le jeton, la dernière détection et l'état de l'import (`wlImport`, `wlImportMeta` : date
 du dernier import, jamais le jeton ni la liste des titres).
 
+## Nouveautés 0.7.0 : Disney+ et Apple TV (détection en direct)
+
+- Deux plateformes de plus, activables séparément comme Crunchyroll et Prime Video (« Activer
+  Disney+ », « Activer Apple TV » ; permissions facultatives `https://www.disneyplus.com/*` et
+  `https://tv.apple.com/*`, aucun nouvel avertissement à l'installation). Scripts enregistrés
+  seulement après la permission (`lib/platforms.js`), mêmes règles (`lib/watch-rules.js` : épisode
+  à 80 % ou générique après 50 %, film à 90 %, 20 s réellement regardées, un seul envoi), envoi
+  `wl_watched` → `source='live'` dans « Détectés » si pas de correspondance. Aucune migration.
+- **Disney+** (`content/disneyplus.js`) : pages `/play/<id>` ; titre `.title-field`, repère
+  `.subtitle-field` (« S1: ép. 6 », « S1: Ep. 6 ») ; position lue dans le shadow DOM ouvert de
+  `<progress-bar>` (`.progress-bar__thumb`, aria-valuenow / aria-valuemax), sinon `<video>`.
+- **Apple TV** (`content/appletv.js`) : `[data-testid="video-container"] video` et
+  `player-metadata-title` / `player-metadata-subtitle` (« S1, E3 · Titre ») ; exclus : vidéos promo
+  hors du lecteur, sport (`/sporting-event/`, `/live/`), extraits (`/clip/`), bandes-annonces et
+  bonus, vidéos de moins de 5 min ; épisode suivant enchaîné jamais rattaché au précédent.
+  **Non testé sur un compte réel.**
+- Pas d'import d'historique : ni Disney+ ni Apple TV n'en exposent un (seulement des API internes
+  non documentées, écartées). Aucune requête vers ces sites, CSP inchangée.
+- Fenêtre : bande « 5 plateformes intégrées ».
+
 ## Correctifs 0.6.2
 
 - **Crunchyroll, historiques longs** : l'adresse `/content/v2/{compte}/watch-history` pagine
@@ -274,3 +294,21 @@ n'est modifié. La progression ne recule jamais (revoir un ancien épisode ne ch
 Compatibilité : l'extension 0.3.0 continue de fonctionner avec la nouvelle fonction, et la 0.4.0
 fonctionne aussi avec l'ancienne (elle réessaie sans `p_type`, et affiche alors un résultat
 simplifié).
+
+## Fenêtre de l'extension (0.7.3)
+
+`options.html` + `popup.css` + `options.js`, même direction artistique que cinepisode.com
+(polices embarquées dans `fonts/`, licence OFL : la CSP n'autorise que les fichiers de l'extension).
+Une seule vue courte, sans texte d'explication :
+
+- **non connecté** : trois étapes, champ du jeton, « Connecter » ;
+- **connecté** : carte « En ce moment » (au repos, ou EN DIRECT avec la barre d'avancement et le
+  seuil 80 % / 90 %, clé `wlNow` ; repasse au repos sans nouvelle depuis 45 s), dernière détection
+  (`wlLast`), grille des 5 plateformes (pastilles à lettre ; un clic active la plateforme, une
+  pastille active ouvre les Réglages), import de l'historique là où il existe, compteur
+  « Détectés » (`wlPending`, remis à zéro par « Voir ») ;
+- **Réglages** (glissent depuis la droite) : jeton masqué et « Changer », fichier CSV Netflix,
+  interrupteurs des plateformes, règles de détection, diagnostic, déconnexion avec confirmation.
+
+Animations coupées si le système demande de réduire les mouvements. Tests : la vraie page est
+chargée dans un mini-DOM (`tests/fixtures/popup-harness.js`) et dans Chrome (`e2e/`).

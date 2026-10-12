@@ -75,7 +75,18 @@
     return { type: 'wl_watched', kind: 'movie', title: t, season: null, episode: null };
   }
 
-  var api = { RULES: R, createTracker: createTracker, isDone: isDone, parseEpisodeLabel: parseEpisodeLabel, detection: detection };
+  /* 0.7.2 : avancement de la lecture en cours, affiché en direct dans la fenêtre de l'extension
+   * (« En ce moment », barre avec le repère des 80 %). Même forme que detection(), plus pct (0-100). */
+  function progress(kind, title, season, episode, currentMs, durationMs, done) {
+    var d = detection(kind, title, season, episode);
+    if (!d || !durationMs || durationMs <= 0 || !isFinite(durationMs) || typeof currentMs !== 'number') return null;
+    d.type = 'wl_progress';
+    d.pct = Math.max(0, Math.min(100, Math.round(currentMs / durationMs * 100)));
+    d.done = !!done;
+    return d;
+  }
+
+  var api = { RULES: R, createTracker: createTracker, isDone: isDone, parseEpisodeLabel: parseEpisodeLabel, detection: detection, progress: progress };
   root.CinepisodeWatch = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof self !== 'undefined' ? self : this);

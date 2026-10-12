@@ -32,6 +32,16 @@ function wlValidDetection(d) {
 window.addEventListener('message', function (ev) {
   if (ev.source !== window) return;
   if (ev.origin !== window.location.origin || WL_ALLOWED_ORIGINS.indexOf(ev.origin) < 0) return;
+  /* 0.7.2 : avancement de la lecture (fenêtre de l'extension, « En ce moment ») */
+  if (ev.data && ev.data.__wl === true && ev.data.type === 'wl_progress') {
+    var p = wlValidDetection(Object.assign({}, ev.data, { type: 'wl_watched' }));
+    var pct = ev.data.pct;
+    if (!p || typeof pct !== 'number' || !(pct >= 0 && pct <= 100)) return;
+    chrome.runtime.sendMessage({ type: 'wl_progress', kind: p.kind, title: p.title, season: p.season, episode: p.episode, pct: Math.round(pct), done: ev.data.done === true }, function () {
+      void chrome.runtime.lastError;
+    });
+    return;
+  }
   var det = wlValidDetection(ev.data);
   if (!det) return;
   chrome.runtime.sendMessage({ type: 'wl_watched', kind: det.kind, title: det.title, season: det.season, episode: det.episode }, function () {

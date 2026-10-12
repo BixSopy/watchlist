@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- Page épisode tv.apple.com reconstituée (structure d'après trakt-tools/universal-trakt-scrobbler,
+     AppleTvParser.ts) : vidéo promo en tête de fiche (hors du lecteur, ignorée), lecteur
+     [data-testid="video-container"] video, métadonnées [data-testid="player-metadata-title"] /
+     [data-testid="player-metadata-subtitle"], JSON-LD de la page. Utilisée par e2e/platforms.test.mjs. -->
+<html lang="fr"><head><meta charset="utf-8"><title>Severance – Apple TV</title>
+<meta name="apple:content_id" content="umc.cmc.4a1b2c3d">
+<meta name="apple:title" content="Dans le périmètre">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TVEpisode","name":"Dans le périmètre","episodeNumber":3,"partOfSeason":{"@type":"TVSeason","seasonNumber":1},"partOfSeries":{"@type":"TVSeries","name":"Severance"}}</script>
+</head>
+<body>
+<div class="product-header">
+  <video class="promo" src="https://tv.apple.com/promo.webm" muted autoplay loop></video>
+</div>
+<div data-testid="video-player">
+  <div data-testid="video-container">
+    <video src="https://tv.apple.com/long.webm" muted autoplay></video>
+  </div>
+  <div data-testid="player-metadata">
+    <span data-testid="player-metadata-title">Severance</span>
+    <span data-testid="player-metadata-subtitle">S1, E3 · Dans le périmètre</span>
+  </div>
+</div>
+<script>
+  /* Reprise de lecture : 75 % de l'épisode déjà vu, puis lecture en x1,5 */
+  var v = document.querySelector('[data-testid="video-container"] video');
+  v.addEventListener('loadedmetadata', function () { v.currentTime = v.duration * 0.75; v.playbackRate = 1.5; }, { once: true });
+</script>
+</body></html>
