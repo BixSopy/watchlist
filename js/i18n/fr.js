@@ -133,6 +133,7 @@
  "suivi.tomorrow": "Demain !",
  "suivi.reminder": "Rappel",
  "suivi.seeAll": "Voir tout ({n})",
+ "suivi.seeLess": "Réduire",
  "suivi.notifDenied": "Notifications refusées — rappel désactivé",
  "suivi.notifBlocked": "Notifications bloquées dans le navigateur",
  "suivi.newEpToday": "Nouvel épisode disponible aujourd'hui",

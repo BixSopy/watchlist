@@ -137,6 +137,7 @@
  "suivi.tomorrow": "Tomorrow!",
  "suivi.reminder": "Reminder",
  "suivi.seeAll": "See all ({n})",
+ "suivi.seeLess": "Show less",
  "suivi.notifDenied": "Notifications denied, reminder turned off",
  "suivi.notifBlocked": "Notifications are blocked in your browser",
  "suivi.newEpToday": "New episode available today",

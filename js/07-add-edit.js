@@ -31,10 +31,21 @@ tdd.addEventListener('click',function(e){
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
   document.getElementById('ftmdb').value=selTmdb.tmdbScore||'';document.getElementById('fyear').value=year||'';
   document.getElementById('agField').style.display='none';
-  if(isM){document.getElementById('ftype').value='film';}else{document.getElementById('ftype').value='serie';fetchTotEp(r.id);}
+  if(isM){setSelVal('ftype','film');}else{setSelVal('ftype','serie');fetchTotEp(r.id);}
   chkEpt();
 });
-function fetchTotEp(id){tf(TB+'/tv/'+id+'?language='+TMDB_LANG).then(function(d){document.getElementById('ftotep').value=d.number_of_episodes||0;}).catch(function(){});}
+function fetchTotEp(id){
+  tf(TB+'/tv/'+id+'?language='+TMDB_LANG).then(function(d){
+    document.getElementById('ftotep').value=d.number_of_episodes||0;
+    /* Episodes de la saison 1 (saison par défaut à l'ajout) pour la barre de progression des
+       cartes — total_ep ci-dessus est le total de la série entière, pas celui d'une saison. */
+    if(selTmdb){
+      var s1=(d.seasons||[]).filter(function(s){return s.season_number===1;})[0];
+      selTmdb.seasonEpCount=(s1&&s1.episode_count)||null;
+      selTmdb.seasonEpCountSeason=1;
+    }
+  }).catch(function(){});
+}
 function clearSel(){selTmdb=null;document.getElementById('sprev').classList.remove('on');document.getElementById('swrap').style.display='';ti.value='';document.getElementById('ftmdb').value='';document.getElementById('fyear').value='';}
 document.addEventListener('click',function(e){if(!e.target.closest('.swrap'))tdd.classList.remove('on');});
 
@@ -69,7 +80,7 @@ function openAdd(){
   editId=null;selTmdb=null;myRate=0;
   document.getElementById('mtitle').textContent=t('add.title');document.getElementById('sbtn').textContent=t('common.add');
   document.getElementById('sprev').classList.remove('on');document.getElementById('swrap').style.display='';ti.value='';
-  document.getElementById('ftype').value='film';document.getElementById('fstat').value='avoir';
+  setSelVal('ftype','film');setSelVal('fstat','avoir');
   document.getElementById('ftmdb').value='';document.getElementById('fyear').value='';
   document.getElementById('fsai').value=1;document.getElementById('fepi').value=1;document.getElementById('ftotep').value=0;
   document.getElementById('ept').classList.remove('on');document.getElementById('agField').style.display='none';
@@ -85,7 +96,7 @@ function openEdit(id){
   document.getElementById('spmeta').textContent=(item.type=='film'?t('type.film'):t('type.serieAnime'))+(item.year?' - '+item.year:'');
   var im=document.getElementById('spimg');if(item.poster){im.src=IB+'w92'+item.poster;im.style.display='block';}else{im.style.display='none';}
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
-  document.getElementById('ftype').value=item.type;document.getElementById('fstat').value=item.status;
+  setSelVal('ftype',item.type);setSelVal('fstat',item.status);
   document.getElementById('ftmdb').value=item.tmdbScore||'';document.getElementById('fyear').value=item.year||'';
   document.getElementById('fsai').value=item.saison||1;document.getElementById('fepi').value=item.episode||1;document.getElementById('ftotep').value=item.totalEp||0;
   if(item.animeGenre)document.getElementById('fanimegenre').value=item.animeGenre;
@@ -108,6 +119,11 @@ function makeEntry(sel,f,ex,id){
     collectionId:f.collectionId||null,collectionName:f.collectionName||null,
     supaId:ex?ex.supaId:null,deleted:false,updatedAtLocal:Date.now(),needsSync:true,
     reminderEnabled:ex?ex.reminderEnabled:false,nextAirDate:ex?ex.nextAirDate:null,
+    /* Episodes de la saison en cours (pas le total de la série, voir totalEp) : sert uniquement
+       à la barre de progression des cartes, local, jamais synchronisé. Valide seulement pour la
+       saison seasonEpCountSeason — sinon fausse la barre comme avant ce correctif. */
+    seasonEpCount:f.seasonEpCount!=null?f.seasonEpCount:(ex?ex.seasonEpCount:null),
+    seasonEpCountSeason:f.seasonEpCount!=null?f.seasonEpCountSeason:(ex?ex.seasonEpCountSeason:null),
     lastEpisodeCheck:ex?ex.lastEpisodeCheck:null,tvmazeId:ex?ex.tvmazeId:null,
     streamingProviders:ex?ex.streamingProviders:null,genreIds:ex?ex.genreIds:null,
     omdbRatings:ex?ex.omdbRatings:null,kitsuRating:ex?ex.kitsuRating:null,
@@ -126,6 +142,7 @@ function addEntryFromTmdb(sel,f){
 function updateEntryProgress(id,f){
   var item=memDB.find(function(i){return i.id==id;});if(!item)return null;
   item.status=f.status;item.saison=f.saison;item.episode=f.episode;
+  if(f.seasonEpCount!=null){item.seasonEpCount=f.seasonEpCount;item.seasonEpCountSeason=f.seasonEpCountSeason;}
   item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
   dbPut(item,function(){});
   return item;
@@ -147,8 +164,10 @@ function saveEntry(){
   var sagaRaw=(document.getElementById('fsaga').value||'').trim();
   var collName=sagaRaw||null;
   var collId=collName?collName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''):null;
+  var seasonMatch=showEp&&selTmdb&&selTmdb.seasonEpCountSeason===sai;
   var entry=makeEntry(selTmdb,{type:type,status:status,myRating:myRate,animeGenre:ag,
     saison:showEp?sai:null,episode:showEp?epi:null,totalEp:showEp?totep:(ex?ex.totalEp:null),
+    seasonEpCount:seasonMatch?selTmdb.seasonEpCount:null,seasonEpCountSeason:seasonMatch?sai:null,
     tags:curTags.slice(),collectionId:collId,collectionName:collName},ex,editId);
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}

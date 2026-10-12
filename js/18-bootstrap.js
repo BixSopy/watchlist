@@ -82,6 +82,16 @@ function enhanceAllSelects(root){
     if(!s._cselDone)enhanceSelect(s);
   });
 }
+/* Poser la valeur d'un <select> depuis le code (pas un choix de l'utilisateur dans le menu) :
+   affecter .value ne déclenche pas 'change', or c'est le seul événement écouté par le menu
+   personnalisé (enhanceSelect ci-dessus) pour rafraîchir son libellé affiché — sans ce
+   déclenchement manuel, le menu continue d'afficher l'ancienne valeur même si .value est à jour. */
+function setSelVal(id,value){
+  var el=document.getElementById(id);
+  if(!el)return;
+  el.value=value;
+  el.dispatchEvent(new Event('change',{bubbles:true}));
+}
 
 /* INIT */
 soundOn=localStorage.getItem('wl_snd')!='0';
