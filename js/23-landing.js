@@ -72,13 +72,15 @@ function _lpCheckLocal(tries){
 }
 /* Apparition au défilement (sections sous le héros ; le héros s'anime en CSS) */
 function _lpReveal(){
-  var els=document.querySelectorAll('#landing .lp-sec .lp-reveal:not(.in),#landing .lp-stats .lp-reveal:not(.in)');
+  var els=document.querySelectorAll('#landing .lp-reveal:not(.in)');
+  /* Cascade : rang parmi les éléments qui apparaissent dans le même parent (0,1 s chacun, plafonné) */
+  els.forEach(function(el){var p=el.parentNode,k=0;if(!p)return;[].forEach.call(p.children,function(c,j){if(c===el)k=[].slice.call(p.children,0,j).filter(function(x){return x.classList.contains('lp-reveal');}).length;});el.style.setProperty('--i',Math.min(k,6));});
   if(!document.documentElement.classList.contains('lp-anim')||typeof IntersectionObserver==='undefined'){
     els.forEach(function(el){el.classList.add('in');});return;
   }
   if(!_lp.io)_lp.io=new IntersectionObserver(function(entries){
     entries.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');_lp.io.unobserve(en.target);}});
-  },{rootMargin:'0px 0px -8% 0px',threshold:0.08});
+  },{rootMargin:'0px 0px -10% 0px',threshold:0.01});
   els.forEach(function(el){_lp.io.observe(el);});
   document.documentElement.classList.add('lp-ready');
 }
@@ -98,6 +100,7 @@ function _lpMotion(){
     var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){io.unobserve(e.target);_lpCount(e.target);}});},{threshold:.6});
     nums.forEach(function(n){io.observe(n);});
   }
+  _lpScenes();
   if(_lpSD())return;
   r.classList.add('lp-nosd');
   var stage=document.querySelector('#landing .lp-stage-3d'),hero=document.querySelector('#landing .lp-hero-in'),
@@ -113,11 +116,61 @@ function _lpMotion(){
   function req(){if(!tick){tick=true;requestAnimationFrame(frame);}}
   addEventListener('scroll',req,{passive:true});addEventListener('resize',req);frame();
 }
+/* Scènes V3 : progression --p (0 → 1) des sections [data-lp-p] et [data-lp-pin], étape de la section
+   épinglée, sous-navigation givrée. Lecture des positions puis écriture, une fois par image. */
+function _lpScenes(){
+  var L=document.getElementById('landing');if(!L)return;
+  var pin=L.querySelector('[data-lp-pin]'),scenes=[].slice.call(L.querySelectorAll('[data-lp-p]')),
+      sub=document.getElementById('lpSubnav'),hero=L.querySelector('.lp-hero'),tick=false,last=-1;
+  var steps=pin?[].slice.call(pin.querySelectorAll('.lp-pin-step')):[],scr=pin?[].slice.call(pin.querySelectorAll('.lp-scr')):[],
+      dots=pin?[].slice.call(pin.querySelectorAll('.lp-pin-dots i')):[];
+  function clamp(x){return x<0?0:x>1?1:x;}
+  function frame(){
+    tick=false;if(!lpIsGuest())return;
+    var vh=innerHeight,w=[];
+    if(hero&&sub)w.push(function(b){return function(){sub.classList.toggle('on',b);};}(hero.getBoundingClientRect().bottom<80));
+    scenes.forEach(function(el){var b=el.getBoundingClientRect(),
+      p=el.classList.contains('lp-huge')?clamp(-b.top/Math.max(1,b.height-vh)):clamp((vh-b.top)/(vh+b.height));
+      w.push(function(){el.style.setProperty('--p',p.toFixed(4));});});
+    if(pin){var b=pin.getBoundingClientRect(),stick=pin.querySelector('.lp-pin-stick'),
+      hd=stick&&stick.previousElementSibling,top=hd?hd.offsetTop+hd.offsetHeight:0,/* pas stick.offsetTop : il bouge une fois épinglé */p=clamp((-b.top-top)/Math.max(1,b.height-top-vh)),k=Math.min(steps.length-1,Math.floor(p*steps.length*.999));
+      w.push(function(){pin.style.setProperty('--p',p.toFixed(4));
+        if(k!==last){last=k;steps.forEach(function(s,i){s.classList.toggle('on',i===k);s.classList.toggle('past',i<k);s.setAttribute('aria-hidden',i===k?'false':'true');});
+          scr.forEach(function(s,i){s.classList.toggle('on',i===k);});dots.forEach(function(d,i){d.classList.toggle('on',i<=k);});}});}
+    w.forEach(function(f){f();});
+  }
+  function req(){if(!tick){tick=true;requestAnimationFrame(frame);}}
+  addEventListener('scroll',req,{passive:true});addEventListener('resize',req);frame();
+}
+/* FAQ : ouverture et fermeture animées (sans JS, <details> natif) */
+function _lpFaq(){
+  document.querySelectorAll('#landing .lp-faq-item').forEach(function(d){
+    var s=d.querySelector('summary');if(!s||d._lp)return;d._lp=1;
+    if(d.open)d.classList.add('lp-open');
+    s.addEventListener('click',function(e){
+      if(!document.documentElement.classList.contains('lp-anim'))return;
+      e.preventDefault();
+      if(d.open&&d.classList.contains('lp-open')){d.classList.remove('lp-open');setTimeout(function(){if(!d.classList.contains('lp-open'))d.open=false;},450);}
+      else{d.open=true;requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add('lp-open');});});}
+    });
+  });
+}
+/* Curseur de cartes : boutons ‹ › (le glissement et l'aimantation sont natifs) */
+function _lpSlider(){
+  document.querySelectorAll('#landing [data-sl]').forEach(function(b){
+    if(b._lp)return;b._lp=1;
+    b.addEventListener('click',function(){var s=document.getElementById('lpSlider');if(!s)return;
+      var c=s.querySelector('.lp-card'),w=c?c.getBoundingClientRect().width+18:320;
+      s.scrollBy({left:(+b.getAttribute('data-sl'))*w,behavior:_lpReduced()?'auto':'smooth'});});
+  });
+}
 function _lpSetup(view){
   document.title=t('lp.meta.title',{name:BRAND.name});
   lpMountAuth(view);
   _lpReveal();
   _lpMotion();
+  _lpFaq();
+  _lpSlider();
   _lpCheckLocal(0);
 }
 (function(){

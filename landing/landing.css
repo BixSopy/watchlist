@@ -7,7 +7,7 @@
 .lp{--lp-max:1180px;--lp-text:#f4f4f6;--lp-muted:#a9a9b4;--lp-faint:#8b8b96;--lp-line:rgba(255,255,255,.08);--lp-line2:rgba(255,255,255,.14);
   --lp-card:rgba(255,255,255,.035);--lp-violet:167,139,250;--lp-ease:cubic-bezier(.2,.7,.2,1);
   position:relative;color:var(--lp-text);font-family:'IBM Plex Sans','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.6;
-  background:radial-gradient(1200px 700px at 50% -220px,rgba(var(--accent-rgb),.13),transparent 70%),var(--bg);overflow:hidden;-webkit-font-smoothing:antialiased}
+  background:radial-gradient(1200px 700px at 50% -220px,rgba(var(--accent-rgb),.13),transparent 70%),var(--bg);overflow:hidden;overflow:clip;-webkit-font-smoothing:antialiased}
 html.lp-guest{scroll-behavior:smooth;scroll-padding-top:84px}
 @media (prefers-reduced-motion:reduce){html.lp-guest{scroll-behavior:auto}}
 .lp a{color:inherit}
@@ -180,18 +180,7 @@ html.lp-guest{scroll-behavior:smooth;scroll-padding-top:84px}
 /* ---------- Apparition (seulement avec lp-anim : JS actif et mouvement autorisé) ---------- */
 @keyframes lpUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 @keyframes lpFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-html.lp-anim .lp-hero .lp-reveal{animation:lpUp .9s var(--lp-ease) both}
-html.lp-anim .lp-hero .lp-h1{animation-delay:.06s}
-html.lp-anim .lp-hero .lp-lead{animation-delay:.14s}
-html.lp-anim .lp-hero .lp-ctas{animation-delay:.22s}
-html.lp-anim .lp-hero .lp-proof{animation-delay:.3s}
-html.lp-anim .lp-hero .lp-stage{animation:lpUp 1.2s var(--lp-ease) .34s both}
-html.lp-anim .lp-hero .lp-sources{animation-delay:.5s}
 html.lp-anim .mk-phone{animation:lpFloat 7s ease-in-out 1.6s infinite}
-html.lp-anim.lp-ready .lp-sec .lp-reveal{opacity:0;transform:translateY(28px);transition:opacity .9s var(--lp-ease),transform .9s var(--lp-ease)}
-html.lp-anim.lp-ready .lp-sec .lp-reveal.in{opacity:1;transform:none}
-html.lp-anim.lp-ready .lp-grid .lp-card:nth-child(3n+2){transition-delay:.08s}
-html.lp-anim.lp-ready .lp-grid .lp-card:nth-child(3n){transition-delay:.16s}
 
 /* ================== Maquettes (décoratives, aria-hidden) ================== */
 /* Affiches abstraites dessinées en CSS (aucune image, titres fictifs) */
@@ -375,17 +364,136 @@ html.lp-anim .lp-grad{background-size:200% 100%;animation:lpGrad 8s ease-in-out 
   html.lp-anim .lp-hero-in{will-change:transform,opacity;animation:lpHeroOut linear both;animation-timeline:scroll(root);animation-range:0 640px}
   html.lp-anim .lp-spot-vis{animation:lpPar linear both;animation-timeline:view();animation-range:cover}
   /* Apparitions liées au défilement (remplacent l'IntersectionObserver) : réversibles, avec décalage */
-  html.lp-anim.lp-ready .lp-sec .lp-reveal,html.lp-anim .lp-stats .lp-reveal{opacity:1;transform:none;transition:none;animation:lpRise linear both;animation-timeline:view();animation-range:entry 5% entry 85%}
-  html.lp-anim .lp-stats .lp-stat:nth-child(2),html.lp-anim.lp-ready .lp-grid .lp-card:nth-child(3n+2){animation-range:entry 15% entry 95%}
-  html.lp-anim .lp-stats .lp-stat:nth-child(3),html.lp-anim.lp-ready .lp-grid .lp-card:nth-child(3n){animation-range:entry 25% cover 30%}
-  html.lp-anim .lp-stats .lp-stat:nth-child(4){animation-range:entry 35% cover 35%}
 }
 /* Repli sans animation-timeline : mêmes effets pilotés par --lp-t */
 html.lp-anim.lp-nosd .lp-stage-3d{transform:rotateX(calc((1 - var(--lp-t,1)) * 24deg)) scale(calc(.86 + .14 * var(--lp-t,1)))}
 html.lp-anim.lp-nosd .lp-hero-in{transform:translateY(calc(var(--lp-t,0) * -90px));opacity:calc(1 - .85 * var(--lp-t,0))}
 html.lp-anim.lp-nosd .lp-spot-vis{transform:translateY(calc(60px - 120px * var(--lp-t,.5)))}
-html.lp-anim.lp-nosd .lp-stats .lp-reveal:not(.in){opacity:0;transform:translateY(28px)}
-html.lp-anim.lp-nosd .lp-stats .lp-reveal{transition:opacity .9s var(--lp-ease),transform .9s var(--lp-ease)}
 html.lp-anim.lp-nosd .lp-stats .lp-stat:nth-child(2){transition-delay:.08s}
 html.lp-anim.lp-nosd .lp-stats .lp-stat:nth-child(3){transition-delay:.16s}
 html.lp-anim.lp-nosd .lp-stats .lp-stat:nth-child(4){transition-delay:.24s}
+
+/* ============ V3 : défilement « façon Apple », nettement visible ============
+   Tout est en transform / opacity. Seulement avec lp-anim (JS actif, mouvement autorisé) et
+   lp-ready (observateurs posés par js/23-landing.js) : sans JS, robots et prefers-reduced-motion,
+   tout le contenu est affiché tel quel. --p (0 → 1) est écrit une fois par image par le JS. */
+.lp{--lp-expo:cubic-bezier(.16,1,.3,1)}
+.lp-line{display:block}
+.lp-btn-xs{min-height:34px;padding:0 14px;font-size:13.5px}
+
+/* Apparitions : grande distance, léger zoom, cascade 0,1 s (--i posé par le JS) */
+html.lp-anim.lp-ready #landing .lp-reveal{opacity:0;transform:translate3d(0,80px,0) scale(.94);transition:opacity 1s var(--lp-expo),transform 1.3s var(--lp-expo);transition-delay:calc(var(--i,0)*.1s)}
+html.lp-anim.lp-ready #landing .lp-reveal.in{opacity:1;transform:none}
+/* Titres : chaque ligne sort d'un masque */
+html.lp-anim.lp-ready #landing .lp-mask{transform:none}
+html.lp-anim.lp-ready .lp-mask .lp-line{overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
+html.lp-anim.lp-ready .lp-mask .lp-line>span{display:inline-block;transform:translate3d(0,115%,0) rotate(4deg);transform-origin:0 0;transition:transform 1.25s var(--lp-expo)}
+html.lp-anim.lp-ready .lp-mask .lp-line+.lp-line>span{transition-delay:.12s}
+html.lp-anim.lp-ready .lp-mask.in .lp-line>span{transform:none}
+/* Héros : maquette qui arrive en zoom */
+html.lp-anim.lp-ready #landing .lp-stage.lp-reveal{transform:translate3d(0,140px,0) scale(.8);transition-duration:1.4s,1.8s}
+html.lp-anim.lp-ready #landing .lp-stage.lp-reveal.in{transform:none}
+
+/* Sous-navigation givrée après le héros */
+.lp-subnav{display:none}
+html.lp-anim .lp-subnav{display:block;position:fixed;left:0;right:0;top:calc(72px + env(safe-area-inset-top));z-index:140;background:rgba(14,15,19,.72);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);border-bottom:1px solid var(--lp-line);opacity:0;transform:translate3d(0,-100%,0);pointer-events:none;transition:opacity .5s var(--lp-expo),transform .7s var(--lp-expo)}
+html.lp-anim .lp-subnav.on{opacity:1;transform:none;pointer-events:auto}
+.lp-subnav-in{display:flex;align-items:center;gap:22px;height:52px}
+.lp-subnav-t{font-family:'Inter',sans-serif;font-size:17px;letter-spacing:-.02em}
+.lp-subnav-links{display:flex;gap:18px;margin-left:auto;font-size:13.5px}
+.lp-subnav-links a{color:var(--lp-muted);text-decoration:none}.lp-subnav-links a:hover{color:var(--lp-text)}
+@media (max-width:720px){.lp-subnav-links{display:none}.lp-subnav-in .lp-btn{margin-left:auto}}
+@media (max-width:560px){html.lp-anim .lp-subnav{top:calc(64px + env(safe-area-inset-top))}}
+
+/* Chiffres : plus gros, en cascade */
+.lp-stat-n{font-size:clamp(3rem,2rem + 4vw,5.6rem)}
+
+/* Fausse interface qui défile dans les écrans */
+.lp-scr-host{position:relative}
+.lp-feed{overflow:hidden;height:100%}
+html.lp-anim .lp-feed-in{animation:lpFeed 16s linear infinite}
+@keyframes lpFeed{to{transform:translate3d(0,-50%,0)}}
+.lp-scr-2,.lp-scr-3{display:none}
+.lp-scr .mk-panel-h{padding:1.6em 1.1em .8em}
+.lp-scr .mk-srow,.lp-scr .mk-drow{margin:0 .8em .6em}
+
+/* Section épinglée : l'appareil reste fixe pendant que les textes se relaient */
+.lp-pin-head{text-align:center;margin-bottom:clamp(30px,5vw,60px)}
+.lp-pin-in{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(30px,6vw,90px);align-items:center}
+.lp-pin-vis{position:relative;display:flex;justify-content:center}
+.lp-pin-vis::before{content:"";position:absolute;inset:-25%;background:radial-gradient(closest-side,rgba(var(--accent-rgb),.22),transparent);z-index:-1}
+.lp-dev.mk-phone,.lp-arr .mk-phone{position:relative;right:auto;bottom:auto;width:min(300px,62vw,31vh)}
+.lp-pin-step+.lp-pin-step{margin-top:48px}
+.lp-pin-n{color:var(--lp-faint);margin-right:4px}
+.lp-pin-dots{display:none}
+html.lp-anim.lp-ready .lp-pin{height:340vh;padding-bottom:0}
+html.lp-anim.lp-ready .lp-pin-stick{position:sticky;top:0;height:100vh;display:flex;align-items:center;padding-top:110px;box-sizing:border-box}
+html.lp-anim.lp-ready .lp-pin-in{width:100%}
+html.lp-anim.lp-ready .lp-pin-phone{transform:translate3d(0,calc((.5 - var(--p,0))*120px),0) scale(calc(.86 + var(--p,0)*.2)) rotate(calc((var(--p,0) - .5)*-10deg));will-change:transform}
+html.lp-anim.lp-ready .lp-pin-txt{position:relative;min-height:340px}
+html.lp-anim.lp-ready .lp-pin-step{position:absolute;inset:0 0 auto;margin:0;opacity:0;transform:translate3d(0,90px,0);transition:opacity .7s var(--lp-expo),transform 1s var(--lp-expo);pointer-events:none}
+html.lp-anim.lp-ready .lp-pin-step.past{transform:translate3d(0,-90px,0)}
+html.lp-anim.lp-ready .lp-pin-step.on{opacity:1;transform:none;pointer-events:auto;transition-delay:.15s}
+html.lp-anim.lp-ready .lp-pin-dots{display:flex;gap:8px;position:absolute;left:0;top:300px}
+.lp-pin-dots i{width:34px;height:4px;border-radius:4px;background:var(--lp-line2);overflow:hidden;position:relative}
+.lp-pin-dots i::after{content:"";position:absolute;inset:0;background:var(--accent);transform:scaleX(0);transform-origin:0 50%;transition:transform .6s var(--lp-expo)}
+.lp-pin-dots i.on::after{transform:none}
+html.lp-anim.lp-ready .lp-scr-2,html.lp-anim.lp-ready .lp-scr-3{display:block}
+html.lp-anim.lp-ready .lp-pin .lp-scr{position:absolute;inset:0;opacity:0;transform:translate3d(0,8%,0) scale(1.04);transition:opacity .6s var(--lp-expo),transform .9s var(--lp-expo)}
+html.lp-anim.lp-ready .lp-pin .lp-scr.on{opacity:1;transform:none}
+@media (max-width:900px){
+  .lp-pin-in{grid-template-columns:1fr;text-align:center}
+  .lp-pin-step .lp-kicker{justify-content:center}.lp-pin-step .lp-p{margin-left:auto;margin-right:auto}
+  .lp-dev.mk-phone{width:min(220px,46vw)}
+  html.lp-anim.lp-ready .lp-pin-in{gap:22px}
+  html.lp-anim.lp-ready .lp-pin-txt{min-height:230px}
+  html.lp-anim.lp-ready .lp-pin-dots{top:auto;bottom:0;left:50%;transform:translateX(-50%)}
+}
+
+/* Rangée d'appareils en parallaxe (3 vitesses) */
+.lp-arr{display:flex;justify-content:center;gap:clamp(16px,4vw,60px);padding:40px 0 80px}
+.lp-arr .mk-phone{width:min(260px,28vw)}
+html.lp-anim.lp-ready .lp-arr-d{will-change:transform}
+html.lp-anim.lp-ready .lp-arr-1{transform:translate3d(0,calc((var(--p,0) - .5)*-260px),0) rotate(-6deg)}
+html.lp-anim.lp-ready .lp-arr-2{transform:translate3d(0,calc((var(--p,0) - .5)*160px),0) scale(1.08)}
+html.lp-anim.lp-ready .lp-arr-3{transform:translate3d(0,calc((var(--p,0) - .5)*-460px),0) rotate(6deg)}
+.lp-arr-2 .lp-feed-in{animation-delay:-5s}.lp-arr-3 .lp-feed-in{animation-delay:-11s}
+
+/* Appareil géant, bord à bord */
+.lp-huge{position:relative;overflow:hidden;overflow:clip}
+.lp-huge-stick{display:flex;flex-direction:column;align-items:center;padding:60px 0}
+.lp-huge-t{text-align:center;padding:0 20px}
+.lp-huge-dev{width:min(1100px,92vw);margin-top:40px}
+html.lp-anim.lp-ready .lp-huge{height:230vh}
+html.lp-anim.lp-ready .lp-huge-stick{position:sticky;top:0;height:100vh;justify-content:center;padding:0}
+html.lp-anim.lp-ready .lp-huge-t{position:absolute;top:18vh;z-index:2;transform:translate3d(0,calc(var(--p,0)*-200px),0) scale(calc(1.25 - var(--p,0)*.5));opacity:calc(1.4 - var(--p,0)*2.2)}
+html.lp-anim.lp-ready .lp-huge-dev{margin-top:0;transform:translate3d(0,calc((1 - var(--p,0))*30vh),0) scale(calc(.5 + var(--p,0)*1.1)) rotateX(calc((1 - var(--p,0))*30deg));transform-origin:50% 40%;will-change:transform}
+html.lp-anim.lp-ready .lp-huge-stick{perspective:1600px}
+
+/* Cartes en curseur horizontal aimanté */
+.lp-more-h{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:28px}
+.lp-more-h .lp-more-t{margin:0;text-align:left}
+.lp-sl-btns{display:flex;gap:10px}
+.lp-sl-b{width:44px;height:44px;border-radius:50%;border:1px solid var(--lp-line2);background:rgba(255,255,255,.05);color:var(--lp-text);font-size:24px;line-height:1;cursor:pointer;transition:background .2s,transform .3s var(--lp-expo)}
+.lp-sl-b:hover{background:rgba(255,255,255,.12);transform:scale(1.08)}
+.lp-grid.lp-slider{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:18px;padding:6px 2px 24px;scrollbar-width:none;overscroll-behavior-x:contain}
+.lp-slider::-webkit-scrollbar{display:none}
+.lp-slider .lp-card{flex:0 0 min(340px,82%);scroll-snap-align:start;min-height:240px;border-radius:28px}
+
+/* Bento (confidentialité) : cartes 28 px, sombres et claires */
+.lp-priv-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.lp-priv{border-radius:28px;padding:30px;background:rgba(255,255,255,.04);border:1px solid var(--lp-line)}
+.lp-priv:first-child{grid-column:span 2;background:linear-gradient(140deg,#f4f5f8,#dfe6ef);border-color:transparent;color:#0b0c10}
+.lp-priv:first-child .lp-h4{color:#0b0c10;font-size:26px}.lp-priv:first-child p{color:#3b3e48}.lp-priv:first-child .lp-ic{color:#0b0c10}
+.lp-priv:last-child{grid-column:span 2}
+@media (max-width:760px){.lp-priv-grid{grid-template-columns:1fr}.lp-priv:first-child,.lp-priv:last-child{grid-column:auto}}
+
+/* FAQ : ouverture animée (grid-template-rows 0fr → 1fr) */
+.lp-faq-a{display:grid;grid-template-rows:1fr}
+.lp-faq-a>div{overflow:hidden;min-height:0}
+html.lp-anim .lp-faq-a{transition:grid-template-rows .6s var(--lp-expo)}
+html.lp-anim .lp-faq-item:not(.lp-open) .lp-faq-a{grid-template-rows:0fr}
+html.lp-anim .lp-faq-a p{opacity:0;transform:translate3d(0,-10px,0);transition:opacity .4s,transform .6s var(--lp-expo)}
+html.lp-anim .lp-faq-item.lp-open .lp-faq-a p{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){.lp-subnav{display:none!important}.lp-feed-in{animation:none!important}}
