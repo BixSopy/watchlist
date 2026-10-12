@@ -625,7 +625,6 @@ body.suivi-providers-off .suivi-providers{display:none}
 .plex-bg{position:absolute;inset:0;object-fit:cover;width:100%;height:100%}
 .plex-bg-blur{position:absolute;inset:0;object-fit:cover;width:100%;height:100%;filter:blur(22px) brightness(.38) saturate(1.5);transform:scale(1.06)}
 .plex-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.05) 0%,rgba(0,0,0,.75) 100%)}
-.plex-hero-c{position:absolute;bottom:0;left:0;right:0;padding:24px;display:flex;gap:20px;align-items:flex-end}
 .plex-poster{width:120px;height:180px;object-fit:cover;object-position:top;border-radius:var(--r-md);flex-shrink:0;border:2px solid rgba(255,255,255,.12);box-shadow:var(--shadow-poster)}
 .plex-poster-ph{width:120px;height:180px;background:var(--bg4);border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:38px;color:var(--text3)}
 .plex-info{flex:1;min-width:0}
@@ -746,7 +745,6 @@ body.suivi-providers-off .suivi-providers{display:none}
   .modal-add{max-width:100%;max-height:100%;border-radius:0}
   .plex-wrap{max-width:100%;max-height:100%;height:100%;border-radius:0}
   .plex-hero{height:250px;border-radius:0}
-  .plex-hero-c{padding:16px;gap:14px}
   .plex-poster,.plex-poster-ph{width:92px;height:138px}
   .plex-title{font-size:21px}
   .plex-body{padding:16px 16px 22px}
@@ -991,7 +989,6 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 .toast-wrap{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 /* Fermeture en haut des fenêtres plein écran (masquée là où la fenêtre n'est pas plein écran) */
 .modal-x-wrap{display:none}
-.plex-close{display:none}
 .modal-x,.plex-close{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(10,10,12,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;align-items:center;justify-content:center;cursor:pointer;flex:none}
 .modal-x svg,.plex-close svg{width:16px;height:16px}
 .btn-del-plex{color:#ff8a8a}
@@ -1066,7 +1063,6 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
 }
 @media (max-height:520px){
   .plex-hero{height:210px}
-  .plex-hero-c{padding:14px calc(18px + env(safe-area-inset-right,0px)) 14px calc(18px + env(safe-area-inset-left,0px));gap:14px}
   .plex-poster,.plex-poster-ph{width:84px;height:126px}
   .plex-title{font-size:21px}
   .plex-body{padding-left:calc(18px + env(safe-area-inset-left,0px));padding-right:calc(18px + env(safe-area-inset-right,0px))}
@@ -1269,6 +1265,89 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 }
 @media (max-width:480px){
   .stabs .stab{font-size:12.5px}
+}
+/* Fiche détail v2 : grande affiche qui chevauche le bandeau, actions en relief, cartes et pastilles (même DA que l'accueil) */
+.plex-wrap{display:block;overflow-y:auto;overscroll-behavior:contain;max-width:860px;background:radial-gradient(900px 500px at 50% -200px,rgba(var(--accent-rgb),.10),transparent 70%),#0d0d10;border:1px solid rgba(255,255,255,.14);border-radius:24px}
+.plex-wrap::-webkit-scrollbar{width:4px}.plex-wrap::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:10px}
+.plex-close{display:flex;position:sticky;top:14px;margin:14px 14px -58px auto;z-index:6;border-radius:12px}
+.plex-close:hover{background:rgba(30,30,36,.9)}
+.plex-close:focus-visible,.plex-acts .btn:focus-visible,.plex-prov:focus-visible,.cast-item:focus-visible{outline:2px solid rgba(var(--accent-rgb),.8);outline-offset:2px}
+.plex-hero{height:300px;border-radius:0}
+.plex-bg{opacity:.55}
+.plex-bg-blur{filter:blur(18px) saturate(1.4) brightness(.6)}
+.plex-overlay{background:linear-gradient(180deg,rgba(13,13,16,0) 30%,#0d0d10 100%),radial-gradient(600px 300px at 80% 0,rgba(167,139,250,.18),transparent)}
+.plex-head{position:relative;z-index:2;display:flex;gap:28px;padding:0 36px;margin-top:-190px;align-items:flex-end}
+.plex-poster,.plex-poster-ph{width:200px;height:auto;aspect-ratio:2/3;border-radius:16px;border:0;box-shadow:0 20px 50px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.12)}
+.plex-poster-ph{height:300px}
+.plex-info{padding-bottom:6px}
+.plex-kind{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.3);padding:4px 10px;border-radius:999px;margin-bottom:12px}
+.plex-kind:empty{display:none}
+.plex-kind:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),.8)}
+.plex-title{font-size:44px;letter-spacing:-1.5px;line-height:1.02;margin:0 0 4px;overflow-wrap:anywhere}
+.plex-meta{gap:8px;margin:12px 0 14px}
+.plex-meta span{font-size:12.5px;color:var(--text2);background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:4px 11px;border-radius:999px}
+.plex-meta:empty,.plex-badges:empty{display:none}
+.plex-ratings{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.plex-score:empty{display:none}
+.plex-score,.plex-rt{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:18px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#fff}
+.plex-score{color:var(--accent)}.plex-score svg{width:14px;height:14px}
+.plex-rt-l{font:600 10.5px 'IBM Plex Sans',sans-serif;color:var(--text3);letter-spacing:.06em;text-transform:uppercase}
+.plex-imdb{background:#f5c518;color:#000;font:800 11px Inter,sans-serif;padding:2px 5px;border-radius:4px;letter-spacing:0;text-transform:none}
+.plex-cross-ratings{display:contents}
+.plex-acts{display:flex;gap:12px;padding:26px 36px 0;margin:0;flex-wrap:wrap}
+.plex-acts .btn{height:52px;padding:0 24px;border-radius:14px;font:600 15px Inter,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.plex-acts .btn svg{width:18px;height:18px;flex:none}
+.btn-add-plex{background:linear-gradient(135deg,#7ad4ff,var(--accent) 50%,#8fb6ff);color:var(--on-accent);border:0;box-shadow:0 10px 30px rgba(var(--accent-rgb),.35),inset 0 1px 0 rgba(255,255,255,.5)}
+.btn-add-plex:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.btn-trailer{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.btn-trailer:hover{background:rgba(255,255,255,.12)}
+.btn-trailer .plex-pl{width:28px;height:28px;border-radius:50%;background:#e84b4b;display:grid;place-items:center;box-shadow:0 0 18px rgba(232,75,75,.55);flex:none}
+.plex-acts .btn-trailer .plex-pl svg{width:12px;height:12px;margin-left:2px}
+.plex-acts .btn-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--text)}
+.plex-acts .btn-icon{width:52px;padding:0;color:var(--text2)}
+.plex-body{overflow:visible;flex:none;padding:26px 36px 36px}
+.plex-overview{font-size:15px;line-height:1.7;color:#c9c9d2;max-width:680px;margin-bottom:0}
+.plex-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:24px 0 0}
+.plex-stats:empty{display:none}
+.p-stat{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px}
+.p-stat .p-stat-l{font-size:10.5px;letter-spacing:.1em;font-weight:600;margin-bottom:4px}
+.p-stat .p-stat-v{font-size:22px}
+.plex-body .sec-lbl{font-size:11px;letter-spacing:.12em;margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+.plex-body .sec-lbl:after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}
+.plex-body .s-sel{margin:18px 0 0}.plex-body .plex-nep.on{margin:18px 0 0}
+.plex-provs{display:flex;gap:10px;flex-wrap:wrap}
+.plex-prov{display:flex;align-items:center;gap:12px;padding:8px 16px 8px 8px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.14);font:600 13.5px Inter,sans-serif;color:var(--text);text-decoration:none;transition:var(--tr)}
+.plex-prov:hover{background:rgba(255,255,255,.07);transform:translateY(-1px)}
+.plex-prov .prov-logo{width:36px;height:36px;border-radius:10px}
+.plex-prov small{display:block;font:400 11.5px 'IBM Plex Sans',sans-serif;color:var(--text3)}
+.plex-body .cast-row{gap:14px;margin-bottom:0}
+.plex-body .cast-item{width:96px}
+.plex-body .cast-photo,.plex-body .cast-ph{width:96px;height:96px;border-radius:20px;box-shadow:0 0 0 1px rgba(255,255,255,.14),0 8px 20px rgba(0,0,0,.4);margin-bottom:8px}
+.plex-body .cast-name{font:600 12.5px Inter,sans-serif;line-height:1.25}
+.plex-body .cast-role{font-size:11.5px;margin-top:2px}
+.plex-body .prog-detail{margin-top:8px}
+@media (max-width:640px),(max-height:520px){
+  .plex-wrap{border:0;border-radius:0;background:#0d0d10}
+  .plex-close{top:calc(10px + env(safe-area-inset-top,0px));margin:calc(10px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) calc(-54px - env(safe-area-inset-top,0px)) auto}
+}
+@media (max-width:640px){
+  .plex-hero{height:230px}
+  .plex-head{flex-direction:column;align-items:center;text-align:center;margin-top:-180px;padding:0 20px;gap:18px}
+  .plex-poster,.plex-poster-ph{width:170px}.plex-poster-ph{height:255px}
+  .plex-title{font-size:32px}
+  .plex-meta,.plex-ratings{justify-content:center}
+  .plex-acts{padding:22px 20px 0}
+  .plex-acts .btn-add-plex{flex:1 1 100%;order:-1}
+  .plex-acts .btn-trailer,.plex-acts .btn-ghost:not(.btn-icon){flex:1}
+  .plex-body{padding:22px 20px calc(30px + env(safe-area-inset-bottom,0px))}
+  .plex-stats{grid-template-columns:repeat(3,1fr);gap:8px}
+  .p-stat{padding:12px}.p-stat .p-stat-v{font-size:18px}
+  .plex-body .cast-item{width:80px}.plex-body .cast-photo,.plex-body .cast-ph{width:80px;height:80px}
+}
+@media (max-height:520px) and (min-width:641px){
+  .plex-hero{height:180px}.plex-head{margin-top:-130px}
+  .plex-poster,.plex-poster-ph{width:120px}.plex-poster-ph{height:180px}
+  .plex-title{font-size:28px}
 }
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
@@ -1739,25 +1818,25 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 
 <!-- PLEX MODAL -->
 <div class="plex-mbk" id="plexMbk">
-  <div class="plex-wrap">
+  <div class="plex-wrap" role="dialog" aria-modal="true" aria-labelledby="plexTitle">
     <button type="button" class="plex-close" data-click="closePlexBtn" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div class="plex-hero" id="plexHero">
       <img id="plexBg" class="plex-bg" src="" alt="" style="display:none">
       <img id="plexBgBlur" class="plex-bg-blur" src="" alt="" style="display:none">
       <div class="plex-overlay"></div>
-      <div class="plex-hero-c">
-        <div id="plexPosterWrap"></div>
-        <div class="plex-info">
-          <div class="plex-title" id="plexTitle"></div>
-          <div class="plex-meta" id="plexMeta"></div>
-          <div class="plex-badges" id="plexBadges"></div>
-          <div class="plex-score" id="plexScore"></div>
-          <div class="plex-cross-ratings" id="plexCrossRatings"></div>
-        </div>
+    </div>
+    <div class="plex-head">
+      <div id="plexPosterWrap"></div>
+      <div class="plex-info">
+        <div class="plex-kind" id="plexKind"></div>
+        <h2 class="plex-title" id="plexTitle"></h2>
+        <div class="plex-meta" id="plexMeta"></div>
+        <div class="plex-badges" id="plexBadges"></div>
+        <div class="plex-ratings"><div class="plex-score" id="plexScore"></div><div class="plex-cross-ratings" id="plexCrossRatings"></div></div>
       </div>
     </div>
+    <div class="plex-acts" id="plexActs"></div>
     <div class="plex-body">
-      <div class="plex-acts" id="plexActs"></div>
       <div class="s-sel" id="sSelWrap"></div>
       <div class="plex-nep" id="plexNep"></div>
       <div class="plex-overview" id="plexOverview"></div>
