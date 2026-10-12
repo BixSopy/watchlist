@@ -1,19 +1,116 @@
 'use strict';
-/* Textes traduits par Chrome (_locales/fr, _locales/en ; anglais par défaut) */
+/* Fenêtre de l'extension (0.7.3) : trois états et une vue Réglages.
+ *  - viewOff  : pas de jeton (ou changement de jeton) ;
+ *  - viewMain : connecté, carte « En ce moment » (au repos ou détection en cours, clé wlNow),
+ *               grille des 5 plateformes, import de l'historique, compteur « Détectés » (wlPending) ;
+ *  - viewSettings : jeton, fichier CSV, interrupteurs des plateformes, règles, diagnostic, déconnexion.
+ * Textes traduits par Chrome (_locales/fr, _locales/en ; anglais par défaut). Aucun innerHTML. */
 var msg = function (k) { return chrome.i18n.getMessage(k) || k; };
 var msgWith = function (k, value) { return chrome.i18n.getMessage(k, [value]) || k; };
+var msgN = function (k, values) { return chrome.i18n.getMessage(k, values) || k; };
 var lang = (chrome.i18n.getUILanguage() || 'en').split('-')[0];
+var $ = function (id) { return document.getElementById(id); };
+var all = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
 document.documentElement.lang = lang;
 document.title = msg('optionsTitle');
-document.querySelectorAll('[data-msg]').forEach(function (el) { el.textContent = msg(el.getAttribute('data-msg')); });
+all('[data-msg]').forEach(function (el) { el.textContent = msg(el.getAttribute('data-msg')); });
+all('[data-title-msg]').forEach(function (el) { el.setAttribute('title', msg(el.getAttribute('data-title-msg'))); });
+all('[data-aria-msg]').forEach(function (el) { el.setAttribute('aria-label', msg(el.getAttribute('data-aria-msg'))); });
+all('[data-ph-msg]').forEach(function (el) { el.setAttribute('placeholder', msg(el.getAttribute('data-ph-msg'))); });
 
-var tokenInput = document.getElementById('token');
-var saveBtn = document.getElementById('save');
-var statusEl = document.getElementById('status');
-var lastEl = document.getElementById('last');
+var PLATFORMS = (typeof self !== 'undefined' && self.CinepisodePlatforms) || {};
+var NAMES = { netflix: 'Netflix', crunchyroll: 'Crunchyroll', prime: 'Prime Video', disneyplus: 'Disney+', appletv: 'Apple TV' };
+var DETECTED_URL = 'https://cinepisode.com/#detectes';
+var NOW_STALE_MS = 45 * 1000;      /* plus de nouvelle de la page de lecture depuis 45 s : au repos */
+var STALE_MS = 10 * 60 * 1000;     /* import « en cours » sans nouvelle depuis 10 min : service worker arrêté */
 
-/* Dernière détection, écrite par background.js dans chrome.storage.local (clé wlLast).
+/* ---------- Vues ---------- */
+var views = { off: $('viewOff'), main: $('viewMain'), settings: $('viewSettings') };
+var current = null;
+var reduceMotion = false;
+try { reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { /* rien */ }
+function show(name) {
+  Object.keys(views).forEach(function (k) { views[k].hidden = k !== name; views[k].classList.remove('slide-in', 'slide-out', 'recede', 'return'); });
+  current = name;
+}
+/* Réglages : glissent depuis la droite par-dessus la vue principale, qui recule un peu */
+function openSettings() {
+  if (current !== 'main') return show('settings');
+  views.settings.hidden = false;
+  views.settings.classList.add('slide-in');
+  views.main.classList.add('recede');
+  current = 'settings';
+  var done = function () { if (current === 'settings') { views.main.hidden = true; views.main.classList.remove('recede'); views.settings.classList.remove('slide-in'); } };
+  if (reduceMotion) done(); else setTimeout(done, 290);
+}
+function closeSettings() {
+  if (current !== 'settings') return;
+  views.main.hidden = false;
+  views.main.classList.add('return');
+  views.settings.classList.add('slide-out');
+  current = 'main';
+  var done = function () { if (current === 'main') { views.settings.hidden = true; views.settings.classList.remove('slide-out'); views.main.classList.remove('return'); } };
+  if (reduceMotion) done(); else setTimeout(done, 250);
+}
+
+/* ---------- Connexion (jeton) ---------- */
+var tokenInput = $('token');
+var statusEl = $('status');
+var token = '';
+var changing = false;
+function maskToken(t) { return t ? '•••• ' + t.slice(-4) : ''; }
+function applyToken(t) {
+  token = t || '';
+  $('tokenMask').textContent = maskToken(token);
+  if (!token) { changing = false; tokenInput.value = ''; setOffMode(); show('off'); return; }
+  if (current === 'off' && !changing) show('main');
+  if (current === null) show('main');
+}
+function setOffMode() {
+  $('cancelChange').hidden = !changing;
+  $('openApp').hidden = changing;
+  $('offFootText').textContent = msg(changing ? 'changeTokenFoot' : 'noAccount');
+  /* Changement de jeton : l'ancien reste actif, l'en-tête le dit */
+  var dot = views.off.querySelector('.conn .dot'), label = views.off.querySelector('.conn [data-msg]');
+  if (dot) dot.className = changing ? 'dot ok' : 'dot off';
+  if (label) label.textContent = msg(changing ? 'connected' : 'notConnected');
+}
+$('save').addEventListener('click', function () {
+  var t = tokenInput.value.trim();
+  if (!t) { statusEl.textContent = msg('tokenEmpty'); statusEl.className = 'err'; return; }
+  /* Nouveau jeton : l'ancien résultat (ex. « Jeton invalide ») ne s'applique plus */
+  chrome.storage.local.set({ wlToken: t }, function () {
+    chrome.storage.local.remove('wlLast', function () {
+      statusEl.textContent = ''; statusEl.className = '';
+      changing = false; tokenInput.value = '';
+      token = t; $('tokenMask').textContent = maskToken(t);
+      renderLast(null);
+      show('main');
+    });
+  });
+});
+tokenInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') $('save').click(); });
+$('changeToken').addEventListener('click', function () { changing = true; setOffMode(); statusEl.textContent = ''; statusEl.className = ''; show('off'); });
+$('cancelChange').addEventListener('click', function () { changing = false; setOffMode(); show('main'); });
+$('openSettings').addEventListener('click', openSettings);
+$('closeSettings').addEventListener('click', closeSettings);
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && current === 'settings' && !document.querySelector('.info.open')) closeSettings(); });
+
+/* Déconnexion : confirmation en place, puis jeton et états locaux effacés */
+$('logout').addEventListener('click', function () { $('logout').hidden = true; $('logoutConfirm').hidden = false; });
+$('logoutNo').addEventListener('click', function () { $('logout').hidden = false; $('logoutConfirm').hidden = true; });
+$('logoutYes').addEventListener('click', function () {
+  chrome.storage.local.remove(['wlToken', 'wlLast', 'wlNow', 'wlPending'], function () {
+    $('logout').hidden = false; $('logoutConfirm').hidden = true;
+    renderLast(null); renderNow(null); renderPending(null);
+    applyToken('');
+  });
+});
+$('version').textContent = 'v' + ((chrome.runtime.getManifest && chrome.runtime.getManifest().version) || '');
+
+/* ---------- Dernière détection (clé wlLast, écrite par background.js) ----------
  * Statut -> [clé du texte, couleur]. Les textes avec $LABEL$ reçoivent « Dark S2E3 » ou le titre du film. */
+var lastEl = $('last');
 var LAST_TEXTS = {
   updated: ['lastUpdated', 'ok'],
   already_up_to_date: ['lastAlready', 'ok'],
@@ -28,83 +125,122 @@ var LAST_TEXTS = {
   invalid_input: ['lastInvalidInput', 'err'],
   invalid_detection: ['lastInvalidDetection', 'err'],
 };
-
+var TONE_MARK = { ok: '✓', warn: '!', err: '×' };
 /* « Dark S2E3 » pour un épisode, le titre seul pour un film. Titre de la watchlist quand le
- * serveur l'a trouvé (mis à jour / déjà à jour), sinon le titre lu sur Netflix. */
+ * serveur l'a trouvé (mis à jour / déjà à jour), sinon le titre lu sur la plateforme. */
 function lastLabel(last) {
   var useMatched = (last.status === 'updated' || last.status === 'already_up_to_date') && last.matchedTitle;
   var title = String((useMatched ? last.matchedTitle : last.title) || '?');
-  if (last.status === 'ambiguous') return title; /* « Plusieurs titres correspondent à « Lupin » » */
-  if (last.kind === 'episode' && Number.isInteger(last.season) && Number.isInteger(last.episode)) {
-    return title + ' S' + last.season + 'E' + last.episode;
-  }
+  if (last.status === 'ambiguous') return title;
+  if (last.kind === 'episode' && Number.isInteger(last.season) && Number.isInteger(last.episode)) return title + ' S' + last.season + 'E' + last.episode;
   return title;
 }
-
 function lastText(last) {
   var entry = LAST_TEXTS[last.status] || LAST_TEXTS.server_error;
   return { text: msgWith(entry[0], lastLabel(last)), tone: entry[1] };
 }
-
 function renderLast(last) {
+  var row = $('lastRow'), tone = $('lastTone');
   lastEl.textContent = '';
   if (!last || typeof last !== 'object' || !last.status) {
-    lastEl.className = '';
+    lastEl.className = ''; row.className = 'last'; tone.textContent = '•';
     lastEl.textContent = msg('lastNone');
     return;
   }
   var t = lastText(last);
   lastEl.className = t.tone;
+  row.className = 'last ' + t.tone;
+  tone.textContent = TONE_MARK[t.tone] || '•';
   lastEl.appendChild(document.createTextNode(t.text));
   if (typeof last.at === 'number') {
     var when = document.createElement('span');
     when.className = 'when';
-    var date = new Date(last.at);
-    var formatted;
+    var date = new Date(last.at), formatted;
     try { formatted = date.toLocaleString(lang, { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { formatted = date.toLocaleString(); }
     when.textContent = msgWith('lastAt', formatted);
     lastEl.appendChild(when);
   }
 }
 
-chrome.storage.local.get(['wlToken', 'wlLast'], function (res) {
-  if (res.wlToken) tokenInput.value = res.wlToken;
+/* ---------- En ce moment (clé wlNow, écrite par background.js pendant la lecture) ---------- */
+var nowState = null;
+function isLive(now) { return !!now && typeof now === 'object' && typeof now.at === 'number' && Date.now() - now.at < NOW_STALE_MS && typeof now.title === 'string' && now.title; }
+function nowSubText(now) {
+  if (now.kind === 'episode' && Number.isInteger(now.season) && Number.isInteger(now.episode)) return msgN('nowEpisode', [String(now.season), String(now.episode)]);
+  if (now.kind === 'movie') return msg('nowMovie');
+  return '';
+}
+function renderNow(now) {
+  nowState = now || null;
+  var live = isLive(now);
+  $('nowLive').hidden = !live;
+  $('nowIdle').hidden = live;
+  var plat = live && NAMES[now.platform] ? NAMES[now.platform] : '';
+  $('nowPlatform').textContent = plat;
+  var chip = null;
+  all('.chip.playing').forEach(function (c) { c.classList.remove('playing'); });
+  if (!live) return;
+  if (now.platform) chip = document.querySelector('[data-chip="' + now.platform + '"]');
+  if (chip) chip.classList.add('playing');
+  var poster = $('nowPoster');
+  poster.setAttribute('data-p', now.platform || '');
+  poster.textContent = now.title.slice(0, 18);
+  $('nowTitle').textContent = now.title;
+  $('nowTitle').setAttribute('title', now.title);
+  $('nowSub').textContent = nowSubText(now);
+  var pct = Math.max(0, Math.min(100, Math.round(Number(now.pct) || 0)));
+  var rule = now.kind === 'movie' ? 90 : 80;
+  var done = now.done === true || pct >= rule;
+  $('nowBar').style.width = pct + '%';
+  $('nowBarBox').className = done ? 'bar done' : 'bar';
+  $('nowMark').style.left = rule + '%';
+  $('nowPct').textContent = msgWith('nowPct', String(pct));
+  var r = $('nowRule');
+  r.textContent = done ? msg('nowCounted') : msgWith('nowRule', String(rule));
+  r.className = done ? 'ok' : '';
+}
+/* La page de lecture envoie l'avancement toutes les quelques secondes : sans nouvelle, la carte repasse au repos */
+setInterval(function () { if (nowState && !isLive(nowState) && !$('nowLive').hidden) renderNow(nowState); }, 5000);
+
+/* ---------- Compteur « Détectés » (clé wlPending ; remis à zéro à l'ouverture de l'onglet) ---------- */
+function renderPending(p) {
+  var n = p && typeof p.count === 'number' ? p.count | 0 : 0;
+  var el = $('pending');
+  el.textContent = '';
+  if (n <= 0) { el.textContent = msg('pendingNone'); return; }
+  var b = document.createElement('b');
+  b.textContent = String(n);
+  el.appendChild(b);
+  el.appendChild(document.createTextNode(' ' + msg(n === 1 ? 'pendingOne' : 'pendingMany')));
+}
+$('openDetected').addEventListener('click', function () {
+  chrome.storage.local.set({ wlPending: { count: 0, at: Date.now() } });
+  chrome.tabs.create({ url: DETECTED_URL });
+});
+
+chrome.storage.local.get(['wlToken', 'wlLast', 'wlNow', 'wlPending'], function (res) {
+  res = res || {};
   renderLast(res.wlLast);
+  renderNow(res.wlNow);
+  renderPending(res.wlPending);
+  applyToken(res.wlToken);
 });
-
-/* Mise à jour en direct si une détection arrive pendant que la fenêtre est ouverte */
 chrome.storage.onChanged.addListener(function (changes, area) {
-  if (area === 'local' && changes.wlLast) renderLast(changes.wlLast.newValue);
+  if (area !== 'local') return;
+  if (changes.wlLast) renderLast(changes.wlLast.newValue);
+  if (changes.wlNow) renderNow(changes.wlNow.newValue);
+  if (changes.wlPending) renderPending(changes.wlPending.newValue);
+  if (changes.wlImport) renderImport(changes.wlImport.newValue);
+  if (changes.wlToken && !changes.wlToken.newValue && token) applyToken('');
 });
 
-saveBtn.addEventListener('click', function () {
-  var token = tokenInput.value.trim();
-  if (!token) {
-    statusEl.textContent = msg('tokenEmpty');
-    statusEl.className = 'err';
-    return;
-  }
-  /* Nouveau jeton : l'ancien résultat (ex. « Jeton invalide ») ne s'applique plus */
-  chrome.storage.local.set({ wlToken: token }, function () {
-    chrome.storage.local.remove('wlLast', function () {
-      statusEl.textContent = msg('saved');
-      statusEl.className = 'ok';
-      renderLast(null);
-    });
-  });
-});
-
-/* ---------- Import de l'historique (0.5.0) ----------
+/* ---------- Import de l'historique (0.5.0, plateformes en 0.6.0) ----------
  * Le travail est fait par le service worker (background.js) : la fenêtre peut se fermer pendant
- * l'import. Ici : deux boutons, l'avancement (clé wlImport) et un lien vers l'onglet « Détectés ». */
-var DETECTED_URL = 'https://cinepisode.com/#detectes';
-var importNetflixBtn = document.getElementById('importNetflix');
-var csvInput = document.getElementById('csvFile');
-var csvLabel = document.getElementById('csvLabel');
-var importStatusEl = document.getElementById('importStatus');
-var openDetectedBtn = document.getElementById('openDetected');
-var msgN = function (k, values) { return chrome.i18n.getMessage(k, values) || k; };
-var STALE_MS = 10 * 60 * 1000; /* « en cours » sans nouvelle depuis 10 min : service worker arrêté */
+ * l'import. Ici : les boutons, l'avancement (clé wlImport) et le diagnostic copiable. */
+var importNetflixBtn = $('importNetflix');
+var csvInput = $('csvFile');
+var csvLabel = $('csvLabel');
+var importStatusEl = $('importStatus');
 var IMPORT_ERRORS = { no_token: 'importErrNoToken', invalid_token: 'importErrToken', netflix_tab: 'importErrNetflixTab',
   netflix_auth: 'importErrNetflixAuth', netflix_http: 'importErrNetflix', csv: 'importErrCsv', limit: 'importErrLimit',
   server_error: 'importErrServer', network: 'importErrNetwork', busy: 'importBusy',
@@ -112,7 +248,6 @@ var IMPORT_ERRORS = { no_token: 'importErrNoToken', invalid_token: 'importErrTok
   crunchyroll_blocked: 'importErrCrunchyrollBlocked', crunchyroll_rate: 'importErrCrunchyrollRate', crunchyroll_tab: 'importErrCrunchyrollTab',
   prime_auth: 'importErrPrimeAuth', prime_http: 'importErrPrime' };
 var PLATFORM_SOURCES = ['crunchyroll', 'prime'];
-
 var STEP_NAMES = { tab: 'importStepNameTab', token: 'importStepNameToken', account: 'importStepNameAccount', history: 'importStepNameHistory', push: 'importStepNamePush' };
 /* « Étape jeton : HTTP 401 » (étape et statut de l'échec, s'ils sont connus) */
 function importErrDetail(st) {
@@ -123,7 +258,7 @@ function importErrDetail(st) {
   if (!status) return msgN('importErrStep', [msg(STEP_NAMES[st.errStep]), '?']).replace(/\s*:\s*\?$/, '');
   return msgN('importErrStep', [msg(STEP_NAMES[st.errStep]), status]);
 }
-/* Texte du diagnostic copiable : seulement des champs connus et sûrs (aucun jeton, cookie,
+/* Texte du diagnostic de l'import : seulement des champs connus et sûrs (aucun jeton, cookie,
  * identifiant de compte ou d'appareil ; le service worker n'en met jamais dans diag). */
 var DIAG_FIELDS = ['v', 'platform', 'via', 'step', 'status', 'code', 'cloudflare', 'api', 'page', 'partial', 'parse', 'net', 'tabOpened', 'siteDeviceId', 'browser', 'at'];
 function diagText(st) {
@@ -142,9 +277,7 @@ function diagText(st) {
 function copyDiag(st, btn) {
   var text = diagText(st);
   var done = function (ok) { btn.textContent = msg(ok ? 'importDiagCopied' : 'importDiagCopyFailed'); };
-  try {
-    navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
-  } catch (e) { done(false); }
+  try { navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
 }
 function isRunning(st) { return !!st && st.state === 'running' && typeof st.at === 'number' && Date.now() - st.at < STALE_MS; }
 function importStatusText(st) {
@@ -183,13 +316,13 @@ function renderImport(st) {
   }
   if (t.diag) {
     var btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'secondary diag'; btn.textContent = msg('importCopyDiag');
+    btn.type = 'button'; btn.className = 'btn sm diag'; btn.textContent = msg('importCopyDiag');
     btn.addEventListener('click', function () { copyDiag(st, btn); });
     importStatusEl.appendChild(btn);
   }
   var busy = isRunning(st);
   importNetflixBtn.disabled = busy;
-  document.querySelectorAll('.platform [data-role="import"]').forEach(function (b) { b.disabled = busy; });
+  all('[data-role="import"]').forEach(function (b) { b.disabled = busy; });
   csvInput.disabled = busy;
   csvLabel.classList.toggle('disabled', busy);
 }
@@ -199,11 +332,11 @@ function startImport(message) {
     if (res && !res.ok) renderImport({ state: 'error', error: res.reason === 'busy' ? 'busy' : res.reason === 'no_token' ? 'no_token' : res.reason === 'csv' ? 'csv' : 'server_error' });
   });
 }
-chrome.storage.local.get(['wlImport'], function (res) { renderImport(res.wlImport); });
-chrome.storage.onChanged.addListener(function (changes, area) {
-  if (area === 'local' && changes.wlImport) renderImport(changes.wlImport.newValue);
-});
+chrome.storage.local.get(['wlImport'], function (res) { renderImport(res && res.wlImport); });
 importNetflixBtn.addEventListener('click', function () { startImport({ type: 'wl_import_netflix' }); });
+all('[data-role="import"]').forEach(function (b) {
+  b.addEventListener('click', function () { startImport({ type: 'wl_import_' + b.getAttribute('data-p') }); });
+});
 /* Dans la petite fenêtre de l'extension, le sélecteur de fichier peut la fermer : on ouvre alors
  * la même page dans un onglet, où le fichier peut être choisi. */
 csvLabel.addEventListener('click', function (e) {
@@ -223,61 +356,74 @@ csvInput.addEventListener('change', function () {
   reader.onerror = function () { csvInput.value = ''; renderImport({ state: 'error', error: 'csv' }); };
   reader.readAsText(file, 'utf-8');
 });
-/* ---------- Crunchyroll et Prime Video (0.6.0) ----------
- * « Activer » demande la permission facultative du site (chrome.permissions.request, sur le clic) ;
- * le service worker enregistre alors la détection en direct. « Désactiver » la retire. */
-var PLATFORMS = (typeof self !== 'undefined' && self.CinepisodePlatforms) || {};
-function platformBox(name) { return document.querySelector('.platform[data-platform="' + name + '"]'); }
-function setPlatformState(name, granted, note) {
-  var box = platformBox(name);
-  if (!box) return;
-  box.querySelector('[data-role="enable"]').hidden = granted;
-  var imp = box.querySelector('[data-role="import"]'); /* absent : détection en direct seulement (Disney+, Apple TV) */
-  if (imp) imp.hidden = !granted;
-  box.querySelector('[data-role="disable"]').hidden = !granted;
-  var state = box.querySelector('[data-role="state"]');
-  state.textContent = note === 'denied' ? msg('platformDenied') : granted ? msg(PLATFORMS[name] && PLATFORMS[name].liveOnly ? 'platformEnabledLive' : 'platformEnabled') : '';
-  state.className = note === 'denied' ? 'state err' : 'state';
-  /* Reflète le même état dans la bande de statut en haut (vue d'ensemble des 5 plateformes) */
-  var chip = document.querySelector('.platsum-chip[data-chip="' + name + '"]');
+
+/* ---------- Plateformes (0.6.0, Disney+ et Apple TV en 0.7.0) ----------
+ * Une puce de la grille (ou l'interrupteur des Réglages) demande la permission facultative du site
+ * (chrome.permissions.request, sur le clic) ; le service worker enregistre alors la détection en
+ * direct. L'interrupteur la retire. Netflix est toujours active (permission à l'installation). */
+var granted = {};
+function q(role, name) { return document.querySelector('[data-role="' + role + '"][data-p="' + name + '"]'); }
+function setPlatformState(name, ok, note) {
+  var was = granted[name];
+  granted[name] = ok;
+  var chip = q('chip', name), st = q('state', name), tip = q('tip', name), sw = q('switch', name), imp = q('import', name);
+  var denied = note === 'denied' && !ok;
   if (chip) {
-    chip.querySelector('[data-role="dot"]').classList.toggle('on', granted);
-    chip.querySelector('[data-role="sub"]').textContent = granted ? msg('platformActive') : msg('platformInactive');
+    chip.classList.toggle('on', ok);
+    chip.classList.toggle('off', !ok);
+    chip.classList.toggle('denied', denied);
+    chip.setAttribute('aria-pressed', String(ok));
+    chip.setAttribute('aria-label', NAMES[name] + ' : ' + msg(ok ? 'chipActive' : denied ? 'chipDenied' : 'chipOff'));
+    if (ok && was === false) { chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
   }
+  if (st) {
+    st.textContent = msg(ok ? 'chipActive' : denied ? 'chipDenied' : 'chipOff');
+    st.setAttribute('title', denied ? msg('platformDenied') : ok ? msg(PLATFORMS[name] && PLATFORMS[name].liveOnly ? 'platformEnabledLive' : 'platformEnabled') : '');
+  }
+  if (tip) tip.textContent = denied ? msg('platformDenied') : msgWith('chipTip', NAMES[name]);
+  if (sw) sw.setAttribute('aria-checked', String(ok));
+  if (imp) imp.hidden = !ok; /* absent : détection en direct seulement (Disney+, Apple TV) */
+  renderPlatCount();
+}
+function renderPlatCount() {
+  var n = 1 + Object.keys(PLATFORMS).filter(function (k) { return granted[k]; }).length;
+  $('platCount').textContent = msgN('platformsCount', [String(n), String(1 + Object.keys(PLATFORMS).length)]);
 }
 function refreshPlatform(name, note) {
   if (!chrome.permissions || !PLATFORMS[name]) return;
   chrome.permissions.contains({ origins: PLATFORMS[name].origins }, function (ok) { setPlatformState(name, !!ok, note); });
 }
+function enablePlatform(name) {
+  chrome.permissions.request({ origins: PLATFORMS[name].origins }, function (ok) {
+    void chrome.runtime.lastError;
+    refreshPlatform(name, ok ? null : 'denied');
+  });
+}
+function disablePlatform(name) {
+  chrome.permissions.remove({ origins: PLATFORMS[name].origins }, function () { void chrome.runtime.lastError; refreshPlatform(name); });
+}
 Object.keys(PLATFORMS).forEach(function (name) {
-  var box = platformBox(name);
-  if (!box) return;
   refreshPlatform(name);
-  box.querySelector('[data-role="enable"]').addEventListener('click', function () {
-    chrome.permissions.request({ origins: PLATFORMS[name].origins }, function (granted) {
-      void chrome.runtime.lastError;
-      refreshPlatform(name, granted ? null : 'denied');
-    });
-  });
-  box.querySelector('[data-role="disable"]').addEventListener('click', function () {
-    chrome.permissions.remove({ origins: PLATFORMS[name].origins }, function () { void chrome.runtime.lastError; refreshPlatform(name); });
-  });
-  var imp = box.querySelector('[data-role="import"]');
-  if (imp) imp.addEventListener('click', function () { startImport({ type: 'wl_import_' + name }); });
+  var chip = q('chip', name), sw = q('switch', name);
+  /* Puce : active la plateforme ; déjà active, elle ouvre les Réglages (où on peut la désactiver) */
+  if (chip) chip.addEventListener('click', function () { if (granted[name]) openSettings(); else enablePlatform(name); });
+  if (sw) sw.addEventListener('click', function () { if (granted[name]) disablePlatform(name); else enablePlatform(name); });
 });
+var netflixChip = document.querySelector('[data-chip="netflix"]');
+if (netflixChip) netflixChip.addEventListener('click', openSettings);
+renderPlatCount();
 if (chrome.permissions && chrome.permissions.onAdded) {
   chrome.permissions.onAdded.addListener(function () { Object.keys(PLATFORMS).forEach(function (n) { refreshPlatform(n); }); });
   chrome.permissions.onRemoved.addListener(function () { Object.keys(PLATFORMS).forEach(function (n) { refreshPlatform(n); }); });
 }
 
-openDetectedBtn.addEventListener('click', function () { chrome.tabs.create({ url: DETECTED_URL }); });
-
-/* ---------- Diagnostic (0.7.1) : tout reste local ; copié dans le presse-papiers sur clic ---------- */
+/* ---------- Diagnostic de la détection (0.7.1) : tout reste local ; copié sur clic ---------- */
 (function () {
-  var cb = document.getElementById('diagDebug'), btn = document.getElementById('diagCopy'), out = document.getElementById('diagStatus');
+  var cb = $('diagDebug'), sw = $('diagSw'), btn = $('diagCopy'), out = $('diagStatus');
   if (!cb || !btn) return;
-  chrome.storage.local.get(['cpDebug'], function (r) { cb.checked = !!r.cpDebug; });
-  cb.addEventListener('change', function () { chrome.storage.local.set({ cpDebug: cb.checked }); });
+  var paint = function () { sw.setAttribute('aria-checked', String(!!cb.checked)); };
+  chrome.storage.local.get(['cpDebug'], function (r) { cb.checked = !!(r && r.cpDebug); paint(); });
+  cb.addEventListener('change', function () { paint(); chrome.storage.local.set({ cpDebug: cb.checked }); });
   btn.addEventListener('click', async function () {
     var d = { version: chrome.runtime.getManifest().version, ua: navigator.userAgent, at: new Date().toISOString() };
     try { d.registered = (await chrome.scripting.getRegisteredContentScripts()).map(function (c) { return { id: c.id, matches: c.matches, allFrames: !!c.allFrames }; }); } catch (e) { d.registered = 'error: ' + e.message; }
@@ -285,17 +431,17 @@ openDetectedBtn.addEventListener('click', function () { chrome.tabs.create({ url
     var st = await chrome.storage.local.get(['cpDiag', 'wlLast', 'wlToken']);
     d.tokenSet = !!st.wlToken; d.lastPage = st.cpDiag || null; d.lastResult = st.wlLast || null;
     var txt = JSON.stringify(d, null, 2);
-    try { await navigator.clipboard.writeText(txt); out.textContent = msg('diagCopied'); } catch (e) { out.textContent = txt; }
+    try { await navigator.clipboard.writeText(txt); out.className = ''; out.textContent = msg('diagCopied'); } catch (e) { out.className = 'raw'; out.textContent = txt; }
   });
 })();
 
 /* Icône « ! » Disney+ / Apple TV : infobulle au survol et au focus, ouverte/fermée au clic (Échap ferme) */
-document.querySelectorAll('[data-role="info"]').forEach(function (b) {
+all('[data-role="info"]').forEach(function (b, i) {
   var wrap = b.parentNode, pop = wrap.querySelector('.info-pop');
-  pop.id = 'info-' + Math.random().toString(36).slice(2, 8);
+  pop.id = 'info-pop-' + i;
   b.setAttribute('aria-describedby', pop.id);
-  b.setAttribute('aria-label', msg('liveOnlyInfoLabel'));
-  b.addEventListener('click', function () { var o = wrap.classList.toggle('open'); b.setAttribute('aria-expanded', String(o)); });
-  b.addEventListener('keydown', function (e) { if (e.key === 'Escape') { wrap.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } });
-  document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) { wrap.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } });
+  var set = function (o) { wrap.classList.toggle('open', o); b.setAttribute('aria-expanded', String(o)); };
+  b.addEventListener('click', function (e) { e.stopPropagation(); set(!wrap.classList.contains('open')); });
+  b.addEventListener('keydown', function (e) { if (e.key === 'Escape') { set(false); e.stopPropagation(); } });
+  document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) set(false); });
 });

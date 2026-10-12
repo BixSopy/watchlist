@@ -294,3 +294,21 @@ n'est modifié. La progression ne recule jamais (revoir un ancien épisode ne ch
 Compatibilité : l'extension 0.3.0 continue de fonctionner avec la nouvelle fonction, et la 0.4.0
 fonctionne aussi avec l'ancienne (elle réessaie sans `p_type`, et affiche alors un résultat
 simplifié).
+
+## Fenêtre de l'extension (0.7.3)
+
+`options.html` + `popup.css` + `options.js`, même direction artistique que cinepisode.com
+(polices embarquées dans `fonts/`, licence OFL : la CSP n'autorise que les fichiers de l'extension).
+Une seule vue courte, sans texte d'explication :
+
+- **non connecté** : trois étapes, champ du jeton, « Connecter » ;
+- **connecté** : carte « En ce moment » (au repos, ou EN DIRECT avec la barre d'avancement et le
+  seuil 80 % / 90 %, clé `wlNow` ; repasse au repos sans nouvelle depuis 45 s), dernière détection
+  (`wlLast`), grille des 5 plateformes (pastilles à lettre ; un clic active la plateforme, une
+  pastille active ouvre les Réglages), import de l'historique là où il existe, compteur
+  « Détectés » (`wlPending`, remis à zéro par « Voir ») ;
+- **Réglages** (glissent depuis la droite) : jeton masqué et « Changer », fichier CSV Netflix,
+  interrupteurs des plateformes, règles de détection, diagnostic, déconnexion avec confirmation.
+
+Animations coupées si le système demande de réduire les mouvements. Tests : la vraie page est
+chargée dans un mini-DOM (`tests/fixtures/popup-harness.js`) et dans Chrome (`e2e/`).

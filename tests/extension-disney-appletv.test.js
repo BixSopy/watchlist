@@ -216,24 +216,27 @@ test('plateformes 0.7.0 : origines au plus étroit, scripts couverts par la perm
   assert.doesNotMatch(csp, /disney|apple/, 'CSP inchangée');
 });
 
-test('fenêtre : bande « 5 plateformes intégrées », boutons « Activer Disney+ » / « Activer Apple TV », pas d\'import', () => {
+test('fenêtre 0.7.3 : grille des 5 plateformes, Disney+ / Apple TV activables sans bouton d\'import, « ! » expliqué', () => {
   const html = read('extension/options.html');
-  const chips = [...html.matchAll(/class="platsum-chip" data-chip="(\w+)"/g)].map(m => m[1]);
+  const chips = [...html.matchAll(/class="chip (?:on|off)" data-chip="(\w+)"/g)].map(m => m[1]);
   assert.deepStrictEqual(chips, ['netflix', 'crunchyroll', 'prime', 'disneyplus', 'appletv']);
   for (const k of ['disneyplus', 'appletv']) {
-    const box = new RegExp('<div class="platform" data-platform="' + k + '">([\\s\\S]*?)</div>').exec(html)[1];
-    assert.match(box, /data-role="enable"/);
-    assert.match(box, /data-role="disable"/);
-    assert.doesNotMatch(box, /data-role="import"/, k + ' : pas d\'historique');
+    assert.match(html, new RegExp('data-role="chip" data-p="' + k + '"'));
+    assert.match(html, new RegExp('data-role="switch" data-p="' + k + '"'));
+    assert.doesNotMatch(html, new RegExp('data-role="import" data-p="' + k + '"'), k + ' : pas d\'historique');
   }
   const fr = JSON.parse(read('extension/_locales/fr/messages.json'));
   const en = JSON.parse(read('extension/_locales/en/messages.json'));
-  assert.strictEqual(fr.platformsSummaryTitle.message, '5 plateformes intégrées');
-  assert.strictEqual(en.platformsSummaryTitle.message, '5 platforms integrated');
-  assert.strictEqual(fr.enableDisneyplus.message, 'Activer Disney+');
-  assert.strictEqual(fr.enableAppletv.message, 'Activer Apple TV');
-  for (const k of ['disneyplusHint', 'appletvHint', 'platformEnabledLive', 'enableDisneyplus', 'enableAppletv']) assert.ok(fr[k] && en[k], k);
+  assert.strictEqual(fr.liveOnlySmall.message, 'Lecture en direct seulement');
+  assert.strictEqual(en.liveOnlySmall.message, 'Live playback only');
+  for (const k of ['platformEnabledLive', 'liveOnlyInfo', 'liveOnlyInfoLabel', 'chipTip']) assert.ok(fr[k] && en[k], k);
   assert.match(read('extension/options.js'), /liveOnly \? 'platformEnabledLive'/);
+  const { loadPopup } = require('./fixtures/popup-harness.js');
+  const p = loadPopup({ store: { wlToken: 't' } });
+  p.q('chip', 'disneyplus').click();
+  assert.deepStrictEqual(p.requests, [['https://www.disneyplus.com/*', 'https://disneyplus.com/*', 'https://apps.disneyplus.com/*']]);
+  assert.match(p.q('state', 'disneyplus').getAttribute('title'), /^Activé : détection en direct \(pas d'historique/);
+  assert.strictEqual(p.q('import', 'disneyplus'), null);
 });
 
 test('Disney+ 0.7.1 : <video> et titre dans un shadow root ouvert, adresse /video/<id>', () => {

@@ -190,18 +190,25 @@ async function optionsPage(id) {
   await page.reload();
   return { page, errors };
 }
-const box = (page, name) => page.locator('.platform[data-platform="' + name + '"]');
+/* Fenêtre 0.7.3 : puce de la grille, état, bouton d'import et interrupteur des Réglages par plateforme */
+const part = (page, role, name) => page.locator('[data-role="' + role + '"][data-p="' + name + '"]');
 async function closeDetectedTabs() { for (const p of ctx.pages()) if (p.url().startsWith('https://cinepisode.com/')) await p.close(); }
 
 test('extension publiée : plateformes désactivées, aucun accès aux sites, import refusé clairement', async () => {
   const { page, errors } = await optionsPage(extId);
   const manifest = await page.evaluate(() => chrome.runtime.getManifest());
-  assert.equal(manifest.version, '0.7.2');
+  assert.equal(manifest.version, '0.7.3');
   assert.deepEqual(manifest.host_permissions, [SUPA + '/*', 'https://www.netflix.com/*'], 'avertissement à l\'installation inchangé');
-  await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="enable"]').hidden);
-  assert.equal(await box(page, 'crunchyroll').locator('[data-role="enable"]').textContent(), 'Activer Crunchyroll');
-  assert.equal(await box(page, 'prime').locator('[data-role="enable"]').textContent(), 'Activer Prime Video');
-  assert.equal(await box(page, 'crunchyroll').locator('[data-role="import"]').isHidden(), true);
+  await page.waitForFunction(() => document.querySelector('#platCount').textContent === '1/5 actives');
+  assert.equal(await page.isVisible('#viewMain'), true);
+  for (const name of ['crunchyroll', 'prime', 'disneyplus', 'appletv']) {
+    assert.equal(await part(page, 'state', name).textContent(), 'Activer', name);
+    assert.equal(await part(page, 'chip', name).getAttribute('aria-pressed'), 'false');
+    assert.equal(await part(page, 'switch', name).getAttribute('aria-checked'), 'false');
+  }
+  assert.match(await part(page, 'tip', 'crunchyroll').textContent(), /^Activer Crunchyroll/);
+  assert.equal(await part(page, 'import', 'crunchyroll').isHidden(), true);
+  assert.equal(await page.textContent('.chip.on .st'), 'Active', 'Netflix toujours active');
   assert.deepEqual(await page.evaluate(() => chrome.scripting.getRegisteredContentScripts()), [], 'aucun script sur Crunchyroll / Prime Video');
   const before = log.cr.length;
   await page.evaluate(() => chrome.runtime.sendMessage({ type: 'wl_import_crunchyroll' }));
@@ -224,8 +231,8 @@ test('plateformes activées : scripts en direct enregistrés ; import Crunchyrol
   await page.waitForFunction(async () => (await chrome.scripting.getRegisteredContentScripts()).length === 5);
   const ids = (await page.evaluate(() => chrome.scripting.getRegisteredContentScripts())).map(c => c.id).sort();
   assert.deepEqual(ids, ['cp-appletv-page', 'cp-crunchyroll-page', 'cp-crunchyroll-player', 'cp-disneyplus-page', 'cp-prime-page']);
-  await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
-  await box(page, 'crunchyroll').locator('[data-role="import"]').click();
+  await page.waitForFunction(() => !document.querySelector('[data-role="import"][data-p="crunchyroll"]').hidden);
+  await part(page, 'import', 'crunchyroll').click();
   await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok');
   assert.match(await page.textContent('#importStatus'), /^3 titres envoyés/);
   const tok = log.cr.find(r => r.url.includes('/auth/v1/token?_='));
@@ -255,8 +262,8 @@ test('Crunchyroll bloqué par Cloudflare : étape et statut affichés, « Copier
   try {
     await crTab.goto('https://www.crunchyroll.com/');
     const { page, errors } = await optionsPage(grantedId);
-    await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
-    await box(page, 'crunchyroll').locator('[data-role="import"]').click();
+    await page.waitForFunction(() => !document.querySelector('[data-role="import"][data-p="crunchyroll"]').hidden);
+    await part(page, 'import', 'crunchyroll').click();
     await page.waitForFunction(() => document.querySelector('#importStatus').className === 'err');
     const text = await page.textContent('#importStatus');
     assert.match(text, /Cloudflare/);
@@ -271,7 +278,7 @@ test('Crunchyroll bloqué par Cloudflare : étape et statut affichés, « Copier
     assert.match(copied, /step: token/);
     assert.match(copied, /status: 403/);
     assert.match(copied, /cloudflare: true/);
-    assert.match(copied, /v: 0\.7\.2/);
+    assert.match(copied, /v: 0\.7\.3/);
     assert.match(await page.textContent('#importStatus button.diag'), /Diagnostic copié/);
     assert.deepEqual(errors, []);
     await page.close();
@@ -286,8 +293,8 @@ test('Crunchyroll 0.6.2 : curseur meta.next_page suivi ; page refusée ensuite -
   try {
     await crTab.goto('https://www.crunchyroll.com/');
     const { page, errors } = await optionsPage(grantedId);
-    await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
-    await box(page, 'crunchyroll').locator('[data-role="import"]').click();
+    await page.waitForFunction(() => !document.querySelector('[data-role="import"][data-p="crunchyroll"]').hidden);
+    await part(page, 'import', 'crunchyroll').click();
     await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok', null, { timeout: 20000 });
     const text = await page.textContent('#importStatus');
     assert.match(text, /^200 titres envoyés/);
@@ -316,8 +323,8 @@ test('plateformes activées : import Prime Video (région EU, bandes-annonces et
   log.push.length = 0;
   log.pv.length = 0;
   const { page, errors } = await optionsPage(grantedId);
-  await page.waitForFunction(() => !document.querySelector('.platform[data-platform="prime"] [data-role="import"]').hidden);
-  await box(page, 'prime').locator('[data-role="import"]').click();
+  await page.waitForFunction(() => !document.querySelector('[data-role="import"][data-p="prime"]').hidden);
+  await part(page, 'import', 'prime').click();
   await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok', null, { timeout: 20000 });
   assert.match(await page.textContent('#importStatus'), /^4 titres envoyés/);
   assert.deepEqual(log.push[0].p_items.map(i => [i.source, i.title, i.type, i.season, i.episode]), [
@@ -354,11 +361,15 @@ test('plateformes activées : détection en direct sur Disney+ (shadow DOM, « S
   log.dp.length = 0;
   log.atv.length = 0;
   const { page: opts, errors } = await optionsPage(grantedId);
-  await opts.waitForFunction(() => !document.querySelector('.platform[data-platform="disneyplus"] [data-role="disable"]').hidden);
-  assert.equal(await opts.textContent('.platsum-title'), '5 plateformes intégrées');
-  assert.equal(await opts.locator('.platsum-chip').count(), 5);
-  assert.equal(await box(opts, 'disneyplus').locator('[data-role="import"]').count(), 0, 'Disney+ : pas d\'import');
-  assert.match(await box(opts, 'appletv').locator('[data-role="state"]').textContent(), /détection en direct/);
+  await opts.waitForFunction(() => document.querySelector('#platCount').textContent === '5/5 actives');
+  assert.equal(await opts.locator('#platGrid .chip').count(), 5);
+  assert.equal(await part(opts, 'import', 'disneyplus').count(), 0, 'Disney+ : pas d\'import');
+  assert.match(await part(opts, 'state', 'appletv').getAttribute('title'), /détection en direct/);
+  /* « ! » : infobulle ouverte au clic */
+  await opts.click('#platGrid .chipw:nth-child(4) .info-btn');
+  assert.equal(await opts.getAttribute('#platGrid .chipw:nth-child(4) .info-btn', 'aria-expanded'), 'true');
+  await opts.waitForFunction(() => getComputedStyle(document.querySelector('#platGrid .chipw:nth-child(4) .info-pop')).visibility === 'visible');
+  await opts.keyboard.press('Escape');
   const dpPage = await ctx.newPage();
   const atvPage = await ctx.newPage();
   await dpPage.goto('https://www.disneyplus.com/fr-fr/play/8d0ab0f2-7c86-4f0e-9a1b-3c2d1e0f9a8b');
@@ -368,6 +379,11 @@ test('plateformes activées : détection en direct sur Disney+ (shadow DOM, « S
   assert.deepEqual(marks, [['Severance', 1, 3, 'episode'], ['The Mandalorian', 1, 6, 'episode']]);
   for (let i = 0; i < 20 && log.push.length < 2; i++) await new Promise(r => setTimeout(r, 200));
   assert.deepEqual(log.push.map(b => b.p_items[0].source), ['live', 'live']);
+  /* fenêtre restée ouverte : avancement en direct (wlNow) et compteur « Détectés » (wlPending) */
+  await opts.waitForFunction(() => /^\d+ nouveaux titres dans Détectés$/.test(document.querySelector('#pending').textContent));
+  const nowSeen = await opts.evaluate(() => new Promise(r => chrome.storage.local.get(['wlNow'], x => r(x.wlNow))));
+  assert.ok(['Severance', 'The Mandalorian'].includes(nowSeen.title), 'wlNow : ' + JSON.stringify(nowSeen));
+  if (await opts.isVisible('#nowLive')) assert.equal(await opts.textContent('#nowTitle'), nowSeen.title);
   /* seules les requêtes de la page elle-même (document, vidéos) : rien de l'extension */
   assert.deepEqual([...new Set(log.dp)].sort(), ['/fr-fr/play/8d0ab0f2-7c86-4f0e-9a1b-3c2d1e0f9a8b', '/v.webm']);
   assert.deepEqual([...new Set(log.atv)].sort(), ['/fr/episode/dans-le-perimetre/umc.cmc.4a1b2c3d', '/long.webm', '/promo.webm']);
