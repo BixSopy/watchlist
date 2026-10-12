@@ -441,6 +441,7 @@ all('[data-role="info"]').forEach(function (b, i) {
   pop.id = 'info-pop-' + i;
   b.setAttribute('aria-describedby', pop.id);
   var place = function () {
+    if (!wrap.getBoundingClientRect || !document.documentElement || !pop.style) return;
     var W = document.documentElement.clientWidth, w = Math.min(250, W - 16), r = wrap.getBoundingClientRect();
     var left = Math.max(8, Math.min(r.right - w, W - 8 - w));
     pop.style.width = w + 'px'; pop.style.right = 'auto'; pop.style.left = (left - r.left) + 'px';
