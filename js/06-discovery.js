@@ -50,7 +50,7 @@ var _drCache={};/* cache rows fetched, tab:id → items[] */
 
 function _drNormItem(x,mtype){
   var isM=(mtype==='movie')||(x.media_type==='movie');
-  return{tmdbId:x.id,type:isM?'movie':'tv',title:isM?x.title:x.name,year:(isM?(x.release_date||''):(x.first_air_date||'')).slice(0,4),poster:x.poster_path||null,score:x.vote_average?x.vote_average.toFixed(1):null,overview:x.overview||'',genreIds:x.genre_ids||[]};
+  return{tmdbId:x.id,type:isM?'movie':'tv',title:isM?x.title:x.name,year:(isM?(x.release_date||''):(x.first_air_date||'')).slice(0,4),poster:x.poster_path||null,score:x.vote_average?x.vote_average.toFixed(1):null,overview:x.overview||'',genreIds:x.genre_ids||[],originCountry:(x.origin_country&&x.origin_country[0])||null};
 }
 function _drFetchBecause(filter){
   var pool=memDB.slice();
@@ -75,8 +75,7 @@ function _drFetchBecause(filter){
         items.push(_drNormItem(x,tt));
       });
     });
-    items=_sortByProfile(items,computeTasteProfile());
-    return{title:best.title,items:items.slice(0,30)};
+    return{title:best.title,items:_pickByProfile(items,computeTasteProfile(),30,RECO_EXPLORE_RATIO)};
   }).catch(function(){return{title:'',items:[]};});
 }
 function _drFetchRow(cfg){
@@ -113,7 +112,7 @@ function _drFetchRow(cfg){
     }
     return next();
   }).then(function(){
-    return{title:null,items:_sortByProfile(out,computeTasteProfile()).slice(0,TARGET)};
+    return{title:null,items:_pickByProfile(out,computeTasteProfile(),TARGET,RECO_EXPLORE_RATIO)};
   });
 }
 function _drCardHtml(d){
@@ -224,8 +223,8 @@ function switchDiscoverCat(btn){
 /* Session 11B : actions Réglages > Recommandations */
 function resetDismissedRecos(){
   if(!confirm(t('disc.resetDismissedConfirm')))return;
-  dismissed=[];
-  localStorage.setItem('wl_dis','[]');
+  dismissed=[];dismissedMeta={};
+  localStorage.setItem('wl_dis','[]');localStorage.setItem('wl_dis_meta','{}');
   _preserveContentScroll(function(){cache={};seenRecos=[];loadRecos();});
   toast(t('disc.resetDismissedDone'));
 }

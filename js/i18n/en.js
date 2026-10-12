@@ -117,6 +117,8 @@
  "plex.nextEp": "Next ep:",
  "plex.seasonScore": "Season score",
  "reco.because": "Because you liked {title}",
+ "reco.spotlight": "In the same vein: {kw}",
+ "reco.spotlightGeneric": "In the same vein",
  "reco.add": "+ Add",
  "reco.no": "x No",
  "reco.none": "No recommendations",

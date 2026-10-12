@@ -113,7 +113,26 @@ function _removeFromDiscoverUI(tmdbId){
 }
 function recoPreview(card){sfx('open');var d=getCardData(card);openPlexReco(d);}
 function recoAdd(card){sfx('click');var d=getCardData(card);var dup=memDB.find(function(i){return i.tmdbId==d.tmdbId});if(dup){toast(t('add.dup',{title:d.title}),'err');return;}recoAddDirect(d);}
-function recoDismiss(card){sfx('click');var id=parseInt(card.dataset.tmdbid);if(id)dismissed.push(id);localStorage.setItem('wl_dis',JSON.stringify(dismissed));card.style.transition='opacity .3s,transform .3s';card.style.opacity='0';card.style.transform='translateX(-16px)';setTimeout(function(){card.remove();},300);}
+/* Signal négatif pour le profil de goût (js/09-taste-profile.js) : genres/décennie/origine
+   déjà dans le dataset de la carte (gratuits, aucun appel TMDB supplémentaire). Capé à 200
+   entrées (les plus récentes) pour ne pas faire grossir localStorage indéfiniment. */
+function recoDismiss(card){
+  sfx('click');
+  var id=parseInt(card.dataset.tmdbid);
+  if(id){
+    dismissed.push(id);
+    var gids=(card.dataset.genres||'').split(',').filter(Boolean).map(function(s){return parseInt(s,10);});
+    dismissedMeta[id]={genreIds:gids,decade:TASTE_CORE.decadeOf(card.dataset.year),originCountry:card.dataset.origin||null,ts:Date.now()};
+    var keys=Object.keys(dismissedMeta);
+    if(keys.length>200){
+      keys.sort(function(a,b){return(dismissedMeta[a].ts||0)-(dismissedMeta[b].ts||0);});
+      keys.slice(0,keys.length-200).forEach(function(k){delete dismissedMeta[k];});
+    }
+    localStorage.setItem('wl_dis',JSON.stringify(dismissed));
+    localStorage.setItem('wl_dis_meta',JSON.stringify(dismissedMeta));
+  }
+  card.style.transition='opacity .3s,transform .3s';card.style.opacity='0';card.style.transform='translateX(-16px)';setTimeout(function(){card.remove();},300);
+}
 function getCardData(card){return{tmdbId:card.dataset.tmdbid?parseInt(card.dataset.tmdbid):null,type:card.dataset.type,title:card.dataset.title,year:card.dataset.year,poster:card.dataset.poster||null,score:card.dataset.score||null,overview:card.dataset.overview||''};}
 function recoAddDirect(d){
   selTmdb={tmdbId:d.tmdbId,tmdbType:d.type,title:d.title,year:d.year,poster:d.poster||null,overview:d.overview||'',tmdbScore:d.score||null};

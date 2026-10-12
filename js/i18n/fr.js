@@ -113,6 +113,8 @@
  "plex.nextEp": "Prochain ép. :",
  "plex.seasonScore": "Note saison",
  "reco.because": "Car tu as aimé {title}",
+ "reco.spotlight": "Dans la même veine : {kw}",
+ "reco.spotlightGeneric": "Dans la même veine",
  "reco.add": "+ Ajouter",
  "reco.no": "x Non",
  "reco.none": "Aucune recommandation",

@@ -41,3 +41,8 @@ var idb=null,memDB=[],editId=null,selTmdb=null,myRate=0,stimer=null;
 var activeTab='all',activeStat='all',fq='',sortBy='date';
 var curTags=[],plexData=null,plexSeasons=[],soundOn=true,compactOn=false;
 var dismissed=[],cache={},autoTimer=null,autoPaused=false;
+/* Signal négatif pour le profil de goût (js/09-taste-profile.js) : {id:{genreIds,decade,
+   originCountry,ts}} pour chaque reco explicitement refusée (bouton "Non"). Séparé de
+   `dismissed` (liste brute d'ids, utilisée partout pour l'exclusion) pour ne rien changer
+   à son format existant. */
+var dismissedMeta={};
