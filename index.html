@@ -296,6 +296,12 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .sb-section{padding:12px 14px 10px;border-bottom:1px solid var(--border)}
 .sb-sec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:5px}
 .sb-sec-title svg{width:11px;height:11px}
+.reco-because{display:flex;flex-direction:column;gap:5px;margin:2px 0 14px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(var(--accent-rgb),.12),rgba(var(--accent-rgb),.02) 70%);border:1px solid rgba(var(--accent-rgb),.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);animation:recoBecIn .5s cubic-bezier(.2,.8,.2,1) both}
+.reco-because-lbl{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--accent)}
+.reco-because-lbl svg{width:11px;height:11px;flex:none}
+.reco-because-title{font-size:16px;font-weight:700;line-height:1.25;letter-spacing:-.01em;color:var(--text);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;background:linear-gradient(90deg,var(--text) 55%,var(--accent-hover));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+@keyframes recoBecIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.reco-because{animation:none}}
 .reco-img{backface-visibility:hidden;transform:translateZ(0);}
 .reco-img-wrap{will-change:transform;}
 /* FOLDER CARD — PREMIUM */
@@ -465,7 +471,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 /* STARS LOCKED (statut À voir) */
 .stars.locked{position:relative}
 .stars.locked .star{opacity:.28;pointer-events:none;cursor:not-allowed}
-.stars.locked::after{content:'Passe en cours/terminé pour noter';position:absolute;left:0;top:100%;margin-top:3px;font-size:10px;color:var(--text3);white-space:nowrap}
+.stars.locked::after{content:attr(data-hint);position:absolute;left:0;top:100%;margin-top:3px;font-size:10px;color:var(--text3);white-space:nowrap}
 
 /* SEARCH FILTERS */
 .search-filter-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:8px 22px 14px;flex-shrink:0}
@@ -1447,6 +1453,33 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
   .plex-poster,.plex-poster-ph{width:120px}.plex-poster-ph{height:180px}
   .plex-title{font-size:28px}
 }
+
+/* ==== Audit DA ==== */
+/* Titres de modales : Inter */
+.mtitle:not(.auth-title){font-family:'Inter',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.025em}
+/* A2 boutons des recos */
+.rbtn{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:7px 13px;font-family:'Inter',sans-serif;font-weight:650;transition:transform .25s var(--spring),background .2s,box-shadow .2s,color .2s}
+.rbtn.add{background:rgba(var(--accent-rgb),.14);border-color:rgba(var(--accent-rgb),.35);color:var(--accent-hover)}
+.rbtn.add:hover{background:var(--accent);color:var(--on-accent);box-shadow:0 6px 18px rgba(var(--accent-rgb),.35);transform:translateY(-1px)}
+.rbtn.no{background:transparent;border-color:rgba(255,255,255,.1);color:var(--text3)}
+.rbtn.no:hover{background:rgba(255,80,80,.14);border-color:rgba(255,80,80,.4);color:#ff8a8a}
+.reco-card{transition:transform .35s var(--spring),box-shadow .35s,border-color .35s}
+.reco-card:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.22);box-shadow:var(--shadow-card-hover)}
+/* A4 état vide Détectés */
+.det-empty{display:flex;flex-direction:column;align-items:center;gap:10px;margin:24px auto;max-width:460px;padding:34px 24px;border-radius:22px;background:radial-gradient(120% 90% at 50% 0%,rgba(var(--accent-rgb),.12),transparent 60%),rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);line-height:1.55;animation:recoBecIn .6s cubic-bezier(.2,.8,.2,1) both}
+.det-empty-ic{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;color:var(--accent);background:rgba(var(--accent-rgb),.12);box-shadow:0 0 0 1px rgba(var(--accent-rgb),.25),0 10px 30px rgba(var(--accent-rgb),.18);animation:detPulse 2.6s ease-in-out infinite}
+.det-empty-ic svg{width:26px;height:26px}
+.det-empty-t{font:800 17px 'Inter',sans-serif;letter-spacing:-.02em;color:var(--text)}
+@keyframes detPulse{50%{transform:translateY(-3px);box-shadow:0 0 0 6px rgba(var(--accent-rgb),.06),0 14px 34px rgba(var(--accent-rgb),.25)}}
+/* A5 indice de note : ne chevauche plus le libellé suivant */
+.stars.locked{margin-bottom:28px}
+.stars.locked::after{font-size:11px;color:var(--text3);margin-top:6px}
+/* A6 toast */
+.toast{background:rgba(22,24,30,.72);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:12px 18px 12px 14px;font-weight:600;box-shadow:0 18px 50px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);animation:toastSpring .5s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes toastSpring{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:none}}
+/* A8 mobile : les 4 onglets tiennent sans être coupés */
+@media (max-width:520px){.nav.floating .tabs-row{gap:6px}.nav.floating .seg .ntab{padding:0 7px;gap:2px;font-size:12.5px;letter-spacing:-.3px;height:40px;min-height:40px}.nav.floating .seg .ntab-cnt{font-size:9.5px}.nav.floating .ntab.sp{width:38px;height:38px;min-height:38px}.nav.floating .ntabs-scroll.seg{padding:4px}}
+@media (prefers-reduced-motion:reduce){.det-empty,.det-empty-ic,.toast{animation:none}}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>

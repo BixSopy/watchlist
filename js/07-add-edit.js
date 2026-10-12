@@ -54,7 +54,7 @@ function _updateStarsLock(){
   var s=document.getElementById('fstat');
   var st=document.getElementById('stars');
   if(!s||!st)return;
-  if(s.value==='avoir'){st.classList.add('locked');}
+  if(s.value==='avoir'){st.classList.add('locked');st.dataset.hint=t('add.rateHint');}
   else{st.classList.remove('locked');}
 }
 function buildStars(c){myRate=c||0;document.getElementById('stars').innerHTML=Array.from({length:10},function(_,i){var v=i+1;return '<div class="star'+(v<=myRate?' on':'')+'" data-sfx-hover'+uiAct('setRate',[v])+'>'+starsvg(v<=myRate)+'</div>';}).join('');}
