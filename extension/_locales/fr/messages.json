@@ -25,7 +25,7 @@
     "message": "Enregistré."
   },
   "coverage": {
-    "message": "Détection en direct : Netflix, et Crunchyroll / Prime Video une fois activés. Un épisode est marqué vu à 80 % de sa durée ou dès le générique de fin, un film à 90 % ; un épisode suivant lancé automatiquement puis arrêté n'est pas compté."
+    "message": "Détection en direct : Netflix, et Crunchyroll / Prime Video / Disney+ / Apple TV une fois activés. Un épisode est marqué vu à 80 % de sa durée ou dès le générique de fin, un film à 90 % ; un épisode suivant lancé automatiquement puis arrêté n'est pas compté."
   },
   "openApp": {
     "message": "Ouvrir Cinepisode"
@@ -255,10 +255,10 @@
     "message": "Un import est déjà en cours."
   },
   "platformsTitle": {
-    "message": "Crunchyroll et Prime Video"
+    "message": "Autres plateformes"
   },
   "platformsIntro": {
-    "message": "Chaque plateforme s'active séparément : Chrome te demande alors l'accès à ce site seulement. L'historique est lu avec ta session de ce navigateur ; rien n'est envoyé ailleurs qu'à Cinepisode."
+    "message": "Chaque plateforme s'active séparément : Chrome te demande alors l'accès à ce site seulement. L'historique (Crunchyroll, Prime Video) est lu avec ta session de ce navigateur ; rien n'est envoyé ailleurs qu'à Cinepisode."
   },
   "enableCrunchyroll": {
     "message": "Activer Crunchyroll"
@@ -279,7 +279,7 @@
     "message": "Activé : détection en direct et import de l'historique."
   },
   "platformsSummaryTitle": {
-    "message": "3 plateformes intégrées"
+    "message": "5 plateformes intégrées"
   },
   "platformNetflixAlways": {
     "message": "Toujours active"
@@ -397,5 +397,20 @@
   },
   "importStepCrunchyrollTab": {
     "message": "Ouverture de www.crunchyroll.com…"
+  },
+  "enableDisneyplus": {
+    "message": "Activer Disney+"
+  },
+  "enableAppletv": {
+    "message": "Activer Apple TV"
+  },
+  "platformEnabledLive": {
+    "message": "Activé : détection en direct (pas d'historique disponible sur cette plateforme)."
+  },
+  "disneyplusHint": {
+    "message": "Regarde sur www.disneyplus.com dans ce navigateur : l'épisode ou le film est envoyé à l'onglet « Détectés » quand il est fini. Disney+ ne donne pas accès à l'historique : seules les lectures faites avec l'extension sont détectées."
+  },
+  "appletvHint": {
+    "message": "Regarde sur tv.apple.com dans ce navigateur. Bandes-annonces, extraits, sport et vidéos promo sont ignorés. Apple ne donne pas accès à l'historique : seules les lectures faites avec l'extension sont détectées."
   }
 }

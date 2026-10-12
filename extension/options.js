@@ -232,12 +232,13 @@ function setPlatformState(name, granted, note) {
   var box = platformBox(name);
   if (!box) return;
   box.querySelector('[data-role="enable"]').hidden = granted;
-  box.querySelector('[data-role="import"]').hidden = !granted;
+  var imp = box.querySelector('[data-role="import"]'); /* absent : détection en direct seulement (Disney+, Apple TV) */
+  if (imp) imp.hidden = !granted;
   box.querySelector('[data-role="disable"]').hidden = !granted;
   var state = box.querySelector('[data-role="state"]');
-  state.textContent = note === 'denied' ? msg('platformDenied') : granted ? msg('platformEnabled') : '';
+  state.textContent = note === 'denied' ? msg('platformDenied') : granted ? msg(PLATFORMS[name] && PLATFORMS[name].liveOnly ? 'platformEnabledLive' : 'platformEnabled') : '';
   state.className = note === 'denied' ? 'state err' : 'state';
-  /* Reflète le même état dans la bande de statut en haut (vue d'ensemble des 3 plateformes) */
+  /* Reflète le même état dans la bande de statut en haut (vue d'ensemble des 5 plateformes) */
   var chip = document.querySelector('.platsum-chip[data-chip="' + name + '"]');
   if (chip) {
     chip.querySelector('[data-role="dot"]').classList.toggle('on', granted);
@@ -261,7 +262,8 @@ Object.keys(PLATFORMS).forEach(function (name) {
   box.querySelector('[data-role="disable"]').addEventListener('click', function () {
     chrome.permissions.remove({ origins: PLATFORMS[name].origins }, function () { void chrome.runtime.lastError; refreshPlatform(name); });
   });
-  box.querySelector('[data-role="import"]').addEventListener('click', function () { startImport({ type: 'wl_import_' + name }); });
+  var imp = box.querySelector('[data-role="import"]');
+  if (imp) imp.addEventListener('click', function () { startImport({ type: 'wl_import_' + name }); });
 });
 if (chrome.permissions && chrome.permissions.onAdded) {
   chrome.permissions.onAdded.addListener(function () { Object.keys(PLATFORMS).forEach(function (n) { refreshPlatform(n); }); });

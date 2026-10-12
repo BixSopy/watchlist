@@ -1,4 +1,5 @@
-/* Extension 0.6.2 de bout en bout, dans un vrai Chrome : Crunchyroll et Prime Video (sites simulés).
+/* Extension 0.7.0 de bout en bout, dans un vrai Chrome : Crunchyroll, Prime Video, Disney+ et Apple TV
+   (sites simulés ; Disney+ et Apple TV : pages HTML reconstituées tests/fixtures/*.html).
    - extension telle que publiée : plateformes désactivées (permission facultative non accordée),
      aucun accès aux sites, import refusé avec un message clair ;
    - copie de test où les permissions facultatives sont accordées d'avance (Chrome ne permet pas de
@@ -23,8 +24,8 @@ const FIX = path.resolve(HERE, '..', 'tests', 'fixtures');
 const fixture = f => JSON.parse(fs.readFileSync(path.join(FIX, f), 'utf8'));
 const SUPA = 'https://batfulcvvquffgfeppcx.supabase.co';
 const TOKEN = 'c9'.repeat(24);
-let ctx, cdp, extId, grantedId, profileDir, tmpDir, video;
-const log = { push: [], mark: [], cr: [], pv: [], other: [] };
+let ctx, cdp, extId, grantedId, profileDir, tmpDir, video, longVideo;
+const log = { push: [], mark: [], cr: [], pv: [], dp: [], atv: [], other: [] };
 let crMode = 'ok';
 const CR_SITE_DEVICE = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
 
@@ -45,6 +46,10 @@ before(async () => {
     const file = path.join(tmpDir, 'v.webm');
     execFileSync('ffmpeg', ['-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=32x18:r=2:d=50', '-c:v', 'libvpx', '-b:v', '20k', file]);
     video = fs.readFileSync(file);
+    /* Apple TV : vidéo de 400 s (au-delà du seuil « promo / extrait » de 5 min), reprise à 75 % */
+    const longFile = path.join(tmpDir, 'long.webm');
+    execFileSync('ffmpeg', ['-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=32x18:r=2:d=400', '-c:v', 'libvpx', '-b:v', '20k', longFile]);
+    longVideo = fs.readFileSync(longFile);
   }
 
   const port = 9800 + Math.floor(Math.random() * 500);
@@ -136,6 +141,30 @@ before(async () => {
     if (u.pathname === '/v.webm' && video) return route.fulfill({ status: 200, contentType: 'video/webm', body: video });
     return route.fulfill({ status: 404, body: '' });
   });
+  /* disneyplus.com et tv.apple.com simulés : pages de lecture reconstituées, vidéos de test.
+     Toute requête vers ces sites est notée : l'extension ne doit en faire aucune elle-même. */
+  const html = f => fs.readFileSync(path.join(FIX, f), 'utf8');
+  await ctx.route(/^https:\/\/www\.disneyplus\.com\//, async route => {
+    const u = new URL(route.request().url());
+    log.dp.push(u.pathname);
+    if (u.pathname.startsWith('/fr-fr/play/')) return route.fulfill({ status: 200, contentType: 'text/html', body: html('disneyplus-play.html') });
+    if (u.pathname === '/v.webm' && video) return route.fulfill({ status: 200, contentType: 'video/webm', body: video });
+    return route.fulfill({ status: 404, body: '' });
+  });
+  await ctx.route(/^https:\/\/tv\.apple\.com\//, async route => {
+    const u = new URL(route.request().url());
+    log.atv.push(u.pathname);
+    if (u.pathname.startsWith('/fr/episode/')) return route.fulfill({ status: 200, contentType: 'text/html', body: html('appletv-episode.html') });
+    if (u.pathname === '/promo.webm' && video) return route.fulfill({ status: 200, contentType: 'video/webm', body: video });
+    if (u.pathname === '/long.webm' && longVideo) {
+      /* requêtes partielles (Range) : nécessaires pour reprendre la lecture à 75 % */
+      const m = /bytes=(\d+)-(\d*)/.exec(route.request().headers().range || '');
+      if (!m) return route.fulfill({ status: 200, contentType: 'video/webm', headers: { 'accept-ranges': 'bytes' }, body: longVideo });
+      const start = +m[1], end = m[2] ? Math.min(+m[2], longVideo.length - 1) : longVideo.length - 1;
+      return route.fulfill({ status: 206, contentType: 'video/webm', headers: { 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${longVideo.length}` }, body: longVideo.subarray(start, end + 1) });
+    }
+    return route.fulfill({ status: 404, body: '' });
+  });
   await ctx.route('https://cinepisode.com/**', route => route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>Cinepisode</title>' }));
 });
 after(async () => { await cdp?.close().catch(() => {}); await ctx?.close(); fs.rmSync(tmpDir, { recursive: true, force: true }); });
@@ -167,7 +196,7 @@ async function closeDetectedTabs() { for (const p of ctx.pages()) if (p.url().st
 test('extension publiée : plateformes désactivées, aucun accès aux sites, import refusé clairement', async () => {
   const { page, errors } = await optionsPage(extId);
   const manifest = await page.evaluate(() => chrome.runtime.getManifest());
-  assert.equal(manifest.version, '0.6.2');
+  assert.equal(manifest.version, '0.7.0');
   assert.deepEqual(manifest.host_permissions, [SUPA + '/*', 'https://www.netflix.com/*'], 'avertissement à l\'installation inchangé');
   await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="enable"]').hidden);
   assert.equal(await box(page, 'crunchyroll').locator('[data-role="enable"]').textContent(), 'Activer Crunchyroll');
@@ -192,9 +221,9 @@ test('plateformes activées : scripts en direct enregistrés ; import Crunchyrol
   const crTab = await ctx.newPage();
   await crTab.goto('https://www.crunchyroll.com/');
   const { page, errors } = await optionsPage(grantedId);
-  await page.waitForFunction(async () => (await chrome.scripting.getRegisteredContentScripts()).length === 3);
+  await page.waitForFunction(async () => (await chrome.scripting.getRegisteredContentScripts()).length === 5);
   const ids = (await page.evaluate(() => chrome.scripting.getRegisteredContentScripts())).map(c => c.id).sort();
-  assert.deepEqual(ids, ['cp-crunchyroll-page', 'cp-crunchyroll-player', 'cp-prime-page']);
+  assert.deepEqual(ids, ['cp-appletv-page', 'cp-crunchyroll-page', 'cp-crunchyroll-player', 'cp-disneyplus-page', 'cp-prime-page']);
   await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
   await box(page, 'crunchyroll').locator('[data-role="import"]').click();
   await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok');
@@ -242,7 +271,7 @@ test('Crunchyroll bloqué par Cloudflare : étape et statut affichés, « Copier
     assert.match(copied, /step: token/);
     assert.match(copied, /status: 403/);
     assert.match(copied, /cloudflare: true/);
-    assert.match(copied, /v: 0\.6\.2/);
+    assert.match(copied, /v: 0\.7\.0/);
     assert.match(await page.textContent('#importStatus button.diag'), /Diagnostic copié/);
     assert.deepEqual(errors, []);
     await page.close();
@@ -317,4 +346,33 @@ test('plateformes activées : détection en direct sur Prime Video (texte franç
   assert.deepEqual(log.push.map(b => b.p_items[0].source), ['live', 'live'], 'pas dans la liste : envoyé à l\'onglet « Détectés »');
   await pvPage.close();
   await crPage.close();
+});
+
+test('plateformes activées : détection en direct sur Disney+ (shadow DOM, « S1: ép. 6 ») et Apple TV (promo ignorée)', { skip: !hasFfmpeg() && 'ffmpeg absent' }, async () => {
+  log.mark.length = 0;
+  log.push.length = 0;
+  log.dp.length = 0;
+  log.atv.length = 0;
+  const { page: opts, errors } = await optionsPage(grantedId);
+  await opts.waitForFunction(() => !document.querySelector('.platform[data-platform="disneyplus"] [data-role="disable"]').hidden);
+  assert.equal(await opts.textContent('.platsum-title'), '5 plateformes intégrées');
+  assert.equal(await opts.locator('.platsum-chip').count(), 5);
+  assert.equal(await box(opts, 'disneyplus').locator('[data-role="import"]').count(), 0, 'Disney+ : pas d\'import');
+  assert.match(await box(opts, 'appletv').locator('[data-role="state"]').textContent(), /détection en direct/);
+  const dpPage = await ctx.newPage();
+  const atvPage = await ctx.newPage();
+  await dpPage.goto('https://www.disneyplus.com/fr-fr/play/8d0ab0f2-7c86-4f0e-9a1b-3c2d1e0f9a8b');
+  await atvPage.goto('https://tv.apple.com/fr/episode/dans-le-perimetre/umc.cmc.4a1b2c3d');
+  for (let i = 0; i < 120 && log.mark.length < 2; i++) await new Promise(r => setTimeout(r, 500));
+  const marks = log.mark.map(b => [b.p_title, b.p_season, b.p_episode, b.p_type]).sort();
+  assert.deepEqual(marks, [['Severance', 1, 3, 'episode'], ['The Mandalorian', 1, 6, 'episode']]);
+  for (let i = 0; i < 20 && log.push.length < 2; i++) await new Promise(r => setTimeout(r, 200));
+  assert.deepEqual(log.push.map(b => b.p_items[0].source), ['live', 'live']);
+  /* seules les requêtes de la page elle-même (document, vidéos) : rien de l'extension */
+  assert.deepEqual([...new Set(log.dp)].sort(), ['/fr-fr/play/8d0ab0f2-7c86-4f0e-9a1b-3c2d1e0f9a8b', '/v.webm']);
+  assert.deepEqual([...new Set(log.atv)].sort(), ['/fr/episode/dans-le-perimetre/umc.cmc.4a1b2c3d', '/long.webm', '/promo.webm']);
+  assert.deepEqual(errors, []);
+  await dpPage.close();
+  await atvPage.close();
+  await opts.close();
 });

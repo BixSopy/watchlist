@@ -26,7 +26,7 @@ test('extension : chaque script du dossier content/ est déclaré dans le manife
   for (const f of fs.readdirSync(path.join(ROOT, 'extension/content'))) assert.ok(declared.has('content/' + f), 'non déclaré : ' + f);
   assert.ok(!fs.readdirSync(path.join(ROOT, 'extension/content')).some(f => /diag/i.test(f)));
   for (const c of manifest.content_scripts) for (const m of c.matches) assert.match(m, /^https:\/\/www\.netflix\.com\//);
-  for (const c of Object.values(platforms).flatMap(p => p.scripts)) for (const m of c.matches) assert.match(m, /^https:\/\/(www|static)\.crunchyroll\.com\/|^https:\/\/www\.primevideo\.com\//);
+  for (const c of Object.values(platforms).flatMap(p => p.scripts)) for (const m of c.matches) assert.match(m, /^https:\/\/(www|static)\.crunchyroll\.com\/|^https:\/\/www\.primevideo\.com\/|^https:\/\/www\.disneyplus\.com\/|^https:\/\/tv\.apple\.com\//);
 });
 
 test('extension : ni postMessage vers \'*\', ni trace dans la console', () => {
@@ -366,7 +366,7 @@ test('fenêtre : chaque statut a un texte dans les deux langues, sans marqueur $
       for (const [, name] of msgs[k].message.matchAll(/\$(\w+)\$/g)) assert.ok(msgs[k].placeholders && msgs[k].placeholders[name.toLowerCase()], l + ' ' + k + ' : ' + name);
     }
   }
-  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.6.2');
+  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.7.0');
 });
 
 test('service worker : détections en direct sans correspondance envoyées à l\'onglet « Détectés » (extension_push_detections)', async () => {

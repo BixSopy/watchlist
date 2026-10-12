@@ -47,13 +47,17 @@
   .platform [data-role="enable"]{border:1px solid currentColor}
   .platform[data-platform="crunchyroll"] [data-role="enable"]{color:#f47521}
   .platform[data-platform="prime"] [data-role="enable"]{color:#00a8e1}
+  .platform[data-platform="disneyplus"]{border-left-color:#1f80e0}
+  .platform[data-platform="disneyplus"] [data-role="enable"]{color:#5aa9f0}
+  .platform[data-platform="appletv"]{border-left-color:#a1a1aa}
+  .platform[data-platform="appletv"] [data-role="enable"]{color:#d4d4d8}
   .platform [data-role="enable"]:hover{background:#1e1e23}
   button.link{width:auto;margin:0;padding:0;background:none;border:none;color:#9a9aa5;font-size:11px;text-decoration:underline}
   button.link:hover{background:none;color:#e8e8ec}
-  /* Bande de statut des 3 plateformes (clarté d'un coup d'oeil) */
+  /* Bande de statut des 5 plateformes (clarté d'un coup d'oeil) */
   .platsum-title{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#6a6a74;margin:0 0 6px}
-  .platsum{display:flex;gap:6px;margin-bottom:16px}
-  .platsum-chip{flex:1;display:flex;align-items:center;gap:6px;padding:7px 8px;background:#111115;border:1px solid #2a2a33;border-radius:8px;font-size:11px;min-width:0}
+  .platsum{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .platsum-chip{flex:1 1 28%;display:flex;align-items:center;gap:6px;padding:7px 8px;background:#111115;border:1px solid #2a2a33;border-radius:8px;font-size:11px;min-width:0}
   .platsum-dot{width:7px;height:7px;border-radius:50%;background:#4a4a54;flex-shrink:0}
   .platsum-dot.on{background:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.18)}
   .platsum-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -61,6 +65,8 @@
   .platsum-chip[data-chip="netflix"]{border-left:3px solid #e50914}
   .platsum-chip[data-chip="crunchyroll"]{border-left:3px solid #f47521}
   .platsum-chip[data-chip="prime"]{border-left:3px solid #00a8e1}
+  .platsum-chip[data-chip="disneyplus"]{border-left:3px solid #1f80e0}
+  .platsum-chip[data-chip="appletv"]{border-left:3px solid #a1a1aa}
 </style>
 </head>
 <body>
@@ -79,6 +85,14 @@
     <div class="platsum-chip" data-chip="prime">
       <span class="platsum-dot" data-role="dot"></span>
       <div><span class="platsum-name">Prime Video</span><br><span class="platsum-sub" data-role="sub"></span></div>
+    </div>
+    <div class="platsum-chip" data-chip="disneyplus">
+      <span class="platsum-dot" data-role="dot"></span>
+      <div><span class="platsum-name">Disney+</span><br><span class="platsum-sub" data-role="sub"></span></div>
+    </div>
+    <div class="platsum-chip" data-chip="appletv">
+      <span class="platsum-dot" data-role="dot"></span>
+      <div><span class="platsum-name">Apple TV</span><br><span class="platsum-sub" data-role="sub"></span></div>
     </div>
   </div>
   <p data-msg="optionsIntro"></p>
@@ -109,6 +123,18 @@
     <button class="secondary" data-role="import" data-msg="importPrime" hidden></button>
     <p class="state" data-role="state"></p>
     <p class="hint" data-msg="primeHint"></p>
+  </div>
+  <div class="platform" data-platform="disneyplus">
+    <h3><span>Disney+</span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
+    <button class="secondary" data-role="enable" data-msg="enableDisneyplus"></button>
+    <p class="state" data-role="state"></p>
+    <p class="hint" data-msg="disneyplusHint"></p>
+  </div>
+  <div class="platform" data-platform="appletv">
+    <h3><span>Apple TV</span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
+    <button class="secondary" data-role="enable" data-msg="enableAppletv"></button>
+    <p class="state" data-role="state"></p>
+    <p class="hint" data-msg="appletvHint"></p>
   </div>
   <div id="importStatus" aria-live="polite"></div>
   <button id="openDetected" class="secondary" data-msg="openDetected"></button>

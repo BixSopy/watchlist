@@ -25,7 +25,7 @@
     "message": "Saved."
   },
   "coverage": {
-    "message": "Live detection: Netflix, plus Crunchyroll / Prime Video once enabled. An episode is marked as watched at 80% of its length or as soon as the end credits start, a movie at 90%; an autoplayed next episode you stop is not counted."
+    "message": "Live detection: Netflix, plus Crunchyroll / Prime Video / Disney+ / Apple TV once enabled. An episode is marked as watched at 80% of its length or as soon as the end credits start, a movie at 90%; an autoplayed next episode you stop is not counted."
   },
   "openApp": {
     "message": "Open Cinepisode"
@@ -255,10 +255,10 @@
     "message": "An import is already running."
   },
   "platformsTitle": {
-    "message": "Crunchyroll and Prime Video"
+    "message": "Other platforms"
   },
   "platformsIntro": {
-    "message": "Each platform is enabled separately: Chrome then asks for access to that site only. History is read with your session in this browser; nothing is sent anywhere but Cinepisode."
+    "message": "Each platform is enabled separately: Chrome then asks for access to that site only. History (Crunchyroll, Prime Video) is read with your session in this browser; nothing is sent anywhere but Cinepisode."
   },
   "enableCrunchyroll": {
     "message": "Enable Crunchyroll"
@@ -279,7 +279,7 @@
     "message": "Enabled: live detection and history import."
   },
   "platformsSummaryTitle": {
-    "message": "3 platforms integrated"
+    "message": "5 platforms integrated"
   },
   "platformNetflixAlways": {
     "message": "Always active"
@@ -397,5 +397,20 @@
   },
   "importStepCrunchyrollTab": {
     "message": "Opening www.crunchyroll.com…"
+  },
+  "enableDisneyplus": {
+    "message": "Enable Disney+"
+  },
+  "enableAppletv": {
+    "message": "Enable Apple TV"
+  },
+  "platformEnabledLive": {
+    "message": "Enabled: live detection (no history available on this platform)."
+  },
+  "disneyplusHint": {
+    "message": "Watch on www.disneyplus.com in this browser: the episode or movie is sent to the “Detected” tab once finished. Disney+ offers no access to your history: only what you watch with the extension is detected."
+  },
+  "appletvHint": {
+    "message": "Watch on tv.apple.com in this browser. Trailers, clips, sports and promo videos are ignored. Apple offers no access to your history: only what you watch with the extension is detected."
   }
 }

@@ -17,6 +17,7 @@
  * depuis la fenêtre de l'extension). Historique lu directement par le service worker avec la
  * session du navigateur (lib/crunchyroll.js, lib/prime.js), détection en direct par des scripts
  * enregistrés seulement quand la permission est accordée (lib/platforms.js).
+ * 0.7.0 : Disney+ et Apple TV, détection en direct seulement (même modèle, aucune requête vers ces sites).
  *
  * 0.6.1 : Crunchyroll lu depuis un onglet www.crunchyroll.com (existant, sinon ouvert en arrière-plan
  * puis refermé) par chrome.scripting : requêtes même origine, comme le site. En cas d'échec, l'étape
@@ -33,7 +34,7 @@ var SUPA_URL = 'https://batfulcvvquffgfeppcx.supabase.co';
 var SUPA_KEY = 'sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
 /* Pages d'où une détection peut venir : Netflix (content_scripts du manifeste) et les pages des
  * plateformes activées (scripts enregistrés seulement après la permission, lib/platforms.js) */
-var ALLOWED_ORIGINS = ['https://www.netflix.com', 'https://www.crunchyroll.com', 'https://www.primevideo.com'];
+var ALLOWED_ORIGINS = ['https://www.netflix.com', 'https://www.crunchyroll.com', 'https://www.primevideo.com', 'https://www.disneyplus.com', 'https://tv.apple.com'];
 /* Réponses structurées de mark_watched_by_title (migration 20261008120000_mark_watched_fiable) */
 var SERVER_STATUSES = ['updated', 'already_up_to_date', 'not_found', 'ambiguous', 'invalid_token', 'invalid_input'];
 

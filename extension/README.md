@@ -55,6 +55,26 @@ la RPC à jeton écrit. Un compte supprimé efface ses détections (cascade). L'
 localement le jeton, la dernière détection et l'état de l'import (`wlImport`, `wlImportMeta` : date
 du dernier import, jamais le jeton ni la liste des titres).
 
+## Nouveautés 0.7.0 : Disney+ et Apple TV (détection en direct)
+
+- Deux plateformes de plus, activables séparément comme Crunchyroll et Prime Video (« Activer
+  Disney+ », « Activer Apple TV » ; permissions facultatives `https://www.disneyplus.com/*` et
+  `https://tv.apple.com/*`, aucun nouvel avertissement à l'installation). Scripts enregistrés
+  seulement après la permission (`lib/platforms.js`), mêmes règles (`lib/watch-rules.js` : épisode
+  à 80 % ou générique après 50 %, film à 90 %, 20 s réellement regardées, un seul envoi), envoi
+  `wl_watched` → `source='live'` dans « Détectés » si pas de correspondance. Aucune migration.
+- **Disney+** (`content/disneyplus.js`) : pages `/play/<id>` ; titre `.title-field`, repère
+  `.subtitle-field` (« S1: ép. 6 », « S1: Ep. 6 ») ; position lue dans le shadow DOM ouvert de
+  `<progress-bar>` (`.progress-bar__thumb`, aria-valuenow / aria-valuemax), sinon `<video>`.
+- **Apple TV** (`content/appletv.js`) : `[data-testid="video-container"] video` et
+  `player-metadata-title` / `player-metadata-subtitle` (« S1, E3 · Titre ») ; exclus : vidéos promo
+  hors du lecteur, sport (`/sporting-event/`, `/live/`), extraits (`/clip/`), bandes-annonces et
+  bonus, vidéos de moins de 5 min ; épisode suivant enchaîné jamais rattaché au précédent.
+  **Non testé sur un compte réel.**
+- Pas d'import d'historique : ni Disney+ ni Apple TV n'en exposent un (seulement des API internes
+  non documentées, écartées). Aucune requête vers ces sites, CSP inchangée.
+- Fenêtre : bande « 5 plateformes intégrées ».
+
 ## Correctifs 0.6.2
 
 - **Crunchyroll, historiques longs** : l'adresse `/content/v2/{compte}/watch-history` pagine
