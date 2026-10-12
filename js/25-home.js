@@ -136,11 +136,16 @@ function contSeeAll(){
   var b=document.querySelector('#stabs .stab[data-s="encours"]');if(b)b.click();
   var c=document.getElementById('content');if(c&&c.scrollIntoView)c.scrollIntoView({behavior:'smooth',block:'start'});
 }
-/* Compteurs des onglets Tout / Films / Séries / Anime, calculés sur la vraie liste */
+/* Compteurs des onglets Tout / Films / Séries / Anime, calculés sur la vraie liste et sur le filtre de
+   statut choisi (Tous / À voir / En cours / Terminé) : mis à jour à chaque render() */
+function tabCounts(list,stat){
+  var c={all:0,film:0,serie:0,anime:0};
+  (list||[]).forEach(function(i){if(i.deleted)return;if(stat&&stat!=='all'&&i.status!==stat)return;c.all++;if(c[i.type]!=null)c[i.type]++;});
+  return c;
+}
 function updateTabCounts(){
   if(typeof memDB==='undefined')return;
-  var c={all:0,film:0,serie:0,anime:0};
-  memDB.forEach(function(i){if(i.deleted)return;c.all++;if(c[i.type]!=null)c[i.type]++;});
+  var c=tabCounts(memDB,typeof activeStat==='undefined'?'all':activeStat);
   Object.keys(c).forEach(function(k){
     var b=document.querySelector('.ntab[data-tab="'+k+'"]');if(!b)return;
     var em=b.querySelector('.ntab-cnt');
@@ -149,6 +154,6 @@ function updateTabCounts(){
   });
   segMove();
 }
-if(typeof module!=='undefined')module.exports={renderContinue:renderContinue,updateTabCounts:updateTabCounts};
+if(typeof module!=='undefined')module.exports={renderContinue:renderContinue,updateTabCounts:updateTabCounts,tabCounts:tabCounts};
 /* Tiroir Suivi : Entrée / Espace l'ouvrent aussi au clavier */
 (function(){var h=document.querySelector('#suiviWrap .suivi-hdr');if(!h)return;h.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();h.click();}});})();

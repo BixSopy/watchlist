@@ -102,6 +102,13 @@ uiOn('statSelMobile',function(el){var b=document.querySelector('.stab[data-s="'+
 uiOn('clearStatFilter',function(){var b=document.querySelector('#stabs .stab[data-s="all"]');if(b)b.click();});
 uiOn('closeAlert',function(){document.getElementById('alertWrap').classList.remove('on');});
 uiOn('switchDiscoverCat',function(el){switchDiscoverCat(el);});
+/* Onglet Calendrier (js/26-calendar.js) */
+uiOn('calNav',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calNav;if(f)return f.apply(this,arguments);});
+uiOn('calView',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calView;if(f)return f.apply(this,arguments);});
+uiOn('calKind',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calKind;if(f)return f.apply(this,arguments);});
+uiOn('calSel',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSel;if(f)return f.apply(this,arguments);});
+uiOn('calOpt',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calOpt;if(f)return f.apply(this,arguments);});
+uiOn('calIcs',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calIcs;if(f)return f.apply(this,arguments);});
 uiOn('openPlex',function(el,e,id){sfx('open');openPlex(_uiId(id));});
 uiOn('openPlexQuiet',function(el,e,id){openPlex(_uiId(id));});
 uiOn('quickNextEp',function(el,e,id){quickNextEp(_uiId(id),e);});

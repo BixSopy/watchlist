@@ -909,6 +909,89 @@ body.view-discover .nav-right .stabs,body.view-discover .nav-right .sort-sel,bod
 body.view-detected #mc,body.view-detected #heroBand{display:none}
 body.view-detected #detectedSection{display:block}
 body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,body.view-detected .nav-right .srch{display:none}
+/* Onglet Calendrier (js/26-calendar.js) — maquette validée */
+#calendarSection{display:none}
+body.view-calendar #mc,body.view-calendar #heroBand{display:none}
+body.view-calendar #calendarSection{display:block}
+body.view-calendar .nav-right .stabs,body.view-calendar .nav-right .sort-sel,body.view-calendar .nav-right .srch,body.view-calendar .mob-filters{display:none}
+.calendar-section{--cf:#5cc8ff;--cs:#a78bfa;--ca:#ff7aa8;--cline:rgba(255,255,255,.08);--cline2:rgba(255,255,255,.14);padding-top:4px;animation:calIn .35s var(--spring,ease) both}
+@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.cal-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.cal-h1{font:900 30px 'Inter',sans-serif;letter-spacing:-.8px;margin:0;min-width:0}
+.cal-nv{display:flex;gap:6px}
+.cal-ar{width:36px;height:36px;border-radius:50%;border:1px solid var(--cline2);background:rgba(20,20,24,.7);display:grid;place-items:center;color:var(--text);cursor:pointer;padding:0}.cal-ar svg{width:15px;height:15px}
+.cal-ar:hover{background:rgba(255,255,255,.08)}
+.cal-td{height:36px;padding:0 14px;border-radius:12px;border:1px solid rgba(var(--accent-rgb),.4);background:rgba(var(--accent-rgb),.1);color:var(--accent);font:700 13px 'Inter',sans-serif;cursor:pointer}
+.cal-sp{flex:1}
+.cal-seg{display:inline-flex;gap:4px;padding:5px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--cline)}
+.cal-seg button{height:34px;padding:0 14px;border:none;border-radius:10px;background:none;font:600 13px 'IBM Plex Sans',sans-serif;color:var(--text2);display:inline-flex;align-items:center;gap:7px;cursor:pointer;transition:background .2s,color .2s}
+.cal-seg button.on{color:#fff;background:rgba(var(--accent-rgb),.16);box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.45)}.cal-seg i{width:7px;height:7px;border-radius:50%}
+.cal-ics{height:44px;padding:0 18px;border:none;border-radius:14px;font:700 13.5px 'Inter',sans-serif;color:var(--on-accent);background:linear-gradient(135deg,#8adcff,var(--accent) 55%,#3aa8f0);box-shadow:0 8px 24px rgba(var(--accent-rgb),.3);display:inline-flex;align-items:center;gap:8px;cursor:pointer}.cal-ics svg{width:16px;height:16px}
+.cal-ics:hover{filter:brightness(1.07)}
+.cal-ics-s{display:none}
+.cal-main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+.cal-grid-wrap,.cal-card{border-radius:22px;border:1px solid var(--cline2);background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));box-shadow:0 18px 50px rgba(0,0,0,.4)}
+.cal-grid-wrap{padding:14px}.cal-card{padding:16px;box-shadow:none}
+.cal-wd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:2px 4px 10px;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
+.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.cal-d{position:relative;min-height:112px;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid var(--cline);padding:8px;display:flex;flex-direction:column;gap:6px;overflow:hidden;min-width:0;cursor:pointer;transition:border-color .2s,background .2s}
+.cal-d:hover{border-color:var(--cline2)}
+.cal-n{font:700 13px 'Inter',sans-serif;color:rgba(255,255,255,.85)}
+.cal-d.out{opacity:.3}.cal-d.past{opacity:.55}
+.cal-d.sel{border-color:rgba(var(--accent-rgb),.5)}
+.cal-d.today{border-color:transparent;background:rgba(var(--accent-rgb),.08);box-shadow:0 0 0 2px var(--accent),0 0 30px rgba(var(--accent-rgb),.25)}
+.cal-d.today .cal-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--on-accent)}
+.cal-tag{position:absolute;top:10px;right:8px;font:700 9px 'Inter',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.cal-ev{display:flex;gap:7px;align-items:center;padding:4px;border-radius:10px;background:rgba(0,0,0,.25);border-left:3px solid var(--c);min-width:0;cursor:pointer}
+.cal-po,.cal-ap{flex:0 0 30px;height:44px;border-radius:6px;background:var(--bg3) center/cover;box-shadow:0 4px 10px rgba(0,0,0,.5)}
+.cal-et{min-width:0;display:flex;flex-direction:column}.cal-et b{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-et i{font:600 10px 'IBM Plex Mono',monospace;font-style:normal;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-more{font-size:10.5px;color:var(--text2);font-weight:600}
+.cal-dots{position:absolute;right:8px;bottom:8px;display:flex;gap:3px}.cal-dots i{width:6px;height:6px;border-radius:50%}
+.cal-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.cal-card-h{font:800 15px 'Inter',sans-serif;margin:0 0 12px;display:flex;align-items:center;gap:8px}.cal-card-h em{font:600 11px 'IBM Plex Mono',monospace;font-style:normal;color:var(--text2);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:8px}
+.cal-spin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent);animation:spin .8s linear infinite;margin-left:auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cal-ag{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--cline)}.cal-ag:first-of-type{border-top:none}
+.cal-agd{flex:0 0 64px;min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center}.cal-agd b{font:900 22px 'Inter',sans-serif;line-height:1}.cal-agd span{font-size:11px;color:var(--text2)}.cal-agd em{margin-top:4px;font:700 8.5px 'Inter',sans-serif;font-style:normal;text-transform:uppercase;letter-spacing:.05em;color:var(--on-accent);background:var(--accent);padding:2px 5px;border-radius:5px}
+.cal-ag.now .cal-agd b{color:var(--accent)}
+.cal-agl{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.cal-ai{display:flex;gap:10px;align-items:center;padding:6px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--cline);cursor:pointer;transition:background .2s,transform .2s}
+.cal-ai:hover{background:rgba(255,255,255,.06)}
+.cal-ap{flex:0 0 36px;height:54px;border-radius:7px}
+.cal-at{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.cal-at b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-at i{font:500 11.5px 'IBM Plex Mono',monospace;font-style:normal;color:var(--text2)}
+.cal-ty{font-style:normal;color:var(--c);font-family:'IBM Plex Sans',sans-serif;font-weight:700}
+.cal-ah{font:600 11px 'IBM Plex Mono',monospace;color:#fff;background:rgba(255,255,255,.07);padding:3px 7px;border-radius:7px;white-space:nowrap}
+.cal-empty{color:var(--text2);font-size:13px;padding:10px 0}
+.cal-opt{display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--text2)}
+.cal-opt-l{display:flex;align-items:center;gap:10px;cursor:pointer}
+.cal-sw{appearance:none;-webkit-appearance:none;width:36px;height:20px;border-radius:12px;background:rgba(255,255,255,.15);position:relative;flex:0 0 36px;margin:0;cursor:pointer;transition:background .2s}
+.cal-sw:after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s var(--spring,ease)}
+.cal-sw:checked{background:var(--accent)}.cal-sw:checked:after{transform:translateX(16px)}
+.cal-sw:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cal-note{font-size:11.5px;line-height:1.5;margin:0}
+.cal-week{display:none}
+.cal-agenda .cal-agenda-full{padding:16px}
+/* Largeur réelle de la zone (barre latérale des recos à gauche) : conteneur, pas l'écran */
+.calendar-section{container-type:inline-size}
+@container (max-width:1240px){
+  .cal-main{grid-template-columns:1fr}.cal-side{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:start}
+  .cal-bar{gap:8px}.cal-h1{font-size:26px}.cal-td{padding:0 11px}.cal-ics-l{display:none}.cal-ics-s{display:inline}.cal-seg button{padding:0 9px;gap:6px}.cal-ics{padding:0 14px}
+}
+@container (max-width:760px){.cal-side{grid-template-columns:1fr}}
+@media (max-width:700px){
+  .cal-h1{font-size:24px}.cal-bar{gap:10px}.cal-sp{display:none}.cal-td{margin-left:auto}
+  .cal-vw{order:3;width:100%}.cal-vw button{flex:1;justify-content:center}
+  .cal-flt{order:4;width:100%;overflow-x:auto}.cal-flt button{flex:1;justify-content:center;padding:0 8px}
+  .cal-ics{order:5;width:100%;justify-content:center}.cal-ics .cal-ics-l{display:inline}.cal-ics .cal-ics-s{display:none}
+  .cal-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:14px}
+  .cal-wk{border-radius:14px;padding:8px 0 10px;text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--cline);display:flex;flex-direction:column;gap:4px;align-items:center;color:var(--text);font:inherit;cursor:pointer;min-width:0}
+  .cal-wk span{font:600 10px 'IBM Plex Mono',monospace;color:var(--text2);text-transform:uppercase}.cal-wk b{font:800 16px 'Inter',sans-serif}.cal-wk i{width:6px;height:6px;border-radius:50%;background:var(--c,transparent)}
+  .cal-wk.on{background:linear-gradient(135deg,#8adcff,var(--accent) 55%,#3aa8f0);color:var(--on-accent);border-color:transparent;box-shadow:0 6px 20px rgba(var(--accent-rgb),.4)}.cal-wk.on span{color:var(--on-accent)}
+  .cal-month .cal-grid-wrap{padding:8px}.cal-g,.cal-wd{gap:4px}.cal-d{min-height:52px;padding:5px;border-radius:10px}.cal-d .cal-ev,.cal-d .cal-more,.cal-tag{display:none}.cal-d .cal-dots{right:5px;bottom:5px}
+  .cal-agenda .cal-agenda-full{display:none}
+  .cal-optc{order:2}
+}
+@media (prefers-reduced-motion:reduce){.calendar-section{animation:none}.cal-sw:after{transition:none}}
 .ntab[hidden]{display:none}
 .det-badge{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#d32f2f;box-shadow:0 0 0 1.5px rgba(10,10,12,.85);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center}
 .det-badge[hidden]{display:none}
@@ -1235,6 +1318,7 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 @media (hover:hover){.nav.floating .ntab.sp:not(.on):hover{color:#fff;border-color:rgba(var(--accent-rgb),.4);background:rgba(255,255,255,.06)}}
 .nav.floating .ntab.sp.on{border-color:transparent}
 .nav.floating .ntab.sp .det-badge{margin-left:2px}
+.nav.floating .ntab.sp .ntab-cnt,.nav.floating .ntab.sp.on .ntab-cnt{color:#cfe9ff;background:rgba(var(--accent-rgb),.16)}
 .nav.floating .nav-right{justify-content:center;margin:14px 0 0}
 /* Mouvement réduit : rangée à plat, sans rotation ni animation */
 /* Mouvement réduit (ex. Windows « Effets d'animation » désactivés) : pas de 3D ni de rotation, mais un glissé
@@ -1258,6 +1342,17 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
   .nav.floating .ntab.sp{width:46px;height:46px;padding:0;justify-content:center;flex:none;min-height:46px}
   .nav.floating .ntab.sp>span:not(.det-badge){display:none}
   .nav.floating .ntab.sp .det-badge{position:absolute;top:-4px;right:-4px}
+}
+/* Téléphone : 3 pilules secondaires (Découvrir, Calendrier, Détectés) → seconde ligne avec libellés,
+   la pilule principale garde toute la largeur pour Tout / Films / Séries / Anime et leurs compteurs */
+@media (max-width:560px){
+  .nav.floating .tabs-row{flex-wrap:wrap}
+  .nav.floating .tabs-row>.seg{flex:1 1 100%}
+  .nav.floating .ntab.sp{flex:1 1 0;width:auto;min-width:0;height:42px;min-height:42px;padding:0 8px;gap:6px;font-size:13px}
+  .nav.floating .ntab.sp>span:not(.det-badge){display:inline;overflow:hidden;text-overflow:ellipsis}
+  .nav.floating .ntab.sp svg.ntab-ic{display:inline-block;width:15px;height:15px}
+  .nav.floating .ntab.sp .det-badge{position:static}
+  .nav.floating .ntab.sp .ntab-cnt{display:none}
 }
 @media (max-width:768px){
   .nav.floating{padding:0 10px;border:none;background:transparent;box-shadow:none}
@@ -1793,6 +1888,7 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
         <button class="ntab" data-tab="anime" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span data-i18n="type.anime">Anime</span></button>
       </div>
         <button class="ntab sp" data-tab="discover" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span data-i18n="tab.discover">Découvrir</span></button>
+        <button class="ntab sp" data-tab="calendar" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5"/></svg><span data-i18n="cal.tab">Calendrier</span></button>
         <button class="ntab sp" id="detTab" data-tab="detectes" data-sfx-hover data-click="switchTab" hidden><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M4 19h16"/></svg><span data-i18n="det.tab">Détectés</span><span class="det-badge" id="detBadge" hidden>0</span></button>
       </div>
       <div class="nav-right">
@@ -1838,6 +1934,7 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
       </div>
       <div id="discoverSection" class="discover-section"></div>
       <div id="detectedSection" class="detected-section" aria-live="polite"></div>
+      <div id="calendarSection" class="calendar-section"></div>
     </div>
   </div>
 </div>
@@ -2076,5 +2173,6 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 <script src="js/23-landing.js"></script>
 <script src="js/24-feedback.js"></script>
 <script src="js/25-home.js"></script>
+<script src="js/26-calendar.js"></script>
 </body>
 </html>

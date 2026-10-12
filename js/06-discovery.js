@@ -207,8 +207,11 @@ function switchTab(btn){
   document.body.classList.toggle('view-discover',activeTab==='discover');
   var wasDetected=document.body.classList.contains('view-detected');
   document.body.classList.toggle('view-detected',activeTab==='detectes');
+  var wasCal=document.body.classList.contains('view-calendar');
+  document.body.classList.toggle('view-calendar',activeTab==='calendar');
   _heroIdx=0;
   render();
+  if(activeTab==='calendar')onCalendarTabShown();else if(wasCal)onCalendarTabHidden();
   if(activeTab==='discover')loadDiscovery(discoverCat);
   if(activeTab==='detectes')onDetectedTabShown();else if(wasDetected)onDetectedTabHidden();
 }
