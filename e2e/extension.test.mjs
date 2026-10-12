@@ -150,3 +150,46 @@ test('extension : jeton refusé -> message clair, aucun onglet ouvert ; aucun ap
   const manifest = await page.evaluate(() => chrome.runtime.getManifest());
   assert.deepEqual(manifest.host_permissions, [SUPA + '/*', 'https://www.netflix.com/*']);
 });
+
+test('fenêtre 0.7.3 : non connecté -> jeton -> vue principale, Réglages qui glissent, polices et styles chargés malgré la CSP (Chrome en anglais ici)', async () => {
+  const { page, errors } = await optionsPage(null);
+  await page.evaluate(() => new Promise(r => chrome.storage.local.remove(['wlLast', 'wlNow', 'wlPending'], r)));
+  await page.reload();
+  await page.waitForSelector('#viewOff:not([hidden])');
+  assert.equal(await page.isVisible('#viewMain'), false);
+  assert.equal(await page.textContent('#viewOff .conn'), 'Not connected');
+  await page.click('#save');
+  assert.equal(await page.textContent('#status'), 'Empty token.');
+  await page.fill('#token', TOKEN);
+  await page.press('#token', 'Enter');
+  await page.waitForSelector('#viewMain:not([hidden])');
+  assert.equal(await page.evaluate(() => new Promise(r => chrome.storage.local.get(['wlToken'], x => r(x.wlToken)))), TOKEN);
+  assert.equal(await page.isVisible('#nowIdle'), true);
+  assert.equal(await page.textContent('#pending'), 'Nothing new in Detected');
+  /* styles et polices de l'extension (CSP : 'self' seulement) */
+  assert.equal(await page.evaluate(() => getComputedStyle(document.body).width), '360px');
+  await page.evaluate(() => document.fonts.ready);
+  assert.ok(await page.evaluate(() => document.fonts.check('600 13px "IBM Plex Sans"') && document.fonts.check('900 17px Inter')), 'polices embarquées');
+  /* Réglages : glissent depuis la droite, puis retour */
+  await page.click('#openSettings');
+  await page.waitForSelector('#viewSettings:not([hidden])');
+  await page.waitForSelector('#viewMain', { state: 'hidden' });
+  assert.equal(await page.textContent('#tokenMask'), '•••• ' + TOKEN.slice(-4));
+  assert.equal(await page.textContent('#version'), 'v0.7.3');
+  await page.click('#closeSettings');
+  await page.waitForSelector('#viewSettings', { state: 'hidden' });
+  /* avancement en direct écrit par le service worker : la carte « En ce moment » suit */
+  await page.evaluate(() => chrome.storage.local.set({ wlNow: { at: Date.now(), platform: 'netflix', kind: 'episode', title: 'Dark', season: 2, episode: 3, pct: 81, done: true } }));
+  await page.waitForSelector('#nowLive:not([hidden])');
+  assert.equal(await page.textContent('#nowTitle'), 'Dark');
+  assert.equal(await page.textContent('#nowRule'), '✓ counted');
+  assert.equal(await page.getAttribute('[data-chip="netflix"]', 'class'), 'chip on playing');
+  /* déconnexion avec confirmation */
+  await page.click('#openSettings');
+  await page.click('#logout');
+  await page.click('#logoutYes');
+  await page.waitForSelector('#viewOff:not([hidden])');
+  assert.equal(await page.evaluate(() => new Promise(r => chrome.storage.local.get(['wlToken'], x => r(x.wlToken ?? null)))), null);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
