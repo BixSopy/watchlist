@@ -105,7 +105,7 @@ function _lpMotion(){
   function frame(){
     tick=false;if(!lpIsGuest())return;
     var vh=innerHeight,y=scrollY||0,out=[];
-    if(stage){var b=stage.getBoundingClientRect();out.push([stage,Math.max(0,Math.min(1,(vh-b.top)/(vh*.9)))]);}
+    if(stage){out.push([stage,Math.max(0,Math.min(1,y/600))]);}
     if(hero)out.push([hero,Math.max(0,Math.min(1,y/640))]);
     vis.forEach(function(v){var b=v.parentNode.getBoundingClientRect();out.push([v,Math.max(0,Math.min(1,(vh-b.top)/(vh+b.height)))]);});
     out.forEach(function(o){o[0].style.setProperty('--lp-t',o[1].toFixed(4));});

@@ -371,7 +371,7 @@ html.lp-anim .lp-grad{background-size:200% 100%;animation:lpGrad 8s ease-in-out 
 @keyframes lpGrad{0%,100%{background-position:0 0}50%{background-position:100% 0}}
 
 @supports (animation-timeline:view()){
-  html.lp-anim .lp-stage-3d{animation:lpTilt linear both;animation-timeline:view();animation-range:entry 0% cover 42%}
+  html.lp-anim .lp-stage-3d{animation:lpTilt linear both;animation-timeline:scroll(root);animation-range:0 600px}
   html.lp-anim .lp-hero-in{will-change:transform,opacity;animation:lpHeroOut linear both;animation-timeline:scroll(root);animation-range:0 640px}
   html.lp-anim .lp-spot-vis{animation:lpPar linear both;animation-timeline:view();animation-range:cover}
   /* Apparitions liées au défilement (remplacent l'IntersectionObserver) : réversibles, avec décalage */
