@@ -9,9 +9,6 @@
   "optionsTitle": {
     "message": "Cinepisode — Auto tracking"
   },
-  "optionsIntro": {
-    "message": "Generate this token in Cinepisode: Settings › Auto-tracking (Netflix, Plex...) › Generate my token (the same token works for Tautulli and this extension). Paste it below."
-  },
   "tokenLabel": {
     "message": "Token"
   },
@@ -21,17 +18,8 @@
   "tokenEmpty": {
     "message": "Empty token."
   },
-  "saved": {
-    "message": "Saved."
-  },
-  "coverage": {
-    "message": "Live detection: Netflix, plus Crunchyroll / Prime Video once enabled. An episode is marked as watched at 80% of its length or as soon as the end credits start, a movie at 90%; an autoplayed next episode you stop is not counted."
-  },
   "openApp": {
     "message": "Open Cinepisode"
-  },
-  "lastTitle": {
-    "message": "Last detection"
   },
   "lastNone": {
     "message": "Nothing detected yet. An episode counts as watched at 80% or at the end credits, a movie at 90%."
@@ -82,7 +70,7 @@
     }
   },
   "lastInvalidToken": {
-    "message": "Invalid token: generate a new token in Cinepisode and paste it above."
+    "message": "Invalid token: generate a new one in Cinepisode, then Settings › Token › Change."
   },
   "lastNoToken": {
     "message": "No token saved: $LABEL$ was not sent.",
@@ -141,20 +129,8 @@
       }
     }
   },
-  "historyTitle": {
-    "message": "History"
-  },
-  "historyIntro": {
-    "message": "Import your Netflix history (or the Netflix CSV file): detected titles show up in Cinepisode's “Detected” tab, where you choose what gets added or updated. Nothing in your list changes before that."
-  },
   "importNetflix": {
     "message": "Import my Netflix history"
-  },
-  "importCsv": {
-    "message": "Import the Netflix CSV file"
-  },
-  "importCsvHint": {
-    "message": "File: netflix.com › Account › Profile › Viewing activity › “Download all”."
   },
   "openDetected": {
     "message": "See detected titles in Cinepisode"
@@ -216,19 +192,11 @@
   "importMetaFailed": {
     "message": " Some episode numbers could not be read."
   },
-  "importLast": {
-    "message": "Last Netflix import: $WHEN$",
-    "placeholders": {
-      "when": {
-        "content": "$1"
-      }
-    }
-  },
   "importErrNoToken": {
-    "message": "Save your token above first."
+    "message": "Connect the extension with your token first."
   },
   "importErrToken": {
-    "message": "Invalid token: generate a new one in Cinepisode and paste it above."
+    "message": "Invalid token: generate a new one in Cinepisode, then Settings › Token › Change."
   },
   "importErrNetflixTab": {
     "message": "Could not open Netflix in this browser."
@@ -254,50 +222,20 @@
   "importBusy": {
     "message": "An import is already running."
   },
-  "platformsTitle": {
-    "message": "Crunchyroll and Prime Video"
-  },
-  "platformsIntro": {
-    "message": "Each platform is enabled separately: Chrome then asks for access to that site only. History is read with your session in this browser; nothing is sent anywhere but Cinepisode."
-  },
-  "enableCrunchyroll": {
-    "message": "Enable Crunchyroll"
-  },
-  "enablePrime": {
-    "message": "Enable Prime Video"
-  },
   "importCrunchyroll": {
     "message": "Import my Crunchyroll history"
   },
   "importPrime": {
     "message": "Import my Prime Video history"
   },
-  "disablePlatform": {
-    "message": "Disable"
-  },
   "platformEnabled": {
     "message": "Enabled: live detection and history import."
-  },
-  "platformsSummaryTitle": {
-    "message": "3 platforms integrated"
   },
   "platformNetflixAlways": {
     "message": "Always active"
   },
-  "platformInactive": {
-    "message": "Inactive"
-  },
-  "platformActive": {
-    "message": "Active"
-  },
   "platformDenied": {
     "message": "Access denied by Chrome: nothing was enabled."
-  },
-  "crunchyrollHint": {
-    "message": "Sign in to crunchyroll.com in this browser. Anime seasons are sent as Crunchyroll numbers them: check them in the “Detected” tab."
-  },
-  "primeHint": {
-    "message": "Sign in to www.primevideo.com in this browser (an amazon.com session is not enough). Trailers, extras and plays under 80% are ignored. The Amazon data export is not supported yet."
   },
   "importStepCrunchyroll": {
     "message": "Connecting to Crunchyroll…"
@@ -323,7 +261,7 @@
     "message": " The oldest part of your history couldn't be read (Crunchyroll refused the rest): everything before it was sent. Run the import again later to retry."
   },
   "importErrPermission": {
-    "message": "Enable the platform first (“Enable” button above)."
+    "message": "Turn the platform on first (its tile in the grid)."
   },
   "importErrCrunchyrollAuth": {
     "message": "Crunchyroll does not recognise your session: sign in on www.crunchyroll.com in this browser, then try again."
@@ -397,5 +335,211 @@
   },
   "importStepCrunchyrollTab": {
     "message": "Opening www.crunchyroll.com…"
+  },
+  "platformEnabledLive": {
+    "message": "Enabled: live detection (no history available on this platform)."
+  },
+  "diagTitle": {
+    "message": "Diagnostics"
+  },
+  "diagDebug": {
+    "message": "Detailed log (F12 console)"
+  },
+  "diagCopy": {
+    "message": "Copy diagnostics"
+  },
+  "diagCopied": {
+    "message": "Diagnostics copied: paste them in your message (no token included)."
+  },
+  "liveOnlyInfoLabel": {
+    "message": "Why no history import?"
+  },
+  "liveOnlyInfo": {
+    "message": "Disney+ and Apple TV don't give access to your watch history: only episodes you watch from now on are detected. To recover your past, request a copy of your data (Disney: account settings / Apple: privacy.apple.com)."
+  },
+  "notConnected": {
+    "message": "Not connected"
+  },
+  "connected": {
+    "message": "Connected"
+  },
+  "connectedTitle": {
+    "message": "Token saved: detections go to your Cinepisode account"
+  },
+  "offHeroTitle": {
+    "message": "Link the extension to your account"
+  },
+  "offHeroSub": {
+    "message": "Your episodes tick themselves off while you watch."
+  },
+  "offStep1": {
+    "message": "Open Cinepisode › Settings › Auto-tracking"
+  },
+  "offStep2": {
+    "message": "Click “Generate my token”"
+  },
+  "offStep3": {
+    "message": "Paste it below"
+  },
+  "tokenPlaceholder": {
+    "message": "Paste your token here"
+  },
+  "connect": {
+    "message": "Connect"
+  },
+  "offPrivacy": {
+    "message": "The token stays in this browser. Only the title, season and episode are sent to Cinepisode."
+  },
+  "noAccount": {
+    "message": "No account yet?"
+  },
+  "changeTokenFoot": {
+    "message": "Your current token stays active until you paste a new one."
+  },
+  "openAppArrow": {
+    "message": "Open Cinepisode →"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "settingsTitle": {
+    "message": "Settings"
+  },
+  "back": {
+    "message": "Back"
+  },
+  "nowTitle": {
+    "message": "Now playing"
+  },
+  "liveBadge": {
+    "message": "LIVE"
+  },
+  "idleTitle": {
+    "message": "Nothing playing"
+  },
+  "idleSub": {
+    "message": "Start an episode on an active platform."
+  },
+  "nowEpisode": {
+    "message": "Season $S$ · Episode $E$",
+    "placeholders": {
+      "s": {
+        "content": "$1",
+        "example": ""
+      },
+      "e": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "nowMovie": {
+    "message": "Movie"
+  },
+  "nowPct": {
+    "message": "$P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowRule": {
+    "message": "counted at $P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowCounted": {
+    "message": "✓ counted"
+  },
+  "platformsCap": {
+    "message": "Platforms"
+  },
+  "platformsCount": {
+    "message": "$N$/$T$ active",
+    "placeholders": {
+      "n": {
+        "content": "$1",
+        "example": ""
+      },
+      "t": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "chipActive": {
+    "message": "Active"
+  },
+  "chipOff": {
+    "message": "Turn on"
+  },
+  "chipDenied": {
+    "message": "Denied"
+  },
+  "chipTip": {
+    "message": "Turn on $NAME$: Chrome will ask for access to this site",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "importCap": {
+    "message": "Import history"
+  },
+  "pendingNone": {
+    "message": "Nothing new in Detected"
+  },
+  "pendingOne": {
+    "message": "new title in Detected"
+  },
+  "pendingMany": {
+    "message": "new titles in Detected"
+  },
+  "seeDetected": {
+    "message": "View →"
+  },
+  "accountCap": {
+    "message": "Account"
+  },
+  "change": {
+    "message": "Change"
+  },
+  "csvRow": {
+    "message": "Netflix CSV file"
+  },
+  "csvRowHint": {
+    "message": "Account › Profile › Viewing activity › “Download all”"
+  },
+  "choose": {
+    "message": "Choose"
+  },
+  "liveOnlySmall": {
+    "message": "Live playback only"
+  },
+  "rulesCap": {
+    "message": "When a title counts as watched"
+  },
+  "rulesText": {
+    "message": "An episode at 80% or as soon as the end credits show, a movie at 90%, after at least 20 seconds of continuous playback. Titles found in your list are updated; the others go to the “Detected” tab."
+  },
+  "diagCopyHint": {
+    "message": "Detection status, without your token"
+  },
+  "logout": {
+    "message": "Log out"
+  },
+  "logoutConfirm": {
+    "message": "Remove the token?"
+  },
+  "logoutYes": {
+    "message": "Yes"
   }
 }
