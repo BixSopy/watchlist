@@ -2,119 +2,97 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=360">
 <title>Cinepisode</title>
-<style>
-  body{font-family:-apple-system,'Segoe UI',sans-serif;background:#0a0a0c;color:#e8e8ec;width:360px;padding:18px;margin:0}
-  h1{font-size:14px;margin:0 0 4px}
-  p{font-size:12px;color:#9a9aa5;line-height:1.5;margin:0 0 14px}
-  label{display:block;font-size:11px;color:#9a9aa5;margin-bottom:6px}
-  input{width:100%;box-sizing:border-box;background:#17171c;border:1px solid #2a2a33;border-radius:8px;color:#e8e8ec;padding:8px 10px;font-family:monospace;font-size:12px}
-  button{margin-top:10px;width:100%;background:#2a66ff;border:none;border-radius:8px;color:#fff;padding:9px;font-size:13px;cursor:pointer}
-  button:hover{background:#3b74ff}
-  a{color:#5ac8fa;font-size:12px}
-  #status{margin-top:10px;font-size:12px}
-  #status.ok{color:#4ade80}
-  #status.err{color:#ff7070}
-  h2{font-size:12px;margin:16px 0 6px;color:#e8e8ec}
-  #last{font-size:12px;line-height:1.5;background:#17171c;border:1px solid #2a2a33;border-radius:8px;padding:8px 10px}
-  #last .when{display:block;color:#9a9aa5;font-size:11px;margin-top:2px}
-  #last.ok{border-color:#1f5f3a}
-  #last.warn{border-color:#6b5414}
-  #last.err{border-color:#6b2020}
-  button.secondary{background:#17171c;border:1px solid #2a2a33;color:#e8e8ec;margin-top:0}
-  button.secondary:hover{background:#1e1e23}
-  .filebtn{display:block;margin-top:8px;text-align:center;background:#17171c;border:1px solid #2a2a33;border-radius:8px;color:#e8e8ec;padding:9px;font-size:13px;cursor:pointer}
-  .filebtn:hover{background:#1e1e23}
-  .filebtn.disabled{opacity:.5;pointer-events:none}
-  .hint{font-size:11px;margin:6px 0 0}
-  #importStatus{margin-top:10px;font-size:12px;line-height:1.5;background:#17171c;border:1px solid #2a2a33;border-radius:8px;padding:8px 10px}
-  #importStatus:empty{display:none}
-  #importStatus.ok{border-color:#1f5f3a}
-  #importStatus.err{border-color:#6b2020;color:#ff9a9a}
-  #importStatus .diag{display:block;margin-top:8px;font-size:12px;padding:5px 10px;width:auto}
-  .bar{height:4px;background:#2a2a33;border-radius:2px;margin-top:6px;overflow:hidden}
-  .bar>span{display:block;height:100%;background:#2a66ff;width:0;transition:width .3s}
-  #openDetected{margin-top:8px}
-  button:disabled{opacity:.5;cursor:default}
-  p.spaced{margin-top:14px}
-  .platform{margin-top:12px;padding:10px;background:#111115;border:1px solid #2a2a33;border-left:3px solid #2a2a33;border-radius:8px}
-  .platform[data-platform="crunchyroll"]{border-left-color:#f47521}
-  .platform[data-platform="prime"]{border-left-color:#00a8e1}
-  .platform h3{font-size:12px;margin:0;display:flex;justify-content:space-between;align-items:center}
-  .platform .state{font-size:11px;color:#4ade80;margin:6px 0 0}
-  .platform .state.err{color:#ff9a9a}
-  .platform .state:empty{display:none}
-  .platform [data-role="enable"]{border:1px solid currentColor}
-  .platform[data-platform="crunchyroll"] [data-role="enable"]{color:#f47521}
-  .platform[data-platform="prime"] [data-role="enable"]{color:#00a8e1}
-  .platform [data-role="enable"]:hover{background:#1e1e23}
-  button.link{width:auto;margin:0;padding:0;background:none;border:none;color:#9a9aa5;font-size:11px;text-decoration:underline}
-  button.link:hover{background:none;color:#e8e8ec}
-  /* Bande de statut des 3 plateformes (clarté d'un coup d'oeil) */
-  .platsum-title{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#6a6a74;margin:0 0 6px}
-  .platsum{display:flex;gap:6px;margin-bottom:16px}
-  .platsum-chip{flex:1;display:flex;align-items:center;gap:6px;padding:7px 8px;background:#111115;border:1px solid #2a2a33;border-radius:8px;font-size:11px;min-width:0}
-  .platsum-dot{width:7px;height:7px;border-radius:50%;background:#4a4a54;flex-shrink:0}
-  .platsum-dot.on{background:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.18)}
-  .platsum-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .platsum-sub{color:#6a6a74;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .platsum-chip[data-chip="netflix"]{border-left:3px solid #e50914}
-  .platsum-chip[data-chip="crunchyroll"]{border-left:3px solid #f47521}
-  .platsum-chip[data-chip="prime"]{border-left:3px solid #00a8e1}
-</style>
+<link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <!-- Textes : _locales/<langue>/messages.json (langue du navigateur, anglais par défaut) -->
-  <h1 data-msg="optionsTitle">Cinepisode</h1>
-  <p class="platsum-title" data-msg="platformsSummaryTitle"></p>
-  <div class="platsum" id="platsum">
-    <div class="platsum-chip" data-chip="netflix">
-      <span class="platsum-dot on"></span>
-      <div><span class="platsum-name">Netflix</span><br><span class="platsum-sub" data-msg="platformNetflixAlways"></span></div>
+<!-- Fenêtre de l'extension 0.7.3. Textes : _locales/<langue>/messages.json (langue du navigateur, anglais par défaut).
+     Trois états (non connecté, connecté au repos, détection en cours) et la vue Réglages, qui glisse depuis la droite. -->
+<div class="stage" id="stage">
+
+  <!-- ÉTAT 1 : non connecté (ou changement de jeton) -->
+  <section class="view" id="viewOff" hidden>
+    <div class="hd rise"><a class="logo" href="https://cinepisode.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" fill="#5cc8ff"/><path d="M9 7.3 17 12 9 16.7z" fill="#06070a"/></svg><span>cin<em>episode</em></span></a><span class="conn"><i class="dot off"></i><span data-msg="notConnected"></span></span></div>
+    <div class="sec rise" style="--d:1"><div class="card"><div class="hero"><div class="lg" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5 19 12 8 18.5z" fill="currentColor"/></svg></div>
+      <h2 data-msg="offHeroTitle"></h2><p data-msg="offHeroSub"></p></div></div></div>
+    <div class="sec rise" style="--d:2">
+      <ol class="steps"><li data-msg="offStep1"></li><li data-msg="offStep2"></li><li data-msg="offStep3"></li></ol>
+      <input class="inp" type="text" id="token" autocomplete="off" spellcheck="false" data-ph-msg="tokenPlaceholder" data-aria-msg="tokenLabel">
+      <button type="button" class="btn pri" id="save" data-msg="connect"></button>
+      <div id="status" aria-live="polite"></div>
+      <p class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span data-msg="offPrivacy"></span></p>
     </div>
-    <div class="platsum-chip" data-chip="crunchyroll">
-      <span class="platsum-dot" data-role="dot"></span>
-      <div><span class="platsum-name">Crunchyroll</span><br><span class="platsum-sub" data-role="sub"></span></div>
+    <div class="ft rise" style="--d:3"><span id="offFootText" data-msg="noAccount"></span><a class="link" id="openApp" href="https://cinepisode.com" target="_blank" rel="noopener" data-msg="openAppArrow"></a><button type="button" class="link muted" id="cancelChange" data-msg="cancel" hidden></button></div>
+  </section>
+
+  <!-- ÉTATS 2 et 3 : connecté (au repos / détection en cours) -->
+  <section class="view" id="viewMain" hidden>
+    <div class="hd rise"><a class="logo" href="https://cinepisode.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" fill="#5cc8ff"/><path d="M9 7.3 17 12 9 16.7z" fill="#06070a"/></svg><span>cin<em>episode</em></span></a>
+      <span class="conn" data-title-msg="connectedTitle"><i class="dot ok"></i><span data-msg="connected"></span></span>
+      <button type="button" class="icbtn" id="openSettings" data-title-msg="settingsTitle" data-aria-msg="settingsTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.8 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.8-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.2 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 9.9 3.2V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.8 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8"/></svg></button></div>
+
+    <div class="sec rise" style="--d:1"><p class="cap"><span data-msg="nowTitle"></span><span id="nowPlatform"></span></p>
+      <div class="card">
+        <div id="nowLive" hidden>
+          <div class="now"><div class="poster" id="nowPoster" aria-hidden="true"></div><div class="now-info">
+            <span class="live"><i></i><span data-msg="liveBadge"></span></span><h3 id="nowTitle"></h3><div class="sub" id="nowSub"></div></div></div>
+          <div class="bar" id="nowBarBox"><span id="nowBar" style="width:0"></span><i class="mark" id="nowMark"></i></div>
+          <div class="meta"><span id="nowPct"></span><span id="nowRule"></span></div>
+        </div>
+        <div id="nowIdle">
+          <div class="idle"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div><div><b data-msg="idleTitle"></b><span data-msg="idleSub"></span></div></div>
+        </div>
+        <div class="last" id="lastRow"><span class="tone" id="lastTone" aria-hidden="true">•</span><div id="last" aria-live="polite"></div></div>
+      </div></div>
+
+    <div class="sec rise" style="--d:2"><p class="cap"><span data-msg="platformsCap"></span><span id="platCount"></span></p>
+      <div class="grid" id="platGrid">
+      <div class="chipw"><button type="button" class="chip on" data-chip="netflix" aria-pressed="true" title="Netflix"><span class="lg nf" aria-hidden="true">N</span><span class="st" data-msg="chipActive"></span></button></div>
+      <div class="chipw"><button type="button" class="chip off" data-chip="crunchyroll" data-role="chip" data-p="crunchyroll" data-name="Crunchyroll" aria-pressed="false" title="Crunchyroll"><span class="tip" data-role="tip" data-p="crunchyroll"></span><span class="lg cr" aria-hidden="true">C</span><span class="st" data-role="state" data-p="crunchyroll"></span></button></div>
+      <div class="chipw"><button type="button" class="chip off" data-chip="prime" data-role="chip" data-p="prime" data-name="Prime Video" aria-pressed="false" title="Prime Video"><span class="tip" data-role="tip" data-p="prime"></span><span class="lg pv" aria-hidden="true">p</span><span class="st" data-role="state" data-p="prime"></span></button></div>
+      <div class="chipw"><button type="button" class="chip off" data-chip="disneyplus" data-role="chip" data-p="disneyplus" data-name="Disney+" aria-pressed="false" title="Disney+"><span class="tip" data-role="tip" data-p="disneyplus"></span><span class="lg dp" aria-hidden="true">D+</span><span class="st" data-role="state" data-p="disneyplus"></span></button><span class="info"><button type="button" class="info-btn" data-role="info" aria-expanded="false" data-aria-msg="liveOnlyInfoLabel">!</button><span class="info-pop" role="tooltip" data-msg="liveOnlyInfo"></span></span></div>
+      <div class="chipw"><button type="button" class="chip off" data-chip="appletv" data-role="chip" data-p="appletv" data-name="Apple TV" aria-pressed="false" title="Apple TV"><span class="tip" data-role="tip" data-p="appletv"></span><span class="lg at" aria-hidden="true">tv</span><span class="st" data-role="state" data-p="appletv"></span></button><span class="info"><button type="button" class="info-btn" data-role="info" aria-expanded="false" data-aria-msg="liveOnlyInfoLabel">!</button><span class="info-pop" role="tooltip" data-msg="liveOnlyInfo"></span></span></div>
+      </div></div>
+
+    <div class="sec rise" style="--d:3"><p class="cap"><span data-msg="importCap"></span></p>
+      <div class="acts">
+        <button type="button" class="btn" id="importNetflix" data-import="netflix" data-title-msg="importNetflix"><span class="lg sm nf" aria-hidden="true">N</span>Netflix</button>
+        <button type="button" class="btn" data-role="import" data-p="crunchyroll" data-title-msg="importCrunchyroll" hidden><span class="lg sm cr" aria-hidden="true">C</span>Crunchyroll</button>
+        <button type="button" class="btn" data-role="import" data-p="prime" data-title-msg="importPrime" hidden><span class="lg sm pv" aria-hidden="true">p</span>Prime</button>
+      </div>
+      <div id="importStatus" aria-live="polite"></div>
     </div>
-    <div class="platsum-chip" data-chip="prime">
-      <span class="platsum-dot" data-role="dot"></span>
-      <div><span class="platsum-name">Prime Video</span><br><span class="platsum-sub" data-role="sub"></span></div>
-    </div>
-  </div>
-  <p data-msg="optionsIntro"></p>
-  <label for="token" data-msg="tokenLabel"></label>
-  <input type="text" id="token" placeholder="a1b2c3...">
-  <button id="save" data-msg="save"></button>
-  <div id="status"></div>
-  <h2 data-msg="lastTitle"></h2>
-  <div id="last" aria-live="polite"></div>
-  <h2 data-msg="historyTitle"></h2>
-  <p data-msg="historyIntro"></p>
-  <button id="importNetflix" class="secondary" data-msg="importNetflix"></button>
-  <label id="csvLabel" class="filebtn" for="csvFile"><span data-msg="importCsv"></span></label>
-  <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
-  <p class="hint" data-msg="importCsvHint"></p>
-  <h2 data-msg="platformsTitle"></h2>
-  <p data-msg="platformsIntro"></p>
-  <div class="platform" data-platform="crunchyroll">
-    <h3><span>Crunchyroll</span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
-    <button class="secondary" data-role="enable" data-msg="enableCrunchyroll"></button>
-    <button class="secondary" data-role="import" data-msg="importCrunchyroll" hidden></button>
-    <p class="state" data-role="state"></p>
-    <p class="hint" data-msg="crunchyrollHint"></p>
-  </div>
-  <div class="platform" data-platform="prime">
-    <h3><span>Prime Video</span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
-    <button class="secondary" data-role="enable" data-msg="enablePrime"></button>
-    <button class="secondary" data-role="import" data-msg="importPrime" hidden></button>
-    <p class="state" data-role="state"></p>
-    <p class="hint" data-msg="primeHint"></p>
-  </div>
-  <div id="importStatus" aria-live="polite"></div>
-  <button id="openDetected" class="secondary" data-msg="openDetected"></button>
-  <p class="spaced" data-msg="coverage"></p>
-  <a href="https://cinepisode.com" target="_blank" rel="noopener" data-msg="openApp"></a>
-  <script src="lib/platforms.js"></script>
-  <script src="options.js"></script>
+
+    <div class="ft rise" style="--d:4"><span class="count" id="pending"></span><button type="button" class="link" id="openDetected" data-msg="seeDetected"></button></div>
+  </section>
+
+  <!-- VUE SECONDAIRE : réglages -->
+  <section class="view" id="viewSettings" hidden>
+    <div class="back"><button type="button" class="icbtn" id="closeSettings" data-aria-msg="back" data-title-msg="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><h2 data-msg="settingsTitle"></h2></div>
+    <div class="sec"><p class="cap"><span data-msg="accountCap"></span></p><div class="card rows">
+      <div class="row"><div><span data-msg="tokenLabel"></span><small id="tokenMask"></small></div><button type="button" class="btn sm" id="changeToken" data-msg="change"></button></div>
+      <div class="row"><div><span data-msg="csvRow"></span><small data-msg="csvRowHint"></small></div><label class="btn sm" id="csvLabel" for="csvFile"><span data-msg="choose"></span></label><input type="file" id="csvFile" accept=".csv,text/csv" hidden></div>
+    </div></div>
+    <div class="sec"><p class="cap"><span data-msg="platformsCap"></span></p><div class="card rows">
+        <div class="row"><div class="name"><span class="lg sm nf" aria-hidden="true">N</span><div>Netflix<small data-msg="platformNetflixAlways"></small></div></div><button type="button" class="sw" role="switch" aria-checked="true" disabled data-aria-msg="platformNetflixAlways"></button></div>
+        <div class="row"><div class="name"><span class="lg sm cr" aria-hidden="true">C</span><div>Crunchyroll</div></div><button type="button" class="sw" role="switch" aria-checked="false" data-role="switch" data-p="crunchyroll" aria-label="Crunchyroll"></button></div>
+        <div class="row"><div class="name"><span class="lg sm pv" aria-hidden="true">p</span><div>Prime Video</div></div><button type="button" class="sw" role="switch" aria-checked="false" data-role="switch" data-p="prime" aria-label="Prime Video"></button></div>
+        <div class="row"><div class="name"><span class="lg sm dp" aria-hidden="true">D+</span><div>Disney+<span class="info inline"><button type="button" class="info-btn" data-role="info" aria-expanded="false" data-aria-msg="liveOnlyInfoLabel">!</button><span class="info-pop" role="tooltip" data-msg="liveOnlyInfo"></span></span><small data-msg="liveOnlySmall"></small></div></div><button type="button" class="sw" role="switch" aria-checked="false" data-role="switch" data-p="disneyplus" aria-label="Disney+"></button></div>
+        <div class="row"><div class="name"><span class="lg sm at" aria-hidden="true">tv</span><div>Apple TV<span class="info inline"><button type="button" class="info-btn" data-role="info" aria-expanded="false" data-aria-msg="liveOnlyInfoLabel">!</button><span class="info-pop" role="tooltip" data-msg="liveOnlyInfo"></span></span><small data-msg="liveOnlySmall"></small></div></div><button type="button" class="sw" role="switch" aria-checked="false" data-role="switch" data-p="appletv" aria-label="Apple TV"></button></div>
+    </div></div>
+    <div class="sec"><p class="cap"><span data-msg="rulesCap"></span></p><p class="rules" data-msg="rulesText"></p></div>
+    <div class="sec" id="diagBox"><p class="cap"><span data-msg="diagTitle"></span></p><div class="card rows">
+      <div class="row"><div data-msg="diagDebug"></div><label class="sw" id="diagSw" aria-checked="false"><input type="checkbox" id="diagDebug" data-aria-msg="diagDebug"></label></div>
+      <div class="row"><div data-msg="diagCopyHint"></div><button type="button" class="btn sm" id="diagCopy" data-msg="diagCopy"></button></div>
+      <div id="diagStatus" aria-live="polite"></div>
+    </div></div>
+    <div class="ft"><span id="logoutBox"><button type="button" class="link danger" id="logout" data-msg="logout"></button>
+      <span class="confirm" id="logoutConfirm" hidden><span data-msg="logoutConfirm"></span><button type="button" class="btn sm danger" id="logoutYes" data-msg="logoutYes"></button><button type="button" class="link muted" id="logoutNo" data-msg="cancel"></button></span></span>
+      <span class="ver" id="version"></span></div>
+  </section>
+</div>
+<script src="lib/platforms.js"></script>
+<script src="options.js"></script>
 </body>
 </html>

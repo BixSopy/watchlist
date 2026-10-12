@@ -17,6 +17,7 @@
  * depuis la fenêtre de l'extension). Historique lu directement par le service worker avec la
  * session du navigateur (lib/crunchyroll.js, lib/prime.js), détection en direct par des scripts
  * enregistrés seulement quand la permission est accordée (lib/platforms.js).
+ * 0.7.0 : Disney+ et Apple TV, détection en direct seulement (même modèle, aucune requête vers ces sites).
  *
  * 0.6.1 : Crunchyroll lu depuis un onglet www.crunchyroll.com (existant, sinon ouvert en arrière-plan
  * puis refermé) par chrome.scripting : requêtes même origine, comme le site. En cas d'échec, l'étape
@@ -33,7 +34,7 @@ var SUPA_URL = 'https://batfulcvvquffgfeppcx.supabase.co';
 var SUPA_KEY = 'sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
 /* Pages d'où une détection peut venir : Netflix (content_scripts du manifeste) et les pages des
  * plateformes activées (scripts enregistrés seulement après la permission, lib/platforms.js) */
-var ALLOWED_ORIGINS = ['https://www.netflix.com', 'https://www.crunchyroll.com', 'https://www.primevideo.com'];
+var ALLOWED_ORIGINS = ['https://www.netflix.com', 'https://www.crunchyroll.com', 'https://www.primevideo.com', 'https://www.disneyplus.com', 'https://disneyplus.com', 'https://apps.disneyplus.com', 'https://tv.apple.com'];
 /* Réponses structurées de mark_watched_by_title (migration 20261008120000_mark_watched_fiable) */
 var SERVER_STATUSES = ['updated', 'already_up_to_date', 'not_found', 'ambiguous', 'invalid_token', 'invalid_input'];
 
@@ -101,6 +102,38 @@ function remember(det, result) {
   try { chrome.storage.local.set({ wlLast: last }); } catch (e) { /* stockage indisponible : rien à afficher */ }
 }
 
+/* 0.7.2 : lecture en cours, affichée en direct dans la fenêtre de l'extension (clé wlNow :
+ * plateforme, titre, saison/épisode, pourcentage ; jamais le jeton). Rien n'est envoyé au serveur. */
+var PLATFORM_OF_ORIGIN = { 'https://www.netflix.com': 'netflix', 'https://www.crunchyroll.com': 'crunchyroll', 'https://www.primevideo.com': 'prime',
+  'https://www.disneyplus.com': 'disneyplus', 'https://disneyplus.com': 'disneyplus', 'https://apps.disneyplus.com': 'disneyplus', 'https://tv.apple.com': 'appletv' };
+function senderOrigin(sender) {
+  if (sender.origin) return sender.origin;
+  try { return new URL(sender.url).origin; } catch (e) { return ''; }
+}
+function onProgress(msg, sender, sendResponse) {
+  if (!trustedSender(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
+  var det = validDetection(msg);
+  var pct = msg.pct;
+  if (!det || typeof pct !== 'number' || !isFinite(pct) || pct < 0 || pct > 100) { sendResponse({ ok: false, reason: 'invalid' }); return; }
+  var now = { at: Date.now(), platform: PLATFORM_OF_ORIGIN[senderOrigin(sender)] || null, kind: det.kind, title: det.title,
+    season: det.season, episode: det.episode, pct: Math.round(pct), done: msg.done === true };
+  try { chrome.storage.local.set({ wlNow: now }); } catch (e) { /* rien */ }
+  sendResponse({ ok: true });
+}
+
+/* 0.7.2 : nombre de titres envoyés à « Détectés » depuis la dernière visite de cet onglet depuis
+ * la fenêtre (clé wlPending ; remis à zéro par la fenêtre). Compte local : un tri fait sur le site
+ * ne le fait pas baisser. */
+function addPending(n) {
+  if (!(n > 0)) return;
+  try {
+    chrome.storage.local.get(['wlPending'], function (res) {
+      var cur = res && res.wlPending && typeof res.wlPending.count === 'number' ? res.wlPending.count : 0;
+      chrome.storage.local.set({ wlPending: { count: cur + n, at: Date.now() } });
+    });
+  } catch (e) { /* rien */ }
+}
+
 function rpc(body, name) {
   return fetch(SUPA_URL + '/rest/v1/rpc/' + (name || 'mark_watched_by_title'), {
     method: 'POST',
@@ -123,6 +156,7 @@ function markWatched(token, det) {
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || typeof msg !== 'object') return;
   if (IMPORT_TYPES.indexOf(msg.type) >= 0) return onImportMessage(msg, sender, sendResponse);
+  if (msg.type === 'wl_progress') return onProgress(msg, sender, sendResponse);
   if (msg.type !== 'wl_watched') return;
   if (!trustedSender(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
   var det = validDetection(msg);
@@ -190,12 +224,16 @@ async function pushDetections(token, items, onProgress) {
     sum.inserted += data.inserted | 0; sum.updated += data.updated | 0; sum.unchanged += data.unchanged | 0; sum.invalid += data.invalid | 0;
     if (onProgress) onProgress(i + 1, chunks.length);
   }
+  addPending(sum.inserted + sum.updated);
   return sum;
 }
 function pushLive(token, det) {
   var item = I.pushItemFromLive(det, Date.now());
   if (!item) return;
-  rpc({ p_token: token, p_items: [item] }, 'extension_push_detections').catch(function () { /* hors ligne : rien */ });
+  rpc({ p_token: token, p_items: [item] }, 'extension_push_detections').then(function (out) {
+    var d = out && out.data;
+    if (d && d.status === 'ok') addPending((d.inserted | 0) + (d.updated | 0));
+  }).catch(function () { /* hors ligne : rien */ });
 }
 
 /* ---------- Onglet Netflix : relai de requêtes même origine (cookies Netflix de ce navigateur) ---------- */
@@ -497,6 +535,28 @@ async function runPlatformImport(token, platform) {
 
 /* Scripts de détection en direct : enregistrés quand la permission de la plateforme est accordée,
  * retirés quand elle est retirée (au démarrage, à l'installation et à chaque changement). */
+/* Script déjà enregistré mais d'une version précédente (matches, fichiers ou allFrames changés) */
+async function isStale(scripts) {
+  try {
+    var cur = await chrome.scripting.getRegisteredContentScripts({ ids: scripts.map(function (c) { return c.id; }) });
+    return scripts.some(function (c) {
+      var r = cur.filter(function (x) { return x.id === c.id; })[0];
+      return !r || JSON.stringify(r.matches) !== JSON.stringify(c.matches) || JSON.stringify(r.js) !== JSON.stringify(c.js) || !!r.allFrames !== !!c.allFrames;
+    });
+  } catch (e) { return false; }
+}
+/* Un script enregistré ne s'applique qu'aux pages chargées ensuite : on l'injecte aussi dans les
+ * onglets déjà ouverts (activation, mise à jour). Les scripts se protègent d'une double init. */
+async function injectOpenTabs(scripts) {
+  if (!chrome.tabs || !chrome.scripting.executeScript) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var c = scripts[i], tabs = [];
+    try { tabs = await chrome.tabs.query({ url: c.matches }); } catch (e) { tabs = []; }
+    for (var j = 0; j < tabs.length; j++) {
+      try { await chrome.scripting.executeScript({ target: { tabId: tabs[j].id, allFrames: !!c.allFrames }, files: c.js }); } catch (e) { /* onglet inaccessible */ }
+    }
+  }
+}
 async function syncPlatformScripts() {
   if (!chrome.scripting || !chrome.scripting.registerContentScripts || !chrome.permissions) return;
   var registered = [];
@@ -508,9 +568,11 @@ async function syncPlatformScripts() {
     var ids = p.scripts.map(function (c) { return c.id; });
     var present = ids.filter(function (id) { return registered.indexOf(id) >= 0; });
     try {
-      if (granted && present.length !== ids.length) {
+      var stale = registered.length && present.length === ids.length && (await isStale(p.scripts));
+      if (granted && (present.length !== ids.length || stale)) {
         if (present.length) await chrome.scripting.unregisterContentScripts({ ids: present });
         await chrome.scripting.registerContentScripts(p.scripts.map(function (c) { return Object.assign({ persistAcrossSessions: true }, c); }));
+        if (p.liveOnly) await injectOpenTabs(p.scripts);
       } else if (!granted && present.length) {
         await chrome.scripting.unregisterContentScripts({ ids: present });
       }

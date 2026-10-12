@@ -26,12 +26,12 @@ test('extension : chaque script du dossier content/ est déclaré dans le manife
   for (const f of fs.readdirSync(path.join(ROOT, 'extension/content'))) assert.ok(declared.has('content/' + f), 'non déclaré : ' + f);
   assert.ok(!fs.readdirSync(path.join(ROOT, 'extension/content')).some(f => /diag/i.test(f)));
   for (const c of manifest.content_scripts) for (const m of c.matches) assert.match(m, /^https:\/\/www\.netflix\.com\//);
-  for (const c of Object.values(platforms).flatMap(p => p.scripts)) for (const m of c.matches) assert.match(m, /^https:\/\/(www|static)\.crunchyroll\.com\/|^https:\/\/www\.primevideo\.com\//);
+  for (const c of Object.values(platforms).flatMap(p => p.scripts)) for (const m of c.matches) assert.match(m, /^https:\/\/(www|static)\.crunchyroll\.com\/|^https:\/\/www\.primevideo\.com\/|^https:\/\/(www\.|apps\.)?disneyplus\.com\/|^https:\/\/tv\.apple\.com\//);
 });
 
 test('extension : ni postMessage vers \'*\', ni trace dans la console', () => {
   for (const f of EXT_JS) {
-    const src = read(f).replace(/\/\*[\s\S]*?\*\//g, '');
+    const src = read(f).replace(/\/\*[\s\S]*?\*\//g, '').replace(/function log\(\) \{ if \(debug && [^\n]*/, ''); /* seul journal permis : derrière le drapeau cpDebug */
     assert.doesNotMatch(src, /postMessage\([^;]*['"]\*['"]\s*\)/, f);
     assert.doesNotMatch(src, /console\.(log|debug|info|warn|error)/, f);
   }
@@ -183,6 +183,7 @@ function netflixPage() {
   let clock = 1_000_000;
   const timers = [];
   const posts = [];
+  const progress = [];
   const page = { movieId: 1, type: 'episode', season: 2, episode: 3, timeMs: 0, durationMs: 50 * 60 * 1000, titleText: 'DarkS2E3Ce qui était', endUi: false };
   const player = {
     getMovieId: () => page.movieId,
@@ -191,7 +192,7 @@ function netflixPage() {
   };
   const win = {
     location: { origin: 'https://www.netflix.com' },
-    postMessage: (m, origin) => posts.push({ ...JSON.parse(JSON.stringify(m)), origin }),
+    postMessage: (m, origin) => (m.type === 'wl_progress' ? progress : posts).push({ ...JSON.parse(JSON.stringify(m)), origin }),
     netflix: {
       appContext: { state: { playerApp: { getAPI: () => ({ videoPlayer: {
         getAllPlayerSessionIds: () => ['s1'], getVideoPlayerBySessionId: () => player } }) } } },
@@ -288,44 +289,15 @@ test('Netflix : un film reste à 90 % (générique de fin dès 80 %)', () => {
   assert.strictEqual(m.posts.length, 1);
 });
 
-/* --- Fenêtre de l'extension : textes de la dernière détection (français) --- */
+/* --- Fenêtre de l'extension : textes de la dernière détection (vrai options.html, mini-DOM) --- */
+const { loadPopup } = require('./fixtures/popup-harness.js');
 function popup(wlLast, lang = 'fr') {
-  const messages = JSON.parse(read('extension/_locales/' + lang + '/messages.json'));
-  const getMessage = (key, subs) => {
-    const m = messages[key];
-    if (!m) return '';
-    return m.message.replace(/\$(\w+)\$/g, (all, name) => {
-      const p = m.placeholders && m.placeholders[name.toLowerCase()];
-      return p ? p.content.replace(/\$(\d)/g, (x, i) => (subs || [])[i - 1] ?? '') : all;
-    });
-  };
-  const el = () => {
-    const e = { className: '', children: [], _text: '', style: {}, disabled: false, classList: { toggle: () => {} }, get main() { return e.children.length ? e.children[0].textContent : e._text; }, appendChild: c => e.children.push(c), addEventListener: () => {} };
-    Object.defineProperty(e, 'textContent', { get: () => e._text + e.children.map(c => c.textContent).join(' | '), set: v => { e._text = v; e.children = []; } });
-    return e;
-  };
-  const els = { token: el(), save: el(), status: el(), last: el(), importNetflix: el(), csvFile: el(), csvLabel: el(), importStatus: el(), openDetected: el() };
-  const listeners = [];
-  const onChanged = (changes, area) => listeners.forEach(fn => fn(changes, area));
-  const store = { wlToken: 'tok', wlLast };
-  const ctx = {
-    document: { documentElement: {}, title: '', querySelectorAll: () => [], getElementById: id => els[id],
-      createElement: () => el(), createTextNode: t => ({ textContent: t }) },
-    chrome: {
-      i18n: { getMessage, getUILanguage: () => lang },
-      runtime: { sendMessage: (m, cb) => cb && cb({ ok: true }) },
-      tabs: { create: () => {} },
-      storage: { local: { get: (k, cb) => cb(store), set: (o, cb) => cb && cb(), remove: (k, cb) => cb && cb() },
-        onChanged: { addListener: fn => { listeners.push(fn); } } },
-    },
-    Date, Number, String,
-  };
-  vm.createContext(ctx);
-  vm.runInContext(read('extension/options.js'), ctx);
-  return { last: els.last, importStatus: els.importStatus, importNetflix: els.importNetflix,
-    update: v => onChanged({ wlLast: { newValue: v } }, 'local'), updateImport: v => onChanged({ wlImport: { newValue: v } }, 'local') };
+  const p = loadPopup({ lang, store: { wlToken: 'tok', ...(wlLast ? { wlLast } : {}) } });
+  const lastEl = p.$('last');
+  const last = { get main() { return lastEl.childNodes.length ? lastEl.childNodes[0].textContent : ''; }, get textContent() { return lastEl.childNodes.map(n => n.textContent).join(' | '); }, get className() { return lastEl.className; } };
+  return { p, last, importStatus: p.$('importStatus'), importNetflix: p.$('importNetflix'),
+    update: v => p.set({ wlLast: v }), updateImport: v => p.updateImport(v) };
 }
-
 test('fenêtre : dernière détection et réponse du serveur en français clair', () => {
   const at = Date.UTC(2026, 9, 8, 19, 40);
   const ep = { at, kind: 'episode', title: 'Dark', season: 2, episode: 3 };
@@ -342,10 +314,12 @@ test('fenêtre : dernière détection et réponse du serveur en français clair'
   assert.strictEqual(text({ ...ep, status: 'legacy_updated' }), 'Mis à jour : Dark S2E3');
   assert.match(text({ ...ep, status: 'legacy_no_change' }), /^Aucun changement pour Dark S2E3/);
   assert.strictEqual(text({ at, kind: 'movie', title: 'Matrix', season: null, episode: null, status: 'updated', matchedTitle: 'The Matrix' }), 'Mis à jour : The Matrix');
-  assert.match(popup(null).last.textContent, /^Rien détecté pour l'instant/);
+  assert.match(popup(null).p.$('last').textContent, /^Rien détecté pour l'instant/);
   /* couleur + date */
   const p = popup({ ...ep, status: 'not_found' });
   assert.strictEqual(p.last.className, 'warn');
+  assert.strictEqual(p.p.$('lastRow').className, 'last warn');
+  assert.strictEqual(p.p.$('lastTone').textContent, '!');
   assert.match(p.last.textContent, /\| Le .*2026|\| Le \d/);
   /* mise à jour en direct */
   p.update({ ...ep, status: 'updated', matchedTitle: 'Dark' });
@@ -361,12 +335,12 @@ test('fenêtre : chaque statut a un texte dans les deux langues, sans marqueur $
   assert.ok(keys.length >= 12);
   for (const l of ['fr', 'en']) {
     const msgs = JSON.parse(read('extension/_locales/' + l + '/messages.json'));
-    for (const k of [...keys, 'lastAt', 'lastNone', 'lastTitle']) {
+    for (const k of [...keys, 'lastAt', 'lastNone']) {
       assert.ok(msgs[k], l + ' : ' + k);
       for (const [, name] of msgs[k].message.matchAll(/\$(\w+)\$/g)) assert.ok(msgs[k].placeholders && msgs[k].placeholders[name.toLowerCase()], l + ' ' + k + ' : ' + name);
     }
   }
-  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.6.2');
+  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.7.3');
 });
 
 test('service worker : détections en direct sans correspondance envoyées à l\'onglet « Détectés » (extension_push_detections)', async () => {
@@ -442,4 +416,15 @@ test('fenêtre : avancement et résultat de l\'import en français clair', () =>
   p.updateImport({ state: 'error', error: 'netflix_auth', at: Date.now() });
   assert.match(p.importStatus.textContent, /^Connecte-toi à Netflix/);
   assert.strictEqual(p.importStatus.className, 'err');
+});
+
+test('service worker 0.7.2 : avancement en direct (wlNow) gardé localement, rien envoyé ; expéditeur et forme vérifiés', async () => {
+  const sw = serviceWorker({ token: 'jeton-secret-42', responses: [] });
+  const ok = await sw.call({ type: 'wl_progress', kind: 'episode', title: 'Andor', season: 2, episode: 3, pct: 62, done: false },
+    { id: 'ext-id', tab: { id: 1 }, url: 'https://www.disneyplus.com/fr-fr/play/x' });
+  assert.strictEqual(ok.ok, true);
+  assert.deepStrictEqual({ ...sw.store.wlNow, at: 0 }, { at: 0, platform: 'disneyplus', kind: 'episode', title: 'Andor', season: 2, episode: 3, pct: 62, done: false });
+  assert.strictEqual(sw.fetches.length, 0);
+  assert.strictEqual((await sw.call({ type: 'wl_progress', kind: 'episode', title: 'X', season: 1, episode: 1, pct: 140 })).reason, 'invalid');
+  assert.strictEqual((await sw.call({ type: 'wl_progress', kind: 'movie', title: 'X', season: null, episode: null, pct: 5 }, { id: 'ext-id', tab: { id: 1 }, url: 'https://evil.example/' })).reason, 'sender');
 });

@@ -9,9 +9,6 @@
   "optionsTitle": {
     "message": "Cinepisode — Suivi auto"
   },
-  "optionsIntro": {
-    "message": "Génère ce jeton depuis Cinepisode : Réglages › Suivi auto (Netflix, Plex...) › Générer mon jeton (le même jeton sert à Tautulli et à cette extension). Colle-le ci-dessous."
-  },
   "tokenLabel": {
     "message": "Jeton"
   },
@@ -21,17 +18,8 @@
   "tokenEmpty": {
     "message": "Jeton vide."
   },
-  "saved": {
-    "message": "Enregistré."
-  },
-  "coverage": {
-    "message": "Détection en direct : Netflix, et Crunchyroll / Prime Video une fois activés. Un épisode est marqué vu à 80 % de sa durée ou dès le générique de fin, un film à 90 % ; un épisode suivant lancé automatiquement puis arrêté n'est pas compté."
-  },
   "openApp": {
     "message": "Ouvrir Cinepisode"
-  },
-  "lastTitle": {
-    "message": "Dernière détection"
   },
   "lastNone": {
     "message": "Rien détecté pour l'instant. Un épisode est compté vu à 80 % ou au générique de fin, un film à 90 %."
@@ -82,7 +70,7 @@
     }
   },
   "lastInvalidToken": {
-    "message": "Jeton invalide : génère un nouveau jeton dans Cinepisode et colle-le ci-dessus."
+    "message": "Jeton invalide : génère un nouveau jeton dans Cinepisode, puis Réglages › Jeton › Changer."
   },
   "lastNoToken": {
     "message": "Aucun jeton enregistré : $LABEL$ n'a pas été envoyé.",
@@ -141,20 +129,8 @@
       }
     }
   },
-  "historyTitle": {
-    "message": "Historique"
-  },
-  "historyIntro": {
-    "message": "Importe ton historique Netflix (ou le fichier CSV Netflix) : les titres détectés arrivent dans l'onglet « Détectés » de Cinepisode, où tu choisis ce qui est ajouté ou mis à jour. Rien n'est modifié dans ta liste avant."
-  },
   "importNetflix": {
     "message": "Importer mon historique Netflix"
-  },
-  "importCsv": {
-    "message": "Importer le fichier CSV Netflix"
-  },
-  "importCsvHint": {
-    "message": "Fichier : netflix.com › Compte › Profil › Activité de visionnage › « Télécharger tout »."
   },
   "openDetected": {
     "message": "Voir les titres détectés dans Cinepisode"
@@ -216,19 +192,11 @@
   "importMetaFailed": {
     "message": " Certains numéros d'épisode n'ont pas pu être lus."
   },
-  "importLast": {
-    "message": "Dernier import Netflix : $WHEN$",
-    "placeholders": {
-      "when": {
-        "content": "$1"
-      }
-    }
-  },
   "importErrNoToken": {
-    "message": "Enregistre d'abord ton jeton ci-dessus."
+    "message": "Connecte d'abord l'extension avec ton jeton."
   },
   "importErrToken": {
-    "message": "Jeton invalide : génère un nouveau jeton dans Cinepisode et colle-le ci-dessus."
+    "message": "Jeton invalide : génère un nouveau jeton dans Cinepisode, puis Réglages › Jeton › Changer."
   },
   "importErrNetflixTab": {
     "message": "Impossible d'ouvrir Netflix dans ce navigateur."
@@ -254,50 +222,20 @@
   "importBusy": {
     "message": "Un import est déjà en cours."
   },
-  "platformsTitle": {
-    "message": "Crunchyroll et Prime Video"
-  },
-  "platformsIntro": {
-    "message": "Chaque plateforme s'active séparément : Chrome te demande alors l'accès à ce site seulement. L'historique est lu avec ta session de ce navigateur ; rien n'est envoyé ailleurs qu'à Cinepisode."
-  },
-  "enableCrunchyroll": {
-    "message": "Activer Crunchyroll"
-  },
-  "enablePrime": {
-    "message": "Activer Prime Video"
-  },
   "importCrunchyroll": {
     "message": "Importer mon historique Crunchyroll"
   },
   "importPrime": {
     "message": "Importer mon historique Prime Video"
   },
-  "disablePlatform": {
-    "message": "Désactiver"
-  },
   "platformEnabled": {
     "message": "Activé : détection en direct et import de l'historique."
-  },
-  "platformsSummaryTitle": {
-    "message": "3 plateformes intégrées"
   },
   "platformNetflixAlways": {
     "message": "Toujours active"
   },
-  "platformInactive": {
-    "message": "Inactif"
-  },
-  "platformActive": {
-    "message": "Actif"
-  },
   "platformDenied": {
     "message": "Accès refusé par Chrome : rien n'a été activé."
-  },
-  "crunchyrollHint": {
-    "message": "Connecte-toi sur crunchyroll.com dans ce navigateur. Les saisons d'animés sont envoyées comme Crunchyroll les numérote : vérifie-les dans l'onglet « Détectés »."
-  },
-  "primeHint": {
-    "message": "Connecte-toi sur www.primevideo.com dans ce navigateur (la session amazon.fr ne suffit pas). Bandes-annonces, bonus et lectures de moins de 80 % sont ignorés. L'export de données Amazon n'est pas encore pris en charge."
   },
   "importStepCrunchyroll": {
     "message": "Connexion à Crunchyroll…"
@@ -323,7 +261,7 @@
     "message": " L'historique le plus ancien n'a pas pu être lu (Crunchyroll a refusé la suite) : tout ce qui précède a bien été envoyé. Relance l'import plus tard pour réessayer."
   },
   "importErrPermission": {
-    "message": "Active d'abord la plateforme (bouton « Activer » ci-dessus)."
+    "message": "Active d'abord la plateforme (sa pastille dans la grille)."
   },
   "importErrCrunchyrollAuth": {
     "message": "Crunchyroll ne reconnaît pas ta session : connecte-toi sur www.crunchyroll.com dans ce navigateur, puis réessaie."
@@ -397,5 +335,211 @@
   },
   "importStepCrunchyrollTab": {
     "message": "Ouverture de www.crunchyroll.com…"
+  },
+  "platformEnabledLive": {
+    "message": "Activé : détection en direct (pas d'historique disponible sur cette plateforme)."
+  },
+  "diagTitle": {
+    "message": "Diagnostic"
+  },
+  "diagDebug": {
+    "message": "Journal détaillé (console F12)"
+  },
+  "diagCopy": {
+    "message": "Copier le diagnostic"
+  },
+  "diagCopied": {
+    "message": "Diagnostic copié : colle-le dans ton message (aucun jeton inclus)."
+  },
+  "liveOnlyInfoLabel": {
+    "message": "Pourquoi pas d'import de l'historique ?"
+  },
+  "liveOnlyInfo": {
+    "message": "Disney+ et Apple TV ne donnent pas accès à ton historique : seuls les épisodes que tu regardes à partir de maintenant sont détectés. Pour récupérer ton passé, demande l'export de tes données (Disney : paramètres du compte / Apple : privacy.apple.com)."
+  },
+  "notConnected": {
+    "message": "Non connecté"
+  },
+  "connected": {
+    "message": "Connecté"
+  },
+  "connectedTitle": {
+    "message": "Jeton enregistré : les détections partent vers ton compte Cinepisode"
+  },
+  "offHeroTitle": {
+    "message": "Relie l'extension à ton compte"
+  },
+  "offHeroSub": {
+    "message": "Tes épisodes se cochent tout seuls pendant que tu regardes."
+  },
+  "offStep1": {
+    "message": "Ouvre Cinepisode › Réglages › Suivi auto"
+  },
+  "offStep2": {
+    "message": "Clique sur « Générer mon jeton »"
+  },
+  "offStep3": {
+    "message": "Colle-le ci-dessous"
+  },
+  "tokenPlaceholder": {
+    "message": "Colle ton jeton ici"
+  },
+  "connect": {
+    "message": "Connecter"
+  },
+  "offPrivacy": {
+    "message": "Le jeton reste dans ce navigateur. Seuls le titre, la saison et l'épisode sont envoyés à Cinepisode."
+  },
+  "noAccount": {
+    "message": "Pas encore de compte ?"
+  },
+  "changeTokenFoot": {
+    "message": "Le jeton actuel reste actif tant que tu n'en colles pas un autre."
+  },
+  "openAppArrow": {
+    "message": "Ouvrir Cinepisode →"
+  },
+  "cancel": {
+    "message": "Annuler"
+  },
+  "settingsTitle": {
+    "message": "Réglages"
+  },
+  "back": {
+    "message": "Retour"
+  },
+  "nowTitle": {
+    "message": "En ce moment"
+  },
+  "liveBadge": {
+    "message": "EN DIRECT"
+  },
+  "idleTitle": {
+    "message": "Rien en lecture"
+  },
+  "idleSub": {
+    "message": "Lance un épisode sur une plateforme active."
+  },
+  "nowEpisode": {
+    "message": "Saison $S$ · Épisode $E$",
+    "placeholders": {
+      "s": {
+        "content": "$1",
+        "example": ""
+      },
+      "e": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "nowMovie": {
+    "message": "Film"
+  },
+  "nowPct": {
+    "message": "$P$ %",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowRule": {
+    "message": "compté vu à $P$ %",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowCounted": {
+    "message": "✓ compté vu"
+  },
+  "platformsCap": {
+    "message": "Plateformes"
+  },
+  "platformsCount": {
+    "message": "$N$/$T$ actives",
+    "placeholders": {
+      "n": {
+        "content": "$1",
+        "example": ""
+      },
+      "t": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "chipActive": {
+    "message": "Active"
+  },
+  "chipOff": {
+    "message": "Activer"
+  },
+  "chipDenied": {
+    "message": "Refusé"
+  },
+  "chipTip": {
+    "message": "Activer $NAME$ : Chrome te demandera l'accès à ce site",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "importCap": {
+    "message": "Importer l'historique"
+  },
+  "pendingNone": {
+    "message": "Rien de nouveau dans Détectés"
+  },
+  "pendingOne": {
+    "message": "nouveau titre dans Détectés"
+  },
+  "pendingMany": {
+    "message": "nouveaux titres dans Détectés"
+  },
+  "seeDetected": {
+    "message": "Voir →"
+  },
+  "accountCap": {
+    "message": "Compte"
+  },
+  "change": {
+    "message": "Changer"
+  },
+  "csvRow": {
+    "message": "Fichier CSV Netflix"
+  },
+  "csvRowHint": {
+    "message": "Compte › Profil › Activité › « Télécharger tout »"
+  },
+  "choose": {
+    "message": "Choisir"
+  },
+  "liveOnlySmall": {
+    "message": "Lecture en direct seulement"
+  },
+  "rulesCap": {
+    "message": "Quand un titre est compté vu"
+  },
+  "rulesText": {
+    "message": "Un épisode à 80 % ou dès le générique de fin, un film à 90 %, après au moins 20 secondes de lecture continue. Les titres trouvés dans ta liste sont mis à jour ; les autres arrivent dans l'onglet « Détectés »."
+  },
+  "diagCopyHint": {
+    "message": "État de la détection, sans ton jeton"
+  },
+  "logout": {
+    "message": "Se déconnecter"
+  },
+  "logoutConfirm": {
+    "message": "Retirer le jeton ?"
+  },
+  "logoutYes": {
+    "message": "Oui"
   }
 }

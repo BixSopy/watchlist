@@ -349,11 +349,12 @@ test('règles en direct : repère saison/épisode en anglais et en français', (
 function pageContext({ origin, pathname = '/', dom }) {
   const listeners = [];
   const sent = [];
+  const progress = [];
   let tick = null;
   const clock = { now: 1000 };
   const win = { location: { origin, pathname }, addEventListener: (t, fn) => { if (t === 'message') listeners.push(fn); } };
   const ctx = {
-    window: win, location: win.location, document: dom, chrome: { runtime: { sendMessage: (m, cb) => { sent.push(plain(m)); if (cb) cb(); }, lastError: undefined } },
+    window: win, location: win.location, document: dom, chrome: { runtime: { sendMessage: (m, cb) => { if (m.type === 'wl_progress') progress.push(plain(m)); else sent.push(plain(m)); if (cb) cb(); }, lastError: undefined } },
     Date: { now: () => clock.now }, setInterval: fn => { tick = fn; }, setTimeout: () => {}, JSON, Math, Number, String, Array, Object, isFinite, parseInt,
   };
   ctx.self = ctx;
@@ -683,79 +684,51 @@ test('service worker : scripts en direct enregistrés à l\'activation, retirés
   assert.deepStrictEqual([...sw.registered.keys()].sort(), ['cp-crunchyroll-page', 'cp-crunchyroll-player']);
 });
 
-/* ---------------- Fenêtre de l'extension ---------------- */
-function popup({ granted = {}, answer = true } = {}) {
-  const messages = JSON.parse(read('extension/_locales/fr/messages.json'));
-  const getMessage = (key, subs) => {
-    const m = messages[key];
-    if (!m) return '';
-    return m.message.replace(/\$(\w+)\$/g, (all, name) => {
-      const p = m.placeholders && m.placeholders[name.toLowerCase()];
-      return p ? p.content.replace(/\$(\d)/g, (x, i) => (subs || [])[i - 1] ?? '') : all;
-    });
-  };
-  const el = () => {
-    const e = { className: '', hidden: false, children: [], _text: '', style: {}, disabled: false, handlers: {}, classList: { toggle: () => {} },
-      appendChild: c => e.children.push(c), addEventListener: (t, fn) => { e.handlers[t] = fn; }, click: () => e.handlers.click && e.handlers.click({ preventDefault() {} }) };
-    Object.defineProperty(e, 'textContent', { get: () => e._text + e.children.map(c => c.textContent).join(' | '), set: v => { e._text = v; e.children = []; } });
-    return e;
-  };
-  const els = { token: el(), save: el(), status: el(), last: el(), importNetflix: el(), csvFile: el(), csvLabel: el(), importStatus: el(), openDetected: el() };
-  const boxes = {};
-  for (const name of ['crunchyroll', 'prime']) {
-    const parts = { enable: el(), import: el(), disable: el(), state: el() };
-    parts.import.hidden = true; parts.disable.hidden = true;
-    boxes[name] = { parts, querySelector: sel => parts[/data-role="(\w+)"/.exec(sel)[1]] };
-  }
-  const requests = [];
-  const sent = [];
-  const listeners = [];
-  const ctx = {
-    document: { documentElement: {}, title: '', getElementById: id => els[id], createElement: () => el(), createTextNode: t => ({ textContent: t }),
-      querySelector: sel => boxes[(/data-platform="(\w+)"/.exec(sel) || [])[1]] || null,
-      querySelectorAll: sel => (sel === '.platform [data-role="import"]' ? Object.values(boxes).map(b => b.parts.import) : []) },
-    chrome: {
-      i18n: { getMessage, getUILanguage: () => 'fr' },
-      runtime: { sendMessage: (m, cb) => { sent.push(m); if (cb) cb({ ok: true, started: true }); } },
-      tabs: { create: () => {} },
-      permissions: {
-        contains: (q, cb) => cb(Object.entries(granted).some(([n, ok]) => ok && PLATFORMS[n].origins.join() === q.origins.join())),
-        request: (q, cb) => { requests.push(q.origins); const n = Object.keys(PLATFORMS).find(k => PLATFORMS[k].origins.join() === q.origins.join()); if (answer) granted[n] = true; cb(answer); },
-        remove: (q, cb) => { const n = Object.keys(PLATFORMS).find(k => PLATFORMS[k].origins.join() === q.origins.join()); granted[n] = false; cb(true); },
-        onAdded: { addListener: () => {} }, onRemoved: { addListener: () => {} },
-      },
-      storage: { local: { get: (k, cb) => cb({}), set: (o, cb) => cb && cb(), remove: (k, cb) => cb && cb() }, onChanged: { addListener: fn => listeners.push(fn) } },
-    },
-    CinepisodePlatforms: PLATFORMS, Date, Number, String, Object,
-    navigator: { clipboard: { writeText: async t => { copied.push(t); } } },
-  };
-  const copied = [];
-  ctx.self = ctx;
-  vm.createContext(ctx);
-  vm.runInContext(read('extension/options.js'), ctx);
-  return { ctx, boxes, requests, sent, els, copied, updateImport: v => listeners.forEach(fn => fn({ wlImport: { newValue: v } }, 'local')) };
+/* ---------------- Fenêtre de l'extension (0.7.3 : vrai options.html dans un mini-DOM) ---------------- */
+const { loadPopup } = require('./fixtures/popup-harness.js');
+function popup({ granted = {}, answer = true, store = {}, lang = 'fr' } = {}) {
+  const p = loadPopup({ lang, granted, answer, store: { wlToken: 'jeton-secret-42', ...store } });
+  p.els = { importStatus: p.$('importStatus') };
+  return p;
 }
+const statusDiagBtn = box => box.children.find(c => c.classList.contains('diag'));
 
-test('fenêtre : « Activer Crunchyroll » demande seulement les sites Crunchyroll, puis le bouton d\'import apparaît', () => {
+test('fenêtre : puce Crunchyroll -> seulement les sites Crunchyroll demandés, puis le bouton d\'import apparaît', () => {
   const p = popup();
-  const cr = p.boxes.crunchyroll.parts;
-  assert.strictEqual(cr.enable.hidden, false);
-  assert.strictEqual(cr.import.hidden, true);
-  cr.enable.click();
+  const chip = p.q('chip', 'crunchyroll');
+  assert.strictEqual(chip.classList.contains('off'), true);
+  assert.strictEqual(p.q('state', 'crunchyroll').textContent, 'Activer');
+  assert.match(p.q('tip', 'crunchyroll').textContent, /^Activer Crunchyroll/);
+  assert.strictEqual(p.q('import', 'crunchyroll').hidden, true);
+  assert.strictEqual(p.$('platCount').textContent, '1/5 actives');
+  chip.click();
   assert.deepStrictEqual(p.requests, [['https://www.crunchyroll.com/*', 'https://static.crunchyroll.com/*']]);
-  assert.strictEqual(cr.enable.hidden, true);
-  assert.strictEqual(cr.import.hidden, false);
-  assert.match(cr.state.textContent, /^Activé/);
-  assert.strictEqual(p.boxes.prime.parts.import.hidden, true, 'Prime Video reste désactivé');
-  cr.import.click();
+  assert.strictEqual(chip.classList.contains('on'), true);
+  assert.strictEqual(chip.getAttribute('aria-pressed'), 'true');
+  assert.strictEqual(p.q('state', 'crunchyroll').textContent, 'Active');
+  assert.match(p.q('state', 'crunchyroll').getAttribute('title'), /^Activé : détection en direct et import/);
+  assert.strictEqual(p.q('switch', 'crunchyroll').getAttribute('aria-checked'), 'true', 'interrupteur des Réglages synchronisé');
+  assert.strictEqual(p.q('import', 'crunchyroll').hidden, false);
+  assert.strictEqual(p.$('platCount').textContent, '2/5 actives');
+  assert.strictEqual(p.q('import', 'prime').hidden, true, 'Prime Video reste désactivé');
+  p.q('import', 'crunchyroll').click();
   assert.deepStrictEqual(plain(p.sent), [{ type: 'wl_import_crunchyroll' }]);
   p.updateImport({ state: 'running', source: 'crunchyroll', step: 'session', at: Date.now() });
   assert.match(p.els.importStatus.textContent, /^Connexion à Crunchyroll/);
-  assert.strictEqual(cr.import.disabled, true, 'import en cours : bouton désactivé');
+  assert.strictEqual(p.q('import', 'crunchyroll').disabled, true, 'import en cours : bouton désactivé');
+  assert.strictEqual(p.$('importNetflix').disabled, true);
   p.updateImport({ state: 'error', error: 'crunchyroll_auth', at: Date.now() });
   assert.match(p.els.importStatus.textContent, /^Crunchyroll ne reconnaît pas ta session/);
-  cr.disable.click();
-  assert.strictEqual(cr.enable.hidden, false);
+  /* puce déjà active : ouvre les Réglages ; l'interrupteur désactive */
+  chip.click();
+  assert.deepStrictEqual(p.visible(), ['viewSettings']);
+  assert.strictEqual(p.requests.length, 1, 'pas de nouvelle demande');
+  p.q('switch', 'crunchyroll').click();
+  assert.strictEqual(p.granted.crunchyroll, false);
+  assert.strictEqual(chip.classList.contains('off'), true);
+  assert.strictEqual(p.q('import', 'crunchyroll').hidden, true);
+  p.q('switch', 'prime').click();
+  assert.deepStrictEqual(p.requests[1], PLATFORMS.prime.origins, 'interrupteur Prime : sites Prime seulement');
 });
 
 test('fenêtre : échec Crunchyroll -> « Étape jeton : HTTP 401 » et « Copier le diagnostic » sans aucun secret', async () => {
@@ -765,8 +738,9 @@ test('fenêtre : échec Crunchyroll -> « Étape jeton : HTTP 401 » et « Copie
   p.updateImport({ state: 'error', error: 'crunchyroll_auth', errStep: 'token', errStatus: 401, diag, at: Date.now() });
   const box = p.els.importStatus;
   assert.match(box.textContent, /Étape jeton : HTTP 401\./);
-  const btn = box.children.find(c => c.textContent === 'Copier le diagnostic');
+  const btn = statusDiagBtn(box);
   assert.ok(btn, 'bouton présent');
+  assert.strictEqual(btn.textContent, 'Copier le diagnostic');
   btn.click();
   await new Promise(r => setTimeout(r, 5));
   assert.strictEqual(p.copied.length, 1);
@@ -777,7 +751,6 @@ test('fenêtre : échec Crunchyroll -> « Étape jeton : HTTP 401 » et « Copie
   assert.match(text, /v: 0\.6\.1/);
   assert.ok(!/SECRET/.test(text), 'champs inconnus jamais copiés (jeton, cookie, compte)');
   assert.match(btn.textContent, /Diagnostic copié/);
-  // Autres étapes / statuts
   p.updateImport({ state: 'error', error: 'crunchyroll_http', errStep: 'history', errStatus: 0, diag: { step: 'history', status: 0 }, at: Date.now() });
   assert.match(box.textContent, /Étape historique : pas de réponse \(réseau ou blocage\)\./);
   p.updateImport({ state: 'error', error: 'crunchyroll_blocked', errStep: 'token', errStatus: 403, diag: { cloudflare: true }, at: Date.now() });
@@ -785,7 +758,7 @@ test('fenêtre : échec Crunchyroll -> « Étape jeton : HTTP 401 » et « Copie
   p.updateImport({ state: 'error', error: 'crunchyroll_tab', errStep: 'tab', errStatus: null, diag: { step: 'tab' }, at: Date.now() });
   assert.match(box.textContent, /Impossible d'ouvrir www\.crunchyroll\.com.*Étape onglet\./s);
   p.updateImport({ state: 'error', error: 'network', at: Date.now() });
-  assert.ok(!box.children.some(c => c.textContent === 'Copier le diagnostic'), 'pas de diagnostic : pas de bouton');
+  assert.ok(!statusDiagBtn(box), 'pas de diagnostic : pas de bouton');
   assert.ok(!/Étape/.test(box.textContent));
 });
 
@@ -796,7 +769,7 @@ test('fenêtre 0.6.2 : import partiel -> titres envoyés, note « historique le 
   const box = p.els.importStatus;
   assert.match(box.textContent, /^240 titres envoyés/);
   assert.match(box.textContent, /L'historique le plus ancien n'a pas pu être lu/);
-  const btn = box.children.find(c => c.textContent === 'Copier le diagnostic');
+  const btn = statusDiagBtn(box);
   assert.ok(btn, 'bouton présent');
   btn.click();
   await new Promise(r => setTimeout(r, 5));
@@ -809,16 +782,18 @@ test('fenêtre 0.6.2 : import partiel -> titres envoyés, note « historique le 
   assert.match(box.textContent, /^Rien de nouveau.*historique le plus ancien/s);
   p.updateImport({ state: 'done', source: 'crunchyroll', titles: 3, sent: { inserted: 3, updated: 0 }, at: Date.now() });
   assert.doesNotMatch(box.textContent, /historique le plus ancien/);
-  assert.ok(!box.children.some(c => c.textContent === 'Copier le diagnostic'), 'import complet : pas de bouton');
+  assert.ok(!statusDiagBtn(box), 'import complet : pas de bouton');
 });
 
 test('fenêtre : permission refusée, Prime Video déjà activé, textes de l\'import Prime', () => {
   const refused = popup({ answer: false });
-  refused.boxes.prime.parts.enable.click();
-  assert.match(refused.boxes.prime.parts.state.textContent, /refusé/);
-  assert.strictEqual(refused.boxes.prime.parts.import.hidden, true);
+  refused.q('chip', 'prime').click();
+  assert.strictEqual(refused.q('state', 'prime').textContent, 'Refusé');
+  assert.ok(refused.q('chip', 'prime').classList.contains('denied'));
+  assert.match(refused.q('tip', 'prime').textContent, /refusé/);
+  assert.strictEqual(refused.q('import', 'prime').hidden, true);
   const p = popup({ granted: { prime: true } });
-  assert.strictEqual(p.boxes.prime.parts.import.hidden, false);
+  assert.strictEqual(p.q('import', 'prime').hidden, false);
   p.updateImport({ state: 'running', source: 'prime', step: 'meta', done: 12, total: 40, at: Date.now() });
   assert.match(p.els.importStatus.textContent, /^Fiches des épisodes et films : 12 \/ 40/);
   p.updateImport({ state: 'done', source: 'prime', titles: 4, truncated: true, sent: { inserted: 4, updated: 0 }, at: Date.now() });
@@ -829,14 +804,163 @@ test('fenêtre : permission refusée, Prime Video déjà activé, textes de l\'i
   }
 });
 
-test('locales : mêmes clés en français et en anglais, textes des plateformes présents', () => {
+test('fenêtre 0.7.3 : sans jeton -> vue « Non connecté » ; « Connecter » enregistre le jeton et passe à la vue principale', () => {
+  const p = loadPopup({ store: { wlLast: { status: 'invalid_token', at: 1 } } });
+  assert.deepStrictEqual(p.visible(), ['viewOff']);
+  assert.strictEqual(p.$('token').getAttribute('placeholder'), 'Colle ton jeton ici');
+  assert.strictEqual(p.$('cancelChange').hidden, true);
+  p.$('save').click();
+  assert.strictEqual(p.$('status').textContent, 'Jeton vide.');
+  assert.strictEqual(p.$('status').className, 'err');
+  p.$('token').value = '  nouveau-jeton-9f3a  ';
+  p.$('save').click();
+  assert.strictEqual(p.data.wlToken, 'nouveau-jeton-9f3a');
+  assert.ok(!('wlLast' in p.data), 'ancien résultat effacé');
+  assert.deepStrictEqual(p.visible(), ['viewMain']);
+  assert.strictEqual(p.$('tokenMask').textContent, '•••• 9f3a', 'jeton masqué dans les Réglages');
+  assert.strictEqual(p.$('token').value, '', 'le jeton ne reste pas dans le champ');
+  assert.strictEqual(p.$('version').textContent, 'v0.7.3');
+});
+
+test('fenêtre 0.7.3 : Réglages (aller-retour), changement de jeton annulable, déconnexion avec confirmation', () => {
+  const p = popup({ store: { wlNow: { at: Date.now(), platform: 'netflix', kind: 'movie', title: 'Matrix', pct: 40 }, wlPending: { count: 2 } } });
+  assert.deepStrictEqual(p.visible(), ['viewMain']);
+  p.$('openSettings').click();
+  assert.deepStrictEqual(p.visible(), ['viewSettings']);
+  p.$('closeSettings').click();
+  assert.deepStrictEqual(p.visible(), ['viewMain']);
+  p.$('openSettings').click();
+  p.doc.body.dispatch('keydown', { key: 'Escape' });
+  assert.deepStrictEqual(p.visible(), ['viewMain'], 'Échap ferme les Réglages');
+  p.$('openSettings').click();
+  p.$('changeToken').click();
+  assert.deepStrictEqual(p.visible(), ['viewOff']);
+  assert.strictEqual(p.$('cancelChange').hidden, false);
+  assert.strictEqual(p.$('openApp').hidden, true);
+  assert.match(p.$('offFootText').textContent, /reste actif/);
+  assert.strictEqual(p.$('viewOff').querySelector('.conn [data-msg]').textContent, 'Connecté', 'l\'ancien jeton reste actif');
+  p.$('cancelChange').click();
+  assert.deepStrictEqual(p.visible(), ['viewMain']);
+  assert.strictEqual(p.data.wlToken, 'jeton-secret-42');
+  p.$('openSettings').click();
+  p.$('logout').click();
+  assert.strictEqual(p.$('logoutConfirm').hidden, false);
+  p.$('logoutNo').click();
+  assert.strictEqual(p.$('logoutConfirm').hidden, true);
+  assert.strictEqual(p.data.wlToken, 'jeton-secret-42');
+  p.$('logout').click();
+  p.$('logoutYes').click();
+  for (const k of ['wlToken', 'wlNow', 'wlPending', 'wlLast']) assert.ok(!(k in p.data), k + ' effacé');
+  assert.deepStrictEqual(p.visible(), ['viewOff']);
+  assert.strictEqual(p.$('viewOff').querySelector('.conn [data-msg]').textContent, 'Non connecté');
+});
+
+test('fenêtre 0.7.3 : « En ce moment » en direct (wlNow), seuil 80 % / 90 %, compté vu, retour au repos sans nouvelle', () => {
+  const now = { at: Date.now(), platform: 'disneyplus', kind: 'episode', title: 'Andor', season: 2, episode: 3, pct: 62, done: false };
+  const p = popup({ granted: { disneyplus: true }, store: { wlNow: now } });
+  assert.strictEqual(p.$('nowLive').hidden, false);
+  assert.strictEqual(p.$('nowIdle').hidden, true);
+  assert.strictEqual(p.$('nowPlatform').textContent, 'Disney+');
+  assert.strictEqual(p.$('nowTitle').textContent, 'Andor');
+  assert.strictEqual(p.$('nowSub').textContent, 'Saison 2 · Épisode 3');
+  assert.strictEqual(p.$('nowBar').style.width, '62%');
+  assert.strictEqual(p.$('nowMark').style.left, '80%');
+  assert.strictEqual(p.$('nowPct').textContent, '62 %');
+  assert.strictEqual(p.$('nowRule').textContent, 'compté vu à 80 %');
+  assert.strictEqual(p.$('nowPoster').getAttribute('data-p'), 'disneyplus');
+  assert.ok(p.q('chip', 'disneyplus').classList.contains('playing'), 'puce de la plateforme en lecture mise en avant');
+  p.set({ wlNow: { ...now, pct: 84, done: true } });
+  assert.strictEqual(p.$('nowRule').textContent, '✓ compté vu');
+  assert.strictEqual(p.$('nowBarBox').className, 'bar done');
+  p.set({ wlNow: { ...now, platform: 'netflix', kind: 'movie', title: 'Matrix', season: null, episode: null, pct: 85 } });
+  assert.strictEqual(p.$('nowSub').textContent, 'Film');
+  assert.strictEqual(p.$('nowRule').textContent, 'compté vu à 90 %', 'film : 90 %');
+  assert.ok(!p.q('chip', 'disneyplus').classList.contains('playing'));
+  assert.ok(p.doc.querySelector('[data-chip="netflix"]').classList.contains('playing'));
+  /* plus de nouvelle de la page de lecture depuis plus de 45 s : au repos */
+  p.set({ wlNow: { ...now, at: Date.now() - 60 * 1000 } });
+  assert.strictEqual(p.$('nowLive').hidden, true);
+  assert.strictEqual(p.$('nowIdle').hidden, false);
+  assert.strictEqual(p.$('nowPlatform').textContent, '');
+  assert.strictEqual(p.intervals.length, 1, 'vérification périodique');
+  const en = popup({ lang: 'en', store: { wlNow: now } });
+  assert.strictEqual(en.$('nowSub').textContent, 'Season 2 · Episode 3');
+  assert.strictEqual(en.$('nowRule').textContent, 'counted at 80%');
+});
+
+test('fenêtre 0.7.3 : compteur « Détectés » (wlPending), remis à zéro à l\'ouverture de l\'onglet', () => {
+  const p = popup({ store: { wlPending: { count: 3, at: 1 } } });
+  assert.strictEqual(p.$('pending').textContent, '3 nouveaux titres dans Détectés');
+  p.set({ wlPending: { count: 1, at: 2 } });
+  assert.strictEqual(p.$('pending').textContent, '1 nouveau titre dans Détectés');
+  p.$('openDetected').click();
+  assert.deepStrictEqual(p.tabs, ['https://cinepisode.com/#detectes']);
+  assert.strictEqual(p.data.wlPending.count, 0);
+  assert.strictEqual(p.$('pending').textContent, 'Rien de nouveau dans Détectés');
+});
+
+test('fenêtre 0.7.3 : diagnostic de la détection (case du journal, copie sans jeton) et infobulles « ! »', async () => {
+  const p = popup({ store: { cpDebug: true, cpDiag: { platform: 'disneyplus', videos: 2 } } });
+  assert.strictEqual(p.$('diagDebug').checked, true);
+  assert.strictEqual(p.$('diagSw').getAttribute('aria-checked'), 'true');
+  p.$('diagDebug').checked = false;
+  p.$('diagDebug').dispatch('change');
+  assert.strictEqual(p.data.cpDebug, false);
+  assert.strictEqual(p.$('diagSw').getAttribute('aria-checked'), 'false');
+  p.$('diagCopy').click();
+  await new Promise(r => setTimeout(r, 5));
+  const d = JSON.parse(p.copied[0]);
+  assert.strictEqual(d.version, '0.7.3');
+  assert.strictEqual(d.tokenSet, true);
+  assert.deepStrictEqual(d.lastPage, { platform: 'disneyplus', videos: 2 });
+  assert.ok(!p.copied[0].includes('jeton-secret-42'), 'jamais le jeton');
+  assert.match(p.$('diagStatus').textContent, /^Diagnostic copié/);
+  const infos = p.doc.querySelectorAll('[data-role="info"]');
+  assert.strictEqual(infos.length, 4, 'Disney+ et Apple TV, dans la grille et dans les Réglages');
+  const b = infos[0];
+  assert.strictEqual(b.getAttribute('aria-label'), 'Pourquoi pas d\'import de l\'historique ?');
+  assert.match(p.doc.getElementById(b.getAttribute('aria-describedby')).textContent, /privacy\.apple\.com/);
+  b.click();
+  assert.ok(b.parentNode.classList.contains('open'));
+  assert.strictEqual(b.getAttribute('aria-expanded'), 'true');
+  b.dispatch('keydown', { key: 'Escape' });
+  assert.ok(!b.parentNode.classList.contains('open'), 'Échap ferme');
+  b.click();
+  p.$('pending').click();
+  assert.ok(!b.parentNode.classList.contains('open'), 'clic ailleurs ferme');
+});
+
+test('locales : mêmes clés en français et en anglais, toutes les clés de la fenêtre présentes, aucune clé morte', () => {
   const fr = JSON.parse(read('extension/_locales/fr/messages.json'));
   const en = JSON.parse(read('extension/_locales/en/messages.json'));
   assert.deepStrictEqual(Object.keys(fr).sort(), Object.keys(en).sort());
-  for (const k of ['enableCrunchyroll', 'enablePrime', 'importCrunchyroll', 'importPrime', 'crunchyrollHint', 'primeHint']) assert.ok(fr[k] && en[k], k);
-  assert.strictEqual(fr.enableCrunchyroll.message, 'Activer Crunchyroll');
-  assert.strictEqual(fr.enablePrime.message, 'Activer Prime Video');
   const html = read('extension/options.html');
+  const js = read('extension/options.js');
+  const keys = new Set([...html.matchAll(/data-(?:title-|aria-|ph-)?msg="(\w+)"/g)].map(m => m[1]));
+  for (const m of js.matchAll(/msg(?:With|N)?\('(\w+)'/g)) keys.add(m[1]);
+  for (const k of keys) assert.ok(fr[k] && en[k], 'texte manquant : ' + k);
+  for (const l of [fr, en]) for (const [k, v] of Object.entries(l)) {
+    for (const [, name] of v.message.matchAll(/\$(\w+)\$/g)) assert.ok(v.placeholders && v.placeholders[name.toLowerCase()], k + ' : ' + name);
+  }
+  const used = html + js + read('extension/manifest.json') + read('extension/background.js');
+  for (const k of Object.keys(fr)) assert.ok(new RegExp("['\"_]" + k + "['\"_]").test(used), 'clé inutilisée : ' + k);
   assert.match(html, /<script src="lib\/platforms\.js"><\/script>\s*<script src="options\.js"><\/script>/);
+  assert.match(html, /<link rel="stylesheet" href="popup\.css">/);
   assert.doesNotMatch(html, /\son\w+=/i);
+  assert.doesNotMatch(html, /<style/i, 'styles dans popup.css');
+});
+
+test('fenêtre 0.7.3 : polices embarquées (la CSP n\'autorise que les fichiers de l\'extension), animations coupées si mouvement réduit', () => {
+  const css = read('extension/popup.css');
+  const fonts = [...css.matchAll(/url\(\/fonts\/([\w.-]+)\)/g)].map(m => m[1]);
+  assert.ok(fonts.length >= 6);
+  for (const f of fonts) assert.ok(fs.existsSync(path.join(ROOT, 'extension', 'fonts', f)), f);
+  assert.ok(fs.existsSync(path.join(ROOT, 'extension', 'fonts', 'OFL-ibm-plex.txt')), 'licence des polices');
+  assert.doesNotMatch(css, /https?:\/\//, 'aucune ressource externe');
+  assert.match(css, /@media \(prefers-reduced-motion:reduce\)\{\*,\*::before,\*::after\{animation:none!important;transition:none!important\}\}/);
+  /* logos : pastilles à lettre (pas d'image de marque) */
+  const html = read('extension/options.html');
+  assert.deepStrictEqual([...html.matchAll(/<span class="lg (\w+)" aria-hidden="true">([^<]+)<\/span>/g)].map(m => m[1] + ':' + m[2]),
+    ['nf:N', 'cr:C', 'pv:p', 'dp:D+', 'at:tv']);
+  assert.doesNotMatch(html, /<img/i);
 });

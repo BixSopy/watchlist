@@ -1,4 +1,5 @@
-/* Extension 0.6.2 de bout en bout, dans un vrai Chrome : Crunchyroll et Prime Video (sites simulés).
+/* Extension 0.7.0 de bout en bout, dans un vrai Chrome : Crunchyroll, Prime Video, Disney+ et Apple TV
+   (sites simulés ; Disney+ et Apple TV : pages HTML reconstituées tests/fixtures/*.html).
    - extension telle que publiée : plateformes désactivées (permission facultative non accordée),
      aucun accès aux sites, import refusé avec un message clair ;
    - copie de test où les permissions facultatives sont accordées d'avance (Chrome ne permet pas de
@@ -23,8 +24,8 @@ const FIX = path.resolve(HERE, '..', 'tests', 'fixtures');
 const fixture = f => JSON.parse(fs.readFileSync(path.join(FIX, f), 'utf8'));
 const SUPA = 'https://batfulcvvquffgfeppcx.supabase.co';
 const TOKEN = 'c9'.repeat(24);
-let ctx, cdp, extId, grantedId, profileDir, tmpDir, video;
-const log = { push: [], mark: [], cr: [], pv: [], other: [] };
+let ctx, cdp, extId, grantedId, profileDir, tmpDir, video, longVideo;
+const log = { push: [], mark: [], cr: [], pv: [], dp: [], atv: [], other: [] };
 let crMode = 'ok';
 const CR_SITE_DEVICE = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
 
@@ -45,6 +46,10 @@ before(async () => {
     const file = path.join(tmpDir, 'v.webm');
     execFileSync('ffmpeg', ['-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=32x18:r=2:d=50', '-c:v', 'libvpx', '-b:v', '20k', file]);
     video = fs.readFileSync(file);
+    /* Apple TV : vidéo de 400 s (au-delà du seuil « promo / extrait » de 5 min), reprise à 75 % */
+    const longFile = path.join(tmpDir, 'long.webm');
+    execFileSync('ffmpeg', ['-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=32x18:r=2:d=400', '-c:v', 'libvpx', '-b:v', '20k', longFile]);
+    longVideo = fs.readFileSync(longFile);
   }
 
   const port = 9800 + Math.floor(Math.random() * 500);
@@ -136,6 +141,30 @@ before(async () => {
     if (u.pathname === '/v.webm' && video) return route.fulfill({ status: 200, contentType: 'video/webm', body: video });
     return route.fulfill({ status: 404, body: '' });
   });
+  /* disneyplus.com et tv.apple.com simulés : pages de lecture reconstituées, vidéos de test.
+     Toute requête vers ces sites est notée : l'extension ne doit en faire aucune elle-même. */
+  const html = f => fs.readFileSync(path.join(FIX, f), 'utf8');
+  await ctx.route(/^https:\/\/www\.disneyplus\.com\//, async route => {
+    const u = new URL(route.request().url());
+    log.dp.push(u.pathname);
+    if (u.pathname.startsWith('/fr-fr/play/')) return route.fulfill({ status: 200, contentType: 'text/html', body: html('disneyplus-play.html') });
+    if (u.pathname === '/v.webm' && video) return route.fulfill({ status: 200, contentType: 'video/webm', body: video });
+    return route.fulfill({ status: 404, body: '' });
+  });
+  await ctx.route(/^https:\/\/tv\.apple\.com\//, async route => {
+    const u = new URL(route.request().url());
+    log.atv.push(u.pathname);
+    if (u.pathname.startsWith('/fr/episode/')) return route.fulfill({ status: 200, contentType: 'text/html', body: html('appletv-episode.html') });
+    if (u.pathname === '/promo.webm' && video) return route.fulfill({ status: 200, contentType: 'video/webm', body: video });
+    if (u.pathname === '/long.webm' && longVideo) {
+      /* requêtes partielles (Range) : nécessaires pour reprendre la lecture à 75 % */
+      const m = /bytes=(\d+)-(\d*)/.exec(route.request().headers().range || '');
+      if (!m) return route.fulfill({ status: 200, contentType: 'video/webm', headers: { 'accept-ranges': 'bytes' }, body: longVideo });
+      const start = +m[1], end = m[2] ? Math.min(+m[2], longVideo.length - 1) : longVideo.length - 1;
+      return route.fulfill({ status: 206, contentType: 'video/webm', headers: { 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${longVideo.length}` }, body: longVideo.subarray(start, end + 1) });
+    }
+    return route.fulfill({ status: 404, body: '' });
+  });
   await ctx.route('https://cinepisode.com/**', route => route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>Cinepisode</title>' }));
 });
 after(async () => { await cdp?.close().catch(() => {}); await ctx?.close(); fs.rmSync(tmpDir, { recursive: true, force: true }); });
@@ -161,18 +190,25 @@ async function optionsPage(id) {
   await page.reload();
   return { page, errors };
 }
-const box = (page, name) => page.locator('.platform[data-platform="' + name + '"]');
+/* Fenêtre 0.7.3 : puce de la grille, état, bouton d'import et interrupteur des Réglages par plateforme */
+const part = (page, role, name) => page.locator('[data-role="' + role + '"][data-p="' + name + '"]');
 async function closeDetectedTabs() { for (const p of ctx.pages()) if (p.url().startsWith('https://cinepisode.com/')) await p.close(); }
 
 test('extension publiée : plateformes désactivées, aucun accès aux sites, import refusé clairement', async () => {
   const { page, errors } = await optionsPage(extId);
   const manifest = await page.evaluate(() => chrome.runtime.getManifest());
-  assert.equal(manifest.version, '0.6.2');
+  assert.equal(manifest.version, '0.7.3');
   assert.deepEqual(manifest.host_permissions, [SUPA + '/*', 'https://www.netflix.com/*'], 'avertissement à l\'installation inchangé');
-  await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="enable"]').hidden);
-  assert.equal(await box(page, 'crunchyroll').locator('[data-role="enable"]').textContent(), 'Activer Crunchyroll');
-  assert.equal(await box(page, 'prime').locator('[data-role="enable"]').textContent(), 'Activer Prime Video');
-  assert.equal(await box(page, 'crunchyroll').locator('[data-role="import"]').isHidden(), true);
+  await page.waitForFunction(() => document.querySelector('#platCount').textContent === '1/5 actives');
+  assert.equal(await page.isVisible('#viewMain'), true);
+  for (const name of ['crunchyroll', 'prime', 'disneyplus', 'appletv']) {
+    assert.equal(await part(page, 'state', name).textContent(), 'Activer', name);
+    assert.equal(await part(page, 'chip', name).getAttribute('aria-pressed'), 'false');
+    assert.equal(await part(page, 'switch', name).getAttribute('aria-checked'), 'false');
+  }
+  assert.match(await part(page, 'tip', 'crunchyroll').textContent(), /^Activer Crunchyroll/);
+  assert.equal(await part(page, 'import', 'crunchyroll').isHidden(), true);
+  assert.equal(await page.textContent('.chip.on .st'), 'Active', 'Netflix toujours active');
   assert.deepEqual(await page.evaluate(() => chrome.scripting.getRegisteredContentScripts()), [], 'aucun script sur Crunchyroll / Prime Video');
   const before = log.cr.length;
   await page.evaluate(() => chrome.runtime.sendMessage({ type: 'wl_import_crunchyroll' }));
@@ -192,11 +228,11 @@ test('plateformes activées : scripts en direct enregistrés ; import Crunchyrol
   const crTab = await ctx.newPage();
   await crTab.goto('https://www.crunchyroll.com/');
   const { page, errors } = await optionsPage(grantedId);
-  await page.waitForFunction(async () => (await chrome.scripting.getRegisteredContentScripts()).length === 3);
+  await page.waitForFunction(async () => (await chrome.scripting.getRegisteredContentScripts()).length === 5);
   const ids = (await page.evaluate(() => chrome.scripting.getRegisteredContentScripts())).map(c => c.id).sort();
-  assert.deepEqual(ids, ['cp-crunchyroll-page', 'cp-crunchyroll-player', 'cp-prime-page']);
-  await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
-  await box(page, 'crunchyroll').locator('[data-role="import"]').click();
+  assert.deepEqual(ids, ['cp-appletv-page', 'cp-crunchyroll-page', 'cp-crunchyroll-player', 'cp-disneyplus-page', 'cp-prime-page']);
+  await page.waitForFunction(() => !document.querySelector('[data-role="import"][data-p="crunchyroll"]').hidden);
+  await part(page, 'import', 'crunchyroll').click();
   await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok');
   assert.match(await page.textContent('#importStatus'), /^3 titres envoyés/);
   const tok = log.cr.find(r => r.url.includes('/auth/v1/token?_='));
@@ -226,8 +262,8 @@ test('Crunchyroll bloqué par Cloudflare : étape et statut affichés, « Copier
   try {
     await crTab.goto('https://www.crunchyroll.com/');
     const { page, errors } = await optionsPage(grantedId);
-    await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
-    await box(page, 'crunchyroll').locator('[data-role="import"]').click();
+    await page.waitForFunction(() => !document.querySelector('[data-role="import"][data-p="crunchyroll"]').hidden);
+    await part(page, 'import', 'crunchyroll').click();
     await page.waitForFunction(() => document.querySelector('#importStatus').className === 'err');
     const text = await page.textContent('#importStatus');
     assert.match(text, /Cloudflare/);
@@ -242,7 +278,7 @@ test('Crunchyroll bloqué par Cloudflare : étape et statut affichés, « Copier
     assert.match(copied, /step: token/);
     assert.match(copied, /status: 403/);
     assert.match(copied, /cloudflare: true/);
-    assert.match(copied, /v: 0\.6\.2/);
+    assert.match(copied, /v: 0\.7\.3/);
     assert.match(await page.textContent('#importStatus button.diag'), /Diagnostic copié/);
     assert.deepEqual(errors, []);
     await page.close();
@@ -257,8 +293,8 @@ test('Crunchyroll 0.6.2 : curseur meta.next_page suivi ; page refusée ensuite -
   try {
     await crTab.goto('https://www.crunchyroll.com/');
     const { page, errors } = await optionsPage(grantedId);
-    await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="import"]').hidden);
-    await box(page, 'crunchyroll').locator('[data-role="import"]').click();
+    await page.waitForFunction(() => !document.querySelector('[data-role="import"][data-p="crunchyroll"]').hidden);
+    await part(page, 'import', 'crunchyroll').click();
     await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok', null, { timeout: 20000 });
     const text = await page.textContent('#importStatus');
     assert.match(text, /^200 titres envoyés/);
@@ -287,8 +323,8 @@ test('plateformes activées : import Prime Video (région EU, bandes-annonces et
   log.push.length = 0;
   log.pv.length = 0;
   const { page, errors } = await optionsPage(grantedId);
-  await page.waitForFunction(() => !document.querySelector('.platform[data-platform="prime"] [data-role="import"]').hidden);
-  await box(page, 'prime').locator('[data-role="import"]').click();
+  await page.waitForFunction(() => !document.querySelector('[data-role="import"][data-p="prime"]').hidden);
+  await part(page, 'import', 'prime').click();
   await page.waitForFunction(() => document.querySelector('#importStatus').className === 'ok', null, { timeout: 20000 });
   assert.match(await page.textContent('#importStatus'), /^4 titres envoyés/);
   assert.deepEqual(log.push[0].p_items.map(i => [i.source, i.title, i.type, i.season, i.episode]), [
@@ -317,4 +353,42 @@ test('plateformes activées : détection en direct sur Prime Video (texte franç
   assert.deepEqual(log.push.map(b => b.p_items[0].source), ['live', 'live'], 'pas dans la liste : envoyé à l\'onglet « Détectés »');
   await pvPage.close();
   await crPage.close();
+});
+
+test('plateformes activées : détection en direct sur Disney+ (shadow DOM, « S1: ép. 6 ») et Apple TV (promo ignorée)', { skip: !hasFfmpeg() && 'ffmpeg absent' }, async () => {
+  log.mark.length = 0;
+  log.push.length = 0;
+  log.dp.length = 0;
+  log.atv.length = 0;
+  const { page: opts, errors } = await optionsPage(grantedId);
+  await opts.waitForFunction(() => document.querySelector('#platCount').textContent === '5/5 actives');
+  assert.equal(await opts.locator('#platGrid .chip').count(), 5);
+  assert.equal(await part(opts, 'import', 'disneyplus').count(), 0, 'Disney+ : pas d\'import');
+  assert.match(await part(opts, 'state', 'appletv').getAttribute('title'), /détection en direct/);
+  /* « ! » : infobulle ouverte au clic */
+  await opts.click('#platGrid .chipw:nth-child(4) .info-btn');
+  assert.equal(await opts.getAttribute('#platGrid .chipw:nth-child(4) .info-btn', 'aria-expanded'), 'true');
+  await opts.waitForFunction(() => getComputedStyle(document.querySelector('#platGrid .chipw:nth-child(4) .info-pop')).visibility === 'visible');
+  await opts.keyboard.press('Escape');
+  const dpPage = await ctx.newPage();
+  const atvPage = await ctx.newPage();
+  await dpPage.goto('https://www.disneyplus.com/fr-fr/play/8d0ab0f2-7c86-4f0e-9a1b-3c2d1e0f9a8b');
+  await atvPage.goto('https://tv.apple.com/fr/episode/dans-le-perimetre/umc.cmc.4a1b2c3d');
+  for (let i = 0; i < 120 && log.mark.length < 2; i++) await new Promise(r => setTimeout(r, 500));
+  const marks = log.mark.map(b => [b.p_title, b.p_season, b.p_episode, b.p_type]).sort();
+  assert.deepEqual(marks, [['Severance', 1, 3, 'episode'], ['The Mandalorian', 1, 6, 'episode']]);
+  for (let i = 0; i < 20 && log.push.length < 2; i++) await new Promise(r => setTimeout(r, 200));
+  assert.deepEqual(log.push.map(b => b.p_items[0].source), ['live', 'live']);
+  /* fenêtre restée ouverte : avancement en direct (wlNow) et compteur « Détectés » (wlPending) */
+  await opts.waitForFunction(() => /^\d+ nouveaux titres dans Détectés$/.test(document.querySelector('#pending').textContent));
+  const nowSeen = await opts.evaluate(() => new Promise(r => chrome.storage.local.get(['wlNow'], x => r(x.wlNow))));
+  assert.ok(['Severance', 'The Mandalorian'].includes(nowSeen.title), 'wlNow : ' + JSON.stringify(nowSeen));
+  if (await opts.isVisible('#nowLive')) assert.equal(await opts.textContent('#nowTitle'), nowSeen.title);
+  /* seules les requêtes de la page elle-même (document, vidéos) : rien de l'extension */
+  assert.deepEqual([...new Set(log.dp)].sort(), ['/fr-fr/play/8d0ab0f2-7c86-4f0e-9a1b-3c2d1e0f9a8b', '/v.webm']);
+  assert.deepEqual([...new Set(log.atv)].sort(), ['/fr/episode/dans-le-perimetre/umc.cmc.4a1b2c3d', '/long.webm', '/promo.webm']);
+  assert.deepEqual(errors, []);
+  await dpPage.close();
+  await atvPage.close();
+  await opts.close();
 });

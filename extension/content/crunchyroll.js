@@ -74,6 +74,8 @@
     var meta = metadata(id);
     if (!meta) return;
     var s = tracker.track(id, player.t);
+    var prog = W.progress(meta.kind, meta.title, meta.season, meta.episode, player.t, player.d, s.sent);
+    if (prog) chrome.runtime.sendMessage(prog, function () { void chrome.runtime.lastError; });
     if (s.sent || !W.isDone(meta.kind, player.t, player.d, s, player.end)) return;
     var det = W.detection(meta.kind, meta.title, meta.season, meta.episode);
     if (!det) return;

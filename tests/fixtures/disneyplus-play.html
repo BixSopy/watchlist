@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- Page de lecture Disney+ reconstituée (structure du lecteur web 2025-2026 d'après
+     trakt-tools/universal-trakt-scrobbler, DisneyplusParser.ts) : titre .title-field, repère
+     .subtitle-field, barre de progression <progress-bar> à shadow DOM ouvert (aria-valuenow /
+     aria-valuemax en secondes), bouton lecture/pause <toggle-play-pause>. Utilisée par
+     e2e/platforms.test.mjs ; la vidéo de test est servie par le site simulé. -->
+<html lang="fr"><head><meta charset="utf-8"><title>Disney+</title></head>
+<body>
+<div id="hudson-wrapper">
+  <div class="btm-media-overlays-container">
+    <video src="https://www.disneyplus.com/v.webm" muted autoplay></video>
+  </div>
+  <div class="controls__header">
+    <div class="title-bug-area">
+      <div class="title-field body-copy"><span>The Mandalorian</span></div>
+      <div class="subtitle-field body-copy"><span>S1: ép. 6 Le Prisonnier</span></div>
+    </div>
+  </div>
+  <div class="controls__footer">
+    <toggle-play-pause></toggle-play-pause>
+    <progress-bar></progress-bar>
+  </div>
+</div>
+<script>
+  /* Web components du lecteur : shadow DOM ouvert, comme sur disneyplus.com */
+  customElements.define('progress-bar', class extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }).innerHTML =
+      '<div class="progress-bar__container"><div class="progress-bar__thumb" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0"></div></div>'; }
+  });
+  customElements.define('toggle-play-pause', class extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }).innerHTML = '<button aria-label="Pause"></button>'; }
+  });
+  var v = document.querySelector('video');
+  v.playbackRate = 1.5;
+  v.addEventListener('timeupdate', function () {
+    var t = document.querySelector('progress-bar').shadowRoot.querySelector('.progress-bar__thumb');
+    t.setAttribute('aria-valuenow', String(Math.floor(v.currentTime)));
+    t.setAttribute('aria-valuemax', String(Math.floor(v.duration)));
+  });
+</script>
+</body></html>
