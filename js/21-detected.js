@@ -562,7 +562,7 @@ function renderDetected(){
       +'<button type="button" class="btn btn-ghost"'+busy+uiAct('detAddAll')+'>'+esc(t('det.addAll'))+'</button>'
       +'<button type="button" class="btn btn-primary" id="detAddSelBtn"'+(nSel&&!DET.busy?'':' disabled')+uiAct('detAddSel')+'>'+esc(tn('det.addSel',nSel))+'</button></div></div>'
       +'<div class="det-list">'+(rows||'<div class="det-empty">'+esc(t('det.emptyFilter'))+'</div>')+'</div>'
-      :'<div class="det-empty">'+esc(DET.loading&&!DET.loadedAt?t('det.loading'):t('det.empty'))+'</div>')
+      :'<div class="det-empty"><div class="det-empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></div><div class="det-empty-t">'+esc(t('det.emptyTitle'))+'</div><div>'+esc(DET.loading&&!DET.loadedAt?t('det.loading'):t('det.empty'))+'</div></div>')
     +'<div class="det-foot">'+esc(t('det.privacy'))+'</div></div>';
   if(focusKey!=null){
     box.querySelectorAll('.det-q').forEach(function(inp){
