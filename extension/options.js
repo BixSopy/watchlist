@@ -271,3 +271,31 @@ if (chrome.permissions && chrome.permissions.onAdded) {
 }
 
 openDetectedBtn.addEventListener('click', function () { chrome.tabs.create({ url: DETECTED_URL }); });
+
+/* ---------- Diagnostic (0.7.1) : tout reste local ; copié dans le presse-papiers sur clic ---------- */
+(function () {
+  var cb = document.getElementById('diagDebug'), btn = document.getElementById('diagCopy'), out = document.getElementById('diagStatus');
+  if (!cb || !btn) return;
+  chrome.storage.local.get(['cpDebug'], function (r) { cb.checked = !!r.cpDebug; });
+  cb.addEventListener('change', function () { chrome.storage.local.set({ cpDebug: cb.checked }); });
+  btn.addEventListener('click', async function () {
+    var d = { version: chrome.runtime.getManifest().version, ua: navigator.userAgent, at: new Date().toISOString() };
+    try { d.registered = (await chrome.scripting.getRegisteredContentScripts()).map(function (c) { return { id: c.id, matches: c.matches, allFrames: !!c.allFrames }; }); } catch (e) { d.registered = 'error: ' + e.message; }
+    try { d.origins = (await chrome.permissions.getAll()).origins; } catch (e) { d.origins = 'error'; }
+    var st = await chrome.storage.local.get(['cpDiag', 'wlLast', 'wlToken']);
+    d.tokenSet = !!st.wlToken; d.lastPage = st.cpDiag || null; d.lastResult = st.wlLast || null;
+    var txt = JSON.stringify(d, null, 2);
+    try { await navigator.clipboard.writeText(txt); out.textContent = msg('diagCopied'); } catch (e) { out.textContent = txt; }
+  });
+})();
+
+/* Icône « ! » Disney+ / Apple TV : infobulle au survol et au focus, ouverte/fermée au clic (Échap ferme) */
+document.querySelectorAll('[data-role="info"]').forEach(function (b) {
+  var wrap = b.parentNode, pop = wrap.querySelector('.info-pop');
+  pop.id = 'info-' + Math.random().toString(36).slice(2, 8);
+  b.setAttribute('aria-describedby', pop.id);
+  b.setAttribute('aria-label', msg('liveOnlyInfoLabel'));
+  b.addEventListener('click', function () { var o = wrap.classList.toggle('open'); b.setAttribute('aria-expanded', String(o)); });
+  b.addEventListener('keydown', function (e) { if (e.key === 'Escape') { wrap.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } });
+  document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) { wrap.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } });
+});

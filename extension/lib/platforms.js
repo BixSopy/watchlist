@@ -26,11 +26,11 @@
     },
     /* 0.7.0 : détection en direct seulement (ni Disney+ ni Apple TV n'ont d'historique lisible) */
     disneyplus: {
-      origins: ['https://www.disneyplus.com/*'],
+      origins: ['https://www.disneyplus.com/*', 'https://disneyplus.com/*', 'https://apps.disneyplus.com/*'],
       pageOrigin: 'https://www.disneyplus.com',
       liveOnly: true,
       scripts: [
-        { id: 'cp-disneyplus-page', matches: ['https://www.disneyplus.com/*'], js: ['lib/watch-rules.js', 'content/disneyplus.js'], runAt: 'document_idle' },
+        { id: 'cp-disneyplus-page', matches: ['https://www.disneyplus.com/*', 'https://disneyplus.com/*', 'https://apps.disneyplus.com/*'], js: ['lib/watch-rules.js', 'content/disneyplus.js'], allFrames: true, runAt: 'document_idle' },
       ],
     },
     appletv: {

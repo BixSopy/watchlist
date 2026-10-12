@@ -197,18 +197,19 @@ test('Apple TV : enchaînement automatique -> épisode 3 envoyé, épisode 4 jam
 
 /* ---------------- Permissions, service worker, fenêtre ---------------- */
 test('plateformes 0.7.0 : origines au plus étroit, scripts couverts par la permission, détection seulement', () => {
-  assert.deepStrictEqual(PLATFORMS.disneyplus.origins, ['https://www.disneyplus.com/*']);
+  assert.deepStrictEqual(PLATFORMS.disneyplus.origins, ['https://www.disneyplus.com/*', 'https://disneyplus.com/*', 'https://apps.disneyplus.com/*']);
   assert.deepStrictEqual(PLATFORMS.appletv.origins, ['https://tv.apple.com/*']);
-  assert.deepStrictEqual(plain(PLATFORMS.disneyplus.scripts.map(c => [c.id, c.matches, c.js])), [['cp-disneyplus-page', ['https://www.disneyplus.com/*'], ['lib/watch-rules.js', 'content/disneyplus.js']]]);
+  assert.deepStrictEqual(plain(PLATFORMS.disneyplus.scripts.map(c => [c.id, c.matches, c.js])), [['cp-disneyplus-page', ['https://www.disneyplus.com/*', 'https://disneyplus.com/*', 'https://apps.disneyplus.com/*'], ['lib/watch-rules.js', 'content/disneyplus.js']]]);
+  assert.ok(PLATFORMS.disneyplus.scripts[0].allFrames, 'lecteur éventuellement dans une iframe');
   assert.deepStrictEqual(plain(PLATFORMS.appletv.scripts.map(c => [c.id, c.matches, c.js])), [['cp-appletv-page', ['https://tv.apple.com/*'], ['lib/watch-rules.js', 'content/appletv.js']]]);
   assert.ok(PLATFORMS.disneyplus.liveOnly && PLATFORMS.appletv.liveOnly);
   for (const f of ['extension/content/disneyplus.js', 'extension/content/appletv.js']) {
-    const src = read(f);
+    const src = read(f).replace(/function log\(\) \{ if \(debug && [^\n]*/, '');
     assert.doesNotMatch(src, /\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon|importScripts|\beval\(|new Function/, f + ' : aucune requête réseau');
     assert.doesNotMatch(src, /console\./, f + ' : aucune trace');
   }
   const bg = read('extension/background.js');
-  assert.match(bg, /ALLOWED_ORIGINS = \[[^\]]*'https:\/\/www\.disneyplus\.com', 'https:\/\/tv\.apple\.com'\]/);
+  assert.match(bg, /ALLOWED_ORIGINS = \[[^\]]*'https:\/\/www\.disneyplus\.com', 'https:\/\/disneyplus\.com', 'https:\/\/apps\.disneyplus\.com', 'https:\/\/tv\.apple\.com'\]/);
   assert.doesNotMatch(bg, /disneyplus\.com\/|tv\.apple\.com\//, 'aucun appel vers Disney+ ou Apple depuis le service worker');
   const csp = JSON.parse(read('extension/manifest.json')).content_security_policy.extension_pages;
   assert.doesNotMatch(csp, /disney|apple/, 'CSP inchangée');
@@ -232,4 +233,17 @@ test('fenêtre : bande « 5 plateformes intégrées », boutons « Activer Disne
   assert.strictEqual(fr.enableAppletv.message, 'Activer Apple TV');
   for (const k of ['disneyplusHint', 'appletvHint', 'platformEnabledLive', 'enableDisneyplus', 'enableAppletv']) assert.ok(fr[k] && en[k], k);
   assert.match(read('extension/options.js'), /liveOnly \? 'platformEnabledLive'/);
+});
+
+test('Disney+ 0.7.1 : <video> et titre dans un shadow root ouvert, adresse /video/<id>', () => {
+  const state = { duration: 2400, t: 1850 };
+  const video = { get duration() { return state.duration; }, get currentTime() { return state.t; }, paused: false };
+  const shadow = { querySelector: s => (s === '.title-field' ? el('Loki') : s === '.subtitle-field' ? el('S2: ép. 3 Titre') : null),
+    querySelectorAll: s => (s === 'video' ? [video] : s === '.title-field' ? [el('Loki')] : s === '.subtitle-field' ? [el('S2: ép. 3 Titre')] : []) };
+  const host = { shadowRoot: shadow };
+  const dom = { querySelector: () => null, querySelectorAll: s => (s === '*' ? [host] : []) };
+  const p = pageContext({ origin: 'https://www.disneyplus.com', pathname: '/fr-fr/video/abc-123', dom });
+  p.run('extension/content/disneyplus.js');
+  while (state.t < 1990) { p.clock.now += 5000; state.t += 5; p.tick(); }
+  assert.deepStrictEqual(p.sent, [{ type: 'wl_watched', kind: 'episode', title: 'Loki', season: 2, episode: 3 }]);
 });

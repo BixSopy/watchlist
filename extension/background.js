@@ -34,7 +34,7 @@ var SUPA_URL = 'https://batfulcvvquffgfeppcx.supabase.co';
 var SUPA_KEY = 'sb_publishable_AgSykBvnAW4cZmuMZJWnrA_lcFL5eT0';
 /* Pages d'où une détection peut venir : Netflix (content_scripts du manifeste) et les pages des
  * plateformes activées (scripts enregistrés seulement après la permission, lib/platforms.js) */
-var ALLOWED_ORIGINS = ['https://www.netflix.com', 'https://www.crunchyroll.com', 'https://www.primevideo.com', 'https://www.disneyplus.com', 'https://tv.apple.com'];
+var ALLOWED_ORIGINS = ['https://www.netflix.com', 'https://www.crunchyroll.com', 'https://www.primevideo.com', 'https://www.disneyplus.com', 'https://disneyplus.com', 'https://apps.disneyplus.com', 'https://tv.apple.com'];
 /* Réponses structurées de mark_watched_by_title (migration 20261008120000_mark_watched_fiable) */
 var SERVER_STATUSES = ['updated', 'already_up_to_date', 'not_found', 'ambiguous', 'invalid_token', 'invalid_input'];
 
@@ -498,6 +498,16 @@ async function runPlatformImport(token, platform) {
 
 /* Scripts de détection en direct : enregistrés quand la permission de la plateforme est accordée,
  * retirés quand elle est retirée (au démarrage, à l'installation et à chaque changement). */
+/* Script déjà enregistré mais d'une version précédente (matches, fichiers ou allFrames changés) */
+async function isStale(scripts) {
+  try {
+    var cur = await chrome.scripting.getRegisteredContentScripts({ ids: scripts.map(function (c) { return c.id; }) });
+    return scripts.some(function (c) {
+      var r = cur.filter(function (x) { return x.id === c.id; })[0];
+      return !r || JSON.stringify(r.matches) !== JSON.stringify(c.matches) || JSON.stringify(r.js) !== JSON.stringify(c.js) || !!r.allFrames !== !!c.allFrames;
+    });
+  } catch (e) { return false; }
+}
 async function syncPlatformScripts() {
   if (!chrome.scripting || !chrome.scripting.registerContentScripts || !chrome.permissions) return;
   var registered = [];
@@ -509,7 +519,8 @@ async function syncPlatformScripts() {
     var ids = p.scripts.map(function (c) { return c.id; });
     var present = ids.filter(function (id) { return registered.indexOf(id) >= 0; });
     try {
-      if (granted && present.length !== ids.length) {
+      var stale = registered.length && present.length === ids.length && (await isStale(p.scripts));
+      if (granted && (present.length !== ids.length || stale)) {
         if (present.length) await chrome.scripting.unregisterContentScripts({ ids: present });
         await chrome.scripting.registerContentScripts(p.scripts.map(function (c) { return Object.assign({ persistAcrossSessions: true }, c); }));
       } else if (!granted && present.length) {

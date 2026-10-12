@@ -267,7 +267,7 @@ test('extension : plus de page d\'import ni de TMDB, relai limité à netflix.co
 
 test('manifeste 0.7.0 : permissions minimales (pas de cinepisode.com), plateformes facultatives et CSP stricte', () => {
   const m = JSON.parse(read('extension/manifest.json'));
-  assert.strictEqual(m.version, '0.7.0');
+  assert.strictEqual(m.version, '0.7.1');
   assert.strictEqual(m.name, '__MSG_extName__', 'nom inchangé (fiche Chrome Web Store)');
   assert.strictEqual(m.short_name, 'Cinepisode');
   assert.ok(!('key' in m), 'pas de clé ajoutée : identifiant de l\'extension inchangé');
@@ -275,7 +275,7 @@ test('manifeste 0.7.0 : permissions minimales (pas de cinepisode.com), plateform
   assert.deepStrictEqual(m.host_permissions, ['https://batfulcvvquffgfeppcx.supabase.co/*', 'https://www.netflix.com/*'], 'avertissement à l\'installation : Netflix et Cinepisode seulement');
   assert.deepStrictEqual(m.optional_host_permissions, ['https://www.crunchyroll.com/*', 'https://static.crunchyroll.com/*',
     'https://www.primevideo.com/*', 'https://atv-ps.primevideo.com/*', 'https://atv-ps-eu.primevideo.com/*', 'https://atv-ps-fe.primevideo.com/*',
-    'https://www.disneyplus.com/*', 'https://tv.apple.com/*']);
+    'https://www.disneyplus.com/*', 'https://disneyplus.com/*', 'https://apps.disneyplus.com/*', 'https://tv.apple.com/*']);
   const P = require('../extension/lib/platforms.js');
   assert.deepStrictEqual([...P.crunchyroll.origins, ...P.prime.origins, ...P.disneyplus.origins, ...P.appletv.origins], m.optional_host_permissions, 'permissions demandées = permissions facultatives du manifeste');
   for (const p of Object.values(P)) for (const c of p.scripts) for (const mt of c.matches) {

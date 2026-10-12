@@ -412,5 +412,23 @@
   },
   "appletvHint": {
     "message": "Regarde sur tv.apple.com dans ce navigateur. Bandes-annonces, extraits, sport et vidéos promo sont ignorés. Apple ne donne pas accès à l'historique : seules les lectures faites avec l'extension sont détectées."
+  },
+  "diagTitle": {
+    "message": "Diagnostic"
+  },
+  "diagDebug": {
+    "message": "Journal détaillé dans la console (F12) des pages de lecture"
+  },
+  "diagCopy": {
+    "message": "Copier le diagnostic"
+  },
+  "diagCopied": {
+    "message": "Diagnostic copié : colle-le dans ton message (aucun jeton inclus)."
+  },
+  "liveOnlyInfoLabel": {
+    "message": "Pourquoi pas d'import de l'historique ?"
+  },
+  "liveOnlyInfo": {
+    "message": "Disney+ et Apple TV ne donnent pas accès à ton historique : seuls les épisodes que tu regardes à partir de maintenant sont détectés. Pour récupérer ton passé, demande l'export de tes données (Disney : paramètres du compte / Apple : privacy.apple.com)."
   }
 }

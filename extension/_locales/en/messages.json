@@ -412,5 +412,23 @@
   },
   "appletvHint": {
     "message": "Watch on tv.apple.com in this browser. Trailers, clips, sports and promo videos are ignored. Apple offers no access to your history: only what you watch with the extension is detected."
+  },
+  "diagTitle": {
+    "message": "Diagnostics"
+  },
+  "diagDebug": {
+    "message": "Verbose log in the playback page console (F12)"
+  },
+  "diagCopy": {
+    "message": "Copy diagnostics"
+  },
+  "diagCopied": {
+    "message": "Diagnostics copied: paste them in your message (no token included)."
+  },
+  "liveOnlyInfoLabel": {
+    "message": "Why no history import?"
+  },
+  "liveOnlyInfo": {
+    "message": "Disney+ and Apple TV don't give access to your watch history: only episodes you watch from now on are detected. To recover your past, request a copy of your data (Disney: account settings / Apple: privacy.apple.com)."
   }
 }

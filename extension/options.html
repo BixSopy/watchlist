@@ -54,6 +54,11 @@
   .platform [data-role="enable"]:hover{background:#1e1e23}
   button.link{width:auto;margin:0;padding:0;background:none;border:none;color:#9a9aa5;font-size:11px;text-decoration:underline}
   button.link:hover{background:none;color:#e8e8ec}
+  .info{position:relative;display:inline-block}
+  .info-btn{width:16px;height:16px;margin:0 0 0 4px;padding:0;border-radius:50%;border:1px solid #6a6a74;background:none;color:#9a9aa5;font-size:10px;font-weight:700;line-height:14px;cursor:help;vertical-align:middle}
+  .info-btn:hover,.info-btn:focus-visible{color:#e8e8ec;border-color:#5aa9f0;outline:none}
+  .info-pop{display:none;position:absolute;left:0;top:22px;z-index:10;width:240px;padding:8px 10px;border-radius:8px;background:#1e1e23;border:1px solid #33333a;color:#d4d4d8;font-size:11px;font-weight:400;line-height:1.4;text-transform:none;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  .info:hover .info-pop,.info-btn:focus-visible+.info-pop,.info.open .info-pop{display:block}
   /* Bande de statut des 5 plateformes (clarté d'un coup d'oeil) */
   .platsum-title{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#6a6a74;margin:0 0 6px}
   .platsum{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
@@ -102,6 +107,11 @@
   <div id="status"></div>
   <h2 data-msg="lastTitle"></h2>
   <div id="last" aria-live="polite"></div>
+  <details id="diagBox"><summary data-msg="diagTitle"></summary>
+    <label><input type="checkbox" id="diagDebug"> <span data-msg="diagDebug"></span></label>
+    <button id="diagCopy" class="secondary" data-msg="diagCopy"></button>
+    <div id="diagStatus" aria-live="polite"></div>
+  </details>
   <h2 data-msg="historyTitle"></h2>
   <p data-msg="historyIntro"></p>
   <button id="importNetflix" class="secondary" data-msg="importNetflix"></button>
@@ -125,13 +135,13 @@
     <p class="hint" data-msg="primeHint"></p>
   </div>
   <div class="platform" data-platform="disneyplus">
-    <h3><span>Disney+</span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
+    <h3><span>Disney+ <span class="info"><button type="button" class="info-btn" data-role="info" aria-expanded="false" data-aria-msg="liveOnlyInfoLabel">!</button><span class="info-pop" role="tooltip" data-msg="liveOnlyInfo"></span></span></span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
     <button class="secondary" data-role="enable" data-msg="enableDisneyplus"></button>
     <p class="state" data-role="state"></p>
     <p class="hint" data-msg="disneyplusHint"></p>
   </div>
   <div class="platform" data-platform="appletv">
-    <h3><span>Apple TV</span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
+    <h3><span>Apple TV <span class="info"><button type="button" class="info-btn" data-role="info" aria-expanded="false" data-aria-msg="liveOnlyInfoLabel">!</button><span class="info-pop" role="tooltip" data-msg="liveOnlyInfo"></span></span></span><button class="link" data-role="disable" data-msg="disablePlatform" hidden></button></h3>
     <button class="secondary" data-role="enable" data-msg="enableAppletv"></button>
     <p class="state" data-role="state"></p>
     <p class="hint" data-msg="appletvHint"></p>
