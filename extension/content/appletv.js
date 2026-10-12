@@ -13,6 +13,8 @@
  * Mêmes règles que les autres plateformes (lib/watch-rules.js). Aucune requête réseau, aucune trace.
  */
 (function () {
+  if (self.__cpAppleTvInit) return; /* injecté aussi dans les onglets déjà ouverts */
+  self.__cpAppleTvInit = true;
   var W = self.CinepisodeWatch;
   if (!W) return;
   var VIDEO_SEL = '[data-testid="video-container"] video';

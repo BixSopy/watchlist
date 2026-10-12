@@ -545,6 +545,18 @@ async function isStale(scripts) {
     });
   } catch (e) { return false; }
 }
+/* Un script enregistré ne s'applique qu'aux pages chargées ensuite : on l'injecte aussi dans les
+ * onglets déjà ouverts (activation, mise à jour). Les scripts se protègent d'une double init. */
+async function injectOpenTabs(scripts) {
+  if (!chrome.tabs || !chrome.scripting.executeScript) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var c = scripts[i], tabs = [];
+    try { tabs = await chrome.tabs.query({ url: c.matches }); } catch (e) { tabs = []; }
+    for (var j = 0; j < tabs.length; j++) {
+      try { await chrome.scripting.executeScript({ target: { tabId: tabs[j].id, allFrames: !!c.allFrames }, files: c.js }); } catch (e) { /* onglet inaccessible */ }
+    }
+  }
+}
 async function syncPlatformScripts() {
   if (!chrome.scripting || !chrome.scripting.registerContentScripts || !chrome.permissions) return;
   var registered = [];
@@ -560,6 +572,7 @@ async function syncPlatformScripts() {
       if (granted && (present.length !== ids.length || stale)) {
         if (present.length) await chrome.scripting.unregisterContentScripts({ ids: present });
         await chrome.scripting.registerContentScripts(p.scripts.map(function (c) { return Object.assign({ persistAcrossSessions: true }, c); }));
+        if (p.liveOnly) await injectOpenTabs(p.scripts);
       } else if (!granted && present.length) {
         await chrome.scripting.unregisterContentScripts({ ids: present });
       }

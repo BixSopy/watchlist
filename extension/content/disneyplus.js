@@ -15,8 +15,18 @@
  * Mêmes règles que les autres plateformes (lib/watch-rules.js). Aucune requête réseau.
  */
 (function () {
+  /* 0.7.2.1 : injecté aussi dans les onglets déjà ouverts (background) : une seule instance */
+  if (self.__cpDisneyInit) return;
+  self.__cpDisneyInit = true;
+  var store0 = (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) || null;
+  function early(extra) {
+    if (!store0) return;
+    try { store0.set({ cpDiag: Object.assign({ platform: 'disneyplus', host: location.hostname || '', frame: window.top !== window ? 'iframe' : 'top', at: Date.now(), v: '0.7.2.1', state: 'loaded' }, extra || {}) }); } catch (e) { /* ignore */ }
+  }
+  if (window.top === window) early();
+  try {
   var W = self.CinepisodeWatch;
-  if (!W) return;
+  if (!W) { early({ state: 'error', error: 'watch-rules absent' }); return; }
   var PLAY_RE = /^\/(?:[a-z]{2}(?:-[a-z]{2,4})?\/)?(?:play|video)\/([\w-]+)/i;
   var END_RE = /(skip credits|next episode|passer (?:le )?générique|épisode suivant)/i;
   var tracker = W.createTracker();
@@ -173,7 +183,7 @@
     var t = Date.now();
     if (t - lastDiagAt < 15000 && !diag.sent) return;
     lastDiagAt = t;
-    diag.at = t; diag.v = '0.7.2';
+    diag.at = t; diag.v = '0.7.2.1';
     try { store.set({ cpDiag: diag }); } catch (e) { /* ignore */ }
   }
 
@@ -214,5 +224,8 @@
     diag.state = 'sent'; diag.sent = true; log('envoyé', det); saveDiag(diag);
     chrome.runtime.sendMessage(det, function (r) { void chrome.runtime.lastError; log('réponse', r); });
   }
-  setInterval(check, W.RULES.CHECK_EVERY_MS);
+  setInterval(function () {
+    try { check(); } catch (e) { early({ state: 'error', error: String(e && e.message || e).slice(0, 200) }); }
+  }, W.RULES.CHECK_EVERY_MS);
+  } catch (e) { early({ state: 'error', error: 'init: ' + String(e && e.message || e).slice(0, 200) }); }
 })();
