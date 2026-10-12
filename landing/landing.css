@@ -343,3 +343,49 @@ html.lp-anim.lp-ready .lp-grid .lp-card:nth-child(3n){transition-delay:.16s}
   .mk-phone{position:relative;right:auto;bottom:auto;width:min(68%,270px);margin:0 auto}
 }
 @media (prefers-reduced-motion:reduce){.lp *{transition:none!important;animation:none!important}}
+
+/* ---------- Défilement façon Apple (v2) ----------
+   Tout passe par transform et opacity (composités GPU). Seulement avec lp-anim (JS actif et
+   mouvement autorisé). Navigateurs à jour : animations liées au défilement en CSS pur
+   (animation-timeline). Sinon (classe lp-nosd posée par js/23-landing.js) : la même chose pilotée par
+   --lp-t (0 → 1), calculé une fois par image, et les apparitions par IntersectionObserver. */
+.lp-stats{padding:clamp(24px,4vw,48px) 0 0}
+.lp-stats-in{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.lp-stat{text-align:center;padding:26px 12px;border-radius:22px;border:1px solid var(--lp-line);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01))}
+.lp-stat-n{display:block;font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(2.4rem,1.6rem + 2.6vw,3.8rem);line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums;background:linear-gradient(100deg,#8fdcff,var(--accent) 45%,#b9a4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lp-stat-l{display:block;margin-top:10px;color:var(--lp-muted);font-size:15px}
+@media (max-width:760px){.lp-stats-in{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.lp-stat{padding:20px 10px}}
+
+/* Héros : la maquette arrive inclinée en 3D puis se redresse en grandissant ; le texte recule */
+.lp-stage-wrap{perspective:1800px;perspective-origin:50% 0}
+.lp-stage-3d{transform-origin:50% 0;will-change:transform}
+@keyframes lpTilt{from{transform:rotateX(24deg) scale(.86) translateY(-20px)}to{transform:none}}
+@keyframes lpHeroOut{to{transform:translateY(-90px) scale(.96);opacity:.15}}
+@keyframes lpPar{from{transform:translateY(60px)}to{transform:translateY(-60px)}}
+@keyframes lpRise{from{opacity:0;transform:translateY(48px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes lpDrift{0%,100%{transform:translate(-50%,0) scale(1)}50%{transform:translate(-46%,-40px) scale(1.12)}}
+@keyframes lpDrift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-70px,50px) scale(1.15)}}
+html.lp-anim .lp-glow-a{animation:lpDrift 16s ease-in-out infinite}
+html.lp-anim .lp-glow-b,html.lp-anim .lp-glow-c{animation:lpDrift2 19s ease-in-out infinite}
+html.lp-anim .lp-grad{background-size:200% 100%;animation:lpGrad 8s ease-in-out infinite}
+@keyframes lpGrad{0%,100%{background-position:0 0}50%{background-position:100% 0}}
+
+@supports (animation-timeline:view()){
+  html.lp-anim .lp-stage-3d{animation:lpTilt linear both;animation-timeline:view();animation-range:entry 0% cover 42%}
+  html.lp-anim .lp-hero-in{will-change:transform,opacity;animation:lpHeroOut linear both;animation-timeline:scroll(root);animation-range:0 640px}
+  html.lp-anim .lp-spot-vis{animation:lpPar linear both;animation-timeline:view();animation-range:cover}
+  /* Apparitions liées au défilement (remplacent l'IntersectionObserver) : réversibles, avec décalage */
+  html.lp-anim.lp-ready .lp-sec .lp-reveal,html.lp-anim .lp-stats .lp-reveal{opacity:1;transform:none;transition:none;animation:lpRise linear both;animation-timeline:view();animation-range:entry 5% entry 85%}
+  html.lp-anim .lp-stats .lp-stat:nth-child(2),html.lp-anim.lp-ready .lp-grid .lp-card:nth-child(3n+2){animation-range:entry 15% entry 95%}
+  html.lp-anim .lp-stats .lp-stat:nth-child(3),html.lp-anim.lp-ready .lp-grid .lp-card:nth-child(3n){animation-range:entry 25% cover 30%}
+  html.lp-anim .lp-stats .lp-stat:nth-child(4){animation-range:entry 35% cover 35%}
+}
+/* Repli sans animation-timeline : mêmes effets pilotés par --lp-t */
+html.lp-anim.lp-nosd .lp-stage-3d{transform:rotateX(calc((1 - var(--lp-t,1)) * 24deg)) scale(calc(.86 + .14 * var(--lp-t,1)))}
+html.lp-anim.lp-nosd .lp-hero-in{transform:translateY(calc(var(--lp-t,0) * -90px));opacity:calc(1 - .85 * var(--lp-t,0))}
+html.lp-anim.lp-nosd .lp-spot-vis{transform:translateY(calc(60px - 120px * var(--lp-t,.5)))}
+html.lp-anim.lp-nosd .lp-stats .lp-reveal:not(.in){opacity:0;transform:translateY(28px)}
+html.lp-anim.lp-nosd .lp-stats .lp-reveal{transition:opacity .9s var(--lp-ease),transform .9s var(--lp-ease)}
+html.lp-anim.lp-nosd .lp-stats .lp-stat:nth-child(2){transition-delay:.08s}
+html.lp-anim.lp-nosd .lp-stats .lp-stat:nth-child(3){transition-delay:.16s}
+html.lp-anim.lp-nosd .lp-stats .lp-stat:nth-child(4){transition-delay:.24s}

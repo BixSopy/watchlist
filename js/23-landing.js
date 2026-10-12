@@ -42,7 +42,7 @@ function lpShowAuth(view){
 /* Accueil → app (connexion réussie, ou liste locale ouverte sans compte) */
 function lpLeave(){
   var r=document.documentElement;if(!r.classList.contains('lp-guest'))return;
-  r.classList.remove('lp-guest','lp-anim','lp-ready');r.classList.add('lp-member');
+  r.classList.remove('lp-guest','lp-anim','lp-ready','lp-nosd');r.classList.add('lp-member');
   if(typeof _authViewHome==='function')_authViewHome();
   var host=_lpHost();if(host&&_lp.ph!==null&&!host.firstElementChild)host.innerHTML=_lp.ph;
   document.title=BRAND.name;
@@ -72,7 +72,7 @@ function _lpCheckLocal(tries){
 }
 /* Apparition au défilement (sections sous le héros ; le héros s'anime en CSS) */
 function _lpReveal(){
-  var els=document.querySelectorAll('#landing .lp-sec .lp-reveal:not(.in)');
+  var els=document.querySelectorAll('#landing .lp-sec .lp-reveal:not(.in),#landing .lp-stats .lp-reveal:not(.in)');
   if(!document.documentElement.classList.contains('lp-anim')||typeof IntersectionObserver==='undefined'){
     els.forEach(function(el){el.classList.add('in');});return;
   }
@@ -82,10 +82,42 @@ function _lpReveal(){
   els.forEach(function(el){_lp.io.observe(el);});
   document.documentElement.classList.add('lp-ready');
 }
+/* Défilement façon Apple : compteurs, et repli des effets liés au défilement (--lp-t) quand le
+   navigateur ne connaît pas animation-timeline. Lecture des positions puis écriture, une fois par image. */
+function _lpSD(){try{return !!(window.CSS&&CSS.supports('animation-timeline: view()'));}catch(e){return false;}}
+function _lpCount(el){
+  var to=+el.getAttribute('data-count')||0;if(!to)return;
+  var t0=0,d=1400;el.textContent='0';
+  function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/d);k=1-Math.pow(1-k,3);el.textContent=String(Math.round(to*k));if(k<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+function _lpMotion(){
+  var r=document.documentElement;if(!r.classList.contains('lp-anim')||_lp.motion)return;_lp.motion=true;
+  var nums=document.querySelectorAll('#landing [data-count]');
+  if(typeof IntersectionObserver!=='undefined'){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){io.unobserve(e.target);_lpCount(e.target);}});},{threshold:.6});
+    nums.forEach(function(n){io.observe(n);});
+  }
+  if(_lpSD())return;
+  r.classList.add('lp-nosd');
+  var stage=document.querySelector('#landing .lp-stage-3d'),hero=document.querySelector('#landing .lp-hero-in'),
+      vis=[].slice.call(document.querySelectorAll('#landing .lp-spot-vis')),tick=false;
+  function frame(){
+    tick=false;if(!lpIsGuest())return;
+    var vh=innerHeight,y=scrollY||0,out=[];
+    if(stage){var b=stage.getBoundingClientRect();out.push([stage,Math.max(0,Math.min(1,(vh-b.top)/(vh*.9)))]);}
+    if(hero)out.push([hero,Math.max(0,Math.min(1,y/640))]);
+    vis.forEach(function(v){var b=v.parentNode.getBoundingClientRect();out.push([v,Math.max(0,Math.min(1,(vh-b.top)/(vh+b.height)))]);});
+    out.forEach(function(o){o[0].style.setProperty('--lp-t',o[1].toFixed(4));});
+  }
+  function req(){if(!tick){tick=true;requestAnimationFrame(frame);}}
+  addEventListener('scroll',req,{passive:true});addEventListener('resize',req);frame();
+}
 function _lpSetup(view){
   document.title=t('lp.meta.title',{name:BRAND.name});
   lpMountAuth(view);
   _lpReveal();
+  _lpMotion();
   _lpCheckLocal(0);
 }
 (function(){
