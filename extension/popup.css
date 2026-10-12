@@ -117,6 +117,11 @@ button{font:inherit;color:inherit}
 .info.inline .info-pop{right:auto;left:-120px}
 .info:hover .info-pop,.info.open .info-pop,.info-btn:focus-visible+.info-pop{opacity:1;visibility:visible;transform:none;transition-delay:.3s,.3s,0s}
 .info.open .info-pop{transition-delay:0s}
+/* Infobulle « ! » : toujours au-dessus des autres lignes/icônes, position bornée à la fenêtre par JS */
+.info.inline{z-index:1}
+.info:hover,.info.open,.info:focus-within{z-index:40}
+.sec:has(.info:hover),.sec:has(.info.open),.sec:has(.info:focus-within),.row:has(.info:hover),.row:has(.info.open),.row:has(.info:focus-within),.chipw:has(.info:hover),.chipw:has(.info.open),.chipw:has(.info:focus-within){position:relative;z-index:40}
+.info-pop{max-width:calc(100vw - 16px);box-sizing:border-box}
 /* Boutons */
 .acts{display:flex;gap:6px}
 .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:36px;border-radius:11px;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--text);font-size:12px;font-family:'Inter',sans-serif;font-weight:600;cursor:pointer;padding:0 8px;white-space:nowrap;transition:background var(--tr),border-color var(--tr),transform var(--tr)}

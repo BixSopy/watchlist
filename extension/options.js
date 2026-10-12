@@ -440,7 +440,13 @@ all('[data-role="info"]').forEach(function (b, i) {
   var wrap = b.parentNode, pop = wrap.querySelector('.info-pop');
   pop.id = 'info-pop-' + i;
   b.setAttribute('aria-describedby', pop.id);
-  var set = function (o) { wrap.classList.toggle('open', o); b.setAttribute('aria-expanded', String(o)); };
+  var place = function () {
+    var W = document.documentElement.clientWidth, w = Math.min(250, W - 16), r = wrap.getBoundingClientRect();
+    var left = Math.max(8, Math.min(r.right - w, W - 8 - w));
+    pop.style.width = w + 'px'; pop.style.right = 'auto'; pop.style.left = (left - r.left) + 'px';
+  };
+  ['mouseenter', 'focusin'].forEach(function (ev) { wrap.addEventListener(ev, place); });
+  var set = function (o) { if (o) place(); wrap.classList.toggle('open', o); b.setAttribute('aria-expanded', String(o)); };
   b.addEventListener('click', function (e) { e.stopPropagation(); set(!wrap.classList.contains('open')); });
   b.addEventListener('keydown', function (e) { if (e.key === 'Escape') { set(false); e.stopPropagation(); } });
   document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) set(false); });
