@@ -123,6 +123,8 @@ function secHtml(label,items,statusClass){
    pour cet onglet. Le fond (backdrop TMDB) n'est refetch que si le titre en avant
    change — pas a chaque render(). */
 var _heroItemId=null,_heroItems=[],_heroIdx=0,_heroTimer=null;
+/* Vrai dès qu'on choisit une vignette de « Continuer » : le balayage automatique s'arrête (js/25-home.js) */
+var _heroManual=false;
 function _heroCandidates(){
   var tab=activeTab;
   return memDB.filter(function(i){
@@ -136,7 +138,8 @@ function renderHero(){
   if(!band)return;
   _heroItems=_heroCandidates();
   clearTimeout(_heroTimer);
-  if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;document.getElementById('heroDots').innerHTML='';return;}
+  if(typeof updateTabCounts==='function')updateTabCounts();
+  if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;if(typeof renderContinue==='function')renderContinue([],0);return;}
   if(_heroIdx>=_heroItems.length)_heroIdx=0;
   band.classList.add('on');
   _heroSwipeInit(band);
@@ -153,7 +156,7 @@ function renderHero(){
    suspendait le balayage en permanence sans qu'on ait l'impression de "survoler" quoi que ce soit. */
 function _scheduleHeroRotate(){
   clearTimeout(_heroTimer);
-  if(_heroItems.length<2)return;
+  if(_heroItems.length<2||_heroManual)return;
   _heroTimer=setTimeout(function tick(){
     var content=document.querySelector('#heroBand .hero-band-content');
     if(content&&content.matches(':hover')){_heroTimer=setTimeout(tick,1000);return;}
@@ -182,8 +185,7 @@ function _showHeroItem(idx){
   document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
   document.getElementById('heroBtnPlay').onclick=function(){sfx('open');openPlex(item.id);};
   document.getElementById('heroBtnInfo').onclick=function(){sfx('open');openPlex(item.id);};
-  var dots=document.getElementById('heroDots');
-  dots.innerHTML=_heroItems.length>1?_heroItems.map(function(_,i){return '<button class="hero-dot'+(i===idx?' on':'')+'" '+uiAct('heroGoTo',[i])+' aria-label="'+esc(t('hero.dot',{n:i+1}))+'"></button>';}).join(''):'';
+  if(typeof renderContinue==='function')renderContinue(_heroItems,idx);
   if(_heroItemId===item.id)return;
   _heroItemId=item.id;
   var bg=document.getElementById('heroBg');
@@ -193,6 +195,7 @@ function _showHeroItem(idx){
     if(_heroItemId!==item.id)return;
     var imgs=(det.images&&det.images.backdrops)||[];
     var path=imgs.length?imgs[0].file_path:(det.backdrop_path||null);
+    if(path&&typeof contRememberBackdrop==='function')contRememberBackdrop(item,path);
     if(path){bg.style.backgroundImage='url("'+IB+'w1280'+path+'")';bg.classList.add('loaded');}
   }).catch(function(){});
 }

@@ -82,8 +82,8 @@ for (const vp of ['m360', 'm390', 'm412']) {
     const all = page.locator('.ntab[data-tab="all"]');
     assert.equal(await all.isVisible(), true, 'onglet Tout visible');
     await page.tap('.ntab[data-tab="serie"]');
-    await page.tap('.csel.stat-sel-mobile .csel-btn');
-    await page.locator('.csel.stat-sel-mobile.open .csel-opt', { hasText: 'En cours' }).tap();
+    // Sous-onglets de statut visibles sur téléphone (la liste déroulante est masquée)
+    await page.tap('#stabs .stab[data-s="encours"]');
     await page.tap('#qinput');
     await page.keyboard.type('Dark');
     await page.waitForTimeout(150);
