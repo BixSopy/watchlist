@@ -196,7 +196,7 @@ async function closeDetectedTabs() { for (const p of ctx.pages()) if (p.url().st
 test('extension publiée : plateformes désactivées, aucun accès aux sites, import refusé clairement', async () => {
   const { page, errors } = await optionsPage(extId);
   const manifest = await page.evaluate(() => chrome.runtime.getManifest());
-  assert.equal(manifest.version, '0.7.1');
+  assert.equal(manifest.version, '0.7.2');
   assert.deepEqual(manifest.host_permissions, [SUPA + '/*', 'https://www.netflix.com/*'], 'avertissement à l\'installation inchangé');
   await page.waitForFunction(() => !document.querySelector('.platform[data-platform="crunchyroll"] [data-role="enable"]').hidden);
   assert.equal(await box(page, 'crunchyroll').locator('[data-role="enable"]').textContent(), 'Activer Crunchyroll');
@@ -271,7 +271,7 @@ test('Crunchyroll bloqué par Cloudflare : étape et statut affichés, « Copier
     assert.match(copied, /step: token/);
     assert.match(copied, /status: 403/);
     assert.match(copied, /cloudflare: true/);
-    assert.match(copied, /v: 0\.7\.1/);
+    assert.match(copied, /v: 0\.7\.2/);
     assert.match(await page.textContent('#importStatus button.diag'), /Diagnostic copié/);
     assert.deepEqual(errors, []);
     await page.close();

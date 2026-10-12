@@ -183,6 +183,7 @@ function netflixPage() {
   let clock = 1_000_000;
   const timers = [];
   const posts = [];
+  const progress = [];
   const page = { movieId: 1, type: 'episode', season: 2, episode: 3, timeMs: 0, durationMs: 50 * 60 * 1000, titleText: 'DarkS2E3Ce qui était', endUi: false };
   const player = {
     getMovieId: () => page.movieId,
@@ -191,7 +192,7 @@ function netflixPage() {
   };
   const win = {
     location: { origin: 'https://www.netflix.com' },
-    postMessage: (m, origin) => posts.push({ ...JSON.parse(JSON.stringify(m)), origin }),
+    postMessage: (m, origin) => (m.type === 'wl_progress' ? progress : posts).push({ ...JSON.parse(JSON.stringify(m)), origin }),
     netflix: {
       appContext: { state: { playerApp: { getAPI: () => ({ videoPlayer: {
         getAllPlayerSessionIds: () => ['s1'], getVideoPlayerBySessionId: () => player } }) } } },
@@ -366,7 +367,7 @@ test('fenêtre : chaque statut a un texte dans les deux langues, sans marqueur $
       for (const [, name] of msgs[k].message.matchAll(/\$(\w+)\$/g)) assert.ok(msgs[k].placeholders && msgs[k].placeholders[name.toLowerCase()], l + ' ' + k + ' : ' + name);
     }
   }
-  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.7.1');
+  assert.strictEqual(JSON.parse(read('extension/manifest.json')).version, '0.7.2');
 });
 
 test('service worker : détections en direct sans correspondance envoyées à l\'onglet « Détectés » (extension_push_detections)', async () => {
@@ -442,4 +443,15 @@ test('fenêtre : avancement et résultat de l\'import en français clair', () =>
   p.updateImport({ state: 'error', error: 'netflix_auth', at: Date.now() });
   assert.match(p.importStatus.textContent, /^Connecte-toi à Netflix/);
   assert.strictEqual(p.importStatus.className, 'err');
+});
+
+test('service worker 0.7.2 : avancement en direct (wlNow) gardé localement, rien envoyé ; expéditeur et forme vérifiés', async () => {
+  const sw = serviceWorker({ token: 'jeton-secret-42', responses: [] });
+  const ok = await sw.call({ type: 'wl_progress', kind: 'episode', title: 'Andor', season: 2, episode: 3, pct: 62, done: false },
+    { id: 'ext-id', tab: { id: 1 }, url: 'https://www.disneyplus.com/fr-fr/play/x' });
+  assert.strictEqual(ok.ok, true);
+  assert.deepStrictEqual({ ...sw.store.wlNow, at: 0 }, { at: 0, platform: 'disneyplus', kind: 'episode', title: 'Andor', season: 2, episode: 3, pct: 62, done: false });
+  assert.strictEqual(sw.fetches.length, 0);
+  assert.strictEqual((await sw.call({ type: 'wl_progress', kind: 'episode', title: 'X', season: 1, episode: 1, pct: 140 })).reason, 'invalid');
+  assert.strictEqual((await sw.call({ type: 'wl_progress', kind: 'movie', title: 'X', season: null, episode: null, pct: 5 }, { id: 'ext-id', tab: { id: 1 }, url: 'https://evil.example/' })).reason, 'sender');
 });

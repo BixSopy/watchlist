@@ -349,11 +349,12 @@ test('règles en direct : repère saison/épisode en anglais et en français', (
 function pageContext({ origin, pathname = '/', dom }) {
   const listeners = [];
   const sent = [];
+  const progress = [];
   let tick = null;
   const clock = { now: 1000 };
   const win = { location: { origin, pathname }, addEventListener: (t, fn) => { if (t === 'message') listeners.push(fn); } };
   const ctx = {
-    window: win, location: win.location, document: dom, chrome: { runtime: { sendMessage: (m, cb) => { sent.push(plain(m)); if (cb) cb(); }, lastError: undefined } },
+    window: win, location: win.location, document: dom, chrome: { runtime: { sendMessage: (m, cb) => { if (m.type === 'wl_progress') progress.push(plain(m)); else sent.push(plain(m)); if (cb) cb(); }, lastError: undefined } },
     Date: { now: () => clock.now }, setInterval: fn => { tick = fn; }, setTimeout: () => {}, JSON, Math, Number, String, Array, Object, isFinite, parseInt,
   };
   ctx.self = ctx;

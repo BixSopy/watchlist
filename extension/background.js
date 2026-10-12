@@ -102,6 +102,38 @@ function remember(det, result) {
   try { chrome.storage.local.set({ wlLast: last }); } catch (e) { /* stockage indisponible : rien à afficher */ }
 }
 
+/* 0.7.2 : lecture en cours, affichée en direct dans la fenêtre de l'extension (clé wlNow :
+ * plateforme, titre, saison/épisode, pourcentage ; jamais le jeton). Rien n'est envoyé au serveur. */
+var PLATFORM_OF_ORIGIN = { 'https://www.netflix.com': 'netflix', 'https://www.crunchyroll.com': 'crunchyroll', 'https://www.primevideo.com': 'prime',
+  'https://www.disneyplus.com': 'disneyplus', 'https://disneyplus.com': 'disneyplus', 'https://apps.disneyplus.com': 'disneyplus', 'https://tv.apple.com': 'appletv' };
+function senderOrigin(sender) {
+  if (sender.origin) return sender.origin;
+  try { return new URL(sender.url).origin; } catch (e) { return ''; }
+}
+function onProgress(msg, sender, sendResponse) {
+  if (!trustedSender(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
+  var det = validDetection(msg);
+  var pct = msg.pct;
+  if (!det || typeof pct !== 'number' || !isFinite(pct) || pct < 0 || pct > 100) { sendResponse({ ok: false, reason: 'invalid' }); return; }
+  var now = { at: Date.now(), platform: PLATFORM_OF_ORIGIN[senderOrigin(sender)] || null, kind: det.kind, title: det.title,
+    season: det.season, episode: det.episode, pct: Math.round(pct), done: msg.done === true };
+  try { chrome.storage.local.set({ wlNow: now }); } catch (e) { /* rien */ }
+  sendResponse({ ok: true });
+}
+
+/* 0.7.2 : nombre de titres envoyés à « Détectés » depuis la dernière visite de cet onglet depuis
+ * la fenêtre (clé wlPending ; remis à zéro par la fenêtre). Compte local : un tri fait sur le site
+ * ne le fait pas baisser. */
+function addPending(n) {
+  if (!(n > 0)) return;
+  try {
+    chrome.storage.local.get(['wlPending'], function (res) {
+      var cur = res && res.wlPending && typeof res.wlPending.count === 'number' ? res.wlPending.count : 0;
+      chrome.storage.local.set({ wlPending: { count: cur + n, at: Date.now() } });
+    });
+  } catch (e) { /* rien */ }
+}
+
 function rpc(body, name) {
   return fetch(SUPA_URL + '/rest/v1/rpc/' + (name || 'mark_watched_by_title'), {
     method: 'POST',
@@ -124,6 +156,7 @@ function markWatched(token, det) {
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || typeof msg !== 'object') return;
   if (IMPORT_TYPES.indexOf(msg.type) >= 0) return onImportMessage(msg, sender, sendResponse);
+  if (msg.type === 'wl_progress') return onProgress(msg, sender, sendResponse);
   if (msg.type !== 'wl_watched') return;
   if (!trustedSender(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
   var det = validDetection(msg);
@@ -191,12 +224,16 @@ async function pushDetections(token, items, onProgress) {
     sum.inserted += data.inserted | 0; sum.updated += data.updated | 0; sum.unchanged += data.unchanged | 0; sum.invalid += data.invalid | 0;
     if (onProgress) onProgress(i + 1, chunks.length);
   }
+  addPending(sum.inserted + sum.updated);
   return sum;
 }
 function pushLive(token, det) {
   var item = I.pushItemFromLive(det, Date.now());
   if (!item) return;
-  rpc({ p_token: token, p_items: [item] }, 'extension_push_detections').catch(function () { /* hors ligne : rien */ });
+  rpc({ p_token: token, p_items: [item] }, 'extension_push_detections').then(function (out) {
+    var d = out && out.data;
+    if (d && d.status === 'ok') addPending((d.inserted | 0) + (d.updated | 0));
+  }).catch(function () { /* hors ligne : rien */ });
 }
 
 /* ---------- Onglet Netflix : relai de requêtes même origine (cookies Netflix de ce navigateur) ---------- */

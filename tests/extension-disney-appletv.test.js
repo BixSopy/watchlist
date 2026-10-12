@@ -23,18 +23,19 @@ const PLATFORMS = require('../extension/lib/platforms.js');
 
 function pageContext({ origin, pathname = '/', dom }) {
   const sent = [];
+  const progress = [];
   let tick = null;
   const clock = { now: 1000 };
   const loc = { origin, pathname };
   const ctx = {
     window: { location: loc }, location: loc, document: dom,
-    chrome: { runtime: { sendMessage: (m, cb) => { sent.push(plain(m)); if (cb) cb(); }, lastError: undefined } },
+    chrome: { runtime: { sendMessage: (m, cb) => { (m.type === 'wl_progress' ? progress : sent).push(plain(m)); if (cb) cb(); }, lastError: undefined } },
     Date: { now: () => clock.now }, setInterval: fn => { tick = fn; }, setTimeout: () => {}, JSON, Math, Number, String, Array, Object, isFinite, parseInt, parseFloat,
   };
   ctx.self = ctx;
   vm.createContext(ctx);
   vm.runInContext(read('extension/lib/watch-rules.js'), ctx);
-  return { ctx, sent, clock, loc, run: f => vm.runInContext(read(f), ctx), tick: () => tick() };
+  return { ctx, sent, progress, clock, loc, run: f => vm.runInContext(read(f), ctx), tick: () => tick() };
 }
 const el = (txt, attrs = {}) => ({ textContent: txt, getAttribute: k => (k in attrs ? attrs[k] : null) });
 
@@ -246,4 +247,38 @@ test('Disney+ 0.7.1 : <video> et titre dans un shadow root ouvert, adresse /vide
   p.run('extension/content/disneyplus.js');
   while (state.t < 1990) { p.clock.now += 5000; state.t += 5; p.tick(); }
   assert.deepStrictEqual(p.sent, [{ type: 'wl_watched', kind: 'episode', title: 'Loki', season: 2, episode: 3 }]);
+});
+
+/* 0.7.2 : diagnostic réel de Pierre (Chrome, /fr-fr/play/…) : 2 <video>, aucune retenue (durée MSE invalide) */
+test('Disney+ 0.7.2 : vidéo MSE à durée NaN / Infinity -> vidéo en lecture retenue, durée par [role=slider] ou écran de fin', () => {
+  for (const bad of [NaN, Infinity]) {
+    /* durée invalide, barre [role=slider] présente : la position vient de la vidéo, la durée du curseur */
+    const st = { t: 1700, paused: false };
+    const preview = { duration: bad, currentTime: 0, paused: true, readyState: 0, src: '' };
+    const main = { get duration() { return bad; }, get currentTime() { return st.t; }, get paused() { return st.paused; }, readyState: 4, currentSrc: 'blob:https://www.disneyplus.com/x', videoWidth: 1920, videoHeight: 1080 };
+    const slider = { tagName: 'DIV', className: 'slider', getAttribute: k => (k === 'aria-valuenow' ? String(st.t) : k === 'aria-valuemax' ? '2400' : null) };
+    const dom = {
+      querySelector: s => (s === '.title-field' ? el('Andor') : s === '.subtitle-field' ? el('S2: ép. 3 Titre') : null),
+      querySelectorAll: s => (s === 'video' ? [preview, main] : s === '[role="slider"]' ? [slider] : s === '.title-field' ? [el('Andor')] : s === '.subtitle-field' ? [el('S2: ép. 3')] : []),
+    };
+    const p = pageContext({ origin: 'https://www.disneyplus.com', pathname: '/fr-fr/play/abc-123', dom });
+    p.run('extension/content/disneyplus.js');
+    while (st.t < 1990) { p.clock.now += 5000; st.t += 5; p.tick(); }
+    assert.deepStrictEqual(p.sent, [{ type: 'wl_watched', kind: 'episode', title: 'Andor', season: 2, episode: 3 }], 'durée ' + bad);
+    assert.ok(p.progress.length > 0 && p.progress.every(m => m.title === 'Andor' && m.pct >= 70 && m.pct <= 100), 'avancement envoyé à la fenêtre');
+  }
+  /* aucune durée nulle part : seul l'écran de fin (« Épisode suivant ») compte, après 20 s de lecture */
+  const st = { t: 2300, end: false };
+  const v = { duration: NaN, get currentTime() { return st.t; }, paused: false, readyState: 4 };
+  const dom = {
+    querySelector: s => (s === '.title-field' ? el('Andor') : s === '.subtitle-field' ? el('S2: ép. 4') : null),
+    querySelectorAll: s => (s === 'video' ? [v] : s === 'button, [role="button"]' ? (st.end ? [el('Épisode suivant')] : []) : []),
+  };
+  const p = pageContext({ origin: 'https://www.disneyplus.com', pathname: '/fr-fr/play/abc-124', dom });
+  p.run('extension/content/disneyplus.js');
+  for (let i = 0; i < 8; i++) { p.clock.now += 5000; st.t += 5; p.tick(); }
+  assert.deepStrictEqual(p.sent, [], 'durée inconnue, pas d\'écran de fin : rien');
+  st.end = true;
+  p.clock.now += 5000; st.t += 5; p.tick();
+  assert.deepStrictEqual(p.sent, [{ type: 'wl_watched', kind: 'episode', title: 'Andor', season: 2, episode: 4 }]);
 });

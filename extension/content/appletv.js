@@ -74,6 +74,8 @@
     }
     current.lastMs = curMs;
     var s = tracker.track(current.key, curMs);
+    var prog = W.progress(current.meta.kind, current.meta.title, current.meta.season, current.meta.episode, curMs, v.duration * 1000, s.sent);
+    if (prog) chrome.runtime.sendMessage(prog, function () { void chrome.runtime.lastError; });
     if (s.sent || !W.isDone(current.meta.kind, curMs, v.duration * 1000, s, endUi())) return;
     var det = W.detection(current.meta.kind, current.meta.title, current.meta.season, current.meta.episode);
     if (!det) return;

@@ -135,9 +135,16 @@ function check() {
   var info = getActive();
   if (!info || (info.type !== 'episode' && info.type !== 'movie')) return;
   if (info.type === 'episode' && (toInt(info.season) === null || toInt(info.episode) === null)) return;
+  var prev = videos[String(info.movieId)] ? videos[String(info.movieId)].lastMediaMs : null;
   var s = track(info);
-  if (s.sent || !isDone(info, s, endUiShown())) return;
   var title = getShowTitle(info);
+  /* 0.7.2 : avancement affiché en direct dans la fenêtre de l'extension */
+  if (title && info.currentTimeMs !== prev && info.durationMs > 0 && typeof info.currentTimeMs === 'number') {
+    window.postMessage({ __wl: true, type: 'wl_progress', kind: info.type, title: String(title),
+      season: info.type === 'episode' ? toInt(info.season) : null, episode: info.type === 'episode' ? toInt(info.episode) : null,
+      pct: Math.max(0, Math.min(100, Math.round(info.currentTimeMs / info.durationMs * 100))), done: !!s.sent }, window.location.origin);
+  }
+  if (s.sent || !isDone(info, s, endUiShown())) return;
   if (!title) return;
   s.sent = true;
   send(info.type, title, info.season, info.episode);

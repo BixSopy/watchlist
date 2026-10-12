@@ -49,36 +49,89 @@
     var el = deepOne(sel);
     return el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : '';
   }
-  /* Position et durée en ms. Vidéo d'abord, sinon barre de progression (secondes ; ms si > 6 h). */
+  /* 0.7.2 : diagnostic réel (Chrome, /fr-fr/play/…) : 2 <video>, aucune retenue, aucune barre.
+   * Le lecteur Disney+ (MSE) peut annoncer une durée NaN / Infinity / énorme : on prend donc la
+   * vidéo EN LECTURE (non en pause, currentTime > 0, de préférence celle qui avance), quelle que
+   * soit sa durée, puis la durée la plus fiable : video.duration, sinon la fin de la plage
+   * « seekable », sinon une barre de progression / [role=slider] (aria-valuemax), sinon
+   * l'affichage du temps restant. Durée inconnue : seul l'écran de fin compte (voir check). */
+  var lastT = [];
+  function validDur(d) { return typeof d === 'number' && d > 0 && isFinite(d) && d < 6 * 3600; }
+  function srcType(v) {
+    var src = String(v.currentSrc || v.src || '');
+    return !src ? 'none' : src.indexOf('blob:') === 0 ? 'blob' : src.indexOf('http') === 0 ? 'http' : 'other';
+  }
+  function sliderPos(diag) {
+    var cands = deepAll('progress-bar').concat(deepAll('[role="slider"]'), deepAll('[aria-valuemax]'));
+    diag.bars = cands.length;
+    for (var i = 0; i < cands.length; i++) {
+      var el = cands[i], sr = el.shadowRoot;
+      var thumb = (sr && (sr.querySelector('.progress-bar__thumb') || sr.querySelector('[aria-valuenow]'))) ||
+        (el.getAttribute && el.getAttribute('aria-valuenow') !== null ? el : null) ||
+        (el.querySelector && el.querySelector('[aria-valuenow]'));
+      if (!thumb || !thumb.getAttribute) continue;
+      var now = parseFloat(thumb.getAttribute('aria-valuenow'));
+      var max = parseFloat(thumb.getAttribute('aria-valuemax'));
+      if (!(max > 0) || !isFinite(max) || !(now >= 0) || !isFinite(now) || now > max) continue;
+      if (max === 100 && !/progress/i.test(String(el.tagName || '') + ' ' + String(el.className || ''))) continue; /* volume */
+      var k = max > 6 * 3600 ? 1 : 1000;
+      return { curMs: now * k, durMs: max * k };
+    }
+    return null;
+  }
+  function parseClock(t) {
+    var m = /^(-)?\s*(?:(\d{1,2}):)?(\d{1,2}):(\d{2})$/.exec(t);
+    if (!m) return null;
+    return { neg: !!m[1], ms: ((parseInt(m[2] || '0', 10) * 60 + parseInt(m[3], 10)) * 60 + parseInt(m[4], 10)) * 1000 };
+  }
+  /* Temps restant affiché (« -12:34 », classe *remaining*) : durée = position + restant */
+  function remainingMs(diag) {
+    var els = deepAll('[class*="remaining"], [class*="time-display"], [class*="time"]');
+    for (var i = 0; i < els.length && i < 200; i++) {
+      var t = (els[i].textContent || '').replace(/\s+/g, ' ').trim();
+      if (t.length > 12) continue;
+      var c = parseClock(t);
+      if (c && (c.neg || /remaining/i.test(String(els[i].className || '')))) { diag.remaining = t; return c.ms; }
+    }
+    return null;
+  }
   function position(diag) {
     var vids = deepAll('video');
     diag.videos = vids.length;
-    var best = null;
+    diag.vids = [];
+    var best = null, bestScore = -1;
     for (var j = 0; j < vids.length; j++) {
       var v = vids[j];
-      if (!(v.duration > 0) || !isFinite(v.duration) || v.duration >= 6 * 3600) continue;
-      if (!best || v.duration > best.duration) best = v; /* la plus longue : pas une bande-annonce */
+      var t = Number(v.currentTime) || 0;
+      var advancing = typeof lastT[j] === 'number' && t > lastT[j];
+      lastT[j] = t;
+      diag.vids.push({ d: typeof v.duration === 'number' ? (isFinite(v.duration) ? Math.round(v.duration) : String(v.duration)) : null,
+        t: Math.round(t), p: !!v.paused, rs: v.readyState, src: srcType(v), w: v.videoWidth | 0, h: v.videoHeight | 0 });
+      if (v.paused || !(t > 0)) continue;
+      var score = (advancing ? 4 : 0) + (validDur(v.duration) ? 2 : 0) + ((v.videoWidth | 0) > 0 ? 1 : 0);
+      if (score > bestScore) { best = v; bestScore = score; }
     }
-    if (best) {
-      diag.source = 'video'; diag.paused = !!best.paused;
-      if (best.paused) return null;
-      return { curMs: best.currentTime * 1000, durMs: best.duration * 1000 };
+    if (!best) {
+      var anyPaused = vids.some(function (v) { return v.paused && v.currentTime > 0; });
+      if (anyPaused) { diag.source = 'video'; diag.paused = true; return null; }
+      var bar = sliderPos(diag);
+      if (bar) { diag.source = 'progress-bar'; return bar; }
+      diag.source = 'none';
+      return null;
     }
-    var bars = deepAll('progress-bar');
-    diag.bars = bars.length;
-    for (var i = 0; i < bars.length; i++) {
-      var sr = bars[i].shadowRoot;
-      var thumb = (sr && sr.querySelector('.progress-bar__thumb')) || (bars[i].querySelector && bars[i].querySelector('[aria-valuenow]'));
-      if (!thumb) continue;
-      var now = parseFloat(thumb.getAttribute('aria-valuenow'));
-      var max = parseFloat(thumb.getAttribute('aria-valuemax'));
-      if (!(max > 0) || !isFinite(max) || !(now >= 0) || !isFinite(now)) continue;
-      var k = max > 6 * 3600 ? 1 : 1000;
-      diag.source = 'progress-bar';
-      return { curMs: now * k, durMs: max * k };
-    }
-    diag.source = 'none';
-    return null;
+    diag.source = 'video'; diag.paused = false;
+    var curMs = best.currentTime * 1000;
+    if (validDur(best.duration)) return { curMs: curMs, durMs: best.duration * 1000 };
+    try {
+      var sk = best.seekable;
+      if (sk && sk.length) { var end = sk.end(sk.length - 1); if (validDur(end) && end * 1000 >= curMs) { diag.durFrom = 'seekable'; return { curMs: curMs, durMs: end * 1000 }; } }
+    } catch (e) { /* ignore */ }
+    var b2 = sliderPos(diag);
+    if (b2) { diag.durFrom = 'bar'; return { curMs: b2.curMs, durMs: b2.durMs }; }
+    var rem = remainingMs(diag);
+    if (rem !== null) { diag.durFrom = 'remaining'; return { curMs: curMs, durMs: curMs + rem }; }
+    diag.durFrom = 'none';
+    return { curMs: curMs, durMs: null }; /* durée inconnue : écran de fin seulement */
   }
   function sessionTitle() {
     try {
@@ -90,6 +143,7 @@
     var title = text('.title-field');
     var sub = text('.subtitle-field');
     diag.title = title; diag.sub = sub;
+    try { diag.hits = { title: deepAll('.title-field').length, sub: deepAll('.subtitle-field').length }; } catch (e) { /* ignore */ }
     if (!title) {
       var ms = typeof navigator !== 'undefined' ? sessionTitle() : '';
       diag.mediaSession = ms;
@@ -106,6 +160,11 @@
       var label = (els[j].getAttribute('aria-label') || '') + ' ' + (els[j].textContent || '');
       if (label.length < 80 && END_RE.test(label)) return true;
     }
+    /* Panneau « à suivre » (up-next) affiché pendant le générique */
+    try {
+      var up = deepAll('[data-testid*="up-next" i], [class*="up-next" i], [class*="upnext" i], [data-testid*="upnext" i]');
+      for (var u = 0; u < up.length; u++) if (!up[u].hidden && (up[u].textContent || '').trim()) return true;
+    } catch (e) { /* sélecteur non pris en charge */ }
     return false;
   }
   var lastDiagAt = 0;
@@ -114,7 +173,7 @@
     var t = Date.now();
     if (t - lastDiagAt < 15000 && !diag.sent) return;
     lastDiagAt = t;
-    diag.at = t; diag.v = '0.7.1';
+    diag.at = t; diag.v = '0.7.2';
     try { store.set({ cpDiag: diag }); } catch (e) { /* ignore */ }
   }
 
@@ -126,8 +185,8 @@
     var playId = m[1];
     var pos = position(diag);
     if (!pos) { log('pas de position', diag); saveDiag(diag); return; }
-    diag.pct = Math.round(pos.curMs / pos.durMs * 100);
-    var durationS = Math.round(pos.durMs / 1000);
+    diag.pct = pos.durMs ? Math.round(pos.curMs / pos.durMs * 100) : null;
+    var durationS = pos.durMs ? Math.round(pos.durMs / 1000) : 0;
     var meta = readMeta(diag);
     if (meta) {
       var key = playId + '|' + meta.kind + '|' + meta.title + '|' + (meta.season || '') + '|' + (meta.episode || '');
@@ -140,9 +199,15 @@
     }
     var s = tracker.track(current.key, pos.curMs);
     diag.meta = current.meta; diag.watchedS = Math.round(s.watchedMs / 1000); diag.sentAlready = !!s.sent;
+    var prog = W.progress(current.meta.kind, current.meta.title, current.meta.season, current.meta.episode, pos.curMs, pos.durMs, s.sent);
+    if (prog) chrome.runtime.sendMessage(prog, function () { void chrome.runtime.lastError; });
     if (s.sent) return;
     var end = endUi();
-    if (!W.isDone(current.meta.kind, pos.curMs, pos.durMs, s, end)) { diag.state = 'tracking'; log('suivi', diag); saveDiag(diag); return; }
+    diag.end = end;
+    /* Durée inconnue (MSE) : l'écran de fin (« Épisode suivant », générique) suffit, titre lu et
+     * au moins 20 s de lecture observée */
+    var done = pos.durMs ? W.isDone(current.meta.kind, pos.curMs, pos.durMs, s, end) : (end && s.watchedMs >= W.RULES.MIN_WATCHED_MS);
+    if (!done) { diag.state = 'tracking'; log('suivi', diag); saveDiag(diag); return; }
     var det = W.detection(current.meta.kind, current.meta.title, current.meta.season, current.meta.episode);
     if (!det) { diag.state = 'invalid'; saveDiag(diag); return; }
     s.sent = true;
