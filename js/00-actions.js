@@ -109,8 +109,8 @@ uiOn('editEntry',function(el,e,id){e.stopPropagation();sfx('open');openEdit(_uiI
 uiOn('delEntry',function(el,e,id){e.stopPropagation();delEntry(_uiId(id));});
 uiOn('loadMoreSec',function(el,e,secId){loadMoreSec(secId,el);});
 uiOn('heroGoTo',function(el,e,i){sfx('click');_heroGoTo(i);});
-/* Accueil : rangée « Continuer » (js/25-home.js) */
-uiOn('heroPick',function(el,e,i){sfx('click');_heroManual=true;_heroGoTo(i);});
+/* Accueil : carrousel « En cours » (js/25-home.js) */
+uiOn('heroPick',function(el,e,i){cfGo(i);});
 uiOn('contPrev',function(){contScroll(-1);});
 uiOn('contNext',function(){contScroll(1);});
 uiOn('contSeeAll',function(){sfx('click');contSeeAll();});

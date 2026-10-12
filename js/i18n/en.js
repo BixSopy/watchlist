@@ -55,6 +55,7 @@
  "cont.seeAll": "See all",
  "cont.prev": "Previous",
  "cont.next": "Next",
+ "cont.stageAria": "Titles in progress: mouse wheel or left and right arrows to browse, Enter to open",
  "sb.suiviOpen": "Show upcoming releases",
  "pill.titles.one": "{n} title",
  "pill.titles.other": "{n} titles",

@@ -1,96 +1,132 @@
-/* MODULE: Accueil — rangée « Continuer » (remplace les points du bandeau) et compteurs des onglets.
-   La rangée liste les titres « en cours » du bandeau (_heroItems, js/05-render.js). Vignette : image
-   de fond TMDB (backdrop) si on la connaît déjà, sinon l'affiche. Les backdrops viennent de la même
-   requête que le bandeau (même URL, donc même cache serveur), au plus CONT_BD_MAX par rendu. */
-var _contBd=Object.create(null),_contBdAsked=Object.create(null),CONT_BD_MAX=10;
-function _contKind(item){return item.tmdbType||(item.type==='film'?'movie':'tv');}
-function _contBdKey(item){return _contKind(item)+':'+item.tmdbId;}
-function contRememberBackdrop(item,path){if(item&&path)_contBd[_contBdKey(item)]=path;}
-function _contThumbUrl(item){
-  var bd=_contBd[_contBdKey(item)];
-  if(bd)return IB+'w500'+bd;
-  return item.poster?IB+'w342'+item.poster:'';
+/* MODULE: Accueil — carrousel 3D « En cours » (Cover Flow) et onglets en pilule.
+   Le carrousel affiche les titres « en cours » du bandeau (_heroItems, js/05-render.js) ; l'affiche
+   active est au centre, de face, les autres inclinées en perspective. Seules les affiches à ±CF_WIN
+   de l'active existent dans le DOM (une liste de 200 titres ne crée pas 200 calques 3D).
+   Navigation : molette (verticale ou horizontale, un pas toutes les CF_WHEEL_MS), glisser à la souris
+   ou au doigt, flèches du clavier, boutons ‹ ›, clic sur une affiche. Toute action manuelle arrête le
+   balayage automatique (_heroManual). Mouvement réduit : rangée à plat, sans rotation. */
+var CF_WIN=5,CF_WHEEL_MS=180;
+function _cfReduced(){try{return window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}}
+function _cfSmall(){return window.innerWidth<=768;}
+function _cfEpLabel(item){return(item.type!=='film'&&item.saison&&item.episode)?('S'+pad(item.saison)+' · E'+pad(item.episode)):'';}
+function _cfPct(item){var p=(typeof _seasonProgressPct==='function')?_seasonProgressPct(item):null;return p==null?0:p;}
+function _cfCard(item,i){
+  var b=document.createElement('button');
+  b.type='button';b.className='cf-card';b.setAttribute('data-i',i);b.setAttribute('data-id',item.id);
+  b.setAttribute('aria-label',item.title);b.tabIndex=-1;
+  var ep=_cfEpLabel(item);
+  b.innerHTML=(item.poster?'<img src="'+esc(IB+'w342'+item.poster)+'" alt="" loading="lazy" decoding="async">':'<span class="cf-ph">'+icon(item.type)+'</span>')+
+    (ep?'<span class="cf-ep">'+esc(ep)+'</span>':'')+'<span class="cf-pg"><i style="width:'+_cfPct(item)+'%"></i></span>';
+  b.style.opacity='0';
+  return b;
 }
-function _contEpLabel(item){return(item.type!=='film'&&item.saison&&item.episode)?('S'+pad(item.saison)+' · E'+pad(item.episode)):'';}
-function _contCardHtml(item,i,idx){
-  var url=_contThumbUrl(item),pct=(typeof _seasonProgressPct==='function')?_seasonProgressPct(item):null;
-  var bdCls=_contBd[_contBdKey(item)]?' bd':'';
-  var th=url?'<span class="cc-th'+bdCls+'" style="background-image:url(&quot;'+esc(url)+'&quot;)"></span>':'<span class="cc-th cc-ph">'+icon(item.type)+'</span>';
-  var ep=_contEpLabel(item);
-  return '<button type="button" class="cc'+(i===idx?' on':'')+'" data-i="'+i+'"'+uiAct('heroPick',[i])+' aria-label="'+esc(item.title)+'"'+(i===idx?' aria-current="true"':'')+'>'+th+
-    (i===idx?'<span class="cc-now">'+esc(t('status.encours'))+'</span>':'')+
-    (ep?'<span class="cc-ep">'+esc(ep)+'</span>':'')+
-    '<span class="cc-pb"><i style="width:'+(pct==null?0:pct)+'%"></i></span><span class="cc-tt">'+esc(item.title)+'</span></button>';
-}
-/* Rendu complet seulement si la liste change ; sinon on déplace juste la vignette active. */
-var _contSig='';
+var _cfIdx=0;
 function renderContinue(items,idx){
-  var box=document.getElementById('heroCont'),band=document.getElementById('heroBand');
-  if(!box)return;
-  if(!items||items.length<2){box.hidden=true;box._sig='';if(band)band.classList.remove('has-cont');return;}
-  box.hidden=false;if(band)band.classList.add('has-cont');
-  var strip=document.getElementById('contStrip'),ctr=document.getElementById('contCtr');
-  var sig=items.map(function(x){return x.id+'|'+x.saison+'|'+x.episode+'|'+(_contBd[_contBdKey(x)]?1:0);}).join(',');
-  if(sig!==_contSig){
-    _contSig=sig;
-    strip.innerHTML=items.map(function(it,i){return _contCardHtml(it,i,idx);}).join('');
-    _contFetchBackdrops(items);
-  }else{
-    strip.querySelectorAll('.cc').forEach(function(b){
-      var on=+b.getAttribute('data-i')===idx;
-      if(on===b.classList.contains('on'))return;
-      b.classList.toggle('on',on);
-      if(on)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');
-      var now=b.querySelector('.cc-now');
-      if(on&&!now){var s=document.createElement('span');s.className='cc-now';s.textContent=t('status.encours');b.insertBefore(s,b.children[1]||null);}
-      if(!on&&now)now.remove();
-    });
-  }
-  ctr.textContent=(idx+1)+' / '+items.length;
-  _contInit(strip);
-  _contReveal(strip,idx);
+  var band=document.getElementById('heroBand'),ring=document.getElementById('cfRing');
+  if(!band||!ring)return;
+  items=items||[];
+  if(!items.length){ring.innerHTML='';return;}
+  _cfIdx=idx;
+  band.classList.toggle('single',items.length<2);
+  var keep=Object.create(null);
+  for(var i=Math.max(0,idx-CF_WIN);i<=Math.min(items.length-1,idx+CF_WIN);i++)keep[items[i].id]=i;
+  /* retire les affiches sorties de la fenêtre, ajoute les nouvelles */
+  Array.prototype.slice.call(ring.children).forEach(function(c){var id=c.getAttribute('data-id');if(!(id in keep))c.remove();});
+  var have=Object.create(null);Array.prototype.forEach.call(ring.children,function(c){have[c.getAttribute('data-id')]=c;});
+  var fresh=[];
+  Object.keys(keep).forEach(function(id){
+    var i=keep[id],c=have[id];
+    if(!c){c=_cfCard(items[i],i);ring.appendChild(c);fresh.push(c);}
+    else c.setAttribute('data-i',i);
+  });
+  if(fresh.length)void ring.offsetWidth;/* les nouvelles partent d'opacité 0 */
+  var small=_cfSmall(),flat=_cfReduced();
+  Array.prototype.forEach.call(ring.children,function(c){
+    var d=+c.getAttribute('data-i')-idx,a=Math.abs(d),s=d>0?1:d<0?-1:0,tr,o=1;
+    if(flat){var fg=small?120:170;tr='translateX('+(d*fg)+'px) scale('+(d?.86:1)+')';if(a>(small?2:3))o=0;}
+    else{
+      var gap=small?52:96,base=small?78:150;
+      tr=d===0?'translateZ(60px)':'translateX('+(s*base+d*gap)+'px) translateZ(-140px) rotateY('+(-s*48)+'deg)';
+      if(a>(small?3:CF_WIN))o=0;
+    }
+    c.style.transform=tr;c.style.opacity=String(o);c.style.zIndex=String(100-a);
+    c.style.filter=d?'brightness('+(1-.12*a).toFixed(2)+')':'none';
+    c.classList.toggle('on',d===0);
+    c.setAttribute('aria-hidden',d?'true':'false');
+    c.style.pointerEvents=o?'':'none';
+  });
+  var ctr=document.getElementById('contCtr');if(ctr)ctr.textContent=(idx+1)+' / '+items.length;
+  var bar=document.getElementById('cfBar');if(bar)bar.style.width=_cfPct(items[idx])+'%';
+  var pv=band.querySelector('.cf-nav.prev'),nx=band.querySelector('.cf-nav.next');
+  if(pv)pv.disabled=idx<=0;if(nx)nx.disabled=idx>=items.length-1;
+  _cfInit(document.getElementById('cfStage'));
 }
-/* Garde la vignette active visible sans faire défiler la page */
-function _contReveal(strip,idx){
-  var b=strip.querySelector('.cc[data-i="'+idx+'"]');if(!b)return;
-  var l=b.offsetLeft-strip.offsetLeft,r=l+b.offsetWidth;
-  if(l<strip.scrollLeft||r>strip.scrollLeft+strip.clientWidth)strip.scrollTo({left:Math.max(0,l-8),behavior:'smooth'});
+/* Va au titre i (borné), arrête le balayage automatique */
+function cfGo(i){
+  if(!_heroItems.length)return;
+  i=Math.max(0,Math.min(_heroItems.length-1,i));
+  _heroManual=true;
+  if(i===_heroIdx){clearTimeout(_heroTimer);return;}
+  if(typeof sfx==='function')sfx('click');
+  var info=document.getElementById('cfInfo');
+  if(info&&!_cfReduced()){info.classList.add('sw');setTimeout(function(){info.classList.remove('sw');},160);}
+  _heroGoTo(i);
 }
-function _contFetchBackdrops(items){
-  var n=0;
-  items.forEach(function(item){
-    var k=_contBdKey(item);
-    if(_contBd[k]||_contBdAsked[k]||n>=CONT_BD_MAX)return;
-    _contBdAsked[k]=1;n++;
-    tf(TB+'/'+_contKind(item)+'/'+item.tmdbId+'?language='+TMDB_LANG+'&append_to_response=images').then(function(det){
-      var imgs=(det&&det.images&&det.images.backdrops)||[];
-      var path=imgs.length?imgs[0].file_path:((det&&det.backdrop_path)||null);
-      if(!path)return;
-      _contBd[k]=path;
-      var strip=document.getElementById('contStrip');if(!strip)return;
-      strip.querySelectorAll('.cc').forEach(function(b){
-        var it=_heroItems[+b.getAttribute('data-i')];
-        if(it&&_contBdKey(it)===k){var th=b.querySelector('.cc-th');if(th){th.classList.remove('cc-ph');th.classList.add('bd');th.textContent='';th.style.backgroundImage='url("'+IB+'w500'+path+'")';}}
-      });
-    }).catch(function(){});
+function contScroll(dir){cfGo(_heroIdx+dir);}
+function _cfInit(st){
+  if(!st||st._init)return;st._init=1;
+  /* Molette : un pas par CF_WHEEL_MS. Le défilement de la page n'est bloqué que pendant que le
+     pointeur est sur le carrousel, et pas aux extrémités (la page reprend la main). */
+  var last=0;
+  st.addEventListener('wheel',function(e){
+    if(e.ctrlKey)return;/* zoom au pavé tactile */
+    var horiz=Math.abs(e.deltaX)>Math.abs(e.deltaY),v=horiz?e.deltaX:e.deltaY;
+    if(Math.abs(v)<4)return;
+    var dir=v>0?1:-1,n=_heroItems.length;
+    if(!horiz&&((dir<0&&_heroIdx<=0)||(dir>0&&_heroIdx>=n-1)))return;
+    e.preventDefault();
+    var now=Date.now();if(now-last<CF_WHEEL_MS)return;last=now;
+    cfGo(_heroIdx+dir);
+  },{passive:false});
+  st.addEventListener('keydown',function(e){
+    var k=e.key;
+    if(k==='ArrowRight'){cfGo(_heroIdx+1);e.preventDefault();}
+    else if(k==='ArrowLeft'){cfGo(_heroIdx-1);e.preventDefault();}
+    else if(k==='Home'){cfGo(0);e.preventDefault();}
+    else if(k==='End'){cfGo(_heroItems.length-1);e.preventDefault();}
+    else if(k==='Enter'&&e.target===st){var it=_heroItems[_heroIdx];if(it){sfx('open');openPlex(it.id);}e.preventDefault();}
+  });
+  /* Glisser (souris, doigt, stylet) : un pas tous les 80 px (50 px sur téléphone) */
+  var x0=null,moved=false;
+  st.addEventListener('pointerdown',function(e){if(e.target.closest('.cf-nav')||(e.pointerType==='mouse'&&e.button!==0))return;x0=e.clientX;moved=false;});
+  window.addEventListener('pointermove',function(e){
+    if(x0===null)return;var dx=e.clientX-x0,step=_cfSmall()?50:80;
+    if(Math.abs(dx)>step){moved=true;st.classList.add('drag');cfGo(_heroIdx-(dx>0?1:-1));x0=e.clientX;}
+  });
+  function up(){if(x0===null)return;x0=null;st.classList.remove('drag');if(moved)setTimeout(function(){moved=false;},0);}
+  window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+  /* Clic sur une affiche : la met au centre (ou ouvre la fiche si c'est déjà l'active) */
+  st.addEventListener('click',function(e){
+    var c=e.target.closest('.cf-card');if(!c)return;
+    if(moved){e.preventDefault();e.stopPropagation();return;}
+    var i=+c.getAttribute('data-i');
+    if(i===_heroIdx){_heroManual=true;clearTimeout(_heroTimer);var it=_heroItems[i];if(it){sfx('open');openPlex(it.id);}}
+    else cfGo(i);
   });
 }
-/* Molette verticale -> défilement horizontal, glisser à la souris (le doigt utilise le défilement natif) */
-function _contInit(strip){
-  if(strip._init)return;strip._init=1;
-  strip.addEventListener('wheel',function(e){
-    if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
-    var max=strip.scrollWidth-strip.clientWidth;if(max<=0)return;
-    if((e.deltaY<0&&strip.scrollLeft<=0)||(e.deltaY>0&&strip.scrollLeft>=max-1))return;/* bord atteint : la page défile */
-    strip.scrollLeft+=e.deltaY;e.preventDefault();
-  },{passive:false});
-  var d=null;
-  strip.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse'&&e.button===0)d={x:e.clientX,l:strip.scrollLeft,moved:false};});
-  window.addEventListener('pointermove',function(e){if(!d)return;var dx=e.clientX-d.x;if(Math.abs(dx)>5){d.moved=true;strip.classList.add('drag');}if(d.moved)strip.scrollLeft=d.l-dx;});
-  window.addEventListener('pointerup',function(){if(!d)return;var moved=d.moved;d=null;strip.classList.remove('drag');if(moved){strip._skipClick=1;setTimeout(function(){strip._skipClick=0;},0);}});
-  strip.addEventListener('click',function(e){if(strip._skipClick){e.stopPropagation();e.preventDefault();}},true);
+/* Surlignage glissant de la pilule d'onglets */
+function segMove(){
+  var seg=document.getElementById('tabSeg'),hl=document.getElementById('segHl');if(!seg||!hl)return;
+  var on=seg.querySelector('.ntab.on');
+  if(!on||!on.offsetWidth){hl.classList.remove('on');return;}
+  hl.style.width=on.offsetWidth+'px';hl.style.transform='translateX('+on.offsetLeft+'px)';hl.classList.add('on');
 }
-function contScroll(dir){var s=document.getElementById('contStrip');if(s)s.scrollBy({left:dir*s.clientWidth*.8,behavior:'smooth'});}
+(function(){
+  var seg=document.getElementById('tabSeg');if(!seg)return;
+  if(typeof ResizeObserver==='function')new ResizeObserver(segMove).observe(seg);
+  window.addEventListener('resize',segMove);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(segMove);
+})();
 /* « Tout voir » : filtre « En cours » de la liste, puis descend jusqu'à la grille */
 function contSeeAll(){
   var b=document.querySelector('#stabs .stab[data-s="encours"]');if(b)b.click();
@@ -107,6 +143,7 @@ function updateTabCounts(){
     if(!em){em=document.createElement('em');em.className='ntab-cnt';b.appendChild(em);}
     em.textContent=fmtNum(c[k]);
   });
+  segMove();
 }
 if(typeof module!=='undefined')module.exports={renderContinue:renderContinue,updateTabCounts:updateTabCounts};
 /* Tiroir Suivi : Entrée / Espace l'ouvrent aussi au clavier */

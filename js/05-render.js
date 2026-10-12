@@ -158,8 +158,7 @@ function _scheduleHeroRotate(){
   clearTimeout(_heroTimer);
   if(_heroItems.length<2||_heroManual)return;
   _heroTimer=setTimeout(function tick(){
-    var content=document.querySelector('#heroBand .hero-band-content');
-    if(content&&content.matches(':hover')){_heroTimer=setTimeout(tick,1000);return;}
+    if(document.querySelector('#heroBand .cf-stage:hover,#heroBand .cf-info:hover')){_heroTimer=setTimeout(tick,1000);return;}
     _heroIdx=(_heroIdx+1)%_heroItems.length;
     _showHeroItem(_heroIdx);
     _scheduleHeroRotate();
@@ -170,7 +169,7 @@ function _heroGoTo(i){_heroIdx=i;_showHeroItem(i);_scheduleHeroRotate();}
 function _heroSwipeInit(band){
   if(band._swipe)return;band._swipe=1;
   var x0=null,y0=0;
-  band.addEventListener('touchstart',function(e){var p=e.touches[0];x0=p.clientX;y0=p.clientY;},{passive:true});
+  band.addEventListener('touchstart',function(e){if(e.target.closest&&e.target.closest('.cf-stage')){x0=null;return;}var p=e.touches[0];x0=p.clientX;y0=p.clientY;},{passive:true});
   band.addEventListener('touchend',function(e){
     if(x0===null)return;var p=e.changedTouches[0],dx=p.clientX-x0,dy=p.clientY-y0;x0=null;
     if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5||_heroItems.length<2)return;
