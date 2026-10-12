@@ -4,7 +4,8 @@
    de l'active existent dans le DOM (une liste de 200 titres ne crée pas 200 calques 3D).
    Navigation : molette (verticale ou horizontale, un pas toutes les CF_WHEEL_MS), glisser à la souris
    ou au doigt, flèches du clavier, boutons ‹ ›, clic sur une affiche. Toute action manuelle arrête le
-   balayage automatique (_heroManual). Mouvement réduit : rangée à plat, sans rotation. */
+   balayage automatique (_heroManual). Mouvement réduit : rangée à plat, sans rotation, glissé court (~250 ms) au lieu d'une coupure.
+   Les affiches sont gardées par data-id et seules leurs transformations changent (transitions CSS). */
 var CF_WIN=5,CF_WHEEL_MS=180;
 function _cfReduced(){try{return window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}}
 function _cfSmall(){return window.innerWidth<=768;}
@@ -97,13 +98,16 @@ function _cfInit(st){
     else if(k==='Enter'&&e.target===st){var it=_heroItems[_heroIdx];if(it){sfx('open');openPlex(it.id);}e.preventDefault();}
   });
   /* Glisser (souris, doigt, stylet) : un pas tous les 80 px (50 px sur téléphone) */
-  var x0=null,moved=false;
+  var x0=null,moved=false,ring=document.getElementById('cfRing');
   st.addEventListener('pointerdown',function(e){if(e.target.closest('.cf-nav')||(e.pointerType==='mouse'&&e.button!==0))return;x0=e.clientX;moved=false;});
   window.addEventListener('pointermove',function(e){
     if(x0===null)return;var dx=e.clientX-x0,step=_cfSmall()?50:80;
-    if(Math.abs(dx)>step){moved=true;st.classList.add('drag');cfGo(_heroIdx-(dx>0?1:-1));x0=e.clientX;}
+    if(Math.abs(dx)>6){moved=true;st.classList.add('drag');}
+    if(Math.abs(dx)>step){var j=_heroIdx-(dx>0?1:-1);if(j>=0&&j<_heroItems.length){cfGo(j);x0+=dx>0?step:-step;dx=e.clientX-x0;}}
+    /* la rangée suit le pointeur en temps réel (amortie aux extrémités), puis se recale au relâchement */
+    if(moved&&ring)ring.style.transform='translateX('+(dx*.6).toFixed(1)+'px)';
   });
-  function up(){if(x0===null)return;x0=null;st.classList.remove('drag');if(moved)setTimeout(function(){moved=false;},0);}
+  function up(){if(x0===null)return;x0=null;st.classList.remove('drag');if(ring)ring.style.transform='';if(moved)setTimeout(function(){moved=false;},0);}
   window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
   /* Clic sur une affiche : la met au centre (ou ouvre la fiche si c'est déjà l'active) */
   st.addEventListener('click',function(e){

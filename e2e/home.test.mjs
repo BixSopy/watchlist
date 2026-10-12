@@ -155,3 +155,43 @@ test('mouvement réduit : rangée à plat, sans rotation ; téléphone : fond fl
   const w = await m.page.evaluate(() => [innerWidth, document.documentElement.scrollWidth]);
   assert.equal(w[0], w[1], 'pas de débordement horizontal');
 });
+
+/* Régression PR #23 : passage d'une affiche à l'autre animé (et non coupé sec), y compris en mouvement
+   réduit (Windows « Effets d'animation » désactivés), nœuds réutilisés d'un pas à l'autre. */
+const sampleStep = (page, how) => page.evaluate(async how => {
+  const st = document.getElementById('cfStage'), i0 = _heroIdx;
+  const c = document.querySelector('#cfRing .cf-card[data-i="' + (i0 + 1) + '"]');
+  const ids = [...document.querySelectorAll('#cfRing .cf-card')].map(e => e);
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  if (how === 'wheel') st.dispatchEvent(new WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true }));
+  else if (how === 'key') st.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  else if (how === 'button') document.querySelector('#heroBand .cf-nav.next').click();
+  else cfGo(i0 + 1);
+  await wait(90); const mid = getComputedStyle(c).transform;
+  await wait(800); const end = getComputedStyle(c).transform;
+  const still = ids.filter(e => e.isConnected).length, total = ids.length;
+  return { tr: getComputedStyle(c).transition, moved: _heroIdx === i0 + 1, mid, end, same: c.isConnected && c === document.querySelector('#cfRing .cf-card.on'), still, total };
+}, how);
+for (const rm of ['no-preference', 'reduce']) test('carrousel animé (' + rm + ') : molette, flèches, boutons ; nœuds réutilisés', async t => {
+  const { page } = await newPage(t, { reducedMotion: rm });
+  await page.evaluate(() => { _heroManual = true; clearTimeout(_heroTimer); });
+  for (const how of ['wheel', 'key', 'button']) {
+    const r = await sampleStep(page, how);
+    assert.ok(r.moved, how + ' avance');
+    assert.notEqual(r.mid, r.end, JSON.stringify(r) + ' : la transformation évolue (pas de coupure sèche)');
+    assert.ok(r.same, how + ' : la même affiche devient active (nœud réutilisé)');
+    assert.ok(r.still >= r.total - 1, how + ' : les autres affiches restent dans le DOM');
+    if (rm === 'reduce') assert.doesNotMatch(r.end, /matrix3d/, 'pas de 3D en mouvement réduit');
+  }
+});
+test('glisser : la rangée suit le pointeur en temps réel puis se recale', async t => {
+  const { page } = await newPage(t);
+  const b = await page.locator('#cfStage').boundingBox();
+  const x = b.x + b.width / 2, y = b.y + 120;
+  await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x - 40, y, { steps: 4 });
+  const during = await page.evaluate(() => document.getElementById('cfRing').style.transform);
+  assert.match(during, /translateX\(-2\d/, 'la rangée suit le pointeur');
+  await page.mouse.move(x - 130, y, { steps: 6 }); await page.mouse.up();
+  assert.equal(await active(page), 1);
+  assert.equal(await page.evaluate(() => document.getElementById('cfRing').style.transform), '');
+});

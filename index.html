@@ -1191,8 +1191,9 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 .cf-stage{position:relative;height:calc(var(--cf-h) + 80px);perspective:1100px;perspective-origin:50% 40%;outline:none;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;margin-top:6px}
 .cf-stage.drag{cursor:grabbing}
 .cf-stage:focus-visible{box-shadow:inset 0 0 0 2px var(--accent);border-radius:16px}
-.cf-ring{position:absolute;left:50%;top:22px;transform-style:preserve-3d}
-.cf-card{position:absolute;left:0;top:0;width:var(--cf-w);height:var(--cf-h);margin-left:calc(var(--cf-w) / -2);border:none;padding:0;border-radius:16px;background:var(--bg4);transform-style:preserve-3d;transition:transform .55s cubic-bezier(.22,.8,.25,1),opacity .45s,filter .45s;will-change:transform;cursor:pointer;color:#fff}
+.cf-ring{position:absolute;left:50%;top:22px;transform-style:preserve-3d;transition:transform .35s cubic-bezier(.22,.8,.25,1)}
+.cf-stage.drag .cf-ring{transition:none}
+.cf-card{position:absolute;left:0;top:0;width:var(--cf-w);height:var(--cf-h);margin-left:calc(var(--cf-w) / -2);border:none;padding:0;border-radius:16px;background:var(--bg4);transform-style:preserve-3d;transition:transform .5s cubic-bezier(.22,.8,.25,1),opacity .45s,filter .45s;will-change:transform;cursor:pointer;color:#fff}
 .cf-card img{width:100%;height:100%;object-fit:cover;border-radius:16px;display:block;pointer-events:none;-webkit-user-drag:none}
 .cf-card .cf-ph{display:grid;place-items:center;height:100%;font-size:44px}
 /* Ombre portée pour tous ; le reflet n'est ajouté que là où il existe (Chrome, Safari, Edge — pas Firefox) */
@@ -1236,7 +1237,9 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 .nav.floating .ntab.sp .det-badge{margin-left:2px}
 .nav.floating .nav-right{justify-content:center;margin:14px 0 0}
 /* Mouvement réduit : rangée à plat, sans rotation ni animation */
-@media (prefers-reduced-motion:reduce){.cf-card,.seg-hl,.cf-bar i,.cf-info>*,#heroBand.cf .hero-band-img{transition:none!important}.cf-stage{perspective:none}}
+/* Mouvement réduit (ex. Windows « Effets d'animation » désactivés) : pas de 3D ni de rotation, mais un glissé
+   court et doux plutôt qu'une coupure sèche */
+@media (prefers-reduced-motion:reduce){.seg-hl,.cf-bar i,.cf-info>*,#heroBand.cf .hero-band-img{transition:none!important}.cf-card{transition:transform .25s ease-out,opacity .25s ease-out!important}.cf-ring{transition:transform .2s ease-out}.cf-stage{perspective:none}}
 @media (max-width:768px){
   #heroBand.cf{--cf-w:150px;--cf-h:214px;padding:16px 0 12px}
   /* pas de fond flouté sur petit écran (coût GPU) */
