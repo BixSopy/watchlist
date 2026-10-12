@@ -40,7 +40,8 @@ function checkAllAir(){
 }
 
 /* ===== MODULE SUIVI ===== */
-var suiviCollapsed=(localStorage.getItem('wl_suivi_collapsed')=='1');
+/* Replié par défaut : le tiroir Suivi s'ouvre par-dessus les recommandations (colonne entière) */
+var suiviCollapsed=(localStorage.getItem('wl_suivi_collapsed')!=='0');
 var SUIVI_MAX=9;
 var suiviExpanded=false;/* état d'affichage seulement, pas persisté */
 

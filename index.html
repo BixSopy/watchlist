@@ -1143,6 +1143,129 @@ body.view-detected .nav-right .stabs,body.view-detected .nav-right .sort-sel,bod
    masquée tant que <html> n'a pas la classe lp-member (aussi sans JavaScript, ex. robots d'indexation) */
 html:not(.lp-member) .hdr,html:not(.lp-member) .layout,html:not(.lp-member) .app-foot,html:not(.lp-member) .aurora-bg{display:none!important}
 html.lp-member #landing{display:none!important}
+/* ===== ACCUEIL v2 (js/25-home.js) : rangée « Continuer », onglets agrandis, sous-onglets, recos pleine colonne ===== */
+.hero-btn.primary{background:linear-gradient(135deg,#8adcff,var(--accent) 55%,#3aa8f0);color:var(--on-accent);box-shadow:0 8px 24px rgba(var(--accent-rgb),.35),inset 0 1px 0 rgba(255,255,255,.5)}
+.cont-all{background:none;border:none;font:600 12.5px 'IBM Plex Sans',sans-serif;color:var(--accent);cursor:pointer;padding:6px 4px}
+.cont-all:hover{text-decoration:underline}
+/* Barre d'onglets : verre dépoli, plus grande, icônes au trait, compteurs */
+.nav.floating{padding:8px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)}
+.ntab{height:46px;padding:0 18px;border-radius:15px;font-size:15px;gap:9px;color:rgba(255,255,255,.8)}
+svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
+.ntab.on svg.ntab-ic{opacity:1}
+.ntab-cnt{font:600 11px 'IBM Plex Mono',monospace;font-style:normal;color:var(--text2);background:rgba(255,255,255,.07);padding:2px 7px;border-radius:8px}
+.nav.floating .ntab.on,.ntab.on{background:linear-gradient(135deg,#8adcff,var(--accent) 55%,#3aa8f0);color:var(--on-accent);box-shadow:0 6px 20px rgba(var(--accent-rgb),.35),inset 0 1px 0 rgba(255,255,255,.5)}
+@media (hover:hover){.ntab.on:hover,.nav.floating .ntab.on:hover{background:linear-gradient(135deg,#a0e4ff,var(--accent-hover) 55%,#4ab2f4)}}
+.ntab.on .ntab-cnt{color:var(--on-accent);background:rgba(0,0,0,.14)}
+.nav.floating .add-btn{height:46px;padding:0 20px;border-radius:15px;font-size:14.5px}
+/* Sous-onglets (statut, catégories de Découvrir) : contrôle segmenté plus grand */
+.stabs,body.view-discover .discover-cat-pills{gap:4px;padding:5px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+.stab{height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text2);display:inline-flex;align-items:center;gap:7px}
+.stab.on,.stab.on:hover{color:#fff;background:rgba(var(--accent-rgb),.16);box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.45)}
+.discover-cat-pills .stab[data-dc]:not([data-dc="all"]):before{content:"";width:7px;height:7px;border-radius:50%;background:var(--dot)}
+.stab[data-dc="film"]{--dot:#5cc8ff}.stab[data-dc="serie"]{--dot:#a78bfa}.stab[data-dc="anime"]{--dot:#ff7aa8}
+/* Recommandations sur toute la colonne gauche ; le Suivi devient un tiroir replié en bas */
+.sb-full .sb-hdr{padding:16px 18px 12px}
+.sb-full .sb-hdr .sb-title{font:800 14px 'Inter',sans-serif;letter-spacing:-.2px;text-transform:none;color:var(--text)}
+.sb-full .sb-scroll{padding-bottom:52px}
+.sb-full .sb-section{padding:14px 14px 10px;border-bottom:none}
+.sb-full .reco-card{padding:10px;margin-bottom:10px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));transition:border-color var(--tr),background var(--tr)}
+.sb-full .reco-card:last-child{border-bottom:1px solid var(--border)}
+@media (hover:hover){.sb-full .reco-card:hover{border-color:rgba(var(--accent-rgb),.35);background:rgba(var(--accent-rgb),.05)}}
+.sb-full .reco-img-wrap{border-radius:12px}
+.sb-full .reco-title{font-size:14px;font-weight:700}
+.sb-full .suivi-wrap{position:absolute;left:0;right:0;bottom:0;z-index:4;border-bottom:none;border-top:1px solid var(--border2);background:rgba(17,17,20,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -14px 34px rgba(0,0,0,.45)}
+.sb-full .suivi-hdr{padding:12px 18px;min-height:44px}
+.sb-full .suivi-hdr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.sb-full .suivi-toggle-ic{transform:rotate(180deg)}
+.sb-full .suivi-wrap.collapsed .suivi-toggle-ic{transform:none}
+.sb-full .suivi-body{max-height:min(420px,55vh)}
+/* « En cours » : carrousel 3D façon Cover Flow (js/25-home.js). Seules les affiches à ±5 de l'active sont dans le DOM. */
+#heroBand.cf{height:auto;overflow:hidden;padding:22px 0 18px;--cf-w:196px;--cf-h:280px}
+#heroBand.cf .hero-band-img{inset:-10%;filter:blur(28px) brightness(.4) saturate(1.2);transform:scale(1.15);transition:opacity .6s}
+#heroBand.cf .hero-band-fade{background:radial-gradient(ellipse at 50% 35%,transparent 30%,var(--bg) 85%),linear-gradient(transparent 70%,var(--bg))}
+#heroBand.cf>*:not(.hero-band-img):not(.hero-band-fade){position:relative;z-index:1}
+.cf-head{display:flex;align-items:center;gap:12px;padding:0 34px}
+.cf-tag{font:700 10.5px 'Inter',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(var(--accent-rgb),.38);background:rgba(var(--accent-rgb),.1);border-radius:20px;padding:4px 11px}
+.cf-ctr{font:500 12px 'IBM Plex Mono',monospace;color:var(--text2)}
+.cf-head .cont-all{margin-left:auto}
+.cf-stage{position:relative;height:calc(var(--cf-h) + 80px);perspective:1100px;perspective-origin:50% 40%;outline:none;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;margin-top:6px}
+.cf-stage.drag{cursor:grabbing}
+.cf-stage:focus-visible{box-shadow:inset 0 0 0 2px var(--accent);border-radius:16px}
+.cf-ring{position:absolute;left:50%;top:22px;transform-style:preserve-3d}
+.cf-card{position:absolute;left:0;top:0;width:var(--cf-w);height:var(--cf-h);margin-left:calc(var(--cf-w) / -2);border:none;padding:0;border-radius:16px;background:var(--bg4);transform-style:preserve-3d;transition:transform .55s cubic-bezier(.22,.8,.25,1),opacity .45s,filter .45s;will-change:transform;cursor:pointer;color:#fff}
+.cf-card img{width:100%;height:100%;object-fit:cover;border-radius:16px;display:block;pointer-events:none;-webkit-user-drag:none}
+.cf-card .cf-ph{display:grid;place-items:center;height:100%;font-size:44px}
+/* Ombre portée pour tous ; le reflet n'est ajouté que là où il existe (Chrome, Safari, Edge — pas Firefox) */
+.cf-card:before{content:"";position:absolute;inset:0;border-radius:16px;box-shadow:0 22px 50px rgba(0,0,0,.6);pointer-events:none}
+.cf-card:after{content:"";position:absolute;left:12%;right:12%;bottom:-26px;height:22px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%);pointer-events:none}
+@supports (-webkit-box-reflect:below){.cf-card{-webkit-box-reflect:below 8px linear-gradient(transparent 62%,rgba(255,255,255,.2))}.cf-card:after{display:none}}
+.cf-card.on:before{box-shadow:0 0 0 2px rgba(var(--accent-rgb),.85),0 26px 70px rgba(var(--accent-rgb),.42)}
+.cf-card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.cf-card .cf-pg{position:absolute;left:10px;right:10px;bottom:10px;height:4px;border-radius:4px;background:rgba(255,255,255,.2);overflow:hidden}
+.cf-card .cf-pg i{display:block;height:100%;background:linear-gradient(90deg,#8adcff,var(--accent))}
+.cf-card .cf-ep{position:absolute;top:9px;right:9px;font:600 10.5px 'IBM Plex Mono',monospace;background:rgba(0,0,0,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:2px 6px;border-radius:6px}
+.cf-nav{position:absolute;top:calc(22px + var(--cf-h) / 2 - 22px);width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(20,22,26,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#fff;display:grid;place-items:center;cursor:pointer;padding:0;z-index:200;transition:transform .2s,background .2s,opacity .2s}
+.cf-nav svg{width:18px;height:18px}.cf-nav.prev{left:24px}.cf-nav.next{right:24px}
+.cf-nav:disabled{opacity:.3;cursor:default}
+@media (hover:hover){.cf-nav:not(:disabled):hover{background:rgba(var(--accent-rgb),.2);transform:scale(1.08)}}
+#heroBand.single .cf-nav{display:none}
+.cf-info{text-align:center;padding:0 20px}
+#heroBand.cf .hero-title{font-size:30px;font-weight:800;letter-spacing:-.4px;margin-bottom:6px;max-width:100%}
+#heroBand.cf .hero-meta{justify-content:center;margin-bottom:0;display:flex}
+.cf-bar{width:260px;max-width:70%;height:5px;border-radius:5px;background:rgba(255,255,255,.12);margin:12px auto 0;overflow:hidden}
+.cf-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8adcff,var(--accent));transition:width .5s cubic-bezier(.22,.8,.25,1)}
+#heroBand.cf .hero-actions{justify-content:center;margin-top:14px}
+.cf-info.sw>*{opacity:0;transform:translateY(6px)}.cf-info>*{transition:opacity .22s,transform .22s}
+#heroBand.cf + .nav.floating{margin-top:18px}
+/* Onglets A : pilule en verre, surlignage en dégradé qui glisse ; Découvrir / Détectés en pilules secondaires à droite.
+   (Un onglet Calendrier viendra dans la pilule, après un séparateur, avec la PR du calendrier.) */
+.nav.floating{flex-direction:column;align-items:stretch;background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0}
+.tabs-row{display:flex;justify-content:center;align-items:center;gap:12px;padding:6px 0 4px}
+.nav.floating .ntabs-scroll.seg{position:relative;display:flex;gap:0;padding:6px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.seg-hl{position:absolute;top:6px;bottom:6px;left:0;width:0;border-radius:999px;background:linear-gradient(135deg,#8adcff,var(--accent) 55%,#3aa8f0);box-shadow:0 6px 24px rgba(var(--accent-rgb),.45),inset 0 1px 0 rgba(255,255,255,.5);transition:transform .45s cubic-bezier(.22,.8,.25,1),width .45s cubic-bezier(.22,.8,.25,1),opacity .25s;pointer-events:none;opacity:0}
+.seg-hl.on{opacity:1}
+.nav.floating .seg .ntab{position:relative;z-index:1;min-width:120px;height:46px;justify-content:center;border-radius:999px;padding:0 18px;background:transparent;box-shadow:none;border:none;color:#c8ccd2;font-size:15px;font-weight:600;transition:color .3s}
+.nav.floating .seg .ntab.on,.nav.floating .seg .ntab.on:hover{background:transparent;box-shadow:none;color:var(--on-accent);font-weight:700}
+.seg.no-hl .ntab.on{background:linear-gradient(135deg,#8adcff,var(--accent) 55%,#3aa8f0)!important}
+@media (hover:hover){.nav.floating .seg .ntab:not(.on):hover{background:transparent;color:#fff}}
+.nav.floating .seg .ntab-cnt{background:none;padding:0;font-weight:500;opacity:.65;color:inherit}
+.nav.floating .seg .ntab.on .ntab-cnt{background:none;color:inherit;opacity:.7}
+.nav.floating .ntab.sp{height:50px;padding:0 18px;border-radius:999px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.1);font-size:14px;font-weight:600;color:#a9aeb6;position:relative}
+@media (hover:hover){.nav.floating .ntab.sp:not(.on):hover{color:#fff;border-color:rgba(var(--accent-rgb),.4);background:rgba(255,255,255,.06)}}
+.nav.floating .ntab.sp.on{border-color:transparent}
+.nav.floating .ntab.sp .det-badge{margin-left:2px}
+.nav.floating .nav-right{justify-content:center;margin:14px 0 0}
+/* Mouvement réduit : rangée à plat, sans rotation ni animation */
+@media (prefers-reduced-motion:reduce){.cf-card,.seg-hl,.cf-bar i,.cf-info>*,#heroBand.cf .hero-band-img{transition:none!important}.cf-stage{perspective:none}}
+@media (max-width:768px){
+  #heroBand.cf{--cf-w:150px;--cf-h:214px;padding:16px 0 12px}
+  /* pas de fond flouté sur petit écran (coût GPU) */
+  #heroBand.cf .hero-band-img{display:none}
+  .cf-head{padding:0 16px}
+  .cf-nav{width:38px;height:38px;background:rgba(20,22,26,.72)}.cf-nav.prev{left:8px}.cf-nav.next{right:8px}
+  #heroBand.cf .hero-title{font-size:23px}
+  #heroBand.cf .hero-meta{display:flex;font-size:12.5px}
+  .tabs-row{justify-content:flex-start;gap:8px;padding:4px 0}
+  .nav.floating .ntabs-scroll.seg{flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;display:flex}
+  .nav.floating .ntabs-scroll.seg::-webkit-scrollbar{display:none}
+  .nav.floating .seg .ntab{min-width:0;flex:none;padding:0 13px;height:42px;font-size:14px;gap:6px;min-height:42px}
+  .nav.floating .seg .ntab svg.ntab-ic{display:none}
+  .nav.floating .seg .ntab{backdrop-filter:none;-webkit-backdrop-filter:none;border:none}.nav.floating .seg .ntab:not(.on){background:transparent}
+  .nav.floating .tabs-row{width:100%;min-width:0}
+  .nav.floating .ntab.sp{width:46px;height:46px;padding:0;justify-content:center;flex:none;min-height:46px}
+  .nav.floating .ntab.sp>span:not(.det-badge){display:none}
+  .nav.floating .ntab.sp .det-badge{position:absolute;top:-4px;right:-4px}
+}
+@media (max-width:768px){
+  .nav.floating{padding:0 10px;border:none;background:transparent;box-shadow:none}
+  /* sous-onglets visibles sur téléphone (avant : liste déroulante) */
+  .stabs{display:flex;width:100%;order:-1}
+  .stabs .stab{flex:1;justify-content:center;padding:0 4px;min-height:40px}
+  .csel.stat-sel-mobile{display:none}
+}
+@media (max-width:480px){
+  .stabs .stab{font-size:12.5px}
+}
 /* Fiche détail v2 : grande affiche qui chevauche le bandeau, actions en relief, cartes et pastilles (même DA que l'accueil) */
 .plex-wrap{display:block;overflow-y:auto;overscroll-behavior:contain;max-width:860px;background:radial-gradient(900px 500px at 50% -200px,rgba(var(--accent-rgb),.10),transparent 70%),#0d0d10;border:1px solid rgba(255,255,255,.14);border-radius:24px}
 .plex-wrap::-webkit-scrollbar{width:4px}.plex-wrap::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:10px}
@@ -1540,14 +1663,7 @@ html.lp-member #landing{display:none!important}
 </header>
 <div class="layout">
   <div class="sb-backdrop" id="sbBackdrop" data-click="toggleSidebar" data-args="[false]"></div>
-  <aside class="sidebar">
-    <div class="suivi-wrap" id="suiviWrap">
-      <div class="suivi-hdr" data-click="toggleSuivi">
-        <div class="sb-title" data-i18n="set.suivi">Suivi</div>
-        <svg class="suivi-toggle-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="suivi-body" id="suiviBody"><div class="suivi-empty" data-i18n="common.loading">Chargement...</div></div>
-    </div>
+  <aside class="sidebar sb-full">
     <div class="sb-hdr">
       <div class="sb-title" data-i18n="set.recos">Recommandations</div>
       <button class="sb-refresh" data-sfx-hover data-click="refreshRecos">
@@ -1558,31 +1674,45 @@ html.lp-member #landing{display:none!important}
     <div class="sb-scroll" id="sbScroll">
       <div id="sbContent"><div class="sb-loading"><div class="sb-spin"></div><span data-i18n="common.loading">Chargement...</span></div></div>
     </div>
+    <div class="suivi-wrap" id="suiviWrap">
+      <div class="suivi-hdr" data-click="toggleSuivi" role="button" tabindex="0" data-i18n-attr="aria-label:sb.suiviOpen" aria-label="Afficher le suivi des sorties">
+        <div class="sb-title" data-i18n="set.suivi">Suivi</div>
+        <svg class="suivi-toggle-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="suivi-body" id="suiviBody"><div class="suivi-empty" data-i18n="common.loading">Chargement...</div></div>
+    </div>
   </aside>
   <div class="main">
-    <div class="hero-band" id="heroBand">
-      <div class="hero-band-bg"></div>
+    <div class="hero-band cf" id="heroBand" aria-roledescription="carrousel" data-i18n-attr="aria-label:cont.title" aria-label="Continuer">
       <div class="hero-band-img" id="heroBg"></div>
       <div class="hero-band-fade"></div>
-      <div class="hero-band-content">
-        <div class="hero-badge" data-i18n="hero.resume">Reprendre</div>
+      <div class="cf-head"><span class="cf-tag" data-i18n="status.encours">En cours</span><span class="cf-ctr" id="contCtr" aria-hidden="true"></span>
+        <button type="button" class="cont-all" data-click="contSeeAll" data-i18n="cont.seeAll">Tout voir</button></div>
+      <div class="cf-stage" id="cfStage" tabindex="0" data-i18n-attr="aria-label:cont.stageAria" aria-label="Titres en cours : molette, flèches gauche et droite pour naviguer, Entrée pour ouvrir">
+        <div class="cf-ring" id="cfRing"></div>
+        <button type="button" class="cf-nav prev" data-click="contPrev" data-i18n-attr="aria-label:cont.prev" aria-label="Précédent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button type="button" class="cf-nav next" data-click="contNext" data-i18n-attr="aria-label:cont.next" aria-label="Suivant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <div class="cf-info" id="cfInfo" aria-live="polite">
         <div class="hero-title" id="heroTitle"></div>
         <div class="hero-meta" id="heroMeta"></div>
+        <div class="cf-bar"><i id="cfBar"></i></div>
         <div class="hero-actions">
           <button class="hero-btn primary" id="heroBtnPlay"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg><span data-i18n="hero.resume">Reprendre</span></button>
           <button class="hero-btn liquid-glass" id="heroBtnInfo" data-i18n="hero.details">Details</button>
         </div>
       </div>
-      <div class="hero-dots" id="heroDots"></div>
     </div>
     <div class="nav floating liquid-glass">
-      <div class="ntabs-scroll">
-        <button class="ntab on" data-tab="all" data-sfx-hover data-click="switchTab" data-i18n="tab.all">Tout</button>
-        <button class="ntab" data-tab="film" data-sfx-hover data-click="switchTab"><span class="ntab-ic">&#127916;</span><span data-i18n="type.films">Films</span></button>
-        <button class="ntab" data-tab="serie" data-sfx-hover data-click="switchTab"><span class="ntab-ic">&#128250;</span><span data-i18n="type.series">Séries</span></button>
-        <button class="ntab" data-tab="anime" data-sfx-hover data-click="switchTab"><span class="ntab-ic">&#127884;</span><span data-i18n="type.anime">Anime</span></button>
-        <button class="ntab" data-tab="discover" data-sfx-hover data-click="switchTab"><span class="ntab-ic">&#129517;</span><span data-i18n="tab.discover">Découvrir</span></button>
-        <button class="ntab" id="detTab" data-tab="detectes" data-sfx-hover data-click="switchTab" hidden><span class="ntab-ic">&#128229;</span><span data-i18n="det.tab">Détectés</span><span class="det-badge" id="detBadge" hidden>0</span></button>
+      <div class="tabs-row">
+      <div class="ntabs-scroll seg" id="tabSeg"><span class="seg-hl" id="segHl" aria-hidden="true"></span>
+        <button class="ntab on" data-tab="all" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z"/></svg><span data-i18n="tab.all">Tout</span></button>
+        <button class="ntab" data-tab="film" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4z M4 9h16 M4 15h16 M8 5v14 M16 5v14"/></svg><span data-i18n="type.films">Films</span></button>
+        <button class="ntab" data-tab="serie" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v11H3z M8 21h8 M12 17v4"/></svg><span data-i18n="type.series">Séries</span></button>
+        <button class="ntab" data-tab="anime" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span data-i18n="type.anime">Anime</span></button>
+      </div>
+        <button class="ntab sp" data-tab="discover" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span data-i18n="tab.discover">Découvrir</span></button>
+        <button class="ntab sp" id="detTab" data-tab="detectes" data-sfx-hover data-click="switchTab" hidden><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M4 19h16"/></svg><span data-i18n="det.tab">Détectés</span><span class="det-badge" id="detBadge" hidden>0</span></button>
       </div>
       <div class="nav-right">
         <button class="add-btn" data-sfx-hover data-click="openAdd">
@@ -1864,5 +1994,6 @@ html.lp-member #landing{display:none!important}
 <script src="js/22-modal-history.js"></script>
 <script src="js/23-landing.js"></script>
 <script src="js/24-feedback.js"></script>
+<script src="js/25-home.js"></script>
 </body>
 </html>
