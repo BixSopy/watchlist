@@ -58,6 +58,7 @@ function renderContinue(items,idx){
   });
   var ctr=document.getElementById('contCtr');if(ctr)ctr.textContent=(idx+1)+' / '+items.length;
   var bar=document.getElementById('cfBar');if(bar)bar.style.width=_cfPct(items[idx])+'%';
+  _cfAmbient(items[idx]);
   var pv=band.querySelector('.cf-nav.prev'),nx=band.querySelector('.cf-nav.next');
   if(pv)pv.disabled=idx<=0;if(nx)nx.disabled=idx>=items.length-1;
   _cfInit(document.getElementById('cfStage'));
@@ -154,6 +155,92 @@ function updateTabCounts(){
   });
   segMove();
 }
-if(typeof module!=='undefined')module.exports={renderContinue:renderContinue,updateTabCounts:updateTabCounts,tabCounts:tabCounts};
+/* ===== Accueil « Cinéma » (P3) : couleur d'ambiance, « À suivre » et « Cette semaine » =====
+   Couleur d'ambiance : moyenne des pixels d'une miniature (w92) de l'affiche active, lue dans un canvas
+   (image.tmdb.org répond avec Access-Control-Allow-Origin: *). Rien n'est envoyé nulle part ; en cas
+   d'échec, on garde l'accent. Les couleurs sont gardées en mémoire par affiche. */
+var _ambCache=Object.create(null),_ambCur='';
+function ambientFromPixels(data){
+  /* teinte dominante : 12 secteurs de teinte pondérés par la saturation, puis moyenne du secteur gagnant
+     (une simple moyenne mélange les couleurs et donne du gris) */
+  var bins=[],best=-1,bw=0;
+  for(var i=0;i<data.length;i+=4){
+    var R=data[i],G=data[i+1],B=data[i+2],mx=Math.max(R,G,B),mn=Math.min(R,G,B),c=mx-mn;
+    if(data[i+3]<128||mx<28||mn>235||c<18)continue;/* transparent, noir, blanc, gris */
+    var h=mx===R?((G-B)/c+6)%6:mx===G?(B-R)/c+2:(R-G)/c+4,k=Math.floor(h*2)%12,w=c/255;
+    var o=bins[k]||(bins[k]={r:0,g:0,b:0,w:0});o.r+=R*w;o.g+=G*w;o.b+=B*w;o.w+=w;
+    if(o.w>bw){bw=o.w;best=k;}
+  }
+  if(best<0)return null;
+  var o=bins[best],r=o.r/o.w,g=o.g/o.w,b=o.b/o.w;
+  /* remonte la luminosité pour un halo visible sur fond noir, sans brûler */
+  var m=Math.max(r,g,b,1),f=Math.min(2.6,200/m);
+  return [Math.round(Math.min(255,r*f)),Math.round(Math.min(255,g*f)),Math.round(Math.min(255,b*f))];
+}
+function _ambSet(rgb){
+  var band=document.getElementById('heroBand');if(!band)return;
+  var v=rgb?rgb.join(','):'';
+  if(v===_ambCur)return;_ambCur=v;
+  if(v)band.style.setProperty('--amb',v);else band.style.removeProperty('--amb');
+}
+function _cfAmbient(item){
+  if(!item||!item.poster){_ambSet(null);return;}
+  var key=item.poster;
+  if(key in _ambCache){_ambSet(_ambCache[key]);return;}
+  var img=new Image();img.crossOrigin='anonymous';img.decoding='async';
+  img.onload=function(){
+    var rgb=null;
+    try{var c=document.createElement('canvas');c.width=24;c.height=36;var x=c.getContext('2d');x.drawImage(img,0,0,24,36);rgb=ambientFromPixels(x.getImageData(0,0,24,36).data);}catch(e){rgb=null;}
+    _ambCache[key]=rgb;
+    var cur=_heroItems[_heroIdx];if(cur&&cur.poster===key)_ambSet(rgb);
+  };
+  img.onerror=function(){_ambCache[key]=null;};
+  img.src=IB+'w92'+item.poster;
+}
+/* Épisode suivant affiché dans « À suivre » (le pointeur actuel = dernier épisode vu) */
+function nextEpLabel(item){
+  if(!item||item.type==='film')return '';
+  var s=item.saison||1,e=(item.episode||0)+1;
+  if(item.seasonEpCount&&item.seasonEpCountSeason===s&&e>item.seasonEpCount){s++;e=1;}
+  return 'S'+pad(s)+' · E'+pad(e);
+}
+/* Sorties des 7 prochains jours, tirées du calendrier (js/26-calendar.js, cache local de 12 h) */
+function weekEvents(evs,today,addDays){
+  var end=addDays(today,7);
+  return (evs||[]).filter(function(e){return e.date>=today&&e.date<end;})
+    .sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
+}
+var HOME_NEXT_MAX=4,HOME_WEEK_MAX=4;
+function _homeDay(date){
+  try{var d=new Date(date+'T12:00:00');return{wd:new Intl.DateTimeFormat(LOCALE,{weekday:'short'}).format(d).replace('.',''),d:d.getDate()};}catch(e){return{wd:'',d:date.slice(8)};}
+}
+function _homeThumb(p,cls){return '<span class="'+cls+'"'+(p?' style="background-image:url(\''+esc(IB+'w185'+p)+'\')"':'')+' aria-hidden="true"></span>';}
+function renderHomeNext(){
+  var sec=document.getElementById('homeNext');if(!sec)return;
+  var cpt=typeof compactOn!=='undefined'&&!!compactOn,band=document.getElementById('heroBand');
+  if(band)band.classList.toggle('cpt',cpt);sec.classList.toggle('cpt',cpt);
+  var items=(_heroItems||[]).slice(0,HOME_NEXT_MAX);
+  if(!items.length){sec.hidden=true;return;}
+  sec.hidden=false;
+  var up=items.map(function(it,i){
+    var nx=nextEpLabel(it),sub=nx?t('home.nextEp',{ep:nx}):t('home.filmInProgress');
+    var btn=it.type!=='film'?'<button type="button" class="hn-ck" title="'+esc(t('card.nextEp'))+'" aria-label="'+esc(t('card.nextEp')+' : '+it.title)+'"'+uiAct('quickNextEp',[it.id])+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></button>':'';
+    return '<div class="hn-row" style="--i:'+i+'" role="button" tabindex="0"'+uiAct('openPlexQuiet',[it.id])+'>'+_homeThumb(it.poster,'hn-th')+
+      '<span class="hn-tx"><b>'+esc(it.title)+'</b><i>'+esc(sub)+'</i></span>'+btn+'</div>';
+  }).join('');
+  var wk=[],cal=window.calWeek?window.calWeek():null;
+  if(cal&&cal.events)wk=cal.events.slice(0,HOME_WEEK_MAX);
+  var week=wk.length?wk.map(function(e,i){var d=_homeDay(e.date),code=e.kind==='film'?(e.label||''):(e.s!=null?'S'+pad(e.s)+' · E'+pad(e.e):'');
+      return '<div class="hn-day" style="--i:'+i+'" role="button" tabindex="0"'+uiAct('openPlexQuiet',[e.itemId])+'><span class="hn-dd"><em>'+esc(d.wd)+'</em><b>'+d.d+'</b></span>'+_homeThumb(e.poster,'hn-dp')+
+        '<span class="hn-tx"><b>'+esc(e.title)+'</b><i>'+esc(code)+'</i></span></div>';}).join('')
+    :'<div class="hn-empty">'+esc(cal&&cal.loading?t('common.loading'):t('home.weekEmpty'))+'</div>';
+  sec.innerHTML='<section class="hn-col"><h2 class="hn-h">'+esc(t('home.upNext'))+'</h2><div class="hn-list">'+up+'</div></section>'+
+    '<section class="hn-col"><h2 class="hn-h">'+esc(t('home.thisWeek'))+'<button type="button" class="hn-more"'+uiAct('homeOpenCal')+'>'+esc(t('cal.tab'))+' ›</button></h2><div class="hn-list">'+week+'</div></section>';
+}
+/* Entrée / Espace sur une ligne « À suivre » ou « Cette semaine » = clic */
+document.addEventListener('keydown',function(e){
+  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.matches&&e.target.matches('.hn-row,.hn-day')){e.preventDefault();e.target.click();}
+});
+if(typeof module!=='undefined')module.exports={renderContinue:renderContinue,updateTabCounts:updateTabCounts,tabCounts:tabCounts,ambientFromPixels:ambientFromPixels,nextEpLabel:nextEpLabel,weekEvents:weekEvents};
 /* Tiroir Suivi : Entrée / Espace l'ouvrent aussi au clavier */
 (function(){var h=document.querySelector('#suiviWrap .suivi-hdr');if(!h)return;h.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();h.click();}});})();

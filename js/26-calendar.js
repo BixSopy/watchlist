@@ -151,6 +151,7 @@ function agendaHtml(evs,from,days){
 function paint(){
   var sec=document.getElementById('calendarSection');if(!sec)return;
   updateBadge();
+  if(typeof renderHomeNext==='function')renderHomeNext();
   if(activeTab!=='calendar')return;
   var td=today(),evs=visible(),mobile=isMobile(),view=st.view||(mobile?'agenda':'month');
   var mStart=C.ymd(new Date(st.y,st.m,1)),mEnd=C.ymd(new Date(st.y,st.m+1,1));
@@ -218,6 +219,14 @@ var _sig='';
 function sig(){return candidates().map(function(i){return i.id+':'+i.tmdbId;}).join(',');}
 window.calendarRefresh=function(){if(activeTab!=='calendar')return;var s2=sig();if(s2!==_sig){_sig=s2;load(false);}else paint();};
 window._calState=st;
+/* Accueil « Cette semaine » (js/25-home.js) : sorties des 7 prochains jours ; lance le chargement
+   (cache local de 12 h, mêmes requêtes que l'onglet Calendrier) au premier appel. */
+window.calWeek=function(){
+  /* chargement différé : ne concurrence pas le démarrage de l'app ni l'ouverture d'une fiche */
+  if(!st.loaded&&!st.loading&&!st._sched)st._sched=setTimeout(function(){st._sched=0;if(!st.loaded&&!st.loading){_sig=sig();load(false);}},2500);
+  var td=today();
+  return {loading:st.loading||!st.loaded,events:(typeof weekEvents==='function'?weekEvents(visible(),td,C.addDays):[])};
+};
 function openFromHash(){if(location.hash==='#calendrier'&&activeTab!=='calendar'){var b=document.querySelector('.ntab[data-tab="calendar"]');if(b)switchTab(b);}}
 window.addEventListener('hashchange',openFromHash);
 window.addEventListener('resize',function(){if(activeTab==='calendar'&&!st.view)paint();});

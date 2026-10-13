@@ -195,3 +195,54 @@ test('glisser : la rangée suit le pointeur en temps réel puis se recale', asyn
   assert.equal(await active(page), 1);
   assert.equal(await page.evaluate(() => document.getElementById('cfRing').style.transform), '');
 });
+
+/* ===== Accueil « Cinéma » : À suivre, Cette semaine, ambiance, compact ===== */
+test('Accueil Cinéma : « À suivre » (4 titres), bouton épisode suivant, « Cette semaine », masqué en compact et dans Calendrier', async t => {
+  const { page, problems } = await newPage(t);
+  const rows = page.locator('#homeNext .hn-row');
+  await rows.first().waitFor();
+  assert.equal(await rows.count(), 4);
+  assert.match(await rows.first().textContent(), /En cours 1.*Prochain : S01 · E02/);
+  // bouton ✓ = épisode suivant existant (quickNextEp), sans ouvrir la fiche
+  const id = await page.evaluate(() => _heroItems[0].id);
+  await page.click('#homeNext .hn-row:first-child .hn-ck');
+  await page.waitForFunction(id => memDB.find(i => i.id == id).episode === 2, id);
+  assert.equal(await page.locator('#plexMbk.on').count(), 0);
+  // « Cette semaine » : calendrier chargé en différé, ici sans sortie
+  await page.locator('#homeNext .hn-empty', { hasText: 'Rien de prévu' }).waitFor({ timeout: 8000 });
+  // clic sur une ligne = fiche
+  await page.click('#homeNext .hn-row:nth-child(2) .hn-tx');
+  await page.locator('#plexMbk.on').waitFor();
+  await page.keyboard.press('Escape');
+  // mode compact : sections masquées, grille dense
+  await page.evaluate(() => { compactOn = true; render(); });
+  assert.equal(await page.locator('#homeNext').isVisible(), false);
+  assert.equal(await page.locator('#mc .grid.cpt').count() > 0, true);
+  await page.evaluate(() => { compactOn = false; render(); });
+  assert.equal(await page.locator('#homeNext').isVisible(), true);
+  // Calendrier : masqué
+  await page.click('.ntab[data-tab="calendar"]');
+  assert.equal(await page.locator('#homeNext').isVisible(), false);
+  assert.deepEqual(problems, []);
+});
+
+test('Accueil Cinéma : couleur d\'ambiance tirée de l\'affiche active', async t => {
+  const { page, problems } = await newPage(t);
+  await page.route('https://image.tmdb.org/**', r => r.fulfill({ status: 200, contentType: 'image/svg+xml', headers: { 'access-control-allow-origin': '*' },
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="92" height="138"><rect width="92" height="138" fill="#c03020"/></svg>' }));
+  await page.evaluate(() => cfGo(3));
+  await page.waitForFunction(() => /^\d+,\d+,\d+$/.test(document.getElementById('heroBand').style.getPropertyValue('--amb')));
+  const [r, g, b] = (await page.evaluate(() => document.getElementById('heroBand').style.getPropertyValue('--amb'))).split(',').map(Number);
+  assert.ok(r > g * 2 && r > b * 2, 'rouge de l\'affiche');
+  assert.deepEqual(problems, []);
+});
+
+test('Accueil Cinéma sur téléphone (390) : pas de débordement horizontal, 3 lignes « À suivre », grille 2 colonnes', async t => {
+  const { page, problems } = await newPage(t, { viewport: { width: 390, height: 844 }, mobile: true });
+  await page.locator('#homeNext .hn-row').first().waitFor();
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  assert.equal(await page.locator('#homeNext .hn-row:visible').count(), 3);
+  const cols = await page.evaluate(() => { const g = document.querySelector('#mc .grid:not(.cpt)'); return g ? getComputedStyle(g).gridTemplateColumns.split(' ').length : 2; });
+  assert.equal(cols, 2);
+  assert.deepEqual(problems, []);
+});
