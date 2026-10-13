@@ -55,3 +55,23 @@ test('textes FR / EN de l\'accueil', () => {
     for (const k of ['home.upNext', 'home.thisWeek', 'home.nextEp', 'home.filmInProgress', 'home.weekEmpty']) assert.ok(src.includes('"' + k + '"'), l + ' ' + k);
   }
 });
+
+test('progression : quand demander le nombre d\'épisodes de la saison, et lecture de la réponse TMDB', () => {
+  const base = { type: 'serie', status: 'encours', tmdbId: 1, saison: 2, episode: 3 };
+  assert.equal(H.needsSeasonCount(base), true);
+  assert.equal(H.needsSeasonCount({ ...base, seasonEpCount: 8, seasonEpCountSeason: 2 }), false);
+  assert.equal(H.needsSeasonCount({ ...base, seasonEpCount: 8, seasonEpCountSeason: 1 }), true, 'compte d\'une autre saison');
+  assert.equal(H.needsSeasonCount({ ...base, type: 'film' }), false);
+  assert.equal(H.needsSeasonCount({ ...base, status: 'avoir' }), false);
+  assert.equal(H.seasonCountFrom({ seasons: [{ season_number: 1, episode_count: 10 }, { season_number: 2, episode_count: 8 }] }, 2), 8);
+  assert.equal(H.seasonCountFrom({ seasons: [{ season_number: 2, episode_count: 0 }] }, 2), 0);
+  assert.equal(H.seasonCountFrom(null, 2), 0);
+});
+
+test('carrousel : départ au milieu (05-render.js) et barre indéterminée avec repli mouvement réduit', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'js/05-render.js'), 'utf8');
+  const start = new Function(src.match(/function heroStartIndex\(n\)\{([^}]*)\}/)[1].replace(/^/, 'const n=arguments[0];'));
+  assert.deepEqual([1, 2, 3, 4, 5, 14].map(n => start(n)), [0, 0, 1, 1, 2, 6]);
+  assert.match(html, /@keyframes cfUnk/);
+  assert.match(html, /prefers-reduced-motion:reduce\)\{\.cf-bar\.unk i,\.cf-card \.cf-pg\.unk i\{animation:none/);
+});
