@@ -1,0 +1,14 @@
+Disney+ Data
+BillingInformation
+Account Email Billing Type
+Titles Watched
+Profile Name Title Date Watched
+Pierre The Searchers 2023-12-11
+Pierre 9-1-1 2023-12-11
+Pierre Trailer | Only Murders in the Building | Season 1 2023-03-14
+Pierre Andor | Season 2 | Episode 3 2025-05-02
+Pierre Andor | Season 2 | Episode 4 2025-05-03
+Pierre Le Roi Lion 2024-01-31
+Watchlist
+ProfileName Title Date Added
+Pierre Moana 2 2024-12-01

@@ -564,6 +564,84 @@ body.suivi-providers-off .suivi-providers{display:none}
 .alert-text{font-size:13px;color:var(--text);flex:1}.alert-text b{color:var(--accent);font-weight:600}
 .alert-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 6px}
 
+/* IMPORT RGPD Disney+ / Apple TV (js/27-gdpr-import.js) */
+.det-src-disney{color:#4f8bff}.det-src-apple{color:#e8e8ed}
+.gd-card{position:relative;margin:0 0 18px;padding:18px;border-radius:18px;background:linear-gradient(135deg,rgba(var(--accent-rgb),.14),rgba(255,255,255,.03) 60%);border:1px solid rgba(255,255,255,.08);overflow:hidden;animation:gdIn .5s cubic-bezier(.2,.8,.2,1) both}
+.gd-card::after{content:"";position:absolute;inset:-40% -10% auto auto;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(var(--accent-rgb),.22),transparent 70%);pointer-events:none;animation:gdGlow 8s ease-in-out infinite alternate}
+.gd-card-t{font-family:'Inter',sans-serif;font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--text)}
+.gd-card-s{font-size:13px;color:var(--text2);margin-top:4px;line-height:1.5;max-width:60ch}
+.gd-plats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;position:relative;z-index:1}
+.gd-plat{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(10,12,18,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--text);cursor:pointer;font:inherit;transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .25s;min-width:0}
+.gd-plat:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.5);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.gd-plat:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gd-logo{flex:0 0 38px;height:38px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.06)}
+.gd-logo svg{width:20px;height:20px}
+.gd-disney .gd-logo{color:#7aa7ff;background:linear-gradient(140deg,#0b1f5c,#13349c)}
+.gd-apple .gd-logo{color:#fff;background:linear-gradient(140deg,#2b2b30,#0d0d0f)}
+.gd-pb{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.gd-pn{font-family:'Inter',sans-serif;font-weight:700;font-size:14px}
+.gd-ps{font-size:12px;color:var(--text2);line-height:1.35}
+.gd-due .gd-ps{color:#f5c451}.gd-ok .gd-ps{color:var(--green)}
+.gd-due{border-color:rgba(245,196,81,.45);animation:gdPulse 2.4s ease-in-out infinite}
+.gd-go{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap}
+.gd-bar{display:block;height:3px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:5px;overflow:hidden}
+.gd-bar i{display:block;height:100%;width:var(--p);background:linear-gradient(90deg,var(--accent),#7aa7ff);border-radius:3px;animation:gdBar 1s cubic-bezier(.2,.8,.2,1) both;transform-origin:left}
+.modal-add.gd-modal{max-width:560px;position:relative}
+.gd-title{margin-bottom:16px;padding-right:28px}
+.gd-seg{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);margin-bottom:16px}
+.gd-seg button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;border:0;background:none;color:var(--text2);font:600 14px 'Inter',sans-serif;cursor:pointer;border-radius:999px;transition:color .25s}
+.gd-seg button svg{width:16px;height:16px}
+.gd-seg button.on{color:var(--text)}
+.gd-seg-hl{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:999px;background:rgba(var(--accent-rgb),.22);border:1px solid rgba(var(--accent-rgb),.45);transform:translateX(calc(var(--x)*100%));transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.gd-prog{display:flex;align-items:center;gap:6px;margin-bottom:18px;font-size:12px;color:var(--text3)}
+.gd-prog span{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.gd-prog b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 11px 'Inter',sans-serif;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);transition:all .3s}
+.gd-prog .on{color:var(--text)}.gd-prog .on b{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 4px rgba(var(--accent-rgb),.2)}
+.gd-prog .done{color:var(--text2)}.gd-prog .done b{background:rgba(var(--accent-rgb),.25);border-color:rgba(var(--accent-rgb),.5)}
+.gd-prog i{flex:1;height:1px;background:rgba(255,255,255,.1);min-width:8px}
+.gd-body{animation:gdIn .45s cubic-bezier(.2,.8,.2,1) both}
+.gd-lead{font-size:14px;color:var(--text2);line-height:1.55;margin:0 0 14px}
+.gd-steps{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:8px}
+.gd-steps li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);font-size:13.5px;line-height:1.5;color:var(--text);animation:gdIn .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*70ms)}
+.gd-steps li b{color:var(--text);font-weight:700}
+.gd-n{flex:0 0 24px;height:24px;border-radius:8px;display:grid;place-items:center;font:700 12px 'Inter',sans-serif;color:var(--accent);background:rgba(var(--accent-rgb),.14)}
+.gd-note{font-size:12.5px;color:var(--text2);padding:10px 12px;border-radius:12px;background:rgba(245,196,81,.08);border:1px solid rgba(245,196,81,.2);line-height:1.5}
+.gd-act{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.gd-act .btn{min-height:44px}
+a.gd-link{text-decoration:none;display:inline-flex;align-items:center}
+.gd-reset{margin-left:auto;color:var(--text3)}
+.gd-wait,.gd-res{display:flex;gap:16px;align-items:center;padding:16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
+.gd-ring{--p:0;flex:0 0 84px;height:84px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) calc(var(--p)*1%),rgba(255,255,255,.08) 0);position:relative;animation:gdPop .6s cubic-bezier(.2,.8,.2,1) both}
+.gd-ring::before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--bg2,#12141b)}
+.gd-ring span{position:relative;font:700 13px 'Inter',sans-serif;text-align:center;padding:0 6px}
+.gd-wt{font-family:'Inter',sans-serif;font-weight:700;font-size:15px;color:var(--text)}
+.gd-ws{font-size:12.5px;color:var(--text2);margin-top:4px;line-height:1.5}
+.gd-drop{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:28px 16px;border-radius:18px;border:1.5px dashed rgba(var(--accent-rgb),.45);background:rgba(var(--accent-rgb),.06);cursor:pointer;text-align:center;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s,border-color .3s}
+.gd-drop:hover,.gd-drop.over{background:rgba(var(--accent-rgb),.13);border-color:var(--accent);transform:scale(1.01)}
+.gd-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.gd-drop-ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:rgba(var(--accent-rgb),.18);color:var(--accent);animation:gdFloat 3s ease-in-out infinite}
+.gd-drop-ic svg{width:24px;height:24px}
+.gd-drop.busy .gd-drop-ic{animation:gdSpin 1s linear infinite}
+.gd-drop-t{font:700 15px 'Inter',sans-serif;color:var(--text)}
+.gd-drop-s{font-size:12.5px;color:var(--text2);max-width:42ch;line-height:1.5}
+.gd-paste{margin-top:12px;font-size:13px;color:var(--text2)}
+.gd-paste summary{cursor:pointer;padding:6px 0}
+.gd-paste textarea{display:block;width:100%;margin:8px 0;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font:14px/1.5 'Inter',sans-serif;resize:vertical}
+.gd-err{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(255,77,87,.1);border:1px solid rgba(255,77,87,.3);color:#ff9aa0;font-size:13px}
+.gd-res{margin-top:14px;animation:gdIn .5s cubic-bezier(.2,.8,.2,1) both}
+.gd-res-n{flex:0 0 auto;font:800 34px 'Inter',sans-serif;letter-spacing:-.03em;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.gd-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.gd-chips span{font-size:12px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--text);animation:gdIn .4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*35ms);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd-priv{margin-top:14px;font-size:12px;color:var(--text3);line-height:1.5}
+@keyframes gdIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes gdPop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes gdBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes gdFloat{50%{transform:translateY(-4px)}}
+@keyframes gdSpin{to{transform:rotate(360deg)}}
+@keyframes gdGlow{to{transform:translate(-40px,30px) scale(1.15)}}
+@keyframes gdPulse{50%{box-shadow:0 0 0 4px rgba(245,196,81,.12)}}
+@media (max-width:640px){.gd-plats{grid-template-columns:1fr}.gd-prog span:not(.on){font-size:0;gap:0}.gd-wait,.gd-res{flex-direction:column;text-align:center}.gd-reset{margin-left:0}.modal-add.gd-modal{padding:24px 18px}}
+@media (prefers-reduced-motion:reduce){.gd-card,.gd-card::after,.gd-body,.gd-steps li,.gd-res,.gd-chips span,.gd-ring,.gd-bar i,.gd-drop-ic,.gd-due{animation:none!important}.gd-seg-hl{transition-duration:.2s}.gd-plat,.gd-drop{transition-duration:.15s}.gd-plat:hover,.gd-drop:hover,.gd-drop.over{transform:none}}
 /* AVIS (« Donner mon avis », js/24-feedback.js) */
 .modal-add.auth-modal.fb-modal{max-width:460px}
 @media (max-width:768px){.modal-add.auth-modal.fb-modal{max-width:100%}}
@@ -1477,7 +1555,7 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 
 /* ==== Audit DA ==== */
 /* Titres de modales : Inter */
-.mtitle:not(.auth-title){font-family:'Inter',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.025em}
+.mtitle:not(.auth-title),.fb-modal .mtitle.auth-title{font-family:'Inter',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.025em}
 /* A2 boutons des recos */
 .rbtn{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:7px 13px;font-family:'Inter',sans-serif;font-weight:650;transition:transform .25s var(--spring),background .2s,box-shadow .2s,color .2s}
 .rbtn.add{background:rgba(var(--accent-rgb),.14);border-color:rgba(var(--accent-rgb),.35);color:var(--accent-hover)}
@@ -2040,6 +2118,14 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
   </div>
 </div>
 
+<!-- IMPORT RGPD Disney+ / Apple TV : rendu par js/27-gdpr-import.js, fichiers lus dans le navigateur -->
+<div class="mbk" id="gdprMbk" role="dialog" aria-modal="true" aria-labelledby="gdprTitle">
+  <div class="modal-add gd-modal">
+    <button type="button" class="auth-close" data-click="closeGdpr" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div id="gdprView"></div>
+  </div>
+</div>
+
 <!-- AVIS (« Donner mon avis ») : formulaire rendu par js/24-feedback.js, envoi à /api/feedback -->
 <div class="mbk" id="fbMbk" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
   <div class="modal-add auth-modal fb-modal">
@@ -2228,5 +2314,6 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 <script src="js/24-feedback.js"></script>
 <script src="js/25-home.js"></script>
 <script src="js/26-calendar.js"></script>
+<script src="js/27-gdpr-import.js"></script>
 </body>
 </html>
