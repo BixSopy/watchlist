@@ -7,8 +7,10 @@
  * Limite par IP et par minute (par instance) ; l'IP n'est ni stockée ni journalisée.
  */
 import { ImageResponse } from '@vercel/og';
+import { readFile } from 'node:fs/promises';
 
-export const config = { runtime: 'edge' };
+/* Runtime Node : l'Edge de Vercel refusait de compiler le wasm de @vercel/og (500). */
+export const config = { runtime: 'nodejs' };
 
 const TOKEN_RE = /^[A-Za-z0-9_-]{22}$/;
 const POSTER_RE = /^\/[A-Za-z0-9_.-]{1,80}$/;
@@ -79,13 +81,13 @@ export async function loadShare(token, fetchImpl) {
 
 let fontsP = null;
 function loadFonts() {
-  if (!fontsP) fontsP = Promise.all(['Inter-Medium', 'Inter-ExtraBold'].map((n) => fetch(new URL('./_fonts/' + n + '.ttf', import.meta.url)).then((r) => r.arrayBuffer())))
+  if (!fontsP) fontsP = Promise.all(['Inter-Medium', 'Inter-ExtraBold'].map((n) => readFile(new URL('./_fonts/' + n + '.ttf', import.meta.url)).then((b) => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength))))
     .then(([m, b]) => [{ name: 'Inter', data: m, weight: 500, style: 'normal' }, { name: 'Inter', data: b, weight: 800, style: 'normal' }])
     .catch(() => { fontsP = null; return undefined; });
   return fontsP;
 }
 
-export default async function handler(req) {
+export async function GET(req) {
   const ip = (req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for') || 'na').split(',')[0].trim();
   if (limited(ip)) return new Response('Too many requests', { status: 429, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store' } });
   const t = new URL(req.url).searchParams.get('t');
