@@ -118,14 +118,14 @@ const row = (page, title) => page.locator('.det-row', { has: page.locator('.det-
 test('Détectés : onglet caché sans compte, badge, groupes, filtres, correspondances et choix TMDB', async t => {
   const { page, db, problems, tmdbCalls } = await newPage(t);
   await page.goto(server.url + '/');
-  assert.equal(await page.locator('#detTab').isHidden(), true, 'onglet invisible sans compte');
+  assert.equal(await page.locator('button[data-v="detectes"]:visible').isHidden(), true, 'onglet invisible sans compte');
   await login(page);
-  await page.locator('#detTab').waitFor({ state: 'visible' });
-  await page.locator('#detBadge').filter({ hasText: /^\d+$/ }).waitFor();
+  await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
+  await page.locator('button[data-v="detectes"]:visible .p3-cnt').filter({ hasText: /^\d+$/ }).waitFor();
   // Inception est déjà terminé : classé automatiquement (state = added), la liste n'est pas touchée
   await page.waitForFunction(() => document.getElementById('detBadge').textContent === '6');
   assert.equal(db.detected.find(r => r.raw_title === 'Inception').state, 'added');
-  await page.click('#detTab');
+  await page.click('button[data-v="detectes"]:visible');
   assert.equal(new URL(page.url()).hash, '#detectes');
   await page.locator('.det-row').first().waitFor();
   await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche'));
@@ -170,7 +170,7 @@ test('Détectés : ajouter la sélection (ajouts identiques au formulaire, mises
   await page.goto(server.url + '/#detectes');
   await login(page);
   // Arrivée par le lien de l'extension : l'onglet s'ouvre dès que le compte est prêt
-  await page.locator('#detTab.on').waitFor();
+  await page.locator('button[data-v="detectes"].on:visible').waitFor();
   await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche') && document.querySelectorAll('.det-row').length === 6);
   // Choix : The Office (UK, série finie : S1E2 n'est pas le dernier épisode) et la série Lupin de la liste
   await row(page, 'The Office').locator('select').selectOption('1');
@@ -220,7 +220,7 @@ test('Détectés : ajouter la sélection (ajouts identiques au formulaire, mises
   assert.ok(db.detected.some(r => r.user_id === OTHER), 'lignes d\'un autre compte intactes');
   assert.equal(await page.locator('#detBadge').isHidden(), true, 'plus de badge');
   // Retour à la liste : le hash est retiré
-  await page.click('.ntab[data-tab="all"]');
+  await page.click('button[data-v="tonight"]:visible');
   assert.equal(new URL(page.url()).hash, '');
   assert.equal(await page.locator('#detectedSection').isHidden(), true);
   assert.deepEqual(problems, []);
@@ -234,8 +234,8 @@ test('Détectés : titres Netflix FR nettoyés (saison, mini-série), fiche de l
   ] });
   await page.goto(server.url + '/');
   await login(page);
-  await page.locator('#detTab').waitFor({ state: 'visible' });
-  await page.click('#detTab');
+  await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
+  await page.click('button[data-v="detectes"]:visible');
   await page.locator('.det-row').first().waitFor();
   await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche'));
   assert.match(await row(page, 'Stranger Things : Saison 4').textContent(), /Ajouter Stranger Things \(2016\) en cours/);
@@ -269,9 +269,9 @@ test('Détectés : interface en anglais', async t => {
   await page.fill('#authEmail', 'pierre@exemple.fr');
   await page.fill('#authPassword', 'Correct-Horse-42');
   await page.click('.auth-submit');
-  await page.locator('#detTab.on').waitFor();
+  await page.locator('button[data-v="detectes"].on:visible').waitFor();
   await page.evaluate(() => { const m = document.getElementById('authMbk'); if (m) m.classList.remove('on'); });
-  assert.equal(await page.locator('#detTab span[data-i18n]').textContent(), 'Detected');
+  assert.equal(await page.locator('button[data-v="detectes"]:visible span').textContent(), 'Detected');
   await page.locator('.det-title', { hasText: 'Detected titles' }).waitFor();
   assert.match(await page.locator('.det-filters').textContent(), /All.*New.*Updates.*Ambiguous/s);
   assert.match(await page.locator('#detectedSection').textContent(), /Clear all/);
@@ -302,8 +302,8 @@ test('Détectés : pastilles Crunchyroll / Prime Video ; saison Crunchyroll à v
   ] });
   await page.goto(server.url + '/');
   await login(page);
-  await page.locator('#detTab').waitFor({ state: 'visible' });
-  await page.click('#detTab');
+  await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
+  await page.click('button[data-v="detectes"]:visible');
   await row(page, 'JUJUTSU KAISEN').waitFor();
   await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche'));
   const jjk = row(page, 'JUJUTSU KAISEN'), boys = row(page, 'The Boys');

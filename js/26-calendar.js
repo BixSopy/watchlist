@@ -130,6 +130,7 @@ function visible(){
   });
   return evs.map(function(e){e.label=e.kind==='film'?t('cal.rel.'+(e.rel||'release')):'';return e;});
 }
+function weekTitle(w){var e=C.addDays(w,6),a=C.parse(w),b=C.parse(e);try{var f=new Intl.DateTimeFormat(LOCALE,{day:'numeric',month:'long'});return t('cal.weekOf',{from:(a.getMonth()===b.getMonth()&&!/^en/.test(LOCALE))?String(a.getDate()):f.format(a),to:f.format(b)});}catch(x){return w;}}
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 function monthTitle(){return cap(new Intl.DateTimeFormat(LOCALE,{month:'long',year:'numeric'}).format(new Date(st.y,st.m,1)));}
 function wd(date,len){return new Intl.DateTimeFormat(LOCALE,{weekday:len||'short'}).format(C.parse(date)).replace('.','');}
@@ -153,7 +154,7 @@ function paint(){
   updateBadge();
   if(typeof renderHomeNext==='function')renderHomeNext();
   if(activeTab!=='calendar')return;
-  var td=today(),evs=visible(),mobile=isMobile(),view=st.view||(mobile?'agenda':'month');
+  var td=today(),evs=visible(),mobile=isMobile(),view=st.view||'week';
   var mStart=C.ymd(new Date(st.y,st.m,1)),mEnd=C.ymd(new Date(st.y,st.m+1,1));
   var inMonth=evs.filter(function(e){return e.date>=mStart&&e.date<mEnd;});
   var g=C.groupByDay(evs),grid=C.monthGrid(st.y,st.m);
@@ -161,9 +162,10 @@ function paint(){
   var ic={prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg>',next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg>'};
   var seg=function(cls,items,cur,act){return '<div class="cal-seg '+cls+'" role="group">'+items.map(function(x){return '<button type="button" class="'+(x[0]===cur?'on':'')+'" aria-pressed="'+(x[0]===cur)+'"'+uiAct(act,[x[0]])+'>'+x[1]+'</button>';}).join('')+'</div>';};
   var dot=function(k){return '<i style="background:'+COL[k]+'"></i>';};
-  var h='<div class="cal-bar"><h2 class="cal-h1">'+esc(monthTitle())+'</h2><div class="cal-nv"><button type="button" class="cal-ar" aria-label="'+esc(t('cal.prev'))+'"'+uiAct('calNav',[-1])+'>'+ic.prev+'</button><button type="button" class="cal-ar" aria-label="'+esc(t('cal.next'))+'"'+uiAct('calNav',[1])+'>'+ic.next+'</button></div>'+
+  var wk0=st.wk||C.addDays(td,-((C.parse(td).getDay()+6)%7));st.wk=wk0;
+  var h='<div class="cal-bar"><h2 class="cal-h1">'+esc(view==='week'?weekTitle(wk0):monthTitle())+'</h2><div class="cal-nv"><button type="button" class="cal-ar" aria-label="'+esc(t('cal.prev'))+'"'+uiAct('calNav',[-1])+'>'+ic.prev+'</button><button type="button" class="cal-ar" aria-label="'+esc(t('cal.next'))+'"'+uiAct('calNav',[1])+'>'+ic.next+'</button></div>'+
     '<button type="button" class="cal-td"'+uiAct('calNav',[0])+'>'+esc(t('cal.todayBtn'))+'</button><span class="cal-sp"></span>'+
-    seg('cal-vw',[['month','▦ '+esc(t('cal.month'))],['agenda','☰ '+esc(t('cal.agenda'))]],view,'calView')+
+    seg('cal-vw',[['week',esc(t('cal.week'))],['month',esc(t('cal.month'))],['agenda',esc(t('cal.agenda'))]],view,'calView')+
     seg('cal-flt',[['all',esc(t('tab.all'))],['film',dot('film')+esc(t('type.films'))],['serie',dot('serie')+esc(t('type.series'))],['anime',dot('anime')+esc(t('type.anime'))]],st.kind,'calKind')+
     '<button type="button" class="cal-ics"'+uiAct('calIcs')+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>'+'<span class="cal-ics-l">'+esc(t('cal.ics'))+'</span><span class="cal-ics-s">'+esc(t('cal.icsShort'))+'</span></button></div>';
   /* Bande de la semaine (mobile) */
@@ -171,7 +173,14 @@ function paint(){
   for(var i=0;i<7;i++){var d=C.addDays(wkStart,i),l=g[d]||[];wk+='<button type="button" class="cal-wk'+(d===sel?' on':'')+(d===td?' today':'')+'"'+(l.length?' style="--c:'+COL[l[0].kind]+'"':'')+uiAct('calSel',[d])+'><span>'+esc(wd(d))+'</span><b>'+C.parse(d).getDate()+'</b><i></i></button>';}
   h+='<div class="cal-week">'+wk+'</div>';
   var main;
-  if(view==='month'){
+  if(view==='week'){
+    var cols='';
+    for(var k=0;k<7;k++){var dd=C.addDays(wk0,k),ll=(g[dd]||[]);
+      cols+='<div class="cal-wcol'+(dd===td?' today':'')+(dd<td?' past':'')+(ll.length?'':' empty')+'" style="--i:'+k+'"><div class="cal-wh"><span>'+esc(wd(dd))+'</span><b>'+C.parse(dd).getDate()+'</b></div><div class="cal-wl">'+
+        (ll.length?ll.map(function(e){return '<button type="button" class="cal-wev" style="--c:'+COL[e.kind]+'"'+uiAct('openPlexQuiet',[e.itemId])+'><span class="cal-wim"'+(e.backdrop||e.poster?' style="background-image:url(\''+IB+'w300'+esc(e.backdrop||e.poster)+'\')"':'')+'></span><span class="cal-wtx"><b>'+esc(e.title)+'</b><i>'+sub(e)+'</i></span></button>';}).join(''):'<p class="cal-wn">'+esc(t('cal.nothing'))+'</p>')+'</div></div>';}
+    var nWk=0;for(var q=0;q<7;q++)nWk+=(g[C.addDays(wk0,q)]||[]).length;
+    main='<section class="cal-weekv" aria-label="'+esc(tn('cal.count',nWk))+'">'+cols+'</section>';
+  }else if(view==='month'){
     var cells=grid.map(function(c){
       var l=g[c.date]||[],cls='cal-d'+(c.out?' out':'')+(c.date<td?' past':'')+(c.date===td?' today':'')+(c.date===sel&&c.date!==td?' sel':'');
       return '<div class="'+cls+'"'+uiAct('calSel',[c.date])+'><span class="cal-n">'+c.day+'</span>'+(c.date===td?'<span class="cal-tag">'+esc(t('cal.today'))+'</span>':'')+
@@ -186,7 +195,7 @@ function paint(){
   var sw=function(k,lbl){return '<label class="cal-opt-l"><input type="checkbox" class="cal-sw"'+(opts[k]?' checked':'')+uiAct('calOpt',[k],'change')+'><span>'+esc(t(lbl))+'</span></label>';};
   var side='<aside class="cal-side"><div class="cal-card"><h3 class="cal-card-h">'+esc(t('cal.upcoming'))+' <em>'+esc(tn('cal.days',7))+'</em>'+(st.loading?'<span class="cal-spin" aria-hidden="true"></span>':'')+'</h3>'+agendaHtml(evs,from,7)+'</div>'+
     '<div class="cal-card cal-optc"><h3 class="cal-card-h">'+esc(t('cal.options'))+'</h3><div class="cal-opt">'+sw('onlyList','cal.optList')+sw('hideWatched','cal.optWatched')+sw('avoirFilms','cal.optAvoir')+'<p class="cal-note">'+esc(t('cal.note'))+'</p></div></div></aside>';
-  sec.innerHTML=h+'<div class="cal-main cal-'+view+'">'+main+side+'</div>';
+  sec.innerHTML=h+(view==='week'?'<div class="cal-main cal-week-main">'+main+'</div><div class="cal-main cal-week-side">'+side+'</div>':'<div class="cal-main cal-'+view+'">'+main+side+'</div>');
 }
 function updateBadge(){
   var b=document.querySelector('.ntab[data-tab="calendar"]');if(!b)return;
@@ -197,7 +206,7 @@ function updateBadge(){
   em.textContent=fmtNum(n);
 }
 function setMonth(y,m){st.y=y;st.m=m;}
-CAL_ACTIONS.calNav=(function(el,e,d){sfx('click');if(!d){var n=new Date();setMonth(n.getFullYear(),n.getMonth());st.sel=today();}else{var x=new Date(st.y,st.m+d,1);setMonth(x.getFullYear(),x.getMonth());st.sel=null;}paint();});
+CAL_ACTIONS.calNav=(function(el,e,d){sfx('click');if((st.view||'week')==='week'){st.wk=d?C.addDays(st.wk||today(),7*d):null;if(!d)st.sel=today();paint();return;}if(!d){var n=new Date();setMonth(n.getFullYear(),n.getMonth());st.sel=today();}else{var x=new Date(st.y,st.m+d,1);setMonth(x.getFullYear(),x.getMonth());st.sel=null;}paint();});
 CAL_ACTIONS.calView=(function(el,e,v){sfx('click');st.view=v;paint();});
 CAL_ACTIONS.calKind=(function(el,e,k){sfx('click');st.kind=k;paint();});
 CAL_ACTIONS.calSel=(function(el,e,d){st.sel=d;paint();});

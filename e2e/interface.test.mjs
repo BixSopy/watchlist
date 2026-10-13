@@ -112,7 +112,7 @@ test('boutons principaux : cartes, fiche, édition, épisode suivant, menu, rég
   // Onglets
   await page.click('.ntab[data-tab="film"]');
   assert.match(await page.getAttribute('.ntab[data-tab="film"]', 'class'), /\bon\b/);
-  await page.click('.ntab[data-tab="all"]');
+  await page.click('button[data-v="tonight"]:visible');
   // Menu → Statistiques → Fermer
   await page.click('button.hbtn[data-click="toggleMenu"]');
   await page.locator('#optMenu.on').waitFor();

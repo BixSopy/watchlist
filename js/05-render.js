@@ -183,13 +183,26 @@ function _heroSwipeInit(band){
     var n=_heroItems.length;_heroGoTo((_heroIdx+(dx<0?1:n-1))%n);
   },{passive:true});
 }
+/* « Vu il y a 2 jours » (date de dernière modification locale), vide si inconnue */
+function heroAgo(ts,now){
+  if(!ts)return '';var d=Math.round(((now||Date.now())-ts)/86400000);if(d<0)d=0;
+  try{var rtf=new Intl.RelativeTimeFormat(LOCALE,{numeric:'auto'});
+    return t('hero.seen',{when:d<1?rtf.format(0,'day'):d<30?rtf.format(-d,'day'):d<365?rtf.format(-Math.round(d/30),'month'):rtf.format(-Math.round(d/365),'year')});}catch(e){return '';}
+}
 function _showHeroItem(idx){
   var item=_heroItems[idx];if(!item)return;
   document.getElementById('heroTitle').textContent=item.title;
   var typeLbl=t('type.'+(item.type==='film'||item.type==='anime'?item.type:'serie'));
   var epT=(item.saison&&item.episode)?('S'+pad(item.saison)+' E'+pad(item.episode)):'';
   document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
-  document.getElementById('heroBtnPlay').onclick=function(){sfx('open');openPlex(item.id);};
+  /* Maquette « Cinéma » : « REPRENDRE · TYPE », SxxExx · Vu il y a…, « Épisode suivant » + « Fiche » */
+  var kk=document.getElementById('heroKicker');if(kk)kk.textContent=t('hero.resume')+' · '+typeLbl;
+  var ago=heroAgo(item.updatedAtLocal);
+  document.getElementById('heroMeta').innerHTML=(epT?esc('S'+pad(item.saison)+' · E'+pad(item.episode))+' · ':'')+esc(ago||typeLbl)+(item.tmdbScore?' · <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
+  var isSer=item.type!=='film'&&item.status==='encours';
+  var pl=document.getElementById('heroBtnPlay'),pls=pl.querySelector('span');if(pls)pls.textContent=isSer?t('hero.nextEp'):t('hero.resume');
+  var inf=document.getElementById('heroBtnInfo');inf.textContent=t('hero.sheet');
+  pl.onclick=isSer?function(e){quickNextEp(item.id,e);}:function(){sfx('open');openPlex(item.id);};
   document.getElementById('heroBtnInfo').onclick=function(){sfx('open');openPlex(item.id);};
   if(typeof renderContinue==='function')renderContinue(_heroItems,idx);
   if(_heroItemId===item.id)return;

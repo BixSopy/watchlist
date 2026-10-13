@@ -89,11 +89,14 @@ async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = fa
   await page.waitForFunction(() => memDB.filter(i => !i.deleted).length >= 8 && !syncInProgress);
   return { page, problems, calls };
 }
-const openCal = async page => { await page.click('.ntab[data-tab="calendar"]'); await page.waitForFunction(() => _calState.loaded && !_calState.loading); };
+const openCal = async page => { await page.click('button[data-v="calendar"]:visible'); await page.waitForFunction(() => _calState.loaded && !_calState.loading); };
 
 test('Calendrier (bureau) : grille d\'octobre, aujourd\'hui, prochaines sorties, filtres, options, .ics', async t => {
   const { page, problems, calls } = await newPage(t);
   await openCal(page);
+  // Vue Semaine par défaut (7 colonnes), puis Mois
+  assert.equal(await page.locator('.cal-wcol').count(), 7);
+  await page.click('.cal-vw button:nth-child(2)');
   assert.equal(new URL(page.url()).hash, '#calendrier');
   assert.equal(await page.locator('#mc').isHidden(), true);
   assert.equal(await page.locator('#heroBand').isHidden(), true);
@@ -138,7 +141,7 @@ test('Calendrier (bureau) : grille d\'octobre, aujourd\'hui, prochaines sorties,
   const ics = fs.readFileSync(await dl.path(), 'utf8');
   assert.match(ics, /^BEGIN:VCALENDAR/); assert.match(ics, /SUMMARY:Invincible — S03E06/); assert.doesNotMatch(ics, /DTSTART;VALUE=DATE:202610(0\d|11)\r/, 'sorties passées non exportées');
   // Retour sur Tout : la liste revient
-  await page.click('.ntab[data-tab="all"]');
+  await page.click('button[data-v="tonight"]:visible');
   assert.equal(await page.locator('#calendarSection').isHidden(), true);
   assert.equal(new URL(page.url()).hash, '');
   assert.deepEqual(calls, [], 'aucun appel à un tiers');
@@ -150,7 +153,8 @@ test('Calendrier (mobile) : bande de la semaine, agenda par défaut', async t =>
   await openCal(page);
   assert.equal(await page.locator('.cal-week .cal-wk').count(), 7);
   assert.match(await page.textContent('.cal-wk.on'), /lun12/);
-  assert.equal(await page.locator('.cal-vw button.on').textContent(), '☰ Agenda');
+  assert.match(await page.locator('.cal-vw button.on').textContent(), /Semaine/);
+  assert.equal(await page.locator('.cal-wcol').count(), 7);
   assert.equal(await page.locator('.cal-g').count(), 0);
   assert.match(await page.locator('.cal-side').textContent(), /Jujutsu Kaisen/);
   const w = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -165,6 +169,8 @@ test('Calendrier en anglais, ouverture par #calendrier', async t => {
   const { page, problems } = await newPage(t, { locale: 'en-US' });
   await page.evaluate(() => { location.hash = '#calendrier'; });
   await page.waitForFunction(() => activeTab === 'calendar' && _calState.loaded && !_calState.loading);
+  assert.equal(await page.textContent('.cal-h1'), 'Week of October 12 – October 18');
+  await page.click('.cal-vw button:nth-child(2)');
   assert.equal(await page.textContent('.cal-h1'), 'October 2026');
   assert.match(await page.textContent('.cal-ics'), /Add to my calendar/);
   assert.match(await page.locator('.cal-side').textContent(), /Upcoming releases 7 days12Mon.*Today/s);
