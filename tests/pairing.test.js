@@ -25,7 +25,7 @@ test('service worker : origine revérifiée, jeton au bon format et validé par 
 });
 
 test('site : le jeton ne transite que de la RPC vers l\'extension (ni URL, ni stockage, ni /api)', () => {
-  const js = read('js/27-pairing.js').replace(/\/\*[\s\S]*?\*\//g, '');
+  const js = read('js/28-pairing.js').replace(/\/\*[\s\S]*?\*\//g, '');
   assert.ok(!/localStorage\.setItem\([^)]*token/i.test(js));
   assert.ok(!/\/api\//.test(js));
   assert.ok(!/location\.(href|assign|replace)\s*=?.*token/i.test(js));
@@ -36,5 +36,5 @@ test('site : le jeton ne transite que de la RPC vers l\'extension (ni URL, ni st
 
 test('composant « Appareils connectés » autonome : aucune modification des Réglages / du Compte', () => {
   for (const f of ['js/17-settings-menu.js', 'js/20-account.js', 'js/10-settings-core.js']) assert.doesNotMatch(read(f), /renderDevicesPanel|extension_devices/, f);
-  assert.match(read('js/27-pairing.js'), /function renderDevicesPanel\(container\)/);
+  assert.match(read('js/28-pairing.js'), /function renderDevicesPanel\(container\)/);
 });

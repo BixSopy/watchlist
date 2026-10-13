@@ -318,6 +318,8 @@ function loadDetected(force){
   }
   DET.loading=page(0).then(function(){
     DET.rows=rows;DET.groups=DET_CORE.groupRows(rows);DET.loadedAt=Date.now();
+    /* Titres lus dans un export RGPD Disney+ / Apple TV (js/27-gdpr-import.js) : locaux, pas en base */
+    if(typeof gdprMergeLocal==='function')gdprMergeLocal();
     _detAfterLoad();
   }).catch(function(e){if(typeof _logErr==='function')_logErr('[détectés]',e);})
     .then(function(){DET.loading=null;});
@@ -460,9 +462,9 @@ function onDetectedTabHidden(){
 }
 if(typeof window!=='undefined')window.addEventListener('hashchange',function(){if(location.hash==='#detectes')openDetectedTab();});
 
-var DET_SOURCE_KEY={netflix:'det.src.netflix',netflix_csv:'det.src.netflixCsv',live:'det.src.live',crunchyroll:'det.src.crunchyroll',prime:'det.src.prime'};
+var DET_SOURCE_KEY={netflix:'det.src.netflix',netflix_csv:'det.src.netflixCsv',live:'det.src.live',crunchyroll:'det.src.crunchyroll',prime:'det.src.prime',disney_gdpr:'det.src.disneyGdpr',apple_gdpr:'det.src.appleGdpr'};
 /* Pastille par plateforme (couleurs dans index.html : .det-src-*) */
-var DET_SOURCE_CLS={netflix:'netflix',netflix_csv:'netflix',live:'live',crunchyroll:'crunchyroll',prime:'prime'};
+var DET_SOURCE_CLS={netflix:'netflix',netflix_csv:'netflix',live:'live',crunchyroll:'crunchyroll',prime:'prime',disney_gdpr:'disney',apple_gdpr:'apple'};
 function _detEp(p){return p?(p.approx?'≈ ':'')+'S'+pad(p.season)+' E'+pad(p.episode):'';}
 function _detListProgress(it){
   if(it.status==='termine')return t('status.termine');
@@ -552,7 +554,7 @@ function renderDetected(){
   var busy=DET.busy?' disabled':'';
   var ae=document.activeElement,focusKey=ae&&ae.classList&&ae.classList.contains('det-q')?ae.getAttribute('data-key'):null;
   var caret=focusKey!=null?[ae.selectionStart,ae.selectionEnd]:null;
-  box.innerHTML='<div class="det-wrap">'
+  box.innerHTML='<div class="det-wrap">'+(typeof gdprCardHtml==='function'?gdprCardHtml():'')
     +'<div class="det-head"><div><div class="det-title">'+esc(t('det.title'))+'</div><div class="det-sub">'+esc(t('det.intro',{name:BRAND.name}))+'</div></div>'
     +'<button type="button" class="btn btn-ghost"'+busy+uiAct('detReload')+'>'+esc(t('det.reload'))+'</button></div>'
     +(counts.all?'<div class="det-filters">'+filters+'</div>'
@@ -587,6 +589,7 @@ function detCand(key,value){
 function detTarget(key,value){var s=_detSel(key);s.target=value||null;s.touched=true;s.checked=!!value;renderDetected();}
 function _detRemoveGroups(keys){
   DET.groups=DET.groups.filter(function(g){return keys.indexOf(g.key)<0;});
+  if(DET.local)DET.local=DET.local.filter(function(g){return keys.indexOf(g.key)<0;});
   keys.forEach(function(k){delete DET.sel[k];});
   updateDetectedBadge();renderDetected();
 }
@@ -605,7 +608,7 @@ function detClearAll(){
   if(!DET.groups.length||!confirm(t('det.clearConfirm')))return;
   supa.from('detected_media').delete().eq('state','pending').then(function(res){
     if(res.error)throw res.error;
-    DET.groups=[];DET.rows=[];DET.sel={};
+    DET.groups=[];DET.rows=[];DET.sel={};DET.local=[];
     updateDetectedBadge();renderDetected();sfx('del');toast(t('det.cleared'),'nfo');
   }).catch(function(){toast(t('det.saveError'),'err');});
 }
@@ -675,7 +678,7 @@ function detReload(){DET.loadedAt=0;Object.keys(DET.tmdb).forEach(function(k){va
 /* Appelé par updateSyncStatusUI (js/15-sync.js) : 'anon' à la déconnexion, 'synced' après une synchro */
 function onDetectedAuthState(state){
   if(state==='anon'||!authUser){
-    DET.rows=[];DET.groups=[];DET.sel={};DET.tmdb={};DET.loadedAt=0;DET.lookups=0;DET.requests=0;DET.stopped=false;DET.queue=[];
+    DET.rows=[];DET.groups=[];DET.local=[];DET.sel={};DET.tmdb={};DET.loadedAt=0;DET.lookups=0;DET.requests=0;DET.stopped=false;DET.queue=[];
     updateDetectedBadge();
     if(activeTab==='detectes'){var all=document.querySelector('.ntab[data-tab="all"]');if(all)switchTab(all);}
     return;

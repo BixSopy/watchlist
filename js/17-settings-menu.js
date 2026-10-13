@@ -26,10 +26,13 @@ document.addEventListener('keydown',function(e){
 });
 
 /* Session 11B : panneau Réglages */
+var _settingsAnimate=false;
 function openSettingsView(){
   loadSettings();
   document.getElementById('optMenuMain').style.display='none';
   document.getElementById('optMenuSettings').style.display='flex';
+  document.getElementById('optMenu').classList.add('settings-open');
+  _settingsAnimate=true;
   renderSettingsMenu();
   sfx('click');
 }
@@ -37,7 +40,23 @@ function closeSettingsView(){
   var mv=document.getElementById('optMenuMain'),sv=document.getElementById('optMenuSettings');
   if(mv)mv.style.display='flex';
   if(sv)sv.style.display='none';
+  var menu=document.getElementById('optMenu');if(menu)menu.classList.remove('settings-open');
 }
+/* Icônes des sections (même trait que les onglets/la fiche titre : stroke 2, sans remplissage) */
+var SET_ICONS={
+  lang:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.8 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.8-4-9s1.5-6.5 4-9z"/>',
+  appearance:'<line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.3"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="15" cy="17" r="2.3"/>',
+  reco:'<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',
+  suivi:'<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>',
+  webhook:'<path d="M10 14a5 5 0 0 0 7 0l2.5-2.5a5 5 0 0 0-7-7L11 6"/><path d="M14 10a5 5 0 0 0-7 0L4.5 12.5a5 5 0 0 0 7 7L13 18"/>',
+  data:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+  kbd:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h.01M11 10h.01M15 10h.01M17 10h.01M7 14h10"/>'
+};
+function _secIcon(name){return '<span class="settings-section-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(SET_ICONS[name]||'')+'</svg></span>';}
+/* labelHtml est déjà échappé par l'appelant (même convention que le reste du fichier) */
+function _secTitle(iconName,labelHtml){return '<div class="settings-section-title">'+_secIcon(iconName)+labelHtml+'</div>';}
+/* Carte de section animée en cascade à l'ouverture (délai croissant, négligeable au clavier/lecteur d'écran) */
+function _secOpen(idx){return '<div class="settings-section" style="animation-delay:'+(idx*0.045).toFixed(3)+'s">';}
 function _toggleRow(label,hint,key,checked){
   return '<div class="setting-row"><div class="setting-copy"><div class="setting-label">'+label+'</div>'+(hint?'<div class="setting-hint">'+hint+'</div>':'')+'</div><div class="setting-control"><div class="toggle-switch'+(checked?' on':'')+'" '+uiAct('settingToggle',[key])+'><div class="knob"></div></div></div></div>';
 }
@@ -75,8 +94,8 @@ function copyWebhookText(id){
  * n'utilisent que l'extension, qui n'a besoin que du jeton tout seul. */
 var _plexWebhookAdvancedOpen=false;
 function togglePlexWebhookAdvanced(){_plexWebhookAdvancedOpen=!_plexWebhookAdvancedOpen;sfx('click');renderSettingsMenu();}
-function _plexWebhookSection(){
-  var html='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.autoTrack'))+'</div>';
+function _plexWebhookSection(idx){
+  var html=_secOpen(idx)+_secTitle('webhook',esc(t('set.autoTrack')));
   if(!supa||!authProfileId){
     html+='<div class="setting-hint">'+esc(t('set.autoTrackLogin'))+'</div>';
     html+='</div>';
@@ -157,8 +176,9 @@ function renderSettingsMenu(){
   var pending=memDB.filter(function(i){return i.needsSync;}).length;
   var syncLabel=esc(!supa?t('set.unavailable'):(authUser?(pending?tn('set.pending',pending):t('sync.synced')):t('set.notSignedIn')));
   var html='';
-  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('lang.label'))+'</div>'+langSwitcherHtml('lang-switch-settings',{reopen:'settings'})+'</div><div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.appearance'))+'</div>';
+  var idx=0;
+  html+=_secOpen(idx++)+_secTitle('lang',esc(t('lang.label')))+langSwitcherHtml('lang-switch-settings',{reopen:'settings'})+'</div>';
+  html+=_secOpen(idx++)+_secTitle('appearance',esc(t('set.appearance')));
   html+=_delegatedToggleRow(esc(t('set.compact')),'','toggleCompact',compactOn);
   html+=_delegatedToggleRow(esc(t('set.sounds')),'','toggleSound',soundOn);
   html+=_rangeRow(esc(t('set.soundVolume')),'','wl_snd_vol',wlSettings.wl_snd_vol);
@@ -169,28 +189,28 @@ function renderSettingsMenu(){
   html+=_rangeRow(esc(t('set.grain')),esc(t('set.grainHint')),'wl_grain',wlSettings.wl_grain);
   html+=_rangeRow(esc(t('set.aurora')),esc(t('set.auroraHint')),'wl_aurora',wlSettings.wl_aurora);
   if(!touch)html+=_toggleRow(esc(t('set.glow')),esc(t('set.glowHint')),'wl_glow_border',wlSettings.wl_glow_border==='1');
-  html+='</div><div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.recos'))+'</div>';
+  html+='</div>';
+  html+=_secOpen(idx++)+_secTitle('reco',esc(t('set.recos')));
   html+=_toggleRow(esc(t('set.autoscroll')),'','wl_reco_autoscroll',wlSettings.wl_reco_autoscroll==='1');
   html+=_selectRow(esc(t('set.speed')),'wl_reco_speed',[{v:'slow',l:esc(t('set.slow'))},{v:'normal',l:esc(t('set.normal'))},{v:'fast',l:esc(t('set.fast'))}],wlSettings.wl_reco_speed);
   if(!touch)html+=_toggleRow(esc(t('set.pauseHover')),'','wl_reco_pause_hover',wlSettings.wl_reco_pause_hover==='1');
   html+=_selectRow(esc(t('set.recoLimit')),'wl_reco_limit',[{v:'10',l:'10'},{v:'15',l:'15'},{v:'20',l:'20'}],wlSettings.wl_reco_limit);
   html+='<div class="settings-action-row" data-click="resetDismissed"><div class="setting-label">'+esc(t('set.resetDismissed'))+'</div><div class="setting-hint">'+esc(t('set.resetDismissedHint'))+'</div></div>';
   html+='<div class="settings-action-row" data-click="clearDiscoveryCache"><div class="setting-label">'+esc(t('set.clearCache'))+'</div><div class="setting-hint">'+esc(t('set.clearCacheHint'))+'</div></div>';
-  html+='</div><div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.suivi'))+'</div>';
+  html+='</div>';
+  html+=_secOpen(idx++)+_secTitle('suivi',esc(t('set.suivi')));
   html+=_delegatedToggleRow(esc(t('set.suiviCollapsed')),'','toggleSuiviSection',suiviCollapsed);
   html+=_toggleRow(esc(t('set.providers')),'','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
   html+=_toggleRow(esc(t('set.reminders')),esc(t('set.remindersHint')),'wl_reminders_global',wlSettings.wl_reminders_global==='1');
-  html+='</div><div class="opt-sep"></div>';
-  html+=_plexWebhookSection()+'<div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.data'))+'</div>';
+  html+='</div>';
+  html+=_plexWebhookSection(idx++);
+  html+=_secOpen(idx++)+_secTitle('data',esc(t('set.data')));
   html+='<div class="settings-action-row" data-click="menuAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.accountSync'))+'</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
   if(authUser)html+='<div class="settings-action-row" data-click="menuExportAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.exportGdpr'))+'</div></div></div>';
   html+='<div class="setting-hint"><a href="'+esc(legalUrl('privacy'))+'" style="color:var(--text2)">'+esc(t('legal.privacy'))+'</a> · <a href="'+esc(legalUrl('terms'))+'" style="color:var(--text2)">'+esc(t('legal.terms'))+'</a></div>';
+  html+='</div>';
   if(!touch){
-  html+='</div><div class="opt-sep"></div>';
-  html+='<div class="settings-section"><div class="settings-section-title">'+esc(t('set.shortcuts'))+'</div>';
+  html+=_secOpen(idx++)+_secTitle('kbd',esc(t('set.shortcuts')));
   html+=_kbdRow('N',esc(t('add.title')));
   html+=_kbdRow('F',esc(t('set.kbdSearch')));
   html+=_kbdRow('S',esc(t('set.kbdStats')));
@@ -198,9 +218,11 @@ function renderSettingsMenu(){
   html+=_kbdRow('M',esc(t('set.sounds')));
   html+=_kbdRow(esc(t('set.kbdEsc')),esc(t('set.kbdClose')));
   html+='<div class="setting-hint" style="margin-top:4px">'+esc(t('set.shortcutsHint'))+'</div>';
-  }
   html+='</div>';
+  }
   body.innerHTML=html;
+  body.classList.toggle('settings-anim',_settingsAnimate);
+  _settingsAnimate=false;
   enhanceAllSelects(body);
   if(menuEl&&scrollY)menuEl.scrollTop=scrollY;
 }

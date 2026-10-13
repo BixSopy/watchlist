@@ -147,7 +147,7 @@ function onAuthResolved(user){
   ensureProfile(user).then(function(profileId){
     if(!authUser||authUser.id!==user.id)return;/* déconnecté entre-temps */
     authProfileId=profileId;
-    /* Fenêtre d'accueil (installation de l'extension) une seule fois, juste après l'inscription (js/27-pairing.js) */
+    /* Fenêtre d'accueil (installation de l'extension) une seule fois, juste après l'inscription (js/28-pairing.js) */
     if(typeof maybeShowOnboarding==='function')maybeShowOnboarding(user);
     markLegacyItemsDirtyOnce(user.id);
     _onApiAuthRestored();
