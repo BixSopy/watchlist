@@ -1,5 +1,5 @@
 'use strict';
-/* Fenêtre de l'extension (0.7.3) : trois états et une vue Réglages.
+/* Fenêtre de l'extension (0.8.0 : appairage en un clic, jeton manuel en option avancée) : trois états et une vue Réglages.
  *  - viewOff  : pas de jeton (ou changement de jeton) ;
  *  - viewMain : connecté, carte « En ce moment » (au repos ou détection en cours, clé wlNow),
  *               grille des 5 plateformes, import de l'historique, compteur « Détectés » (wlPending) ;
@@ -89,8 +89,15 @@ $('save').addEventListener('click', function () {
     });
   });
 });
+/* Appairage : ouvre cinepisode.com/pair, qui renverra un jeton propre à cet appareil (background.js) */
+var PAIR_URL = 'https://cinepisode.com/?pair=1';
+$('pairBtn').addEventListener('click', function () {
+  var v = (chrome.runtime.getManifest && chrome.runtime.getManifest().version) || '';
+  chrome.tabs.create({ url: PAIR_URL + '&ext=' + encodeURIComponent(chrome.runtime.id) + '&v=' + encodeURIComponent(v) });
+  window.close();
+});
 tokenInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') $('save').click(); });
-$('changeToken').addEventListener('click', function () { changing = true; setOffMode(); statusEl.textContent = ''; statusEl.className = ''; show('off'); });
+$('changeToken').addEventListener('click', function () { changing = true; $('manualBox').open = true; setOffMode(); statusEl.textContent = ''; statusEl.className = ''; show('off'); });
 $('cancelChange').addEventListener('click', function () { changing = false; setOffMode(); show('main'); });
 $('openSettings').addEventListener('click', openSettings);
 $('closeSettings').addEventListener('click', closeSettings);
@@ -100,7 +107,10 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && cu
 $('logout').addEventListener('click', function () { $('logout').hidden = true; $('logoutConfirm').hidden = false; });
 $('logoutNo').addEventListener('click', function () { $('logout').hidden = false; $('logoutConfirm').hidden = true; });
 $('logoutYes').addEventListener('click', function () {
-  chrome.storage.local.remove(['wlToken', 'wlLast', 'wlNow', 'wlPending'], function () {
+  /* Jeton d'appareil : révoqué côté serveur par background.js ; ancien jeton : simplement oublié */
+  chrome.runtime.sendMessage({ type: 'wl_unpair' }, function () {
+    void chrome.runtime.lastError;
+    chrome.storage.local.remove(['wlToken', 'wlLast', 'wlNow', 'wlPending']);
     $('logout').hidden = false; $('logoutConfirm').hidden = true;
     renderLast(null); renderNow(null); renderPending(null);
     applyToken('');
@@ -224,6 +234,11 @@ chrome.storage.local.get(['wlToken', 'wlLast', 'wlNow', 'wlPending'], function (
   renderNow(res.wlNow);
   renderPending(res.wlPending);
   applyToken(res.wlToken);
+  /* Jeton d'appareil : encore valide ? (retiré depuis le site => retour à « non relié ») */
+  if (/^cpd_/.test(res.wlToken || '')) chrome.runtime.sendMessage({ type: 'wl_check_pair' }, function (r) {
+    void chrome.runtime.lastError;
+    if (r && r.revoked) { statusEl.textContent = msg('pairedRevoked'); statusEl.className = 'err'; }
+  });
 });
 chrome.storage.onChanged.addListener(function (changes, area) {
   if (area !== 'local') return;
@@ -232,6 +247,7 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   if (changes.wlPending) renderPending(changes.wlPending.newValue);
   if (changes.wlImport) renderImport(changes.wlImport.newValue);
   if (changes.wlToken && !changes.wlToken.newValue && token) applyToken('');
+  else if (changes.wlToken && changes.wlToken.newValue && changes.wlToken.newValue !== token) { statusEl.textContent = ''; statusEl.className = ''; changing = false; applyToken(changes.wlToken.newValue); show('main'); }
 });
 
 /* ---------- Import de l'historique (0.5.0, plateformes en 0.6.0) ----------

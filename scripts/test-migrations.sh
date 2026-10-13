@@ -17,7 +17,8 @@ PSQL=("$PGBIN/psql" -h "$TMP" -p "$PORT" -U postgres -d postgres -v ON_ERROR_STO
 "${PSQL[@]}" -f "$ROOT/supabase/schema.sql"
 # Migrations dans l'ordre ; 20260925 et la nouvelle migration sont rejouées deux fois (idempotence).
 for f in "$ROOT"/supabase/migrations/20260925*.sql "$ROOT"/supabase/migrations/20260925*.sql \
-         "$ROOT"/supabase/migrations/20261008*.sql "$ROOT"/supabase/migrations/20261008*.sql; do
+         "$ROOT"/supabase/migrations/20261008*.sql "$ROOT"/supabase/migrations/20261008*.sql \
+         "$ROOT"/supabase/migrations/20261013*.sql "$ROOT"/supabase/migrations/20261013*.sql; do
   echo "→ $(basename "$f")"; "${PSQL[@]}" -f "$f" >/dev/null
 done
 # Tests SQL dans l'ordre (10_, 20_…), chacun dans sa propre session ; arrêt au premier échec.

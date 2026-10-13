@@ -541,5 +541,17 @@
   },
   "logoutYes": {
     "message": "Yes"
+  },
+  "pairButton": {
+    "message": "Sign in with Cinepisode"
+  },
+  "pairSub": {
+    "message": "One click on the website, nothing to copy."
+  },
+  "manualToggle": {
+    "message": "Use a manual token (advanced)"
+  },
+  "pairedRevoked": {
+    "message": "This device was removed from the website. Link it again."
   }
 }

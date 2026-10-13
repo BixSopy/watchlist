@@ -158,6 +158,10 @@ test('fenêtre 0.7.3 : non connecté -> jeton -> vue principale, Réglages qui g
   await page.waitForSelector('#viewOff:not([hidden])');
   assert.equal(await page.isVisible('#viewMain'), false);
   assert.equal(await page.textContent('#viewOff .conn'), 'Not connected');
+  /* 0.8.0 : l'appairage en un clic est l'action principale, le jeton manuel est replié (avancé) */
+  assert.equal(await page.textContent('#pairBtn'), 'Sign in with Cinepisode');
+  assert.equal(await page.isVisible('#token'), false);
+  await page.click('#manualBox summary');
   await page.click('#save');
   assert.equal(await page.textContent('#status'), 'Empty token.');
   await page.fill('#token', TOKEN);
@@ -175,7 +179,7 @@ test('fenêtre 0.7.3 : non connecté -> jeton -> vue principale, Réglages qui g
   await page.waitForSelector('#viewSettings:not([hidden])');
   await page.waitForSelector('#viewMain', { state: 'hidden' });
   assert.equal(await page.textContent('#tokenMask'), '•••• ' + TOKEN.slice(-4));
-  assert.equal(await page.textContent('#version'), 'v0.7.3');
+  assert.equal(await page.textContent('#version'), 'v0.8.0');
   await page.click('#closeSettings');
   await page.waitForSelector('#viewSettings', { state: 'hidden' });
   /* avancement en direct écrit par le service worker : la carte « En ce moment » suit */

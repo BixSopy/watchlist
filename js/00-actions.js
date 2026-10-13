@@ -167,6 +167,16 @@ uiOn('closeFeedback',function(){closeFeedback();});
 uiOn('fbKind',function(el,e,k){fbSetKind(k);});
 uiOn('fbInput',function(){fbOnInput();});
 uiOn('fbEmail',function(){fbOnEmail();});
+/* Appairage de l'extension, appareils connectés, accueil après inscription (js/27-pairing.js) */
+uiOn('pairAck',function(el){pairAck(el);});
+uiOn('pairLogin',function(){pairLogin();});
+uiOn('pairClose',function(){pairClose();});
+uiOn('pairAuthorize',function(){pairAuthorize();});
+uiOn('devAsk',function(el,e,id){devAsk(el,e,id);});
+uiOn('devCancel',function(el){devCancel(el);});
+uiOn('devRevoke',function(el,e,id){devRevoke(el,e,id);});
+uiOn('onbClose',function(){onbClose();});
+
 uiOn('authHaveCodeEmail',function(){authGo('emailSent',{newEmail:_val('authNewEmail').trim()});});
 uiOn('authResend',function(el){authResend(el);});
 uiOn('togglePw',function(el,e,id){togglePwVisibility(id,el);});
