@@ -1977,6 +1977,23 @@ body.p3-v-discover .sidebar.p3-recos{display:none!important}
   .cal-wev{display:flex}.cal-wim{width:84px;flex:none;aspect-ratio:16/10}
   .cal-week-side .cal-side{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.cal-wcol,.p3-feat,.p3-pc,.det-ext,.det-imp,.plex-more{animation:none}.plex-hprog-t i{animation:none}}
+/* P3 : animations d'entrée jouées une seule fois par visite de page (body.p3-enter posé à la navigation) */
+body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe-row,.ps-c,.cal-wcol){animation:none!important}
+/* Ma liste : recherche = une seule pilule verre, icône dedans */
+.p3-ph-act .srch{padding:0;display:flex;align-items:center;overflow:hidden}
+.p3-ph-act .srch svg{left:16px;width:15px;height:15px;color:var(--text2);pointer-events:none}
+.p3-ph-act .srch input,.p3-ph-act .srch input:focus{width:100%;height:100%;background:transparent;border:0;border-radius:999px;padding:0 16px 0 40px;font-size:13.5px;box-shadow:none}
+.p3-ph-act .srch:focus-within{border-color:rgba(var(--accent-rgb),.45);background:rgba(255,255,255,.08)}
+/* Ce soir : carrousel sans bord visible — fond flou et halo fondus dans la page */
+#heroBand.cf{background:transparent}
+#heroBand.cf .hero-band-fade{display:none}
+#heroBand.cf .hero-band-img{inset:-4% 0 0;-webkit-mask-image:radial-gradient(ellipse 50% 60% at 50% 38%,#000 35%,transparent 100%);mask-image:radial-gradient(ellipse 50% 60% at 50% 38%,#000 35%,transparent 100%)}
+/* Reflets persistants : un élément par affiche, plus de box-reflect */
+#heroBand .cf-card{-webkit-box-reflect:none!important}
+#heroBand .cf-card:after{display:none}
+.cf-refl{position:absolute;left:0;right:0;top:calc(100% + 10px);height:100%;border-radius:16px;overflow:hidden;pointer-events:none;transform:scaleY(-1);opacity:.2;
+  -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 32%);mask-image:linear-gradient(to top,#000 0%,transparent 32%)}
+.cf-refl img{width:100%;height:100%;object-fit:cover;display:block}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>

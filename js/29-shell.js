@@ -108,9 +108,12 @@ function p3Hl(){
   hl.style.opacity=1;hl.style.width=on.offsetWidth+'px';hl.style.transform='translateX('+on.offsetLeft+'px)';
 }
 function _p3Tab(name){return document.querySelector('.ntab[data-tab="'+name+'"]');}
+/* Animations d'entrée : seulement pendant ~1,2 s après un changement de page (pas à chaque rendu/synchro) */
+var _p3EnterT=0;
+function p3Enter(){var b=document.body;b.classList.remove('p3-enter');void b.offsetWidth;b.classList.add('p3-enter');clearTimeout(_p3EnterT);_p3EnterT=setTimeout(function(){b.classList.remove('p3-enter');},1200);}
 function p3Go(v,silent){
   if(P3_VIEWS.indexOf(v)<0)v='tonight';
-  var prev=p3View;p3View=v;
+  var prev=p3View;p3View=v;if(prev!==v||!silent)p3Enter();
   P3_VIEWS.forEach(function(x){document.body.classList.toggle('p3-v-'+x,x===v);});
   document.querySelectorAll('.p3-pill,.p3-tb').forEach(function(b){var on=b.dataset.v===v;b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   var want=v==='calendar'?'calendar':v==='discover'?'discover':v==='detectes'?'detectes':null;
@@ -136,7 +139,11 @@ function p3Header(){
   else if(p3View==='detectes'){title=t('det.tab');sub=t('nav.detSub');}
   var act=document.getElementById('p3PhAct');
   if(!act||!ph.contains(act)){ph.innerHTML='<div class="p3-ph-t"></div><div class="p3-ph-act" id="p3PhAct"></div>';act=document.getElementById('p3PhAct');}
-  ph.querySelector('.p3-ph-t').innerHTML=title?'<h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p>':'';
+  /* En-tête statique : construit une fois par page, puis seul le texte change (pas de reconstruction à la synchro) */
+  var pt=ph.querySelector('.p3-ph-t');
+  if(!title)pt.innerHTML='';
+  else{var h=pt.querySelector('h1'),pp=pt.querySelector('p');if(!h||!pp){pt.innerHTML='<h1></h1><p></p>';h=pt.querySelector('h1');pp=pt.querySelector('p');}
+    if(h.textContent!==title)h.textContent=title;if(pp.textContent!==sub)pp.textContent=sub;}
   ph.classList.toggle('on',!!title);
   /* Ma liste : recherche dans la liste et « Ajouter » à droite du titre ; ailleurs, retour dans la barre d'outils */
   var nr=document.querySelector('.nav.floating .nav-right'),sr=document.querySelector('.srch'),ad=document.querySelector('.add-btn[data-click="openAdd"]');
@@ -173,7 +180,7 @@ function p3Bell(){
   var s0=switchTab;switchTab=function(btn){
     var out=s0.apply(this,arguments),tab=btn&&btn.dataset&&btn.dataset.tab;
     var v=tab==='calendar'||tab==='discover'||tab==='detectes'?tab:(p3View==='tonight'||p3View==='list'?p3View:'list');
-    if(v!==p3View){p3View=v;P3_VIEWS.forEach(function(x){document.body.classList.toggle('p3-v-'+x,x===v);});
+    if(v!==p3View){p3View=v;p3Enter();P3_VIEWS.forEach(function(x){document.body.classList.toggle('p3-v-'+x,x===v);});
       document.querySelectorAll('.p3-pill,.p3-tb').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});p3Header();p3Hl();}
     return out;
   };
