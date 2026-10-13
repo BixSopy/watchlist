@@ -394,7 +394,9 @@ function buildApp(out) {
       `    <xhtml:link rel="alternate" hreflang="x-default" href="${escHtml(g.xDefault)}"/>\n  </url>\n`).join('')).join('') +
     '</urlset>\n';
   /* /fr, /en… : même app (index.html), langue imposée par l'adresse */
-  vercel.rewrites = [{ source: '/:lang(' + LANGS.join('|') + ')', destination: '/' }];
+  vercel.rewrites = [{ source: '/:lang(' + LANGS.join('|') + ')', destination: '/' },
+    /* Liens de partage en lecture seule : page rendue par api/share.js */
+    { source: '/s/:token', destination: '/api/share?t=:token' }];
   /* Redirections de domaine (désactivées tant que domains.redirects=false) */
   const dm = brand.domains || {};
   const apex = new URL(brand.baseUrl).hostname;

@@ -5,6 +5,8 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
@@ -25,7 +27,8 @@ function headersFor(urlPath, host) {
   return out;
 }
 
-export function startServer({ config = { turnstileSiteKey: '', signupsOpen: true } } = {}) {
+/* shares : { <jeton>: réponse de get_public_share } — sert /s/<jeton> avec la vraie fonction api/share.js */
+export function startServer({ config = { turnstileSiteKey: '', signupsOpen: true }, shares = null } = {}) {
   const state = { config, apiCalls: [] };
   const server = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://localhost');
@@ -34,6 +37,14 @@ export function startServer({ config = { turnstileSiteKey: '', signupsOpen: true
       res.writeHead(status, { 'Content-Type': type, ...headersFor(u.pathname, String(req.headers.host || '').replace(/:\d+$/, '')), ...extra });
       res.end(body);
     };
+    if (shares && /^\/s\/[^/]+$/.test(p)) {
+      const tok = p.slice(3);
+      const fake = async (url, o) => new Response(JSON.stringify(shares[JSON.parse(o.body).p_token] || null), { status: 200 });
+      req.url = '/api/share?t=' + encodeURIComponent(tok);
+      const hs = headersFor(u.pathname, String(req.headers.host || '').replace(/:\d+$/, ''));
+      for (const k of Object.keys(hs)) res.setHeader(k, hs[k]);
+      return require('../api/share.js')(req, res, { fetch: fake });
+    }
     if (p.startsWith('/api/')) {
       state.apiCalls.push({ path: p, auth: req.headers.authorization || '' });
       if (p === '/api/config') return send(200, JSON.stringify(state.config), 'application/json');

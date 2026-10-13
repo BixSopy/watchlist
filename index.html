@@ -1995,6 +1995,42 @@ body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe
 .cf-refl{position:absolute;left:0;right:0;top:calc(100% + 10px);height:100%;border-radius:16px;overflow:hidden;pointer-events:none;transform:scaleY(-1);opacity:.2;
   -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 32%);mask-image:linear-gradient(to top,#000 0%,transparent 32%)}
 .cf-refl img{width:100%;height:100%;object-fit:cover;display:block}
+/* ===== Partage en lecture seule (js/30-share.js) ===== */
+.p3-share-b{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:999px;font:650 13.5px 'Inter',sans-serif;color:var(--text);background:var(--p3-glass);border:1px solid rgba(255,255,255,.09);cursor:pointer;transition:background .2s}
+.p3-share-b:hover{background:rgba(255,255,255,.1)}.p3-share-b svg{width:16px;height:16px}
+@media (max-width:768px){.p3-share-b{padding:0 14px}.p3-share-b span{display:none}}
+.sh-mbk{position:fixed;inset:0;z-index:950;display:none;place-items:center;padding:20px;background:rgba(5,5,8,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sh-mbk.on{display:grid}
+.sh-wrap{position:relative;width:560px;max-width:100%;max-height:92vh;overflow:auto;border-radius:28px;padding:28px;background:rgba(22,22,26,.92);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);box-shadow:0 40px 100px rgba(0,0,0,.7);animation:p3Pop .35s var(--p3-spring)}
+.sh-grab{display:none}
+.sh-x{position:absolute;top:18px;right:18px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.07);color:var(--text2);font-size:20px;cursor:pointer}
+.sh-wrap h2{font:850 26px 'Inter',sans-serif;letter-spacing:-.03em;margin:0 0 4px}.sh-sub{color:var(--text2);margin:0 0 20px;font-size:13.5px;line-height:1.45}
+.sh-kinds{display:flex;gap:10px;margin-bottom:6px}
+.sh-kind{flex:1;text-align:left;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);color:var(--text);cursor:pointer;transition:border-color .2s,background .2s}
+.sh-kind.on{border-color:rgba(var(--accent-rgb),.6);background:rgba(var(--accent-rgb),.08);box-shadow:0 0 0 1px rgba(var(--accent-rgb),.3)}
+.sh-kind b{display:block;font-size:13.5px;margin-bottom:3px}.sh-kind span{font-size:11.5px;color:var(--text2)}
+.sh-lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin:16px 0 8px}
+.sh-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sh-chips i{width:6px}
+.sh-chips button{padding:7px 13px;border-radius:999px;font:600 12.5px 'Inter',sans-serif;background:rgba(255,255,255,.06);color:var(--text2);border:1px solid rgba(255,255,255,.08);cursor:pointer}
+.sh-chips button.on{background:rgba(var(--accent-rgb),.16);color:#8ad6ff;border-color:rgba(var(--accent-rgb),.4)}
+.sh-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13.5px}.sh-row small{display:block;color:var(--text3);font-size:11.5px;margin-top:2px}
+.sh-sw{width:36px;height:21px;border-radius:999px;border:0;padding:0;background:rgba(255,255,255,.14);position:relative;flex-shrink:0;cursor:pointer;transition:background .25s}
+.sh-sw span{position:absolute;top:2.5px;left:2.5px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .35s var(--p3-spring)}
+.sh-sw.on{background:#3a7bff}.sh-sw.on span{transform:translateX(15px)}
+.sh-lock{font-size:11px;font-weight:700;color:var(--text3);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px 9px;white-space:nowrap}
+.sh-create{width:100%;justify-content:center;margin-top:20px;height:46px}
+.sh-link{display:flex;gap:8px;align-items:center;margin-top:18px;padding:6px 6px 6px 16px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font:500 13px 'IBM Plex Mono',monospace}
+.sh-link span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sh-ghost{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--text);font:600 12.5px 'Inter',sans-serif;cursor:pointer;white-space:nowrap}
+.sh-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;font-size:12px;color:var(--text3)}
+.sh-rev{border:0;background:none;color:#ff7a8a;font:600 12px 'Inter',sans-serif;cursor:pointer;padding:6px 0;white-space:nowrap}
+.sh-links{display:flex;flex-direction:column;gap:6px}.sh-li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.sh-li>div{flex:1;min-width:0}.sh-li b{font-size:13px}.sh-li small{display:block;color:var(--text3);font-size:11.5px;font-family:'IBM Plex Mono',monospace}
+@media (max-width:768px){.sh-mbk{place-items:end stretch;padding:0}.sh-wrap{width:100%;border-radius:28px 28px 0 0;padding:22px 18px calc(24px + env(safe-area-inset-bottom));animation:shUp .4s var(--p3-ease)}
+  .sh-grab{display:block;width:40px;height:5px;border-radius:5px;background:rgba(255,255,255,.2);margin:-8px auto 14px}.sh-x{top:14px;right:14px}
+  .sh-kinds{flex-direction:column;gap:8px}.sh-kind{padding:12px 14px}.sh-link{flex-wrap:wrap;border-radius:20px;padding:12px}.sh-link span{flex-basis:100%}.sh-link .btn-p3{flex:1;justify-content:center}}
+@keyframes shUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sh-wrap{animation:none}}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
@@ -2369,6 +2405,7 @@ body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe
       <button class="opt-btn" data-click="menuStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> <span data-i18n="set.kbdStats">Statistiques</span></button>
       <button class="opt-btn" data-click="openSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> <span data-i18n="menu.settings">Réglages</span><svg class="opt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 6 15 12 9 18"/></svg></button>
       <div class="opt-sep"></div>
+      <button class="opt-btn" data-click="menuShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px" aria-hidden="true"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13"/></svg> <span data-i18n="menu.share">Partager ma liste</span></button>
       <button class="opt-btn" data-click="menuExportJson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="menu.exportJson">Exporter JSON</span></button>
       <button class="opt-btn" data-click="menuFeedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span data-i18n="fb.menu">Donner mon avis</span></button>
       <div class="opt-sep"></div>
@@ -2743,5 +2780,6 @@ body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe
 <script src="js/27-gdpr-import.js"></script>
 <script src="js/28-pairing.js"></script>
 <script src="js/29-shell.js"></script>
+<script src="js/30-share.js"></script>
 </body>
 </html>

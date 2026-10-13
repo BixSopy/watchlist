@@ -110,12 +110,33 @@
           "value": "no-cache"
         }
       ]
+    },
+    {
+      "source": "/s/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        }
+      ]
     }
   ],
   "rewrites": [
     {
       "source": "/:lang(fr|en)",
       "destination": "/"
+    },
+    {
+      "source": "/s/:token",
+      "destination": "/api/share?t=:token"
     }
   ]
 }

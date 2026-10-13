@@ -109,6 +109,18 @@ uiOn('p3OpenNew',function(el,e,id){p3BellClose();openPlex(_uiId(id));});
 uiOn('plexSimOpen',function(el,e,i){var r=_plexSimRes[i];if(r){sfx('open');openPlexTmdb(r);var m=document.querySelector('#plexMbk .plex-wrap');if(m)m.scrollTop=0;}});
 uiOn('p3Disc',function(el,e,v){sfx('click');p3SetDisc(v);});
 uiOn('detImportToggle',function(){detImportToggle();});
+/* Partage en lecture seule (js/30-share.js) */
+uiOn('openShare',function(){openShare();});
+uiOn('menuShare',function(){toggleMenu();openShare();});
+uiOn('shareClose',function(){closeShare();});
+uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
+uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});
+uiOn('shareTog',function(el,e,k){shareSet(k,!SHARE[k]);});
+uiOn('shareCreate',function(){shareCreate();});
+uiOn('shareCopy',function(){if(SHARE.last)shareCopyText(shareUrl(SHARE.last.token));});
+uiOn('shareCopyTok',function(el,e,tok){shareCopyText(shareUrl(tok));});
+uiOn('shareNative',function(){if(SHARE.last&&navigator.share)navigator.share({title:'Cinepisode',url:shareUrl(SHARE.last.token)}).catch(function(){});});
+uiOn('shareRevoke',function(el,e,id){shareRevoke(id);});
 uiOn('closeAlert',function(){document.getElementById('alertWrap').classList.remove('on');});
 uiOn('switchDiscoverCat',function(el){switchDiscoverCat(el);});
 /* Import RGPD Disney+ / Apple TV (js/27-gdpr-import.js) */
