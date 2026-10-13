@@ -126,6 +126,7 @@ test('appairage : extension -> site -> « Autoriser cet appareil » -> jeton rem
   await site.locator('.dev-row').first().waitFor();
   await site.waitForTimeout(900);
   await shot(site, '04-site-relie-appareils');
+  assert.equal(await site.locator('#toastWrap').isVisible(), false, 'aucune notification de l\'app par-dessus la page d\'appairage');
 
   /* L'extension a reçu un jeton d'appareil valide, vérifié auprès du serveur (la fenêtre s'est fermée au clic) */
   assert.ok(popup.isClosed(), 'la fenêtre de l\'extension se ferme en ouvrant le site');
