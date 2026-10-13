@@ -147,7 +147,10 @@ function p3Header(){
   ph.classList.toggle('on',!!title);
   /* Ma liste : recherche dans la liste et « Ajouter » à droite du titre ; ailleurs, retour dans la barre d'outils */
   var nr=document.querySelector('.nav.floating .nav-right'),sr=document.querySelector('.srch'),ad=document.querySelector('.add-btn[data-click="openAdd"]');
-  if(nr&&sr&&ad){if(p3View==='list'){if(sr.parentNode!==act){act.appendChild(sr);act.appendChild(ad);}}else if(sr.parentNode===act){nr.insertBefore(ad,nr.firstChild);nr.appendChild(sr);}}
+  if(nr&&sr&&ad){if(p3View==='list'){if(sr.parentNode!==act){act.appendChild(sr);act.appendChild(ad);}
+    var shb=document.getElementById('p3ShareBtn');if(!shb){shb=document.createElement('button');shb.type='button';shb.id='p3ShareBtn';shb.className='p3-share-b';shb.setAttribute('data-click','openShare');
+      shb.innerHTML=_p3Svg('<path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13"/>')+'<span></span>';}
+    shb.querySelector('span').textContent=t('share.title');if(shb.parentNode!==act||shb.nextSibling!==ad)act.insertBefore(shb,ad);}else if(sr.parentNode===act){nr.insertBefore(ad,nr.firstChild);nr.appendChild(sr);}}
   var lc=document.querySelector('[data-cnt="list"]');if(lc)lc.textContent=L.length?fmtNum(L.length):'';
   var db=document.getElementById('detBadge'),dc=document.querySelectorAll('[data-cnt="detectes"]'),n=db&&!db.hidden?(db.textContent||'').trim():'';
   dc.forEach(function(e){e.textContent=n;});

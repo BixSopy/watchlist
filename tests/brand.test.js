@@ -101,7 +101,7 @@ test('CSP : Turnstile autorisé, rien d\'autre d\'ouvert ; redirections de domai
   const ignore = read('.vercelignore');
   for (const f of LEGAL) assert.match(ignore, new RegExp('^!' + f.replace('.', '\\.') + '$', 'm'));
   /* /fr et /en servent l'app (langue imposée par l'adresse) */
-  assert.deepStrictEqual(vercel.rewrites, [{ source: '/:lang(fr|en)', destination: '/' }]);
+  assert.deepStrictEqual(vercel.rewrites, [{ source: '/:lang(fr|en)', destination: '/' }, { source: '/s/:token', destination: '/api/share?t=:token' }]);
 });
 
 test('pages légales : une version par langue, liées entre elles (hreflang) et au bon pied de page', () => {

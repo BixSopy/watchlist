@@ -14,7 +14,7 @@ function jwt(user) {
 export async function installFakeSupabase(page, opts = {}) {
   const db = {
     users: [{ id: '11111111-1111-4111-8111-111111111111', email: 'pierre@exemple.fr', password: 'Correct-Horse-42', confirmed: true }],
-    profiles: [], items: [], detected: [], devices: [], calls: [], deleted: false, ...opts,
+    profiles: [], items: [], detected: [], devices: [], shares: [], calls: [], deleted: false, ...opts,
   };
   /* Par défaut, les tests visent l'application : on passe la page d'accueil (visiteur déjà venu, liste locale).
      { landing: true } garde le parcours d'un nouveau visiteur (page d'accueil publique). */
@@ -119,6 +119,32 @@ export async function installFakeSupabase(page, opts = {}) {
         return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
       }
       return err(route, 403, '42501', 'permission denied for table detected_media');
+    }
+    /* Partage en lecture seule : mêmes règles que la migration 20261013150000 (RLS, RPC) */
+    if (p === '/rest/v1/shares') {
+      const usr = current(req);
+      if (!usr) return err(route, 401, '42501', 'jwt');
+      if (req.method() !== 'GET') return err(route, 403, '42501', 'permission denied for table shares');
+      return ok(route, db.shares.filter(x => x.account_id === usr.id && !x.revoked_at).map(({ account_id, ...r }) => r));
+    }
+    if (p === '/rest/v1/rpc/create_share') {
+      const usr = current(req);
+      if (!usr) return ok(route, { status: 'not_authenticated' });
+      if (!db.profiles.some(x => x.id === body.p_profile_id && x.account_id === usr.id)) return ok(route, { status: 'invalid_profile' });
+      if (db.shares.filter(x => x.profile_id === body.p_profile_id && !x.revoked_at).length >= 10) return ok(route, { status: 'too_many_shares' });
+      const tok = Array.from({ length: 22 }, (_, i) => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'[(db.shares.length * 7 + i * 13) % 64]).join('');
+      const sh = { id: 'sh-' + (db.shares.length + 1), account_id: usr.id, profile_id: body.p_profile_id, token: tok, kind: body.p_kind,
+        filter_status: body.p_filter_status, filter_types: body.p_filter_types, hide_ratings: body.p_hide_ratings, hide_progress: body.p_hide_progress,
+        view_count: 0, created_at: new Date().toISOString(), revoked_at: null };
+      db.shares.push(sh);
+      return ok(route, { status: 'ok', id: sh.id, token: sh.token });
+    }
+    if (p === '/rest/v1/rpc/revoke_share') {
+      const usr = current(req);
+      const sh = usr && db.shares.find(x => x.id === body.p_id && x.account_id === usr.id && !x.revoked_at);
+      if (!sh) return ok(route, { status: 'not_found' });
+      sh.revoked_at = new Date().toISOString();
+      return ok(route, { status: 'ok' });
     }
     if (p === '/rest/v1/rpc/delete_my_account') {
       const usr = current(req);

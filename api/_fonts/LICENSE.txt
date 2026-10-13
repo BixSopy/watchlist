@@ -1,0 +1,2 @@
+Inter (instances statiques 500 et 800, sous-ensemble latin) — © The Inter Project Authors, SIL Open Font License 1.1 (https://openfontlicense.org).
+Utilisées uniquement par api/og.mjs pour dessiner les aperçus de partage.

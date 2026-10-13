@@ -1,0 +1,8 @@
+{
+  "name": "cinepisode",
+  "private": true,
+  "description": "Dépendance unique côté serveur : @vercel/og pour l'aperçu des liens de partage (api/og.mjs). L'app reste sans build.",
+  "dependencies": {
+    "@vercel/og": "0.8.5"
+  }
+}

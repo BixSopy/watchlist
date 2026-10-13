@@ -17,5 +17,6 @@
 !sitemap.xml
 !js
 !vercel.json
+!package.json
 !manifest.json
 !sw.js
