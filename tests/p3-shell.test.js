@@ -30,3 +30,12 @@ test('navigation : cinq vues, pilule en haut et barre du téléphone, script cha
   assert.ok(html.indexOf('js/29-shell.js') > html.indexOf('js/28-pairing.js'));
   assert.match(html, /#alertWrap\{display:none!important\}/, 'bandeau remplacé par la cloche');
 });
+
+test('Compact : la classe posée sur <body> ne réutilise pas celle du bouton (.p3-cpt)', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const js = fs.readFileSync(path.join(__dirname, '..', 'js', '29-shell.js'), 'utf8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const m = js.match(/body\.classList\.toggle\('([a-z0-9-]+)',!!compactOn\)/);
+  assert.ok(m, 'classe compact sur body');
+  assert.ok(!new RegExp('(^|[\\s,}])\\.' + m[1] + '\\s*[{,]', 'm').test(html), 'aucune règle CSS nue .' + m[1]);
+});
