@@ -149,7 +149,7 @@ function p3Header(){
   document.querySelectorAll('[data-v="detectes"]').forEach(function(b){b.hidden=dh;});
   if(dh&&p3View==='detectes'){p3Go('tonight',true);return;}
   var cp=document.getElementById('p3Cpt');if(cp){cp.setAttribute('aria-checked',compactOn?'true':'false');cp.classList.toggle('on',!!compactOn);}
-  document.body.classList.toggle('p3-cpt',!!compactOn);
+  document.body.classList.toggle('p3-compact',!!compactOn);
   var dot=document.getElementById('p3Dot');if(dot)dot.hidden=!L.some(function(i){return i.hasNewEp;});
 }
 function p3BellClose(){var pop=document.getElementById('p3Pop'),b=document.getElementById('p3Bell');if(pop)pop.hidden=true;if(b)b.setAttribute('aria-expanded','false');}
