@@ -138,5 +138,10 @@
       "source": "/s/:token",
       "destination": "/api/share?t=:token"
     }
-  ]
+  ],
+  "functions": {
+    "api/og.mjs": {
+      "includeFiles": "api/_fonts/**"
+    }
+  }
 }

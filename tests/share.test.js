@@ -85,9 +85,9 @@ test('titres des aperçus', () => {
   assert.strictEqual(S.headline({ name: 'Ana', kind: 'filtered', filter_status: ['avoir'], filter_types: ['film'], items: [1] }), 'La liste de Ana · À voir, Films');
 });
 
-test('aperçu /api/og : Edge, cache court (pas « immutable »), carte générique si lien invalide', () => {
+test('aperçu /api/og : Node, cache court (pas « immutable »), carte générique si lien invalide', () => {
   const src = fs.readFileSync(path.join(ROOT, 'api', 'og.mjs'), 'utf8');
-  assert.match(src, /runtime: 'edge'/);
+  assert.match(src, /runtime: 'nodejs'/);
   assert.match(src, /hd\.set\('Cache-Control', d \? 'public, max-age=300, s-maxage=600'/);
   assert.match(src, /if \(!TOKEN_RE\.test/);
   assert.doesNotMatch(src, /service_role|SUPABASE_SECRET/);
