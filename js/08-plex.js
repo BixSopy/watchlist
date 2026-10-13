@@ -107,6 +107,24 @@ function plexProviderList(fr){
   });
   return out;
 }
+/* Lien direct vers la recherche sur le domaine de la plateforme elle-même
+   plutôt que via un tiers (JustWatch/TMDB) — patterns vérifiés pour les
+   plateformes les plus courantes. Repli sur la page officielle TMDB/JustWatch
+   (fr.link) pour toute plateforme non reconnue, afin de rester fiable plutôt
+   que de deviner une URL susceptible de mener à une page morte. */
+var PLEX_PROV_DOMAIN=[
+  [/netflix/i,'https://www.netflix.com/search?q=%s'],
+  [/amazon|prime ?video/i,'https://www.amazon.fr/s?k=%s&i=instant-video'],
+  [/apple ?tv/i,'https://tv.apple.com/search?term=%s'],
+  [/crunchyroll/i,'https://www.crunchyroll.com/search?q=%s'],
+  [/youtube/i,'https://www.youtube.com/results?search_query=%s'],
+];
+function plexProviderDirectUrl(p,fallback){
+  for(var i=0;i<PLEX_PROV_DOMAIN.length;i++){
+    if(PLEX_PROV_DOMAIN[i][0].test(p.provider_name||''))return PLEX_PROV_DOMAIN[i][1].replace('%s',encodeURIComponent(plexData.title||''));
+  }
+  return fallback||(I18N_META.justwatch||'https://www.justwatch.com/fr/recherche?q=')+encodeURIComponent(plexData.title||'');
+}
 
 function fillPlexDetails(det){
   var d=plexData;if(!det)return;
@@ -147,8 +165,8 @@ function fillPlexDetails(det){
     var fr=wp.results[TMDB_REGION];var prov=plexProviderList(fr);
     if(prov.length){
       var ph='<div><div class="sec-lbl">'+esc(t('plex.availableOn'))+'</div><div class="plex-provs">';
-      prov.forEach(function(o){var p=o.p;var logo=p.logo_path?'<img class="prov-logo" src=\"'+IB+'w92'+esc(p.logo_path)+'\" alt="">':'';var url=(I18N_META.justwatch||'https://www.justwatch.com/fr/recherche?q=')+encodeURIComponent(d.title||'');ph+='<a class="plex-prov" href="'+url+'" target="_blank" rel="noopener">'+logo+'<div>'+esc(p.provider_name)+'<small>'+esc(o.sub)+'</small></div></a>';});
-      ph+='</div></div>';document.getElementById('plexProviders').innerHTML=ph;
+      prov.forEach(function(o){var p=o.p;var logo=p.logo_path?'<img class="prov-logo" src=\"'+IB+'w92'+esc(p.logo_path)+'\" alt="">':'';var url=plexProviderDirectUrl(p,fr.link);ph+='<a class="plex-prov" href="'+url+'" target="_blank" rel="noopener">'+logo+'<div>'+esc(p.provider_name)+'<small>'+esc(o.sub)+'</small></div></a>';});
+      ph+='</div><div class="plex-prov-credit">'+esc(t('plex.provCredit'))+'</div></div>';document.getElementById('plexProviders').innerHTML=ph;
     }
   }
   /* Saisons */

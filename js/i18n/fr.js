@@ -115,6 +115,7 @@
  "plex.episodes": "Épisodes",
  "plex.addedOn": "Ajouté le",
  "plex.availableOn": "Disponible sur",
+ "plex.provCredit": "Disponibilité des plateformes fournie par JustWatch",
  "plex.overview": "Aperçu",
  "plex.nextEp": "Prochain ép. :",
  "plex.seasonScore": "Note saison",
