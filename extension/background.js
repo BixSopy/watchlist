@@ -157,6 +157,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || typeof msg !== 'object') return;
   if (IMPORT_TYPES.indexOf(msg.type) >= 0) return onImportMessage(msg, sender, sendResponse);
   if (msg.type === 'wl_progress') return onProgress(msg, sender, sendResponse);
+  if (msg.type === 'wl_unpair') return onUnpair(msg, sender, sendResponse);
+  if (msg.type === 'wl_check_pair') return onCheckPair(msg, sender, sendResponse);
   if (msg.type !== 'wl_watched') return;
   if (!trustedSender(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
   var det = validDetection(msg);
@@ -603,6 +605,79 @@ function onImportMessage(msg, sender, sendResponse) {
           : runNetflixImport(token);
     job.catch(function () { return setImportState({ state: 'error', error: 'network' }); })
       .then(function () { importRunning = false; });
+  });
+  return true;
+}
+
+/* ---------- Appairage (0.8.0) : le site cinepisode.com transmet un jeton propre à cet appareil ----------
+ * Le site ne peut parler à l'extension que depuis https://cinepisode.com (externally_connectable du
+ * manifeste) ; l'origine est revérifiée ici. Le jeton (cpd_ + 64 hexa) est validé auprès de Supabase
+ * (extension_whoami) avant d'être enregistré : un jeton inconnu ou révoqué n'est jamais gardé.
+ * Aucun copier-coller, le jeton ne passe ni par une URL ni par le presse-papier. */
+var PAIR_ORIGINS = ['https://cinepisode.com'];
+var DEVICE_TOKEN_RE = /^cpd_[0-9a-f]{64}$/;
+function pairOriginOk(sender) {
+  var o = sender && (sender.origin || (sender.url && new URL(sender.url).origin));
+  return PAIR_ORIGINS.indexOf(o) >= 0;
+}
+function whoami(token) {
+  return rpc({ p_token: token }, 'extension_whoami').then(function (res) { return res.data || {}; }, function () { return { status: 'network' }; });
+}
+if (chrome.runtime.onMessageExternal) chrome.runtime.onMessageExternal.addListener(function (msg, sender, sendResponse) {
+  if (!msg || typeof msg !== 'object' || !pairOriginOk(sender)) { sendResponse({ ok: false, reason: 'origin' }); return; }
+  var version = chrome.runtime.getManifest().version;
+  if (msg.type === 'cp_ping') {
+    chrome.storage.local.get(['wlToken', 'wlDeviceId'], function (st) {
+      sendResponse({ ok: true, version: version, paired: !!st.wlToken, deviceId: st.wlDeviceId || null });
+    });
+    return true;
+  }
+  if (msg.type !== 'cp_pair') { sendResponse({ ok: false, reason: 'type' }); return; }
+  var token = typeof msg.token === 'string' ? msg.token : '';
+  if (!DEVICE_TOKEN_RE.test(token)) { sendResponse({ ok: false, reason: 'invalid_token' }); return; }
+  whoami(token).then(function (who) {
+    if (who.status !== 'ok') { sendResponse({ ok: false, reason: who.status === 'network' ? 'network' : 'invalid_token' }); return; }
+    var deviceId = typeof msg.deviceId === 'string' && /^[0-9a-f-]{36}$/.test(msg.deviceId) ? msg.deviceId : null;
+    chrome.storage.local.get('wlToken', function (st) {
+      var old = st.wlToken;
+      chrome.storage.local.set({ wlToken: token, wlProfile: String(who.profile || '').slice(0, 40), wlDeviceId: deviceId, wlPairedAt: Date.now() }, function () {
+        chrome.storage.local.remove('wlLast');
+        /* Ancien jeton d'appareil remplacé : on le révoque côté serveur (best effort) */
+        if (old && old !== token && DEVICE_TOKEN_RE.test(old)) rpc({ p_token: old }, 'extension_unpair').catch(function () {});
+        sendResponse({ ok: true, version: version });
+      });
+    });
+  });
+  return true;
+});
+
+/* Messages internes : seulement depuis la fenêtre de l'extension (popup ou page d'options), jamais d'un script de page */
+function fromOwnPage(sender) {
+  return !!sender && sender.id === chrome.runtime.id && typeof sender.url === 'string' && sender.url.indexOf(chrome.runtime.getURL('options.html')) === 0;
+}
+
+/* Déconnexion depuis la fenêtre de l'extension : un jeton d'appareil est révoqué côté serveur. */
+function onUnpair(msg, sender, sendResponse) {
+  if (!fromOwnPage(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
+  chrome.storage.local.get('wlToken', function (st) {
+    var p = st.wlToken && DEVICE_TOKEN_RE.test(st.wlToken) ? rpc({ p_token: st.wlToken }, 'extension_unpair').catch(function () {}) : Promise.resolve();
+    p.then(function () {
+      chrome.storage.local.remove(['wlToken', 'wlLast', 'wlNow', 'wlPending', 'wlProfile', 'wlDeviceId', 'wlPairedAt'], function () { sendResponse({ ok: true }); });
+    });
+  });
+  return true;
+}
+
+/* Jeton d'appareil révoqué depuis le site : l'extension le constate et repasse en « non relié ». */
+function onCheckPair(msg, sender, sendResponse) {
+  if (!fromOwnPage(sender)) { sendResponse({ ok: false, reason: 'sender' }); return; }
+  chrome.storage.local.get('wlToken', function (st) {
+    if (!st.wlToken || !DEVICE_TOKEN_RE.test(st.wlToken)) { sendResponse({ ok: true, skipped: true }); return; }
+    whoami(st.wlToken).then(function (who) {
+      if (who.status === 'invalid_token') {
+        chrome.storage.local.remove(['wlToken', 'wlNow', 'wlProfile', 'wlDeviceId', 'wlPairedAt'], function () { sendResponse({ ok: false, revoked: true }); });
+      } else sendResponse({ ok: true, profile: who.profile || null });
+    });
   });
   return true;
 }

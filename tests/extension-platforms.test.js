@@ -819,7 +819,7 @@ test('fenêtre 0.7.3 : sans jeton -> vue « Non connecté » ; « Connecter » e
   assert.deepStrictEqual(p.visible(), ['viewMain']);
   assert.strictEqual(p.$('tokenMask').textContent, '•••• 9f3a', 'jeton masqué dans les Réglages');
   assert.strictEqual(p.$('token').value, '', 'le jeton ne reste pas dans le champ');
-  assert.strictEqual(p.$('version').textContent, 'v0.7.3');
+  assert.strictEqual(p.$('version').textContent, 'v0.8.0');
 });
 
 test('fenêtre 0.7.3 : Réglages (aller-retour), changement de jeton annulable, déconnexion avec confirmation', () => {
@@ -910,7 +910,7 @@ test('fenêtre 0.7.3 : diagnostic de la détection (case du journal, copie sans 
   p.$('diagCopy').click();
   await new Promise(r => setTimeout(r, 5));
   const d = JSON.parse(p.copied[0]);
-  assert.strictEqual(d.version, '0.7.3');
+  assert.strictEqual(d.version, '0.8.0');
   assert.strictEqual(d.tokenSet, true);
   assert.deepStrictEqual(d.lastPage, { platform: 'disneyplus', videos: 2 });
   assert.ok(!p.copied[0].includes('jeton-secret-42'), 'jamais le jeton');

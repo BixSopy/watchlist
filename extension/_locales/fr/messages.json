@@ -541,5 +541,17 @@
   },
   "logoutYes": {
     "message": "Oui"
+  },
+  "pairButton": {
+    "message": "Se connecter avec Cinepisode"
+  },
+  "pairSub": {
+    "message": "Un clic sur le site suffit, aucun code à copier."
+  },
+  "manualToggle": {
+    "message": "Utiliser un jeton manuel (avancé)"
+  },
+  "pairedRevoked": {
+    "message": "Cet appareil a été retiré depuis le site. Relie-le à nouveau."
   }
 }
