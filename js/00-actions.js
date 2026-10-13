@@ -102,6 +102,16 @@ uiOn('statSelMobile',function(el){var b=document.querySelector('.stab[data-s="'+
 uiOn('clearStatFilter',function(){var b=document.querySelector('#stabs .stab[data-s="all"]');if(b)b.click();});
 uiOn('closeAlert',function(){document.getElementById('alertWrap').classList.remove('on');});
 uiOn('switchDiscoverCat',function(el){switchDiscoverCat(el);});
+/* Import RGPD Disney+ / Apple TV (js/27-gdpr-import.js) */
+uiOn('gdprOpen',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.gdprOpen;if(f)return f.apply(this,arguments);});
+uiOn('closeGdpr',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.closeGdpr;if(f)return f.apply(this,arguments);});
+uiOn('gdprPlat',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.gdprPlat;if(f)return f.apply(this,arguments);});
+uiOn('gdprStep',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.gdprStep;if(f)return f.apply(this,arguments);});
+uiOn('gdprLink',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.gdprLink;if(f)return f.apply(this,arguments);});
+uiOn('gdprDone',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.gdprDone;if(f)return f.apply(this,arguments);});
+uiOn('gdprReset',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.gdprReset;if(f)return f.apply(this,arguments);});
+uiOn('gdprPasteGo',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.gdprPasteGo;if(f)return f.apply(this,arguments);});
+uiOn('gdprSend',function(){var f=window.GDPR_ACTIONS&&window.GDPR_ACTIONS.gdprSend;if(f)return f.apply(this,arguments);});
 /* Onglet Calendrier (js/26-calendar.js) */
 uiOn('calNav',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calNav;if(f)return f.apply(this,arguments);});
 uiOn('calView',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calView;if(f)return f.apply(this,arguments);});
