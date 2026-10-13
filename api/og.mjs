@@ -1,6 +1,6 @@
 /*
  * Aperçu Open Graph d'un lien de partage : GET /api/og?t=<jeton> → PNG 1200×630.
- * Fonction Edge Vercel (@vercel/og). Lit uniquement get_public_share (champs publics).
+ * Fonction Node Vercel (@vercel/og). Lit uniquement get_public_share (champs publics).
  * Lien inconnu ou révoqué → carte générique Cinepisode, sans aucune donnée.
  * Cache CDN court (10 min) : une révocation coupe l'aperçu en moins de 10 min chez nous ;
  * les messageries gardent parfois leur propre copie.
