@@ -101,11 +101,12 @@ for (const vp of ['m360', 'm390', 'm412']) {
     // G2 : 16 px dans les champs (pas de zoom iOS)
     const fs16 = await page.evaluate(() => ['#qinput', '#tinput', '#fsai', '#searchModalInput'].map(s => parseFloat(getComputedStyle(document.querySelector(s)).fontSize)));
     assert.ok(fs16.every(x => x >= 16), 'champs ≥ 16 px : ' + fs16);
-    // G1 : la loupe ne recouvre plus le logo
+    // G1 : la loupe (navigation « Cinéma » : bouton rond à droite) ne recouvre pas le logo
     await page.tap('#addMbk .modal-x');
-    const logo = await page.locator('.hdr .logo').boundingBox(), sb = await page.locator('.hdr .search-bar').boundingBox();
+    const logo = await page.locator('.hdr .logo').boundingBox(), sb = await page.locator('#p3Search').boundingBox();
     assert.ok(logo.x + logo.width <= sb.x, 'logo entier, avant la loupe');
-    assert.ok(sb.width >= 44 && sb.height >= 44, 'loupe de 44 px');
+    assert.ok(sb.width >= 40 && sb.height >= 40, 'loupe de 40 px');
+    assert.ok(sb.x + sb.width <= W + 0.5, 'loupe dans l\'écran');
     assert.deepEqual(problems, []);
   });
 }

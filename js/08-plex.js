@@ -25,6 +25,7 @@ function fillPlex(){
   document.getElementById('plexStats').innerHTML='';
   document.getElementById('plexActs').innerHTML='';
   document.getElementById('plexCrossRatings').innerHTML='';
+  plexEpsReset();plexSimilar(d);
   document.getElementById('plexKind').textContent=plexKindLabel(d,null);
   /* Poster */
   var pw=document.getElementById('plexPosterWrap');
@@ -160,6 +161,7 @@ function fillPlexDetails(det){
     }
     /* Episodes de la saison en cours (cache local, pas item.totalEp = total de la série) :
        recalcul exact ici (on a déjà det.seasons), mis à jour aussi pour les cartes/grille. */
+    if(d.item&&d.item.saison&&d.item.status!=='avoir')plexEpisodes(d.item.saison);
     if(d.item&&d.item.saison){
       var curS=seasons.filter(function(s){return s.season_number===d.item.saison;})[0];
       if(curS&&curS.episode_count){
@@ -248,6 +250,7 @@ function loadCrossRatings(det){
 function plexSeason(num){
   sfx('click');document.querySelectorAll('#sSelWrap .s-btn').forEach(function(b){b.classList.toggle('on',b.dataset.s==num);});
   if(num==0){if(plexData)fillPlex();return;}
+  plexEpisodes(num);
   var d=plexData;if(!d||!d.tmdbId)return;
   tf(TB+'/tv/'+d.tmdbId+'/season/'+num+'?language='+TMDB_LANG).then(function(s){
     document.getElementById('plexOverview').textContent=s.overview||d.overview||'';
@@ -308,3 +311,46 @@ function quickNextEp(id,ev){
   }else apply(null);
 }
 
+
+/* ===== Fiche « Cinéma » : liste des épisodes et titres similaires =====
+   Les coches viennent du pointeur existant (saison/épisode du titre) : un épisode est « vu » s'il est
+   avant ou égal au dernier épisode vu. Pas de suivi épisode par épisode, donc pas de migration :
+   les coches sont en lecture seule ; « Épisode suivant » reste le bouton qui avance. */
+function epWatched(item,s,e){
+  if(!item||item.status==='avoir')return false;
+  if(item.status==='termine')return true;
+  var cs=item.saison||0,ce=item.episode||0;
+  return s<cs||(s===cs&&e<=ce);
+}
+function plexEpsReset(){var w=document.getElementById('plexEpsWrap');if(w)w.hidden=true;var l=document.getElementById('plexEps');if(l)l.innerHTML='';}
+var _plexEpsReq=0;
+function plexEpisodes(num){
+  var d=plexData;if(!d||!d.tmdbId||d.type==='movie')return;
+  var req=++_plexEpsReq;
+  tf(TB+'/tv/'+d.tmdbId+'/season/'+num+'?language='+TMDB_LANG).then(function(s){
+    if(req!==_plexEpsReq||plexData!==d||!s||!s.episodes||!s.episodes.length)return;
+    var html=s.episodes.slice(0,40).map(function(ep,i){
+      var dt=ep.air_date?new Date(ep.air_date+'T12:00:00'):null,fut=dt&&dt>new Date(),v=!fut&&epWatched(d.item,num,ep.episode_number);
+      var when=fut?t('plex.epAirs',{date:dt.toLocaleDateString(LOCALE,{day:'numeric',month:'long'})}):(ep.runtime?ep.runtime+' min':'');
+      return '<div class="pe-row" style="--i:'+Math.min(i,12)+'"><span class="pe-im"'+(ep.still_path?' style="background-image:url(\''+esc(IB+'w300'+ep.still_path)+'\')"':'')+'></span>'+
+        '<span class="pe-tx"><b>E'+ep.episode_number+(ep.name?' · '+esc(ep.name):'')+'</b><i>'+esc(when)+(v?' · '+esc(t('plex.epSeen')):'')+'</i></span>'+
+        '<span class="pe-ck'+(v?' on':'')+'" role="img" aria-label="'+esc(v?t('plex.epSeen'):t('plex.epNotSeen'))+'">'+(v?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12.5l4.2 4.2L19 7"/></svg>':'')+'</span></div>';
+    }).join('');
+    document.getElementById('plexEps').innerHTML=html;document.getElementById('plexEpsWrap').hidden=false;
+  }).catch(function(){});
+}
+var _plexSimReq=0,_plexSimRes=[];
+function plexSimilar(d){
+  var w=document.getElementById('plexSimWrap'),box=document.getElementById('plexSim');if(!w||!box)return;
+  w.hidden=true;box.innerHTML='';if(!d||!d.tmdbId)return;
+  var req=++_plexSimReq,tt=d.type==='movie'?'movie':'tv';
+  tf(TB+'/'+tt+'/'+d.tmdbId+'/recommendations?language='+TMDB_LANG+'&page=1').then(function(r){
+    if(req!==_plexSimReq)return;
+    var res=((r&&r.results)||[]).filter(function(x){return x.poster_path;}).slice(0,6);
+    if(!res.length)return;
+    _plexSimRes=res.map(function(x){x.media_type=x.media_type||tt;return x;});
+    box.innerHTML=_plexSimRes.map(function(x,i){var ti=x.title||x.name||'',y=(x.release_date||x.first_air_date||'').slice(0,4);
+      return '<button type="button" class="ps-c" style="--i:'+i+'"'+uiAct('plexSimOpen',[i])+'><span class="ps-im" style="background-image:url(\''+esc(IB+'w342'+x.poster_path)+'\')"></span><b>'+esc(ti)+'</b><i>'+esc(y)+(x.vote_average?' · ★ '+x.vote_average.toFixed(1):'')+'</i></button>';}).join('');
+    w.hidden=false;
+  }).catch(function(){});
+}

@@ -140,7 +140,7 @@ test('glisser à la souris fait défiler ; onglets en pilule avec surlignage', a
   await page.click('.ntab[data-tab="serie"]');
   await page.waitForTimeout(600);
   assert.equal(await hl(), true, 'surlignage sous Séries');
-  await page.click('.ntab[data-tab="discover"]');
+  await page.click('button[data-v="discover"]:visible');
   assert.equal(await page.evaluate(() => document.getElementById('segHl').classList.contains('on')), false, 'Découvrir : pas de surlignage dans la pilule');
   assert.deepEqual(problems, []);
 });
@@ -223,7 +223,7 @@ test('Accueil Cinéma : « À suivre » (4 titres), bouton épisode suivant, « 
   await page.evaluate(() => { compactOn = false; render(); });
   assert.equal(await page.locator('#homeNext').isVisible(), true);
   // Calendrier : masqué
-  await page.click('.ntab[data-tab="calendar"]');
+  await page.click('button[data-v="calendar"]:visible');
   assert.equal(await page.locator('#homeNext').isVisible(), false);
   assert.deepEqual(problems, []);
 });

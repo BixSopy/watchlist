@@ -100,6 +100,13 @@ uiOn('detClearAll',function(){detClearAll();});
 uiOn('detReload',function(){sfx('click');detReload();});
 uiOn('statSelMobile',function(el){var b=document.querySelector('.stab[data-s="'+String(el.value).replace(/["\\]/g,'')+'"]');if(b)b.click();});
 uiOn('clearStatFilter',function(){var b=document.querySelector('#stabs .stab[data-s="all"]');if(b)b.click();});
+/* Navigation « Cinéma » (js/29-shell.js) et fiche (js/08-plex.js) */
+uiOn('p3Go',function(el,e,v){p3Go(v);});
+uiOn('p3Compact',function(){toggleCompact();p3Header();});
+uiOn('p3Search',function(){if(typeof openSearchModal==='function'){sfx('open');openSearchModal('');}});
+uiOn('p3Bell',function(el,e){e.stopPropagation();p3Bell();});
+uiOn('p3OpenNew',function(el,e,id){p3BellClose();openPlex(_uiId(id));});
+uiOn('plexSimOpen',function(el,e,i){var r=_plexSimRes[i];if(r){sfx('open');openPlexTmdb(r);var m=document.querySelector('#plexMbk .plex-wrap');if(m)m.scrollTop=0;}});
 uiOn('closeAlert',function(){document.getElementById('alertWrap').classList.remove('on');});
 uiOn('switchDiscoverCat',function(el){switchDiscoverCat(el);});
 /* Import RGPD Disney+ / Apple TV (js/27-gdpr-import.js) */

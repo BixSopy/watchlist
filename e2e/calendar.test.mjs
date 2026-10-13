@@ -89,7 +89,7 @@ async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = fa
   await page.waitForFunction(() => memDB.filter(i => !i.deleted).length >= 8 && !syncInProgress);
   return { page, problems, calls };
 }
-const openCal = async page => { await page.click('.ntab[data-tab="calendar"]'); await page.waitForFunction(() => _calState.loaded && !_calState.loading); };
+const openCal = async page => { await page.click('button[data-v="calendar"]:visible'); await page.waitForFunction(() => _calState.loaded && !_calState.loading); };
 
 test('Calendrier (bureau) : grille d\'octobre, aujourd\'hui, prochaines sorties, filtres, options, .ics', async t => {
   const { page, problems, calls } = await newPage(t);
@@ -138,7 +138,7 @@ test('Calendrier (bureau) : grille d\'octobre, aujourd\'hui, prochaines sorties,
   const ics = fs.readFileSync(await dl.path(), 'utf8');
   assert.match(ics, /^BEGIN:VCALENDAR/); assert.match(ics, /SUMMARY:Invincible — S03E06/); assert.doesNotMatch(ics, /DTSTART;VALUE=DATE:202610(0\d|11)\r/, 'sorties passées non exportées');
   // Retour sur Tout : la liste revient
-  await page.click('.ntab[data-tab="all"]');
+  await page.click('button[data-v="tonight"]:visible');
   assert.equal(await page.locator('#calendarSection').isHidden(), true);
   assert.equal(new URL(page.url()).hash, '');
   assert.deepEqual(calls, [], 'aucun appel à un tiers');
