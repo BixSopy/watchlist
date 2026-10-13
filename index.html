@@ -1704,6 +1704,14 @@ html.pair-open #toastWrap{display:none}
   .hn-row,.hn-day{animation:none;transition:background .2s}.hn-row:hover,.hn-day:hover{transform:none}
   .grid:not(.cpt) .card{transition:border-color .2s}.grid:not(.cpt) .card:hover{transform:none}
 }
+
+/* Progression inconnue (nombre d'épisodes de la saison pas encore reçu) : barre « indéterminée » qui glisse,
+   jamais de faux pourcentage ; si le nombre reste introuvable, la barre est masquée (le libellé S·E suffit) */
+.cf-bar.unk i,.cf-card .cf-pg.unk i{width:38%!important;animation:cfUnk 1.4s cubic-bezier(.4,0,.2,1) infinite;opacity:.8}
+@keyframes cfUnk{from{transform:translateX(-110%)}to{transform:translateX(290%)}}
+.cf-card .cf-pg.unk{opacity:.55}
+.cf-bar.none,.cf-card .cf-pg.none{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.cf-bar.unk i,.cf-card .cf-pg.unk i{animation:none;width:100%!important;opacity:.25}}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>

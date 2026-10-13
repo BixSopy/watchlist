@@ -11,13 +11,58 @@ function _cfReduced(){try{return window.matchMedia('(prefers-reduced-motion: red
 function _cfSmall(){return window.innerWidth<=768;}
 function _cfEpLabel(item){return(item.type!=='film'&&item.saison&&item.episode)?('S'+pad(item.saison)+' · E'+pad(item.episode)):'';}
 function _cfPct(item){var p=(typeof _seasonProgressPct==='function')?_seasonProgressPct(item):null;return p==null?0:p;}
+/* Progression inconnue tant que le nombre d'épisodes de la saison n'est pas connu : on le demande au
+   proxy TMDB (même URL que le fond du bandeau, donc même cache), on le garde sur le titre (IndexedDB,
+   champ local déjà existant, aucune migration) et, en attendant, la barre est « indéterminée ». */
+function needsSeasonCount(item){
+  return !!(item&&item.type!=='film'&&item.status==='encours'&&item.tmdbId&&item.saison&&item.episode&&
+    !(item.seasonEpCount>0&&item.seasonEpCountSeason===item.saison));
+}
+function seasonCountFrom(det,saison){
+  var ss=(det&&det.seasons)||[];
+  for(var i=0;i<ss.length;i++)if(ss[i].season_number===saison&&ss[i].episode_count>0)return ss[i].episode_count;
+  return 0;
+}
+var _scPending=Object.create(null),_scFailed=Object.create(null);
+function ensureSeasonCount(item){
+  if(!needsSeasonCount(item)||_scPending[item.id]||_scFailed[item.id+':'+item.saison]||typeof tf!=='function')return;
+  _scPending[item.id]=1;
+  var kind=item.tmdbType||'tv';
+  tf(TB+'/'+kind+'/'+item.tmdbId+'?language='+TMDB_LANG+'&append_to_response=images').then(function(det){
+    delete _scPending[item.id];
+    var n=seasonCountFrom(det,item.saison);
+    if(!n){_scFailed[item.id+':'+item.saison]=1;_cfRefreshProgress(item);return;}
+    item.seasonEpCount=n;item.seasonEpCountSeason=item.saison;
+    if(typeof persistSuiviItem==='function')persistSuiviItem(item);
+    _cfRefreshProgress(item);
+  }).catch(function(){delete _scPending[item.id];_scFailed[item.id+':'+item.saison]=1;_cfRefreshProgress(item);});
+}
+function _cfProgUnknown(item){return item&&item.type!=='film'&&_seasonProgressPct(item)==null;}
+/* 'ok' (vrai %), 'wait' (demande en cours ou à venir : barre indéterminée), 'none' (introuvable, ou film : barre masquée) */
+function _cfProgState(item){
+  if(!item||item.type==='film')return 'none';
+  if(!_cfProgUnknown(item))return 'ok';
+  return needsSeasonCount(item)&&!_scFailed[item.id+':'+item.saison]&&typeof tf==='function'?'wait':'none';
+}
+function _cfPgCls(item){var st=_cfProgState(item);return st==='ok'?'':' '+(st==='wait'?'unk':'none');}
+function _cfRefreshProgress(item){
+  var c=document.querySelector('#cfRing .cf-card[data-id="'+(window.CSS&&CSS.escape?CSS.escape(String(item.id)):item.id)+'"]');
+  if(c){var pg=c.querySelector('.cf-pg');if(pg){var st=_cfProgState(item);pg.classList.toggle('unk',st==='wait');pg.classList.toggle('none',st==='none');pg.firstChild.style.width=_cfPct(item)+'%';}}
+  var cur=_heroItems[_heroIdx];if(cur&&cur.id===item.id)_cfBarSet(item);
+}
+function _cfBarSet(item){
+  var bar=document.getElementById('cfBar');if(!bar)return;
+  var st=_cfProgState(item),wrap=bar.parentNode;
+  if(wrap){wrap.classList.toggle('unk',st==='wait');wrap.classList.toggle('none',st==='none');}
+  bar.style.width=st==='ok'?_cfPct(item)+'%':'';
+}
 function _cfCard(item,i){
   var b=document.createElement('button');
   b.type='button';b.className='cf-card';b.setAttribute('data-i',i);b.setAttribute('data-id',item.id);
   b.setAttribute('aria-label',item.title);b.tabIndex=-1;
   var ep=_cfEpLabel(item);
   b.innerHTML=(item.poster?'<img src="'+esc(IB+'w342'+item.poster)+'" alt="" loading="lazy" decoding="async">':'<span class="cf-ph">'+icon(item.type)+'</span>')+
-    (ep?'<span class="cf-ep">'+esc(ep)+'</span>':'')+'<span class="cf-pg"><i style="width:'+_cfPct(item)+'%"></i></span>';
+    (ep?'<span class="cf-ep">'+esc(ep)+'</span>':'')+'<span class="cf-pg'+_cfPgCls(item)+'"><i style="width:'+_cfPct(item)+'%"></i></span>';
   b.style.opacity='0';
   return b;
 }
@@ -57,7 +102,9 @@ function renderContinue(items,idx){
     c.style.pointerEvents=o?'':'none';
   });
   var ctr=document.getElementById('contCtr');if(ctr)ctr.textContent=(idx+1)+' / '+items.length;
-  var bar=document.getElementById('cfBar');if(bar)bar.style.width=_cfPct(items[idx])+'%';
+  /* nombres d'épisodes manquants : titre actif d'abord, puis ses voisins visibles */
+  for(var k=0;k<=CF_WIN;k++){ensureSeasonCount(items[idx+k]);if(k)ensureSeasonCount(items[idx-k]);}
+  _cfBarSet(items[idx]);
   _cfAmbient(items[idx]);
   var pv=band.querySelector('.cf-nav.prev'),nx=band.querySelector('.cf-nav.next');
   if(pv)pv.disabled=idx<=0;if(nx)nx.disabled=idx>=items.length-1;
@@ -241,6 +288,6 @@ function renderHomeNext(){
 document.addEventListener('keydown',function(e){
   if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.matches&&e.target.matches('.hn-row,.hn-day')){e.preventDefault();e.target.click();}
 });
-if(typeof module!=='undefined')module.exports={renderContinue:renderContinue,updateTabCounts:updateTabCounts,tabCounts:tabCounts,ambientFromPixels:ambientFromPixels,nextEpLabel:nextEpLabel,weekEvents:weekEvents};
+if(typeof module!=='undefined')module.exports={renderContinue:renderContinue,updateTabCounts:updateTabCounts,tabCounts:tabCounts,ambientFromPixels:ambientFromPixels,needsSeasonCount:needsSeasonCount,seasonCountFrom:seasonCountFrom,nextEpLabel:nextEpLabel,weekEvents:weekEvents};
 /* Tiroir Suivi : Entrée / Espace l'ouvrent aussi au clavier */
 (function(){var h=document.querySelector('#suiviWrap .suivi-hdr');if(!h)return;h.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();h.click();}});})();

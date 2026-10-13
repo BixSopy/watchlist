@@ -31,7 +31,7 @@ function items() {
 }
 const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="342" height="513"><rect width="342" height="513" fill="#345"/></svg>';
 
-async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = false, reducedMotion = 'no-preference' } = {}) {
+async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = false, reducedMotion = 'no-preference', keepStart = false } = {}) {
   server.config = { turnstileSiteKey: '', signupsOpen: true };
   const ctx = await browser.newContext({ locale: 'fr-FR', viewport, reducedMotion, ...(mobile ? { isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : {}) });
   const page = await ctx.newPage();
@@ -54,6 +54,8 @@ async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = fa
   await page.click('#authMbk .auth-close');
   await page.waitForFunction(() => memDB.filter(i => !i.deleted).length >= 20 && !syncInProgress);
   await page.locator('#cfRing .cf-card.on').waitFor();
+  /* Le carrousel démarre au milieu ; les tests de navigation repartent du premier titre */
+  if (!keepStart) await page.evaluate(() => { _heroIdx = 0; _showHeroItem(0); });
   return { page, problems };
 }
 const active = page => page.evaluate(() => _heroIdx);
@@ -244,5 +246,35 @@ test('Accueil Cinéma sur téléphone (390) : pas de débordement horizontal, 3 
   assert.equal(await page.locator('#homeNext .hn-row:visible').count(), 3);
   const cols = await page.evaluate(() => { const g = document.querySelector('#mc .grid:not(.cpt)'); return g ? getComputedStyle(g).gridTemplateColumns.split(' ').length : 2; });
   assert.equal(cols, 2);
+  assert.deepEqual(problems, []);
+});
+
+test('carrousel : démarre sur le titre du milieu (rempli des deux côtés), sans recentrer après un choix ni un épisode suivant', async t => {
+  const { page, problems } = await newPage(t, { keepStart: true });
+  assert.equal(await page.evaluate(() => _heroIdx), 6, '14 titres : index 6');
+  const sides = await page.evaluate(() => { const on = +document.querySelector('#cfRing .cf-card.on').getAttribute('data-i');
+    const v = [...document.querySelectorAll('#cfRing .cf-card')].filter(c => c.style.opacity !== '0').map(c => +c.getAttribute('data-i'));
+    return { left: v.filter(i => i < on).length, right: v.filter(i => i > on).length }; });
+  assert.ok(sides.left >= 3 && sides.right >= 3, JSON.stringify(sides));
+  await page.evaluate(() => cfGo(2));
+  await page.evaluate(() => { quickNextEp(_heroItems[5].id); });
+  await page.waitForTimeout(300);
+  await page.evaluate(() => render());
+  assert.equal(await page.evaluate(() => _heroIdx), 2, 'choix manuel conservé');
+  assert.deepEqual(problems, []);
+});
+
+test('progression : nombre d\'épisodes demandé au proxy TMDB, vrai % ; sinon barre indéterminée puis masquée, jamais 0 % trompeur', async t => {
+  const { page, problems } = await newPage(t, { keepStart: true });
+  // fond du bandeau sans saisons (route par défaut) : la barre active finit masquée (introuvable)
+  await page.waitForFunction(() => document.querySelector('.cf-bar').classList.contains('none'));
+  // nouvelle réponse avec les saisons : 10 épisodes en saison 1
+  await page.route(u => u.pathname === '/api/tmdb', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ seasons: [{ season_number: 1, episode_count: 10 }], images: { backdrops: [] } }) }));
+  const id = await page.evaluate(() => { const it = memDB.find(i => i.title === 'En cours 9'); delete it.seasonEpCount; return it.id; });
+  await page.evaluate(() => { _scFailed = Object.create(null); cache = typeof cache !== 'undefined' ? cache : {}; for (const k in cache) delete cache[k]; });
+  await page.evaluate(id => { cfGo(_heroItems.findIndex(i => i.id == id)); }, id);
+  await page.waitForFunction(id => memDB.find(i => i.id == id).seasonEpCount === 10, id);
+  await page.waitForFunction(() => document.getElementById('cfBar').style.width === '90%');
+  assert.equal(await page.evaluate(() => document.querySelector('.cf-bar').className), 'cf-bar');
   assert.deepEqual(problems, []);
 });
