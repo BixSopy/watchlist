@@ -62,7 +62,9 @@ function _cfCard(item,i){
   b.setAttribute('aria-label',item.title);b.tabIndex=-1;
   var ep=_cfEpLabel(item);
   b.innerHTML=(item.poster?'<img src="'+esc(IB+'w342'+item.poster)+'" alt="" loading="lazy" decoding="async">':'<span class="cf-ph">'+icon(item.type)+'</span>')+
-    (ep?'<span class="cf-ep">'+esc(ep)+'</span>':'')+'<span class="cf-pg'+_cfPgCls(item)+'"><i style="width:'+_cfPct(item)+'%"></i></span>';
+    (ep?'<span class="cf-ep">'+esc(ep)+'</span>':'')+'<span class="cf-pg'+_cfPgCls(item)+'"><i style="width:'+_cfPct(item)+'%"></i></span>'+
+    /* reflet : élément créé une fois avec l'affiche, il suit la transformation (pas de -webkit-box-reflect recalculé à chaque pas) */
+    (item.poster?'<span class="cf-refl" aria-hidden="true"><img src="'+esc(IB+'w342'+item.poster)+'" alt="" loading="lazy" decoding="async"></span>':'');
   b.style.opacity='0';
   return b;
 }
