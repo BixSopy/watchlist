@@ -49,7 +49,7 @@ before(async () => {
     created_at: '2026-10-02T09:00:00Z', last_seen_at: new Date(Date.now() - 4 * 864e5).toISOString(), revoked_at: null, token: null });
   const json = (route, body, status = 200) => route.fulfill({ status, contentType: 'application/json',
     headers: { 'access-control-allow-origin': '*', 'access-control-expose-headers': 'x-supabase-api-version', 'x-supabase-api-version': '2024-01-01' }, body: JSON.stringify(body) });
-  /* Fonctions de la migration 20261013120000_appairage_appareils.sql (comportement simulé) */
+  /* Fonctions de la migration 20261013002047_appairage_appareils.sql (comportement simulé) */
   await ctx.route(SUPA + '/rest/v1/**', async route => {
     const req = route.request(), p = new URL(req.url()).pathname;
     if (req.method() === 'OPTIONS') return route.fallback();

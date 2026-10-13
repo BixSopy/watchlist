@@ -1,4 +1,4 @@
--- Tests de la migration 20261013120000_appairage_appareils.sql (jeton par appareil) sur Postgres local.
+-- Tests de la migration 20261013002047_appairage_appareils.sql (jeton par appareil) sur Postgres local.
 \set ON_ERROR_STOP 1
 set client_min_messages = warning;
 create or replace function pg_temp.check(p_ok boolean, p_msg text) returns void language plpgsql as $$

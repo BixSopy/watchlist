@@ -13,7 +13,7 @@
 -- supabase/migrations/20261008160000_titres_detectes.sql (titres détectés par l'extension, onglet
 -- « Détectés ») et supabase/migrations/20261008210000_feedback.sql (avis des utilisateurs) et
 -- supabase/migrations/20261008220000_tmdb_quota_8000.sql (quota TMDB 8 000/jour) et
--- supabase/migrations/20261013120000_appairage_appareils.sql (appairage, jeton par appareil) ;
+-- supabase/migrations/20261013002047_appairage_appareils.sql (appairage, jeton par appareil) ;
 -- recopiées telles quelles en fin de fichier.
 -- Sert de référence pour recréer le projet ; ne pas exécuter sur la base existante.
 -- Tables : profiles, watchlist_items, keep_alive, api_quota_limits, api_usage,
@@ -1358,7 +1358,7 @@ commit;
 notify pgrst, 'reload schema';
 
 -- =============================================================================================
--- 20261013120000_appairage_appareils.sql — Appairage site -> extension, jeton par appareil
+-- 20261013002047_appairage_appareils.sql — Appairage site -> extension, jeton par appareil
 -- NON APPLIQUÉE. À relire et valider par Pierre avant toute application.
 --
 -- Principe :

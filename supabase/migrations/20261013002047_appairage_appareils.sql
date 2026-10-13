@@ -1,5 +1,5 @@
 -- =============================================================================================
--- 20261013120000_appairage_appareils.sql — Appairage site -> extension, jeton par appareil
+-- 20261013002047_appairage_appareils.sql — Appairage site -> extension, jeton par appareil
 -- NON APPLIQUÉE. À relire et valider par Pierre avant toute application.
 --
 -- Principe :
