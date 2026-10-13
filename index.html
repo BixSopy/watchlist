@@ -1371,7 +1371,7 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 #heroBand.cf{height:auto;overflow:hidden;padding:22px 0 18px;--cf-w:196px;--cf-h:280px}
 #heroBand.cf .hero-band-img{inset:-10%;filter:blur(28px) brightness(.4) saturate(1.2);transform:scale(1.15);transition:opacity .6s}
 #heroBand.cf .hero-band-fade{background:radial-gradient(ellipse at 50% 35%,transparent 30%,var(--bg) 85%),linear-gradient(transparent 70%,var(--bg))}
-#heroBand.cf>*:not(.hero-band-img):not(.hero-band-fade){position:relative;z-index:1}
+#heroBand.cf>*:not(.hero-band-img):not(.hero-band-fade):not(.hero-amb){position:relative;z-index:1}
 .cf-head{display:flex;align-items:center;gap:12px;padding:0 34px}
 .cf-tag{font:700 10.5px 'Inter',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(var(--accent-rgb),.38);background:rgba(var(--accent-rgb),.1);border-radius:20px;padding:4px 11px}
 .cf-ctr{font:500 12px 'IBM Plex Mono',monospace;color:var(--text2)}
@@ -1639,6 +1639,71 @@ html.pair-open #toastWrap{display:none}
 @keyframes onbFloat{50%{transform:translateY(-6px)}}
 @media (max-width:600px){.pair-card{padding:30px 22px}.pair-card h1,.onb-body h1{font-size:23px}.dev-panel{padding:20px}.dev-row{flex-wrap:wrap}.dev-meta{flex:1 1 calc(100% - 60px)}.dev-btn{margin-left:56px}.onb-body{padding:22px 20px}.onb-hero{height:150px}.onb-chips span{padding:8px 10px;font-size:12px}.onb-mbk{padding:12px}}
 @media (prefers-reduced-motion:reduce){.pair-card,.dev-panel,.dev-row,.onb-step,.onb-chips span,.pair-ring,.pair-err,.dev-confirm{animation-duration:.25s;animation-iteration-count:1}.pair-dots i{animation:none;opacity:.7}.onb-modal{transition-duration:.25s}.pair-ring.ok svg path{stroke-dashoffset:0;animation:none}}
+
+/* ===== Accueil « Cinéma » (proposition P3) : grand carrousel, couleur d'ambiance, À suivre, Cette semaine, grille aérée ===== */
+#heroBand.cf{--cf-w:236px;--cf-h:338px;padding:26px 0 30px}
+#heroBand.cf .hero-band-img{opacity:.55}
+#heroBand.cf .hero-amb{position:absolute;inset:0;pointer-events:none;background-color:rgb(var(--amb,var(--accent-rgb)));opacity:.5;
+  -webkit-mask-image:radial-gradient(ellipse 55% 62% at 50% 34%,#000 0%,rgba(0,0,0,.45) 42%,transparent 78%);mask-image:radial-gradient(ellipse 55% 62% at 50% 34%,#000 0%,rgba(0,0,0,.45) 42%,transparent 78%);
+  transition:background-color 1.2s cubic-bezier(.2,.8,.2,1)}
+#heroBand.cf .cf-stage{perspective:1400px}
+#heroBand.cf .hero-title{font-family:'Inter',sans-serif;font-size:44px;font-weight:850;letter-spacing:-.04em;line-height:1.05;margin:4px 0 8px}
+#heroBand.cf .hero-meta{font-size:14.5px;color:rgba(255,255,255,.75)}
+#heroBand.cf .cf-bar{width:300px;margin-top:16px}
+#heroBand.cf .hero-actions{margin-top:20px}
+#heroBand.cf .cf-card.on:before{box-shadow:0 0 0 1.5px rgba(255,255,255,.22),0 40px 90px rgba(0,0,0,.7),0 0 90px rgba(var(--amb,var(--accent-rgb)),.35)}
+#heroBand.cf.cpt{--cf-w:150px;--cf-h:214px;padding:14px 0 16px}
+#heroBand.cf.cpt .hero-title{font-size:28px}
+.home-next{display:grid;grid-template-columns:1.1fr 1fr;gap:44px;max-width:1180px;margin:8px auto 34px;padding:0 34px;width:100%}
+.home-next[hidden],.home-next.cpt,body.view-discover .home-next,body.view-detected .home-next,body.view-calendar .home-next{display:none}
+.hn-h{font:750 21px 'Inter',sans-serif;letter-spacing:-.025em;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+.hn-more{margin-left:auto;background:none;border:none;color:var(--accent);font:600 13px 'Inter',sans-serif;cursor:pointer;padding:4px 2px}
+.hn-list{display:flex;flex-direction:column;gap:6px}
+.hn-row,.hn-day{display:flex;align-items:center;gap:16px;padding:10px 12px;border-radius:16px;cursor:pointer;outline:none;
+  transition:background .3s,transform .45s cubic-bezier(.2,.8,.2,1);animation:hnIn .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 70ms)}
+@keyframes hnIn{from{opacity:0;transform:translateY(12px)}}
+.hn-row:hover,.hn-row:focus-visible{background:rgba(255,255,255,.06);transform:translateX(4px)}
+.hn-row:focus-visible,.hn-day:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+.hn-th{width:96px;aspect-ratio:16/10;border-radius:10px;background:var(--bg4) center 22%/cover;flex:none;box-shadow:0 8px 20px rgba(0,0,0,.45)}
+.hn-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.hn-tx b{font:650 15px 'Inter',sans-serif;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hn-tx i{font-style:normal;font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hn-ck{width:36px;height:36px;border-radius:50%;flex:none;border:1.5px solid rgba(255,255,255,.22);background:transparent;color:var(--text2);display:grid;place-items:center;cursor:pointer;
+  transition:background .3s,border-color .3s,color .3s,transform .35s cubic-bezier(.34,1.4,.5,1)}
+.hn-ck svg{width:17px;height:17px}
+.hn-ck:hover,.hn-ck:focus-visible{background:linear-gradient(135deg,#5cc8ff,#3a7bff);border-color:transparent;color:#fff;transform:scale(1.1)}
+.hn-day{background:rgba(28,28,32,.55);border:1px solid rgba(255,255,255,.07);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.hn-day:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.3)}
+.hn-dd{width:46px;text-align:center;flex:none;display:flex;flex-direction:column}
+.hn-dd em{font:700 10.5px 'Inter',sans-serif;font-style:normal;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.hn-dd b{font:800 22px 'Inter',sans-serif;letter-spacing:-.03em;color:var(--text)}
+.hn-dp{width:40px;height:40px;border-radius:10px;background:var(--bg4) center 20%/cover;flex:none}
+.hn-empty{padding:18px;border-radius:16px;border:1px dashed rgba(255,255,255,.12);color:var(--text2);font-size:13.5px;text-align:center}
+/* Grille aérée par défaut (le mode compact .cpt garde la densité d'avant) */
+.grid:not(.cpt){grid-template-columns:repeat(auto-fill,minmax(192px,1fr));gap:30px 26px}
+.grid:not(.cpt) .card{border-radius:18px;border-color:rgba(255,255,255,.05);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s,border-color .45s}
+.grid:not(.cpt) .card:hover{transform:translateY(-6px) scale(1.015)}
+.grid:not(.cpt) .card-body{padding:13px 15px 15px}
+.grid:not(.cpt) .card-title{font-family:'Inter',sans-serif;font-size:14px;font-weight:650;letter-spacing:-.01em;margin-bottom:8px}
+.grid:not(.cpt) .badge{font-size:11px;padding:3px 8px;border-radius:6px}
+.grid:not(.cpt) .crating{font-size:12px}
+.grid:not(.cpt) .cep{font-size:11.5px;margin-top:5px}
+@media (max-width:1100px){.home-next{grid-template-columns:1fr;gap:30px}}
+@media (max-width:768px){
+  #heroBand.cf{--cf-w:168px;--cf-h:240px;padding:16px 0 18px}
+  #heroBand.cf .hero-title{font-size:30px}
+  #heroBand.cf .cf-bar{width:220px}
+  .home-next{padding:0 16px;margin-bottom:24px}
+  .hn-list>:nth-child(n+4){display:none}
+  .hn-h{font-size:19px}.hn-th{width:84px}.hn-row,.hn-day{padding:8px 6px}
+  .grid:not(.cpt){grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 14px}
+  .grid:not(.cpt) .card-title{font-size:13.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  #heroBand.cf .hero-amb{transition:none}
+  .hn-row,.hn-day{animation:none;transition:background .2s}.hn-row:hover,.hn-day:hover{transform:none}
+  .grid:not(.cpt) .card{transition:border-color .2s}.grid:not(.cpt) .card:hover{transform:none}
+}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
@@ -2054,6 +2119,7 @@ html.pair-open #toastWrap{display:none}
     <div class="hero-band cf" id="heroBand" aria-roledescription="carrousel" data-i18n-attr="aria-label:cont.title" aria-label="Continuer">
       <div class="hero-band-img" id="heroBg"></div>
       <div class="hero-band-fade"></div>
+      <div class="hero-amb" aria-hidden="true"></div>
       <div class="cf-head"><span class="cf-tag" data-i18n="status.encours">En cours</span><span class="cf-ctr" id="contCtr" aria-hidden="true"></span>
         <button type="button" class="cont-all" data-click="contSeeAll" data-i18n="cont.seeAll">Tout voir</button></div>
       <div class="cf-stage" id="cfStage" tabindex="0" data-i18n-attr="aria-label:cont.stageAria" aria-label="Titres en cours : molette, flèches gauche et droite pour naviguer, Entrée pour ouvrir">
@@ -2071,6 +2137,7 @@ html.pair-open #toastWrap{display:none}
         </div>
       </div>
     </div>
+    <div class="home-next" id="homeNext" hidden></div>
     <div class="nav floating liquid-glass">
       <div class="tabs-row">
       <div class="ntabs-scroll seg" id="tabSeg"><span class="seg-hl" id="segHl" aria-hidden="true"></span>

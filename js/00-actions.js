@@ -128,6 +128,7 @@ uiOn('loadMoreSec',function(el,e,secId){loadMoreSec(secId,el);});
 uiOn('heroGoTo',function(el,e,i){sfx('click');_heroGoTo(i);});
 /* Accueil : carrousel « En cours » (js/25-home.js) */
 uiOn('heroPick',function(el,e,i){cfGo(i);});
+uiOn('homeOpenCal',function(){var b=document.querySelector('.ntab[data-tab="calendar"]');if(b){sfx('click');switchTab(b);window.scrollTo({top:0,behavior:'smooth'});}});
 uiOn('contPrev',function(){contScroll(-1);});
 uiOn('contNext',function(){contScroll(1);});
 uiOn('contSeeAll',function(){sfx('click');contSeeAll();});

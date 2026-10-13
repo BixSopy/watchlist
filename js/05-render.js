@@ -51,8 +51,8 @@ function _estimateGridCols(){
   if(wlSettings.wl_grid_cols&&wlSettings.wl_grid_cols!=='auto'){
     return parseInt(wlSettings.wl_grid_cols,10)||4;
   }
-  var minCard=compactOn?120:160;
-  var gap=compactOn?10:18;
+  var minCard=compactOn?120:(window.innerWidth<=768?150:192);
+  var gap=compactOn?10:(window.innerWidth<=768?16:26);
   var cols=Math.max(1,Math.floor((containerW+gap)/(minCard+gap)));
   return cols;
 }
@@ -139,12 +139,13 @@ function renderHero(){
   _heroItems=_heroCandidates();
   clearTimeout(_heroTimer);
   if(typeof updateTabCounts==='function')updateTabCounts();
-  if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;if(typeof renderContinue==='function')renderContinue([],0);return;}
+  if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;if(typeof renderContinue==='function')renderContinue([],0);if(typeof renderHomeNext==='function')renderHomeNext();return;}
   if(_heroIdx>=_heroItems.length)_heroIdx=0;
   band.classList.add('on');
   _heroSwipeInit(band);
   _showHeroItem(_heroIdx);
   _scheduleHeroRotate();
+  if(typeof renderHomeNext==='function')renderHomeNext();
 }
 /* Pause au survol vérifiée en temps réel via :hover à chaque tick, plutôt qu'un flag
    figé par mouseenter/mouseleave : un mouseleave qui ne se déclenche jamais (curseur
