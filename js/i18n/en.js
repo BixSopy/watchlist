@@ -832,7 +832,6 @@
  "onb.s3": "Allow this device",
  "onb.s3d": "In the extension: “Sign in with Cinepisode”, then one click.",
  "onb.install": "Install the extension",
- "onb.soon": "Coming soon to the Chrome Web Store",
  "onb.later": "Later",
  "onb.close": "Close",
  "det.src.disneyGdpr": "Disney+ (data export)",
@@ -920,5 +919,7 @@
  "plex.similar": "Similar titles",
  "plex.epAirs": "Airs on {date}",
  "plex.epSeen": "Watched",
- "plex.epNotSeen": "Not watched yet"
+ "plex.epNotSeen": "Not watched yet",
+ "onb.textNoExt": "Your list is ready: add your first movies, shows and anime, and Cinepisode remembers where you are.",
+ "onb.start": "Let's go"
 };

@@ -828,7 +828,6 @@
  "onb.s3": "Autoriser cet appareil",
  "onb.s3d": "Dans l'extension : « Se connecter avec Cinepisode », puis un clic.",
  "onb.install": "Installer l'extension",
- "onb.soon": "Bientôt sur le Chrome Web Store",
  "onb.later": "Plus tard",
  "onb.close": "Fermer",
  "det.src.disneyGdpr": "Disney+ (export RGPD)",
@@ -916,5 +915,7 @@
  "plex.similar": "Titres similaires",
  "plex.epAirs": "Sortie le {date}",
  "plex.epSeen": "Vu",
- "plex.epNotSeen": "Pas encore vu"
+ "plex.epNotSeen": "Pas encore vu",
+ "onb.textNoExt": "Ta liste est prête : ajoute tes premiers films, séries et anime, Cinepisode retient où tu en es.",
+ "onb.start": "C'est parti"
 };
