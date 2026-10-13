@@ -151,7 +151,8 @@ test('G4/G5 : boutons de carte, × et Supprimer dans la fiche, bouton retour qui
   await card.locator('.card-title').tap();
   await page.locator('#plexMbk.on').waitFor();
   assert.equal(await page.locator('#plexMbk .plex-close').isVisible(), true, '× visible');
-  assert.equal(await page.locator('#plexActs .btn-del-plex').isVisible(), true, 'Supprimer dans la fiche');
+  await page.tap('#plexActs .plex-more-b');
+  assert.equal(await page.locator('#plexActs .btn-del-plex').isVisible(), true, 'Supprimer dans le menu ⋯ de la fiche');
   await page.goBack();
   await page.waitForFunction(() => !document.getElementById('plexMbk').classList.contains('on'));
   assert.equal(page.url(), url, 'toujours sur le site');
@@ -165,6 +166,7 @@ test('G4/G5 : boutons de carte, × et Supprimer dans la fiche, bouton retour qui
   // Fiche → Modifier → retour : l'édition se ferme
   await card.locator('.card-title').tap();
   await page.locator('#plexMbk.on').waitFor();
+  await page.tap('#plexActs .plex-more-b');
   await page.locator('#plexActs .btn', { hasText: 'Modifier' }).tap();
   await page.locator('#addMbk.on').waitFor();
   await page.waitForTimeout(150);
@@ -174,6 +176,7 @@ test('G4/G5 : boutons de carte, × et Supprimer dans la fiche, bouton retour qui
   // Supprimer depuis la fiche (confirmation acceptée)
   await card.locator('.card-title').tap();
   await page.locator('#plexMbk.on').waitFor();
+  await page.tap('#plexActs .plex-more-b');
   await page.tap('#plexActs .btn-del-plex');
   await page.waitForFunction(() => !document.getElementById('plexMbk').classList.contains('on'));
   assert.equal(await page.locator('#mc .card', { hasText: 'Breaking Bad' }).count(), 0);
@@ -186,8 +189,11 @@ test('B3 : en paysage, la fiche défile d\'un bloc jusqu\'au bas (Modifier, prog
   await page.locator('#plexMbk.on').waitFor();
   const r = await page.evaluate(() => { const w = document.querySelector('#plexMbk .plex-wrap'); w.scrollTo(0, 1e5); return { scrollable: w.scrollHeight > w.clientHeight + 100, top: w.scrollTop }; });
   assert.ok(r.scrollable && r.top > 100, 'la fiche défile');
-  const btn = await page.locator('#plexNextBtn').boundingBox();
-  assert.ok(btn && btn.y + btn.height <= 390, '« + Épisode suivant » atteignable');
+  const btn = await page.locator('#plexActs .plex-mark').boundingBox();
+  assert.ok(btn, '« Marquer SxxExx » présent');
+  await page.locator('#plexActs .plex-mark').scrollIntoViewIfNeeded();
+  const b2 = await page.locator('#plexActs .plex-mark').boundingBox();
+  assert.ok(b2.y >= 0 && b2.y + b2.height <= 390, '« Marquer SxxExx » atteignable');
   assert.equal(await page.locator('#plexMbk .plex-close').isVisible(), true);
   assert.deepEqual(problems, []);
 });

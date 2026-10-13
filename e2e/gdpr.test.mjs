@@ -71,6 +71,7 @@ for (const mobile of [false, true]) test('Import RGPD : tutoriel, suivi de la de
   await login(page);
   await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
   await page.click('button[data-v="detectes"]:visible');
+  await page.click('.det-ext-btn');
   const card = page.locator('.gd-card');
   await card.waitFor();
   assert.match(await card.textContent(), /Pas encore demandé/);
@@ -133,6 +134,7 @@ test('Import RGPD : texte Disney+ collé, anglais, animations réduites', async 
   await page.evaluate(() => { const m = document.getElementById('authMbk'); if (m) m.classList.remove('on'); });
   await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
   await page.click('button[data-v="detectes"]:visible');
+  await page.click('.det-ext-btn');
   await page.click('.gd-plat.gd-disney');
   assert.match(await page.locator('#gdprView').textContent(), /I made the request/);
   const anim = await page.locator('.gd-steps li').first().evaluate(e => getComputedStyle(e).animationName);

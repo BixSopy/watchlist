@@ -107,6 +107,8 @@ uiOn('p3Search',function(){if(typeof openSearchModal==='function'){sfx('open');o
 uiOn('p3Bell',function(el,e){e.stopPropagation();p3Bell();});
 uiOn('p3OpenNew',function(el,e,id){p3BellClose();openPlex(_uiId(id));});
 uiOn('plexSimOpen',function(el,e,i){var r=_plexSimRes[i];if(r){sfx('open');openPlexTmdb(r);var m=document.querySelector('#plexMbk .plex-wrap');if(m)m.scrollTop=0;}});
+uiOn('p3Disc',function(el,e,v){sfx('click');p3SetDisc(v);});
+uiOn('detImportToggle',function(){detImportToggle();});
 uiOn('closeAlert',function(){document.getElementById('alertWrap').classList.remove('on');});
 uiOn('switchDiscoverCat',function(el){switchDiscoverCat(el);});
 /* Import RGPD Disney+ / Apple TV (js/27-gdpr-import.js) */

@@ -53,30 +53,85 @@ function fillPlex(){
 var PLEX_ICON_PLAY='<span class="plex-pl" aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6 4l14 8-14 8z"/></svg></span>';
 var PLEX_ICON_ADD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 var PLEX_ICON_SHARE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>';
+var PLEX_ICON_MORE='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
+/* Actions de la fiche « Cinéma » : bouton principal (Marquer SxxExx / Marquer comme vu / Ajouter),
+   statut, ma note, où regarder, puis ⋯ (bande-annonce, modifier, supprimer, partager). */
+function plexNextCode(item){
+  if(!item||item.type==='film')return '';
+  var ep=(item.episode||0)+1,sai=item.saison||1;
+  if(plexSeasons.length){var cur=plexSeasons.find(function(s){return s.season_number==sai});
+    if(cur&&cur.episode_count&&ep>cur.episode_count){var nx=plexSeasons.find(function(s){return s.season_number==sai+1});if(nx){sai++;ep=1;}else return '';}}
+  return 'S'+pad(sai)+' E'+pad(ep);
+}
+function _plexBtn(cls,html,fn){var b=document.createElement('button');b.type='button';b.className='btn '+cls;b.innerHTML=html;if(fn)b.onclick=fn;return b;}
 function buildPlexActions(){
   var d=plexData;var acts=document.getElementById('plexActs');acts.innerHTML='';
   var inList=d.item||memDB.find(function(i){return i.tmdbId==d.tmdbId});
-  if(!(inList&&d.item)){
-    var ab=document.createElement('button');ab.type='button';ab.className='btn btn-add-plex';ab.innerHTML=PLEX_ICON_ADD+esc(t('plex.addToListShort'));
-    ab.onclick=function(){sfx('click');closePlex();recoAddDirect(d);};acts.appendChild(ab);
+  var it=inList&&d.item?d.item:null;
+  if(!it){
+    acts.appendChild(_plexBtn('btn-add-plex btn-p3',PLEX_ICON_ADD+esc(t('plex.addToListShort')),function(){sfx('click');closePlex();recoAddDirect(d);}));
+  }else{
+    var nc=plexNextCode(it);
+    if(it.type!=='film'&&it.status!=='termine'&&nc)acts.appendChild(_plexBtn('btn-p3 plex-mark','<span class="play" aria-hidden="true"></span>'+esc(t('plex.markEp',{ep:nc})),function(){nextEpPlex();}));
+    else if(it.status!=='termine')acts.appendChild(_plexBtn('btn-p3 plex-mark','<span class="play" aria-hidden="true"></span>'+esc(t('plex.markSeen')),function(){plexSetItem({status:'termine'});}));
+    /* Statut */
+    var sw=document.createElement('label');sw.className='btn btn-pill plex-st';
+    sw.innerHTML='<span class="sr-only">'+esc(t('plex.status'))+'</span><select aria-label="'+esc(t('plex.status'))+'">'+['avoir','encours','termine'].map(function(k){return '<option value="'+k+'"'+(it.status===k?' selected':'')+'>'+esc(t('status.'+k))+'</option>';}).join('')+'</select><span class="plex-caret" aria-hidden="true">⌄</span>';
+    sw.querySelector('select').onchange=function(){plexSetItem({status:this.value});};acts.appendChild(sw);
+    /* Ma note */
+    var rw=document.createElement('label');rw.className='btn btn-pill plex-rt';
+    rw.innerHTML='<span aria-hidden="true">★</span><select aria-label="'+esc(t('plex.myRating'))+'"><option value="0">'+esc(t('plex.myRating'))+'</option>'+[10,9,8,7,6,5,4,3,2,1].map(function(n){return '<option value="'+n+'"'+(it.myRating==n?' selected':'')+'>'+n+'/10</option>';}).join('')+'</select>';
+    rw.querySelector('select').onchange=function(){plexSetItem({myRating:parseInt(this.value,10)||0});};acts.appendChild(rw);
   }
-  /* Trailer */
-  if(d.tmdbId){var tb=document.createElement('button');tb.type='button';tb.className='btn btn-trailer';tb.innerHTML=PLEX_ICON_PLAY+esc(t('plex.trailer'));tb.onclick=function(){sfx('click');getTrailer(d.type,d.tmdbId,null,openYT);};acts.appendChild(tb);}
-  if(inList&&d.item){
-    var eb=document.createElement('button');eb.type='button';eb.className='btn btn-ghost';eb.textContent=t('common.edit');eb.onclick=function(){sfx('open');closePlex();openEdit(d.item.id);};acts.appendChild(eb);
-    /* Supprimer depuis la fiche : sur écran tactile, c'est le seul accès (boutons de carte masqués) */
-    var db=document.createElement('button');db.type='button';db.className='btn btn-ghost btn-del-plex';db.textContent=t('common.delete');db.setAttribute('data-click','plexDelete');db.setAttribute('data-args',JSON.stringify([String(d.item.id)]));acts.appendChild(db);
-    if(d.item.type!='film'&&d.item.saison&&d.item.episode){
-      var pg=document.getElementById('plexProg');pg.style.display='block';
-      document.getElementById('plexProgVal').textContent='S'+pad(d.item.saison)+' E'+pad(d.item.episode);
-      var pct=0,plbl='';if(d.item.totalEp&&d.item.totalEp>0){pct=Math.min(100,Math.round((d.item.episode/d.item.totalEp)*100));plbl=d.item.episode+'/'+d.item.totalEp+' ep ('+pct+'%)';}
-      document.getElementById('plexProgFill').style.width=pct+'%';document.getElementById('plexProgLbl').textContent=plbl;
-      document.getElementById('plexNextBtn').style.display=d.item.status=='encours'?'inline-block':'none';
-      document.getElementById('plexNextBtn').onclick=nextEpPlex;
-    }
+  acts.appendChild(_plexBtn('btn-pill plex-where',esc(t('plex.where')),function(){sfx('click');var x=document.getElementById('plexInfos');if(x&&x.scrollIntoView)x.scrollIntoView({behavior:'smooth',block:'center'});x&&x.classList.add('flash');setTimeout(function(){x&&x.classList.remove('flash');},1200);}));
+  /* ⋯ : actions secondaires (inchangées) */
+  var mw=document.createElement('div');mw.className='plex-morew';
+  var mb=_plexBtn('btn-pill btn-icon plex-more-b',PLEX_ICON_MORE,null);mb.setAttribute('aria-label',t('plex.more'));mb.setAttribute('aria-haspopup','true');mb.setAttribute('aria-expanded','false');mb.title=t('plex.more');
+  var menu=document.createElement('div');menu.className='plex-more';menu.hidden=true;menu.setAttribute('role','menu');
+  mb.onclick=function(e){e.stopPropagation();sfx('click');menu.hidden=!menu.hidden;mb.setAttribute('aria-expanded',String(!menu.hidden));};
+  if(d.tmdbId)menu.appendChild(_plexBtn('btn-trailer',PLEX_ICON_PLAY+esc(t('plex.trailer')),function(){sfx('click');getTrailer(d.type,d.tmdbId,null,openYT);}));
+  if(it){
+    menu.appendChild(_plexBtn('btn-ghost',esc(t('common.edit')),function(){sfx('open');closePlex();openEdit(it.id);}));
+    var db=_plexBtn('btn-ghost btn-del-plex',esc(t('common.delete')),null);db.setAttribute('data-click','plexDelete');db.setAttribute('data-args',JSON.stringify([String(it.id)]));menu.appendChild(db);
   }
-  /* Partager : feuille de partage du système, sinon copie du lien */
-  if(d.tmdbId){var sb=document.createElement('button');sb.type='button';sb.className='btn btn-ghost btn-icon';sb.innerHTML=PLEX_ICON_SHARE;sb.title=t('plex.share');sb.setAttribute('aria-label',t('plex.share'));sb.onclick=function(){sfx('click');plexShare(d);};acts.appendChild(sb);}
+  if(d.tmdbId)menu.appendChild(_plexBtn('btn-ghost',PLEX_ICON_SHARE+esc(t('plex.share')),function(){sfx('click');plexShare(d);}));
+  mw.appendChild(mb);mw.appendChild(menu);acts.appendChild(mw);
+  Array.prototype.forEach.call(menu.children,function(b){b.setAttribute('role','menuitem');});
+  /* Progression (en-tête) + ancien bloc détaillé */
+  plexHeaderProg();
+  if(it&&it.type!='film'&&it.saison&&it.episode){
+    var pg=document.getElementById('plexProg');pg.style.display='block';
+    document.getElementById('plexProgVal').textContent='S'+pad(it.saison)+' E'+pad(it.episode);
+    var pct=0,plbl='';if(it.totalEp&&it.totalEp>0){pct=Math.min(100,Math.round((it.episode/it.totalEp)*100));plbl=it.episode+'/'+it.totalEp+' ep ('+pct+'%)';}
+    document.getElementById('plexProgFill').style.width=pct+'%';document.getElementById('plexProgLbl').textContent=plbl;
+    document.getElementById('plexNextBtn').style.display=it.status=='encours'?'inline-block':'none';
+    document.getElementById('plexNextBtn').onclick=nextEpPlex;
+  }
+}
+document.addEventListener('click',function(e){var m=document.querySelector('#plexActs .plex-more');if(m&&!m.hidden&&!e.target.closest('.plex-morew')){m.hidden=true;var b=document.querySelector('#plexActs .plex-more-b');if(b)b.setAttribute('aria-expanded','false');}});
+/* Épisodes vus sur l'ensemble de la série, d'après le pointeur (saisons précédentes complètes) */
+function seriesSeen(item,seasons){
+  if(!item||!item.saison)return null;
+  var tot=0,seen=0,ok=false;
+  (seasons||[]).forEach(function(s){if(!s.episode_count)return;ok=true;tot+=s.episode_count;
+    if(item.status==='termine'||s.season_number<item.saison)seen+=s.episode_count;else if(s.season_number===item.saison)seen+=Math.min(item.episode||0,s.episode_count);});
+  return ok?{seen:seen,total:tot}:null;
+}
+function plexHeaderProg(){
+  var d=plexData,w=document.getElementById('plexHProg');if(!w)return;
+  var it=d&&d.item;if(!it||it.type==='film'||!it.saison||!it.episode||it.status==='avoir'){w.hidden=true;return;}
+  var ss=seriesSeen(it,plexSeasons),code='S'+pad(it.saison)+' · E'+pad(it.episode);
+  document.getElementById('plexHProgL').textContent=ss?t('plex.seenOf',{code:code,n:ss.seen,total:ss.total}):code;
+  var pct=ss&&ss.total?Math.round(ss.seen/ss.total*100):(it.seasonEpCount?Math.round(it.episode/it.seasonEpCount*100):0);
+  document.getElementById('plexHProgF').style.width=Math.min(100,pct)+'%';w.hidden=false;
+}
+function plexSetItem(patch){
+  var d=plexData;if(!d||!d.item)return;var item=d.item;
+  Object.keys(patch).forEach(function(k){item[k]=patch[k];});
+  if(patch.status==='encours'&&!item.saison&&item.type!=='film'){item.saison=1;item.episode=item.episode||0;}
+  item.updatedAtLocal=Date.now();item.needsSync=true;
+  for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
+  dbPut(item,function(){sfx('click');render();buildPlexActions();plexEpisodesRefresh();toast(item.title+' · '+(patch.status?t('status.'+patch.status):patch.myRating?patch.myRating+'/10':''),'nfo');});
 }
 /* Lien public TMDB du titre (l'app n'a pas d'URL par titre ; aucun identifiant d'utilisateur dans le lien) */
 function plexShareUrl(d){return 'https://www.themoviedb.org/'+(d.type=='movie'?'movie':'tv')+'/'+encodeURIComponent(d.tmdbId);}
@@ -157,11 +212,13 @@ function fillPlexDetails(det){
     var seasons=det.seasons.filter(function(s){return s.season_number>0});plexSeasons=seasons;
     if(seasons.length>1){
       var sel=document.getElementById('sSelWrap');
-      sel.innerHTML='<button class="s-btn on" data-s="0" data-sfx-hover'+uiAct('plexSeason',[0])+'>'+esc(t('plex.overview'))+'</button>'+seasons.map(function(s){return '<button class="s-btn" data-s="'+s.season_number+'" data-sfx-hover'+uiAct('plexSeason',[s.season_number])+'>S'+s.season_number+'</button>';}).join('');
+      var curSn=d.item&&d.item.saison&&d.item.status!=='avoir'?d.item.saison:seasons[0].season_number;
+      sel.innerHTML='<div class="s-seg" role="group" aria-label="'+esc(t('plex.seasonsLbl'))+'">'+seasons.map(function(s){return '<button type="button" class="s-btn'+(s.season_number===curSn?' on':'')+'" data-s="'+s.season_number+'" data-sfx-hover'+uiAct('plexSeason',[s.season_number])+'>'+esc(t('plex.seasonN',{n:s.season_number}))+'</button>';}).join('')+'</div>';
     }
     /* Episodes de la saison en cours (cache local, pas item.totalEp = total de la série) :
        recalcul exact ici (on a déjà det.seasons), mis à jour aussi pour les cartes/grille. */
-    if(d.item&&d.item.saison&&d.item.status!=='avoir')plexEpisodes(d.item.saison);
+    plexHeaderProg();buildPlexActions();
+    if(d.item&&d.item.saison&&d.item.status!=='avoir')plexEpisodes(d.item.saison);else if(seasons.length)plexEpisodes(seasons[0].season_number);
     if(d.item&&d.item.saison){
       var curS=seasons.filter(function(s){return s.season_number===d.item.saison;})[0];
       if(curS&&curS.episode_count){
@@ -271,7 +328,7 @@ function nextEpPlex(){
   }
   item.episode=ep;item.saison=sai;item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
   for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
-  dbPut(item,function(){sfx('next');render();document.getElementById('plexProgVal').textContent='S'+pad(sai)+' E'+pad(ep);toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
+  dbPut(item,function(){sfx('next');render();document.getElementById('plexProgVal').textContent='S'+pad(sai)+' E'+pad(ep);buildPlexActions();plexEpisodesRefresh();toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
 }
 function closePlex(){document.getElementById('plexMbk').classList.remove('on');plexData=null;}
 /* Suppression depuis la fiche : même confirmation que le bouton de la carte, puis fermeture */
@@ -322,10 +379,12 @@ function epWatched(item,s,e){
   var cs=item.saison||0,ce=item.episode||0;
   return s<cs||(s===cs&&e<=ce);
 }
-function plexEpsReset(){var w=document.getElementById('plexEpsWrap');if(w)w.hidden=true;var l=document.getElementById('plexEps');if(l)l.innerHTML='';}
+function plexEpsReset(){_plexEpsNum=0;var w=document.getElementById('plexEpsWrap');if(w)w.hidden=true;var l=document.getElementById('plexEps');if(l)l.innerHTML='';}
 var _plexEpsReq=0;
+var _plexEpsNum=0;
+function plexEpisodesRefresh(){if(_plexEpsNum)plexEpisodes(_plexEpsNum);}
 function plexEpisodes(num){
-  var d=plexData;if(!d||!d.tmdbId||d.type==='movie')return;
+  var d=plexData;_plexEpsNum=num;if(!d||!d.tmdbId||d.type==='movie')return;
   var req=++_plexEpsReq;
   tf(TB+'/tv/'+d.tmdbId+'/season/'+num+'?language='+TMDB_LANG).then(function(s){
     if(req!==_plexEpsReq||plexData!==d||!s||!s.episodes||!s.episodes.length)return;

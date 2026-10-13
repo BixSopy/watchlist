@@ -453,6 +453,7 @@ function openDetectedTab(){
   if(btn&&!btn.hidden)switchTab(btn);
 }
 function onDetectedTabShown(){
+  detExtLoad(false);
   try{if(location.hash!=='#detectes')history.replaceState(null,'',location.pathname+location.search+'#detectes');}catch(e){}
   renderDetected();
   loadDetected(true).then(function(){_detQueueLookups();renderDetected();});
@@ -538,6 +539,27 @@ function _detVisible(){
 function _detSelected(){
   return DET.groups.filter(function(g){var s=DET.sel[g.key];return s&&s.checked&&DET_CORE.actionable(g,_detClass(g));});
 }
+/* Carte « Extension connectée » (maquette Détectés) : état de l'appairage lu dans extension_devices
+   (appareils non révoqués du compte, RLS), et « Importer un historique » qui déplie l'import RGPD. */
+var DET_EXT={state:'unknown',dev:null,importOpen:false,at:0};
+function detExtLoad(force){
+  if(typeof supa==='undefined'||!supa||!authUser){DET_EXT.state='unknown';return;}
+  if(!force&&DET_EXT.at&&Date.now()-DET_EXT.at<60000)return;
+  DET_EXT.at=Date.now();
+  try{
+    supa.from('extension_devices').select('id,label,ext_version,last_seen_at,revoked_at').is('revoked_at',null).order('last_seen_at',{ascending:false}).limit(5)
+      .then(function(res){if(res.error)throw res.error;var l=res.data||[];DET_EXT.state=l.length?'on':'off';DET_EXT.dev=l[0]||null;DET_EXT.n=l.length;renderDetected();})
+      .catch(function(){DET_EXT.state='unknown';renderDetected();});
+  }catch(e){DET_EXT.state='unknown';}
+}
+function detExtCardHtml(){
+  var on=DET_EXT.state==='on',d=DET_EXT.dev,sub;
+  if(on)sub=t('det.ext.onSub',{device:(d&&d.label)||t('det.ext.thisBrowser'),seen:typeof _devAgo==='function'?_devAgo(d&&d.last_seen_at):''});
+  else sub=t(DET_EXT.state==='off'?'det.ext.offSub':'det.ext.unknownSub');
+  return '<div class="det-ext'+(on?' on':'')+'"><span class="det-ext-dot" aria-hidden="true"></span><div class="det-ext-tx"><b>'+esc(t(on?'det.ext.on':DET_EXT.state==='off'?'det.ext.off':'det.ext.title'))+'</b><span>'+esc(sub)+'</span></div>'+
+    '<button type="button" class="btn btn-pill det-ext-btn" aria-expanded="'+(DET_EXT.importOpen?'true':'false')+'"'+uiAct('detImportToggle')+'>'+esc(t(DET_EXT.importOpen?'det.ext.importClose':'det.ext.import'))+'</button></div>';
+}
+function detImportToggle(){DET_EXT.importOpen=!DET_EXT.importOpen;sfx('click');renderDetected();if(DET_EXT.importOpen){var x=document.getElementById('detImp');if(x&&x.scrollIntoView)x.scrollIntoView({behavior:'smooth',block:'nearest'});}}
 function renderDetected(){
   var box=document.getElementById('detectedSection');if(!box)return;
   if(!authUser){box.innerHTML='<div class="det-empty">'+esc(t('det.login'))+'</div>';return;}
@@ -554,7 +576,7 @@ function renderDetected(){
   var busy=DET.busy?' disabled':'';
   var ae=document.activeElement,focusKey=ae&&ae.classList&&ae.classList.contains('det-q')?ae.getAttribute('data-key'):null;
   var caret=focusKey!=null?[ae.selectionStart,ae.selectionEnd]:null;
-  box.innerHTML='<div class="det-wrap">'+(typeof gdprCardHtml==='function'?gdprCardHtml():'')
+  box.innerHTML='<div class="det-wrap">'+detExtCardHtml()+(typeof gdprCardHtml==='function'&&DET_EXT.importOpen?'<div class="det-imp" id="detImp">'+gdprCardHtml()+'</div>':'')
     +'<div class="det-head"><div><div class="det-title">'+esc(t('det.title'))+'</div><div class="det-sub">'+esc(t('det.intro',{name:BRAND.name}))+'</div></div>'
     +'<button type="button" class="btn btn-ghost"'+busy+uiAct('detReload')+'>'+esc(t('det.reload'))+'</button></div>'
     +(counts.all?'<div class="det-filters">'+filters+'</div>'

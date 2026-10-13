@@ -14,7 +14,7 @@ function jwt(user) {
 export async function installFakeSupabase(page, opts = {}) {
   const db = {
     users: [{ id: '11111111-1111-4111-8111-111111111111', email: 'pierre@exemple.fr', password: 'Correct-Horse-42', confirmed: true }],
-    profiles: [], items: [], detected: [], calls: [], deleted: false, ...opts,
+    profiles: [], items: [], detected: [], devices: [], calls: [], deleted: false, ...opts,
   };
   /* Par défaut, les tests visent l'application : on passe la page d'accueil (visiteur déjà venu, liste locale).
      { landing: true } garde le parcours d'un nouveau visiteur (page d'accueil publique). */
@@ -86,6 +86,8 @@ export async function installFakeSupabase(page, opts = {}) {
       if ((req.headers()['accept'] || '').includes('vnd.pgrst.object')) return rows[0] ? ok(route, rows[0]) : err(route, 406, 'PGRST116', 'no rows');
       return ok(route, rows);
     }
+    /* Appareils de l'extension (carte « Extension connectée ») : lecture seule, non révoqués */
+    if (p === '/rest/v1/extension_devices') return current(req) ? ok(route, (db.devices || []).filter(d => !d.revoked_at)) : err(route, 401, '42501', 'jwt');
     if (p === '/rest/v1/watchlist_items') return ok(route, req.method() === 'GET' ? db.items : []);
     /* Titres détectés (onglet « Détectés ») : RLS simulée = lignes du compte connecté ; filtres eq / in, offset / limit */
     if (p === '/rest/v1/detected_media') {

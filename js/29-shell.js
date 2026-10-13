@@ -39,7 +39,13 @@ function p3Build(){
   main.insertBefore(ph,main.querySelector('.nav.floating'));
   /* Recommandations : la colonne latérale devient la section « Pour toi » de Découvrir */
   var sb=document.querySelector('.sidebar'),ds=document.getElementById('discoverSection');
-  if(sb&&ds){sb.classList.add('p3-recos');ds.parentNode.insertBefore(sb,ds);}
+  if(sb&&ds){sb.classList.add('p3-recos');ds.parentNode.insertBefore(sb,ds);
+    var dseg=document.createElement('div');dseg.className='p3-dseg';dseg.id='p3DiscSeg';ds.parentNode.insertBefore(dseg,sb);
+    var fy=document.createElement('div');fy.className='p3-foryou';fy.id='p3ForYou';fy.setAttribute('aria-live','polite');ds.parentNode.insertBefore(fy,sb);
+    p3DiscSeg();
+    var sbc=document.getElementById('sbContent');
+    if(sbc&&typeof MutationObserver==='function'){var t0=null;new MutationObserver(function(){clearTimeout(t0);t0=setTimeout(p3ForYou,60);}).observe(sbc,{childList:true,subtree:true});}
+    p3ForYou();}
   var dtb=document.getElementById('detTab'),dbg=document.getElementById('detBadge');
   if(typeof MutationObserver==='function'){var mo=new MutationObserver(function(){p3Header();p3Hl();});
     [dtb,dbg].forEach(function(el){if(el)mo.observe(el,{attributes:true,attributeFilter:['hidden'],childList:true,characterData:true,subtree:true});});}
@@ -47,6 +53,54 @@ function p3Build(){
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(p3Hl);
   document.addEventListener('click',function(e){var pop=document.getElementById('p3Pop');if(pop&&!pop.hidden&&!e.target.closest('#p3Pop,#p3Bell'))p3BellClose();});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')p3BellClose();});
+}
+/* ===== Découvrir : Pour toi / Tendances / Films / Séries / Anime =====
+   « Pour toi » est rendu à partir des recommandations existantes (js/11-recos.js, #sbContent reste la
+   source et garde ses actions) : une grande carte « Car tu as aimé… » puis une rangée d'affiches par
+   section, chaque affiche avec sa raison. Les autres filtres affichent les rangées existantes. */
+var p3Disc='foryou';
+var P3_DISC=[['foryou','nav.forYou'],['all','disc.trending'],['film','type.films'],['serie','type.series'],['anime','type.anime']];
+function p3DiscSeg(){
+  var el=document.getElementById('p3DiscSeg');if(!el)return;
+  el.innerHTML='<div class="p3-seg" role="group"><span class="p3-seg-hl" aria-hidden="true"></span>'+P3_DISC.map(function(x){return '<button type="button" class="'+(x[0]===p3Disc?'on':'')+'" aria-pressed="'+(x[0]===p3Disc)+'"'+uiAct('p3Disc',[x[0]])+'>'+esc(t(x[1]))+'</button>';}).join('')+'</div>';
+  document.body.classList.toggle('p3-foryou-on',p3Disc==='foryou');
+  requestAnimationFrame(function(){p3SegHl(el);});
+}
+function p3SegHl(root){
+  (root||document).querySelectorAll('.p3-seg').forEach(function(sg){var hl=sg.querySelector('.p3-seg-hl'),on=sg.querySelector('button.on');if(!hl||!on||!on.offsetWidth)return;hl.style.width=on.offsetWidth+'px';hl.style.transform='translateX('+(on.offsetLeft-4)+'px)';hl.style.opacity=1;});
+}
+function p3SetDisc(v){
+  p3Disc=v;p3DiscSeg();
+  if(v!=='foryou'){var b=document.querySelector('#discoverCatPills .stab[data-dc="'+v+'"]');if(b&&typeof switchDiscoverCat==='function')switchDiscoverCat(b);}
+  else p3ForYou();
+}
+function _p3Attrs(card){
+  var out='';Array.prototype.forEach.call(card.attributes,function(a){if(/^data-(tmdbid|type|title|year|poster|score|overview|genres|origin)$/.test(a.name))out+=' '+a.name+'="'+esc(a.value)+'"';});return out;
+}
+function p3ForYou(){
+  var box=document.getElementById('p3ForYou'),src=document.getElementById('sbContent');if(!box||!src)return;
+  var secs=[];
+  src.querySelectorAll('.sb-section').forEach(function(sec){
+    var cards=sec.querySelectorAll('.reco-card');if(!cards.length)return;
+    var bt=sec.querySelector('.reco-because-title'),tt=sec.querySelector('.sb-sec-title');
+    var why=bt?t('reco.because',{title:bt.textContent.trim()}):(tt?tt.textContent.trim():t('nav.forYou'));
+    secs.push({why:why,because:!!bt,cards:Array.prototype.slice.call(cards)});
+  });
+  if(!secs.length){box.innerHTML=src.querySelector('.sb-loading,.skel,.sb-skel')?'<div class="p3-fy-skel"><i></i><i></i><i></i><i></i><i></i><i></i></div>':'';return;}
+  var fs=secs.filter(function(x){return x.because;})[0]||secs[0],fc=fs.cards[0];
+  var IMG=function(c,sz){var p=c.getAttribute('data-poster');return p?esc(IB+sz+p):'';};
+  var feat='<section class="p3-feat reco-card"'+_p3Attrs(fc)+'><span class="p3-feat-bg" style="background-image:url(\''+IMG(fc,'w780')+'\')" aria-hidden="true"></span><span class="p3-feat-po" style="background-image:url(\''+IMG(fc,'w342')+'\')" aria-hidden="true"></span>'+
+    '<div class="p3-feat-tx"><div class="p3-k">'+esc(fs.why)+'</div><h3>'+esc(fc.getAttribute('data-title')||'')+'</h3><p>'+esc((fc.getAttribute('data-overview')||'').slice(0,220))+'</p>'+
+    '<div class="p3-feat-b"><button type="button" class="btn btn-p3" data-click="recoAdd">＋ '+esc(t('nav.addToList'))+'</button><button type="button" class="btn btn-pill" data-click="recoPreview">'+esc(t('hero.sheet'))+'</button><button type="button" class="btn btn-pill" data-click="recoDismiss">'+esc(t('nav.notForMe'))+'</button></div></div></section>';
+  var rows=secs.map(function(sx){
+    var cs=sx.cards.filter(function(c){return c!==fc;});if(!cs.length)return '';
+    return '<h2 class="p3-h2">'+esc(sx.why)+'</h2><div class="p3-rail">'+cs.map(function(c,i){
+      var sc=c.getAttribute('data-score'),y=c.getAttribute('data-year');
+      return '<div class="reco-card p3-pc" style="--i:'+i+'"'+_p3Attrs(c)+'><button type="button" class="p3-pc-im" data-click="recoPreview" aria-label="'+esc(c.getAttribute('data-title')||'')+'" style="background-image:url(\''+IMG(c,'w342')+'\')"></button>'+
+        '<button type="button" class="p3-pc-add" data-click="recoAdd" aria-label="'+esc(t('nav.addToList'))+'">＋</button><b>'+esc(c.getAttribute('data-title')||'')+'</b><i class="p3-why">'+esc(sx.why)+'</i><span class="p3-pc-m">'+esc(y||'')+(sc?' · ★ '+esc(sc):'')+'</span></div>';
+    }).join('')+'</div>';
+  }).join('');
+  box.innerHTML=feat+rows;
 }
 function p3Hl(){
   var nav=document.getElementById('p3Nav');if(!nav)return;var hl=nav.querySelector('.p3-hl'),on=nav.querySelector('.p3-pill.on');
@@ -61,6 +115,7 @@ function p3Go(v,silent){
   document.querySelectorAll('.p3-pill,.p3-tb').forEach(function(b){var on=b.dataset.v===v;b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   var want=v==='calendar'?'calendar':v==='discover'?'discover':v==='detectes'?'detectes':null;
   if(v==='tonight')want='all';
+  if(v==='list'&&prev!=='list'&&typeof activeStat!=='undefined'&&activeStat==='all'){var sa=document.querySelector('#stabs .stab[data-s="avoir"]');if(sa)sa.click();}
   if(v==='list'){var cur=typeof activeTab!=='undefined'?activeTab:'all';want=['all','film','serie','anime'].indexOf(cur)>=0?cur:'all';}
   var btn=_p3Tab(want);
   if(btn&&(typeof activeTab==='undefined'||activeTab!==want||prev!==v)){
@@ -79,7 +134,13 @@ function p3Header(){
   else if(p3View==='calendar'){title=t('cal.tab');sub=t('nav.calSub');}
   else if(p3View==='discover'){title=t('tab.discover');sub=t('nav.discSub');}
   else if(p3View==='detectes'){title=t('det.tab');sub=t('nav.detSub');}
-  ph.innerHTML=title?'<h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p>':'';
+  var act=document.getElementById('p3PhAct');
+  if(!act||!ph.contains(act)){ph.innerHTML='<div class="p3-ph-t"></div><div class="p3-ph-act" id="p3PhAct"></div>';act=document.getElementById('p3PhAct');}
+  ph.querySelector('.p3-ph-t').innerHTML=title?'<h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p>':'';
+  ph.classList.toggle('on',!!title);
+  /* Ma liste : recherche dans la liste et « Ajouter » à droite du titre ; ailleurs, retour dans la barre d'outils */
+  var nr=document.querySelector('.nav.floating .nav-right'),sr=document.querySelector('.srch'),ad=document.querySelector('.add-btn[data-click="openAdd"]');
+  if(nr&&sr&&ad){if(p3View==='list'){if(sr.parentNode!==act){act.appendChild(sr);act.appendChild(ad);}}else if(sr.parentNode===act){nr.insertBefore(ad,nr.firstChild);nr.appendChild(sr);}}
   var lc=document.querySelector('[data-cnt="list"]');if(lc)lc.textContent=L.length?fmtNum(L.length):'';
   var db=document.getElementById('detBadge'),dc=document.querySelectorAll('[data-cnt="detectes"]'),n=db&&!db.hidden?(db.textContent||'').trim():'';
   dc.forEach(function(e){e.textContent=n;});
