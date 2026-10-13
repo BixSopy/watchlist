@@ -195,20 +195,26 @@ function maybeShowOnboarding(user){
   try{localStorage.setItem(key,'1');}catch(e){}
   showOnboarding();
 }
+/* Fenêtre d'accueil. Tant que l'extension n'est pas publiée (EXT_STORE_URL vide), les étapes et le bouton
+   de l'extension sont masqués ; dès que l'URL est renseignée, elles reviennent et le bouton ouvre la fiche
+   du Chrome Web Store dans un nouvel onglet. */
+function onbHtml(storeUrl){
+  var plats=['Netflix','Prime Video','Crunchyroll','Disney+','Apple TV'],ext=!!storeUrl;
+  return '<div class="onb-modal glass-pop" role="dialog" aria-modal="true" aria-labelledby="onbTitle">'+
+    '<div class="onb-hero"><div class="onb-chips">'+plats.map(function(p,i){return '<span style="--i:'+i+'">'+esc(p)+'</span>';}).join('')+'</div>'+
+    '<button type="button" class="onb-x"'+uiAct('onbClose')+' aria-label="'+esc(t('onb.close'))+'">✕</button></div>'+
+    '<div class="onb-body"><h1 id="onbTitle">'+esc(t('onb.title',{name:(typeof BRAND!=='undefined'&&BRAND.name)||'Cinepisode'}))+'</h1><p>'+esc(t(ext?'onb.text':'onb.textNoExt'))+'</p>'+
+    '<div class="onb-steps"><div class="onb-step done" style="--i:0"><em>'+_pairIcon('check')+'</em><div><b>'+esc(t('onb.s1'))+'</b>'+esc(t('onb.s1d'))+'</div></div>'+
+    (ext?'<div class="onb-step" style="--i:1"><em>2</em><div><b>'+esc(t('onb.s2'))+'</b>'+esc(t('onb.s2d'))+'</div></div>'+
+    '<div class="onb-step" style="--i:2"><em>3</em><div><b>'+esc(t('onb.s3'))+'</b>'+esc(t('onb.s3d'))+'</div></div>':'')+'</div>'+
+    (ext?'<a class="pair-btn" href="'+esc(storeUrl)+'" target="_blank" rel="noopener">'+esc(t('onb.install'))+'</a>'+
+      '<button type="button" class="pair-btn ghost"'+uiAct('onbClose')+'>'+esc(t('onb.later'))+'</button>':
+      '<button type="button" class="pair-btn"'+uiAct('onbClose')+'>'+esc(t('onb.start'))+'</button>')+'</div></div>';
+}
 function showOnboarding(){
   if(document.getElementById('onbMbk'))return;
   var m=document.createElement('div');m.id='onbMbk';m.className='onb-mbk';
-  var plats=['Netflix','Prime Video','Crunchyroll','Disney+','Apple TV'];
-  m.innerHTML='<div class="onb-modal glass-pop" role="dialog" aria-modal="true" aria-labelledby="onbTitle">'+
-    '<div class="onb-hero"><div class="onb-chips">'+plats.map(function(p,i){return '<span style="--i:'+i+'">'+esc(p)+'</span>';}).join('')+'</div>'+
-    '<button type="button" class="onb-x"'+uiAct('onbClose')+' aria-label="'+esc(t('onb.close'))+'">✕</button></div>'+
-    '<div class="onb-body"><h1 id="onbTitle">'+esc(t('onb.title',{name:(typeof BRAND!=='undefined'&&BRAND.name)||'Cinepisode'}))+'</h1><p>'+esc(t('onb.text'))+'</p>'+
-    '<div class="onb-steps"><div class="onb-step done" style="--i:0"><em>'+_pairIcon('check')+'</em><div><b>'+esc(t('onb.s1'))+'</b>'+esc(t('onb.s1d'))+'</div></div>'+
-    '<div class="onb-step" style="--i:1"><em>2</em><div><b>'+esc(t('onb.s2'))+'</b>'+esc(t('onb.s2d'))+'</div></div>'+
-    '<div class="onb-step" style="--i:2"><em>3</em><div><b>'+esc(t('onb.s3'))+'</b>'+esc(t('onb.s3d'))+'</div></div></div>'+
-    (EXT_STORE_URL?'<a class="pair-btn" href="'+esc(EXT_STORE_URL)+'" target="_blank" rel="noopener">'+esc(t('onb.install'))+'</a>':
-      '<button type="button" class="pair-btn" disabled>'+esc(t('onb.soon'))+'</button>')+
-    '<button type="button" class="pair-btn ghost"'+uiAct('onbClose')+'>'+esc(t('onb.later'))+'</button></div></div>';
+  m.innerHTML=onbHtml(EXT_STORE_URL);
   document.body.appendChild(m);
   requestAnimationFrame(function(){m.classList.add('on');});
 }
