@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extDescription": {
-    "message": "Updates your progress in Cinepisode while you watch Netflix, and imports your Netflix history into the “Detected” tab."
+    "message": "Auto-checks the episodes you watch on Netflix, Prime Video, Crunchyroll, Disney+ and Apple TV. Imports history."
   },
   "optionsTitle": {
     "message": "Cinepisode — Auto tracking"
