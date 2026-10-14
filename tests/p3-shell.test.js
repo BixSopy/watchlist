@@ -39,3 +39,22 @@ test('Compact : la classe posée sur <body> ne réutilise pas celle du bouton (.
   assert.ok(m, 'classe compact sur body');
   assert.ok(!new RegExp('(^|[\\s,}])\\.' + m[1] + '\\s*[{,]', 'm').test(html), 'aucune règle CSS nue .' + m[1]);
 });
+test('Découvrir « Pour toi » : le bandeau passe tout de suite à la proposition suivante après un ajout, même pendant le rechargement des recos', () => {
+  const card = (id, title) => ({ style: {}, attributes: [{ name: 'data-tmdbid', value: String(id) }, { name: 'data-title', value: title }], getAttribute(n) { const a = this.attributes.find(x => x.name === n); return a ? a.value : null; } });
+  const cards = [card(1, 'Premier'), card(2, 'Second')];
+  const sec = { querySelectorAll: () => cards, querySelector: () => null };
+  let loading = false;
+  const src = { querySelectorAll: () => loading ? [] : [sec], querySelector: () => loading ? {} : null };
+  const box = { innerHTML: '' };
+  const ctx = { memDB: [], dismissed: [], IB: '', esc: s => String(s), t: k => k, document: { getElementById: id => id === 'p3ForYou' ? box : src } };
+  vm.createContext(ctx);
+  const s = read('js/29-shell.js');
+  vm.runInContext('var _p3FySecs=null;' + fn(s, '_p3Attrs') + fn(s, 'p3ForYou'), ctx);
+  ctx.p3ForYou();
+  assert.match(box.innerHTML, /<h3>Premier<\/h3>/);
+  ctx.memDB.push({ tmdbId: 1 }); loading = true; /* ajout, puis loadRecos affiche le squelette */
+  ctx.p3ForYou();
+  assert.match(box.innerHTML, /<h3>Second<\/h3>/);
+  assert.doesNotMatch(box.innerHTML, /Premier/);
+  assert.match(read('js/07-add-edit.js'), /_removeFromDiscoverUI\(entry\.tmdbId\);if\(!editId&&typeof p3ForYou==='function'\)p3ForYou\(\);/);
+});

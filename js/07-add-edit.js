@@ -171,7 +171,7 @@ function saveEntry(){
     tags:curTags.slice(),collectionId:collId,collectionName:collName},ex,editId);
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}
-  dbPut(entry,function(){render();loadRecos();if(!editId)_removeFromDiscoverUI(entry.tmdbId);if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast(t(editId?'add.updated':'add.added',{title:entry.title}));closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
+  dbPut(entry,function(){render();loadRecos();if(!editId)_removeFromDiscoverUI(entry.tmdbId);if(!editId&&typeof p3ForYou==='function')p3ForYou();if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast(t(editId?'add.updated':'add.added',{title:entry.title}));closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
 }
 function delEntry(id){
   if(!confirm(t('add.deleteConfirm')))return;

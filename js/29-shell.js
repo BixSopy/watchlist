@@ -77,6 +77,7 @@ function p3SetDisc(v){
 function _p3Attrs(card){
   var out='';Array.prototype.forEach.call(card.attributes,function(a){if(/^data-(tmdbid|type|title|year|poster|score|overview|genres|origin)$/.test(a.name))out+=' '+a.name+'="'+esc(a.value)+'"';});return out;
 }
+var _p3FySecs=null;
 function p3ForYou(){
   var box=document.getElementById('p3ForYou'),src=document.getElementById('sbContent');if(!box||!src)return;
   var secs=[];
@@ -86,6 +87,12 @@ function p3ForYou(){
     var why=bt?t('reco.because',{title:bt.textContent.trim()}):(tt?tt.textContent.trim():t('nav.forYou'));
     secs.push({why:why,because:!!bt,cards:Array.prototype.slice.call(cards)});
   });
+  /* Pendant le rechargement des recos (squelette, appels TMDB ~10 s), on garde les dernières
+     sections connues : le bandeau passe tout de suite à la proposition suivante au lieu d'attendre. */
+  if(secs.length)_p3FySecs=secs;else if(_p3FySecs)secs=_p3FySecs;
+  var excl={};(typeof memDB!=='undefined'?memDB:[]).forEach(function(i){if(i&&!i.deleted&&i.tmdbId)excl[i.tmdbId]=1;});
+  (typeof dismissed!=='undefined'?dismissed:[]).forEach(function(id){excl[id]=1;});
+  secs=secs.map(function(x){return {why:x.why,because:x.because,cards:x.cards.filter(function(c){return !excl[c.getAttribute('data-tmdbid')]&&c.style.opacity!=='0';})};}).filter(function(x){return x.cards.length;});
   if(!secs.length){box.innerHTML=src.querySelector('.sb-loading,.skel,.sb-skel')?'<div class="p3-fy-skel"><i></i><i></i><i></i><i></i><i></i><i></i></div>':'';return;}
   var fs=secs.filter(function(x){return x.because;})[0]||secs[0],fc=fs.cards[0];
   var IMG=function(c,sz){var p=c.getAttribute('data-poster');return p?esc(IB+sz+p):'';};
