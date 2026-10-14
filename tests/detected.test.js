@@ -87,8 +87,8 @@ test('classement : la progression avance seulement (jamais en arrière, un titre
   const c = D.classify(G('Arcane', 'show', { season: 1, episode: 9 }), LIST, null, null);
   assert.deepStrictEqual([c.kind, c.reason], ['new', 'pending']);
   assert.strictEqual(D.filterOf(c), 'new');
-  assert.deepStrictEqual(D.updateFields(LIST[0], G('Dark', 'show', { season: 2, episode: 1 }), null), { status: 'encours', saison: 2, episode: 1 });
-  assert.deepStrictEqual(D.updateFields(LIST[1], G('Dark', 'movie'), null), { status: 'termine', saison: null, episode: null });
+  assert.deepStrictEqual(D.updateFields(LIST[0], G('Dark', 'show', { season: 2, episode: 1 }), null), { status: 'encours', saison: 2, episode: 1, watchedAt: null });
+  assert.deepStrictEqual(D.updateFields(LIST[1], G('Dark', 'movie'), null), { status: 'termine', saison: null, episode: null, watchedAt: null });
   assert.strictEqual(D.updateFields(LIST[5], G('Inception', 'movie'), null), null);
 });
 
@@ -152,7 +152,7 @@ test('TMDB : série terminée seulement si le dernier épisode vu est le dernier
     { type: 'serie', status: 'encours', saison: 2, episode: 3, totalEp: 18, animeGenre: '', watchedAt: null });
   assert.deepStrictEqual(D.newEntryFields(G('X', 'movie'), { tmdbType: 'movie' }, null),
     { type: 'film', status: 'termine', saison: null, episode: null, totalEp: null, animeGenre: '', watchedAt: null });
-  assert.deepStrictEqual(D.updateFields(LIST[0], G('Dark', 'show', { season: 2, episode: 8 }), details), { status: 'termine', saison: null, episode: null });
+  assert.deepStrictEqual(D.updateFields(LIST[0], G('Dark', 'show', { season: 2, episode: 8 }), details), { status: 'termine', saison: null, episode: null, watchedAt: null });
 });
 
 test('import : la vraie date de visionnage (lastMs) est reprise, pas la date d\'ajout', () => {
@@ -160,6 +160,11 @@ test('import : la vraie date de visionnage (lastMs) est reprise, pas la date d\'
   const details = { status: 'Ended', in_production: false, number_of_episodes: 18, seasons: [{ season_number: 0, episode_count: 3 }, { season_number: 1, episode_count: 10 }, { season_number: 2, episode_count: 8 }] };
   const group = Object.assign(G('Arcane', 'show', { season: 2, episode: 3 }), { lastMs: 1703203200000 }); // 2023-12-22
   assert.strictEqual(D.newEntryFields(group, cand, details).watchedAt, 1703203200000);
+
+  // Même chose pour un titre déjà dans la liste (ré-import) : mettre à jour un titre existant
+  // ne doit pas non plus écraser la vraie date par l'instant du ré-import.
+  const groupUpdate = Object.assign(G('Dark', 'show', { season: 2, episode: 1 }), { lastMs: 1703203200000 });
+  assert.strictEqual(D.updateFields(LIST[0], groupUpdate, null).watchedAt, 1703203200000);
 });
 
 test('anime : même règle que la recherche du site, plus animation japonaise', () => {

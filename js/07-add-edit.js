@@ -143,7 +143,7 @@ function updateEntryProgress(id,f){
   var item=memDB.find(function(i){return i.id==id;});if(!item)return null;
   item.status=f.status;item.saison=f.saison;item.episode=f.episode;
   if(f.seasonEpCount!=null){item.seasonEpCount=f.seasonEpCount;item.seasonEpCountSeason=f.seasonEpCountSeason;}
-  item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
+  item.hasNewEp=false;item.updatedAtLocal=f.watchedAt||Date.now();item.needsSync=true;
   dbPut(item,function(){});
   return item;
 }
