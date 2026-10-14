@@ -129,6 +129,7 @@ function plexSetItem(patch){
   var d=plexData;if(!d||!d.item)return;var item=d.item;
   Object.keys(patch).forEach(function(k){item[k]=patch[k];});
   if(patch.status==='encours'&&!item.saison&&item.type!=='film'){item.saison=1;item.episode=item.episode||0;}
+  if(patch.status)item.lastWatchedAt=Date.now();
   item.updatedAtLocal=Date.now();item.needsSync=true;
   for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
   dbPut(item,function(){sfx('click');render();buildPlexActions();plexEpisodesRefresh();toast(item.title+' · '+(patch.status?t('status.'+patch.status):patch.myRating?patch.myRating+'/10':''),'nfo');});
@@ -344,7 +345,7 @@ function nextEpPlex(){
     var now=plexSeasons.find(function(s){return s.season_number==sai});
     if(now&&now.episode_count){item.seasonEpCount=now.episode_count;item.seasonEpCountSeason=sai;}
   }
-  item.episode=ep;item.saison=sai;item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
+  item.episode=ep;item.saison=sai;item.hasNewEp=false;item.lastWatchedAt=Date.now();item.updatedAtLocal=Date.now();item.needsSync=true;
   for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
   dbPut(item,function(){sfx('next');render();document.getElementById('plexProgVal').textContent='S'+pad(sai)+' E'+pad(ep);buildPlexActions();plexEpisodesRefresh();toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
 }
@@ -377,7 +378,7 @@ function quickNextEp(id,ev){
       var now=seasons.find(function(s){return s.season_number==sai;});
       if(now&&now.episode_count){item.seasonEpCount=now.episode_count;item.seasonEpCountSeason=sai;}
     }
-    item.episode=ep;item.saison=sai;item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
+    item.episode=ep;item.saison=sai;item.hasNewEp=false;item.lastWatchedAt=Date.now();item.updatedAtLocal=Date.now();item.needsSync=true;
     for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}
     dbPut(item,function(){sfx('next');render();toast('S'+pad(sai)+' E'+pad(ep)+' - '+item.title,'nfo');});
   }

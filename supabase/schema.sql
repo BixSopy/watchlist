@@ -103,6 +103,9 @@ create table public.watchlist_items (
   deleted            boolean default false,
   added_at           timestamptz default now(),
   updated_at         timestamptz default now(),
+  -- Dernière fois réellement regardé (distinct de updated_at, qui sert aussi à la résolution de
+  -- conflits de synchro et bouge pour des actions sans rapport avec le visionnage).
+  last_watched_at    timestamptz,
 
   constraint watchlist_items_local_id_profile_id_key unique (local_id, profile_id)
 );

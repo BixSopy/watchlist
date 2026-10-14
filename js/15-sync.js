@@ -28,7 +28,9 @@ function localToSupabase(item,profileId){
     has_new_ep:item.hasNewEp,
     next_air:item.nextAir,
     deleted:!!item.deleted,
-    updated_at:new Date(item.updatedAtLocal||Date.now()).toISOString()
+    added_at:new Date(item.addedAt||Date.now()).toISOString(),
+    updated_at:new Date(item.updatedAtLocal||Date.now()).toISOString(),
+    last_watched_at:item.lastWatchedAt?new Date(item.lastWatchedAt).toISOString():null
   };
 }
 function supabaseToLocal(row){
@@ -58,6 +60,7 @@ function supabaseToLocal(row){
     deleted:row.deleted,
     updatedAtLocal:new Date(row.updated_at).getTime(),
     addedAt:row.added_at?new Date(row.added_at).getTime():Date.now(),
+    lastWatchedAt:row.last_watched_at?new Date(row.last_watched_at).getTime():null,
     needsSync:false
   };
 }

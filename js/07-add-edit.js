@@ -113,6 +113,7 @@ function makeEntry(sel,f,ex,id){
   return{id:id||uid(),type:f.type,status:f.status,myRating:f.myRating||0,animeGenre:f.animeGenre||'',
     saison:f.saison,episode:f.episode,totalEp:f.totalEp,
     tags:f.tags||[],addedAt:ex?ex.addedAt:(f.watchedAt||Date.now()),
+    lastWatchedAt:ex?ex.lastWatchedAt:(f.watchedAt||null),
     tmdbId:sel.tmdbId,tmdbType:sel.tmdbType,title:sel.title,year:sel.year,
     poster:sel.poster,overview:sel.overview,tmdbScore:sel.tmdbScore,
     hasNewEp:ex?ex.hasNewEp:false,nextAir:ex?ex.nextAir:null,
@@ -143,7 +144,7 @@ function updateEntryProgress(id,f){
   var item=memDB.find(function(i){return i.id==id;});if(!item)return null;
   item.status=f.status;item.saison=f.saison;item.episode=f.episode;
   if(f.seasonEpCount!=null){item.seasonEpCount=f.seasonEpCount;item.seasonEpCountSeason=f.seasonEpCountSeason;}
-  item.hasNewEp=false;item.updatedAtLocal=f.watchedAt||Date.now();item.needsSync=true;
+  item.hasNewEp=false;item.lastWatchedAt=f.watchedAt||Date.now();item.updatedAtLocal=Date.now();item.needsSync=true;
   dbPut(item,function(){});
   return item;
 }

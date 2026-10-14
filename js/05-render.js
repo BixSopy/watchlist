@@ -132,7 +132,7 @@ function _heroCandidates(){
     if(i.deleted||i.status!=='encours'||!i.tmdbId)return false;
     if(tab==='film'||tab==='serie'||tab==='anime')return i.type===tab;
     return true;/* 'all', 'discover', 'calendar' et 'detectes' : toutes les series/anime/films en cours */
-  }).sort(function(a,b){return(b.updatedAtLocal||b.addedAt||0)-(a.updatedAtLocal||a.addedAt||0);});
+  }).sort(function(a,b){return(b.lastWatchedAt||b.updatedAtLocal||b.addedAt||0)-(a.lastWatchedAt||a.updatedAtLocal||a.addedAt||0);});
 }
 function renderHero(){
   var band=document.getElementById('heroBand');
@@ -197,7 +197,7 @@ function _showHeroItem(idx){
   document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
   /* Maquette « Cinéma » : « REPRENDRE · TYPE », SxxExx · Vu il y a…, « Épisode suivant » + « Fiche » */
   var kk=document.getElementById('heroKicker');if(kk)kk.textContent=t('hero.resume')+' · '+typeLbl;
-  var ago=heroAgo(item.updatedAtLocal);
+  var ago=heroAgo(item.lastWatchedAt||item.updatedAtLocal);
   document.getElementById('heroMeta').innerHTML=(epT?esc('S'+pad(item.saison)+' · E'+pad(item.episode))+' · ':'')+esc(ago||typeLbl)+(item.tmdbScore?' · <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
   var isSer=item.type!=='film'&&item.status==='encours';
   var pl=document.getElementById('heroBtnPlay'),pls=pl.querySelector('span');if(pls)pls.textContent=isSer?t('hero.nextEp'):t('hero.resume');
