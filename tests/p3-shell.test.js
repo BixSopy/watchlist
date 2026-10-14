@@ -58,3 +58,7 @@ test('Découvrir « Pour toi » : le bandeau passe tout de suite à la propositi
   assert.doesNotMatch(box.innerHTML, /Premier/);
   assert.match(read('js/07-add-edit.js'), /dbPut\(entry,null\);\n\s*render\(\);loadRecos\(\);if\(!wasEdit\)_removeFromDiscoverUI\(entry\.tmdbId\);if\(!wasEdit&&typeof p3ForYou==='function'\)p3ForYou\(\);/, 'interface mise à jour sans attendre IndexedDB');
 });
+test('Découvrir « Pour toi » : « Pas pour moi » sur le bandeau retire aussi la carte source et reconstruit tout de suite', () => {
+  const s = read('js/12-folders.js');
+  assert.match(s, /card\.classList\.contains\('p3-feat'\)&&typeof p3ForYou==='function'\)\{\s*if\(id\)document\.querySelectorAll\('#sbContent \.reco-card\[data-tmdbid="'\+id\+'"\]'\)\.forEach\(function\(c\)\{c\.remove\(\);\}\);\s*p3ForYou\(\);return;/);
+});

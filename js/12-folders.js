@@ -131,6 +131,14 @@ function recoDismiss(card){
     localStorage.setItem('wl_dis',JSON.stringify(dismissed));
     localStorage.setItem('wl_dis_meta',JSON.stringify(dismissedMeta));
   }
+  /* Bandeau « Pour toi » (js/29-shell.js) : c'est une copie de la carte source de #sbContent.
+     Retirer seulement la copie laissait la source en place, donc rien ne relançait p3ForYou avant
+     le prochain rechargement des recos (10-15 s). On retire aussi les sources et on reconstruit
+     tout de suite : p3ForYou exclut les titres écartés et prend la proposition suivante. */
+  if(card.classList.contains('p3-feat')&&typeof p3ForYou==='function'){
+    if(id)document.querySelectorAll('#sbContent .reco-card[data-tmdbid="'+id+'"]').forEach(function(c){c.remove();});
+    p3ForYou();return;
+  }
   card.style.transition='opacity .3s,transform .3s';card.style.opacity='0';card.style.transform='translateX(-16px)';setTimeout(function(){card.remove();},300);
 }
 function getCardData(card){return{tmdbId:card.dataset.tmdbid?parseInt(card.dataset.tmdbid):null,type:card.dataset.type,title:card.dataset.title,year:card.dataset.year,poster:card.dataset.poster||null,score:card.dataset.score||null,overview:card.dataset.overview||''};}
