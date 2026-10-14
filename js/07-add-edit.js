@@ -171,7 +171,12 @@ function saveEntry(){
     tags:curTags.slice(),collectionId:collId,collectionName:collName},ex,editId);
   if(editId){for(var j=0;j<memDB.length;j++){if(memDB[j].id==editId){memDB[j]=entry;break}}}else{memDB.unshift(entry);}
   if(type=='anime'&&!ag&&selTmdb.tmdbId){detectAnimeGenre(selTmdb.tmdbId,function(g){entry.animeGenre=g;for(var k=0;k<memDB.length;k++){if(memDB[k].id==entry.id){memDB[k]=entry;break}}dbPut(entry,function(){});});}
-  dbPut(entry,function(){render();loadRecos();if(!editId)_removeFromDiscoverUI(entry.tmdbId);if(!editId&&typeof p3ForYou==='function')p3ForYou();if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast(t(editId?'add.updated':'add.added',{title:entry.title}));closeAdd();if(type!='film'&&selTmdb.tmdbId)checkAir(entry);if(entry.myRating)buildTasteProfileCache();});
+  /* Mise à jour optimiste : memDB est déjà à jour, l'interface n'attend pas l'écriture IndexedDB.
+     Les transactions « readwrite » passent en file derrière celles de la synchro et des vérifications
+     en arrière-plan (une par titre) : sur une grosse liste, attendre oncomplete prenait 10-15 s. */
+  var wasEdit=editId,tmdbOk=selTmdb.tmdbId;
+  dbPut(entry,null);
+  render();loadRecos();if(!wasEdit)_removeFromDiscoverUI(entry.tmdbId);if(!wasEdit&&typeof p3ForYou==='function')p3ForYou();if(status=='termine'&&!wasDone){sfx('done');}else{sfx('add');}toast(t(wasEdit?'add.updated':'add.added',{title:entry.title}));closeAdd();if(type!='film'&&tmdbOk)checkAir(entry);if(entry.myRating)buildTasteProfileCache();
 }
 function delEntry(id){
   if(!confirm(t('add.deleteConfirm')))return;
