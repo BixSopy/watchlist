@@ -56,5 +56,5 @@ test('Découvrir « Pour toi » : le bandeau passe tout de suite à la propositi
   ctx.p3ForYou();
   assert.match(box.innerHTML, /<h3>Second<\/h3>/);
   assert.doesNotMatch(box.innerHTML, /Premier/);
-  assert.match(read('js/07-add-edit.js'), /_removeFromDiscoverUI\(entry\.tmdbId\);if\(!editId&&typeof p3ForYou==='function'\)p3ForYou\(\);/);
+  assert.match(read('js/07-add-edit.js'), /dbPut\(entry,null\);\n\s*render\(\);loadRecos\(\);if\(!wasEdit\)_removeFromDiscoverUI\(entry\.tmdbId\);if\(!wasEdit&&typeof p3ForYou==='function'\)p3ForYou\(\);/, 'interface mise à jour sans attendre IndexedDB');
 });
