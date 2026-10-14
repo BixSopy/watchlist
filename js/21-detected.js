@@ -277,10 +277,10 @@ var DET_CORE=(function(){
   /* Nouvelle progression d'un titre existant (null : rien à changer) */
   function updateFields(item,group,details){
     if(!movesForward(item,group))return null;
-    if(group.kind==='movie')return{status:'termine',saison:null,episode:null};
+    if(group.kind==='movie')return{status:'termine',saison:null,episode:null,watchedAt:group.lastMs||null};
     var p=group.progress;
-    if(isSeriesFinished(p,details))return{status:'termine',saison:null,episode:null};
-    return{status:'encours',saison:p.season,episode:p.episode};
+    if(isSeriesFinished(p,details))return{status:'termine',saison:null,episode:null,watchedAt:group.lastMs||null};
+    return{status:'encours',saison:p.season,episode:p.episode,watchedAt:group.lastMs||null};
   }
 
   return{normalizeTitle:normalizeTitle,groupRows:groupRows,furthest:furthest,listMatches:listMatches,movesForward:movesForward,
