@@ -266,13 +266,13 @@ var DET_CORE=(function(){
   /* Champs d'un nouveau titre, comme un ajout manuel (série « en cours » au dernier épisode vu,
      « terminé » si c'est le dernier épisode d'une série finie ; film « terminé ») */
   function newEntryFields(group,cand,details){
-    if(cand.tmdbType==='movie')return{type:'film',status:'termine',saison:null,episode:null,totalEp:null,animeGenre:''};
+    if(cand.tmdbType==='movie')return{type:'film',status:'termine',saison:null,episode:null,totalEp:null,animeGenre:'',watchedAt:group.lastMs||null};
     var anime=isAnime(cand),p=group.progress;
     var finished=!!p&&isSeriesFinished(p,details);
     var showEp=!finished;
     return{type:anime?'anime':'serie',status:finished?'termine':'encours',
       saison:showEp&&p?p.season:null,episode:showEp&&p?p.episode:null,
-      totalEp:showEp?((details&&details.number_of_episodes)||0):null,animeGenre:''};
+      totalEp:showEp?((details&&details.number_of_episodes)||0):null,animeGenre:'',watchedAt:group.lastMs||null};
   }
   /* Nouvelle progression d'un titre existant (null : rien à changer) */
   function updateFields(item,group,details){

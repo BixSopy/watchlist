@@ -112,7 +112,7 @@ document.getElementById('addMbk').addEventListener('click',function(e){if(e.targ
 function makeEntry(sel,f,ex,id){
   return{id:id||uid(),type:f.type,status:f.status,myRating:f.myRating||0,animeGenre:f.animeGenre||'',
     saison:f.saison,episode:f.episode,totalEp:f.totalEp,
-    tags:f.tags||[],addedAt:ex?ex.addedAt:Date.now(),
+    tags:f.tags||[],addedAt:ex?ex.addedAt:(f.watchedAt||Date.now()),
     tmdbId:sel.tmdbId,tmdbType:sel.tmdbType,title:sel.title,year:sel.year,
     poster:sel.poster,overview:sel.overview,tmdbScore:sel.tmdbScore,
     hasNewEp:ex?ex.hasNewEp:false,nextAir:ex?ex.nextAir:null,

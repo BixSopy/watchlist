@@ -147,12 +147,19 @@ test('TMDB : série terminée seulement si le dernier épisode vu est le dernier
   assert.strictEqual(D.isSeriesFinished(null, details), false);
   const cand = { tmdbType: 'tv', title: 'Arcane', overview: '' };
   assert.deepStrictEqual(D.newEntryFields(G('Arcane', 'show', { season: 2, episode: 8 }), cand, details),
-    { type: 'serie', status: 'termine', saison: null, episode: null, totalEp: null, animeGenre: '' });
+    { type: 'serie', status: 'termine', saison: null, episode: null, totalEp: null, animeGenre: '', watchedAt: null });
   assert.deepStrictEqual(D.newEntryFields(G('Arcane', 'show', { season: 2, episode: 3 }), cand, details),
-    { type: 'serie', status: 'encours', saison: 2, episode: 3, totalEp: 18, animeGenre: '' });
+    { type: 'serie', status: 'encours', saison: 2, episode: 3, totalEp: 18, animeGenre: '', watchedAt: null });
   assert.deepStrictEqual(D.newEntryFields(G('X', 'movie'), { tmdbType: 'movie' }, null),
-    { type: 'film', status: 'termine', saison: null, episode: null, totalEp: null, animeGenre: '' });
+    { type: 'film', status: 'termine', saison: null, episode: null, totalEp: null, animeGenre: '', watchedAt: null });
   assert.deepStrictEqual(D.updateFields(LIST[0], G('Dark', 'show', { season: 2, episode: 8 }), details), { status: 'termine', saison: null, episode: null });
+});
+
+test('import : la vraie date de visionnage (lastMs) est reprise, pas la date d\'ajout', () => {
+  const cand = { tmdbType: 'tv', title: 'Arcane', overview: '' };
+  const details = { status: 'Ended', in_production: false, number_of_episodes: 18, seasons: [{ season_number: 0, episode_count: 3 }, { season_number: 1, episode_count: 10 }, { season_number: 2, episode_count: 8 }] };
+  const group = Object.assign(G('Arcane', 'show', { season: 2, episode: 3 }), { lastMs: 1703203200000 }); // 2023-12-22
+  assert.strictEqual(D.newEntryFields(group, cand, details).watchedAt, 1703203200000);
 });
 
 test('anime : même règle que la recherche du site, plus animation japonaise', () => {
