@@ -170,14 +170,40 @@ function p3Header(){
   var dot=document.getElementById('p3Dot');if(dot)dot.hidden=!L.some(function(i){return i.hasNewEp;});
 }
 function p3BellClose(){var pop=document.getElementById('p3Pop'),b=document.getElementById('p3Bell');if(pop)pop.hidden=true;if(b)b.setAttribute('aria-expanded','false');}
+/* Liste + corps du popover, reconstruits après un marquage lu/tout lu sans fermer le popover
+   (contrairement à l'ouverture d'une fiche, qui ferme la cloche via p3OpenNew). */
+function _p3PopHtml(){
+  var news=_p3Live().filter(function(i){return i.hasNewEp;});
+  var head='<div class="p3-pop-h"><span>'+esc(t('nav.notifs'))+'</span>'+(news.length?'<button type="button" class="p3-pop-readall"'+uiAct('p3NewReadAll')+'>'+esc(t('nav.notifsReadAll'))+'</button>':'')+'</div>';
+  var body=news.length?news.slice(0,8).map(function(i){
+    return '<div class="p3-pop-r" role="menuitem">'
+      +'<button type="button" class="p3-pop-main"'+uiAct('p3OpenNew',[i.id])+'><span class="p3-pop-im"'+(i.poster?' style="background-image:url(\''+esc(IB+'w92'+i.poster)+'\')"':'')+'></span><span><b>'+esc(i.title)+'</b><i>'+esc(t('nav.newEp'))+'</i></span></button>'
+      +'<button type="button" class="p3-pop-x" aria-label="'+esc(t('nav.notifsDismiss',{title:i.title}))+'"'+uiAct('p3NewDismiss',[i.id])+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+      +'</div>';
+  }).join(''):'<div class="p3-pop-e">'+esc(t('nav.notifsEmpty'))+'</div>';
+  return head+body;
+}
 function p3Bell(){
   var pop=document.getElementById('p3Pop'),b=document.getElementById('p3Bell');if(!pop)return;
   if(!pop.hidden){p3BellClose();return;}
-  var news=_p3Live().filter(function(i){return i.hasNewEp;});
-  pop.innerHTML='<div class="p3-pop-h">'+esc(t('nav.notifs'))+'</div>'+(news.length?news.slice(0,8).map(function(i){
-    return '<button type="button" class="p3-pop-r" role="menuitem"'+uiAct('p3OpenNew',[i.id])+'><span class="p3-pop-im"'+(i.poster?' style="background-image:url(\''+esc(IB+'w92'+i.poster)+'\')"':'')+'></span><span><b>'+esc(i.title)+'</b><i>'+esc(t('nav.newEp'))+'</i></span></button>';
-  }).join(''):'<div class="p3-pop-e">'+esc(t('nav.notifsEmpty'))+'</div>');
+  pop.innerHTML=_p3PopHtml();
   pop.hidden=false;b.setAttribute('aria-expanded','true');if(typeof sfx==='function')sfx('open');
+}
+/* Marque un titre comme lu : seul hasNewEp change (pas lastWatchedAt, qui ne doit refléter que
+   de vrais visionnages — voir le champ dédié ajouté en PR #48). Même mécanisme que nextEpPlex. */
+function _p3DismissOne(id){
+  var item=memDB.find(function(i){return i.id==id;});if(!item)return;
+  item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
+  dbPut(item,function(){});
+}
+function p3NewDismiss(id){
+  _p3DismissOne(id);render();
+  var pop=document.getElementById('p3Pop');if(pop&&!pop.hidden)pop.innerHTML=_p3PopHtml();
+}
+function p3NewReadAll(){
+  _p3Live().filter(function(i){return i.hasNewEp;}).forEach(function(i){_p3DismissOne(i.id);});
+  render();
+  var pop=document.getElementById('p3Pop');if(pop&&!pop.hidden)pop.innerHTML=_p3PopHtml();
 }
 /* Après chaque rendu : compteurs, en-tête et cloche à jour */
 (function(){

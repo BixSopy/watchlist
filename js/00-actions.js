@@ -106,6 +106,8 @@ uiOn('p3Compact',function(){toggleCompact();p3Header();});
 uiOn('p3Search',function(){if(typeof openSearchModal==='function'){sfx('open');openSearchModal('');}});
 uiOn('p3Bell',function(el,e){e.stopPropagation();p3Bell();});
 uiOn('p3OpenNew',function(el,e,id){p3BellClose();openPlex(_uiId(id));});
+uiOn('p3NewDismiss',function(el,e,id){e.stopPropagation();sfx('click');p3NewDismiss(id);});
+uiOn('p3NewReadAll',function(el,e){e.stopPropagation();sfx('click');p3NewReadAll();});
 uiOn('plexSimOpen',function(el,e,i){var r=_plexSimRes[i];if(r){sfx('open');openPlexTmdb(r);var m=document.querySelector('#plexMbk .plex-wrap');if(m)m.scrollTop=0;}});
 uiOn('p3Disc',function(el,e,v){sfx('click');p3SetDisc(v);});
 uiOn('detImportToggle',function(){detImportToggle();});

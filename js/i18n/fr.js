@@ -904,6 +904,8 @@
  "nav.search": "Rechercher un titre",
  "nav.notifs": "Nouveautés",
  "nav.notifsEmpty": "Rien de nouveau pour l'instant",
+ "nav.notifsReadAll": "Tout marquer comme lu",
+ "nav.notifsDismiss": "Marquer « {title} » comme lu",
  "nav.newEp": "Nouvel épisode disponible",
  "nav.listSub": "{n} titres · {a} à voir · {e} en cours · {f} terminés",
  "nav.calSub": "Les sorties à venir des titres de ta liste",

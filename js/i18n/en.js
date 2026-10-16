@@ -908,6 +908,8 @@
  "nav.search": "Search for a title",
  "nav.notifs": "What's new",
  "nav.notifsEmpty": "Nothing new for now",
+ "nav.notifsReadAll": "Mark all as read",
+ "nav.notifsDismiss": "Mark \"{title}\" as read",
  "nav.newEp": "New episode available",
  "nav.listSub": "{n} titles · {a} to watch · {e} watching · {f} finished",
  "nav.calSub": "Upcoming releases from your list",
