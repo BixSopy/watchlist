@@ -25,7 +25,7 @@ Règles entre IA :
 
 | Agent | Chantier | Branche / PR | Fichiers touchés | Statut |
 |---|---|---|---|---|
-| Grok Bot | Extension publiée sur le Chrome Web Store : OFFICIAL_EXT_IDS + EXT_STORE_URL, liens « Installer l'extension » vers la fiche, retour de l'étape extension de la fenêtre d'accueil | PR #58 (`grok/ext-store-live`) | js/28-pairing.js, js/21-detected.js (lien seul), index.html, landing/landing.css, js/i18n, tests | en attente de validation de Pierre — dernier chantier terminé : #57 (mergée 16/10 11:51) |
+| Grok Bot | Accueil public : teaser « Bientôt sur Android » (section avec téléphone animé, FR/EN, reduced motion respecté), variante B validée par Pierre | `grok/android-teaser` | index.html, landing/landing.css, js/i18n/fr.js, js/i18n/en.js, tests/landing.test.js | en attente de validation de Pierre — dernier chantier terminé : #58 (mergée 16/10 12:02) |
 | Claude | Notifications : « × » par notification + « Tout marquer comme lu » (demandé par Pierre). Pierre a dit de laisser le chantier « cartes coupées » à Grok (réglé entre-temps par #53/#54 de mon côté et #55 de Grok, deux causes distinctes et complémentaires). Maquettes sociales toujours en pause (j'attends mon propre retour à Grok sur profil public/ordre). | PR #56 (`claude/notifs-dismiss-readall`), mergée le 16/10 11:32 | js/29-shell.js, js/00-actions.js, index.html, js/i18n/fr.js, js/i18n/en.js | en cours |
 
 ## 3) Journal des PR
@@ -36,7 +36,8 @@ Tableau exhaustif, la PR la plus récente en haut. Rempli rétroactivement le 20
 
 | PR | Titre | Auteur | Branche | Statut | Résumé + fichiers principaux | Migration SQL |
 |---|---|---|---|---|---|---|
-| #58 | Extension : liens vers le Chrome Web Store + étape extension de l'accueil | Grok | `grok/ext-store-live` | **ouverte le 16/10 11:57 (heure de Paris), en attente de l'accord de Pierre** | Fiche publique `hmoafofdaajkenkodmgbdjejbmkdjicc` (v0.8.0). Fichiers : js/28-pairing.js, js/21-detected.js, index.html, js/i18n/*, tests. | Non |
+| (à venir) | Accueil : teaser « Bientôt sur Android » | Grok | `grok/android-teaser` | **ouverte le 16/10, en attente de l'accord de Pierre** | Nouvelle section après l'extension : téléphone animé (flottement 3D, reflet, notification), textes FR/EN `lp.and.*`. Le test « pas de promesse » autorise rappels/hors connexion uniquement dans ce teaser. Fichiers : index.html, landing/landing.css, js/i18n/*, tests/landing.test.js. | Non |
+| #58 | Extension : liens vers le Chrome Web Store + étape extension de l'accueil | Grok | `grok/ext-store-live` | **mergée le 16/10 12:02** (heure de Paris, `b3b6d99`) | Fiche publique `hmoafofdaajkenkodmgbdjejbmkdjicc` (v0.8.0). Fichiers : js/28-pairing.js, js/21-detected.js, index.html, js/i18n/*, tests. | Non |
 | #57 | Coordination : Journal des PR — #51 et #56 mergées | Grok | `grok/journal-51-56` | **mergée le 16/10 11:51** (heure de Paris, `dbf4c4e`) | Statuts #51/#56, ligne #57, tableau « En cours ». Fichiers : `COORDINATION.md`. | Non |
 | #56 | Notifications : marquer comme lu (une à une ou toutes) | Claude | `claude/notifs-dismiss-readall` | **mergée le 16/10 11:32** (heure de Paris, `0f09d62`) | Bouton « × » par notification + « Tout marquer comme lu » dans le popover de la cloche (`hasNewEp=false` uniquement, jamais `lastWatchedAt`). Fichiers : `js/29-shell.js`, `js/00-actions.js`, `index.html`, `js/i18n/fr.js`, `js/i18n/en.js`. | Non |
 | #55 | Découvrir : le haut des cartes n'est plus coupé au survol dans les rails (Tendances…) | Grok | `grok/fix-rail-hover-clip` | **mergée le 16/10 09:59** (heure de Paris, `015ca43`) | `.p3-rail` (overflow-x:auto ⇒ overflow-y rogné) coupait la levée -6px + anneau + ombre au survol. Padding compensé par marge négative. Complète #53/#54 (rebond de page) sans y toucher. | Non |
@@ -101,7 +102,9 @@ Chaque idée proposée par Pierre, Grok ou Claude, avec sa date et son statut r�
 
 | Idée | Proposée par | Date | Statut |
 |---|---|---|---|
-| Chrome Web Store : publication de la fiche | Pierre | 2026-10-13 | **en cours** — bloquée par la confirmation de l'email de contact (liens du 13/10 expirés, à relancer depuis la console) |
+| Chrome Web Store : publication de la fiche | Pierre | 2026-10-13 | **faite** — publiée le 16/10 (`hmoafofdaajkenkodmgbdjejbmkdjicc`, v0.8.0), site relié par #58 |
+| App Android (Capacitor) : mode hors connexion (cocher un épisode sans réseau, synchro au retour) | Grok | 2026-10-16 | **validée** par Pierre (annoncée dans le teaser) — à faire |
+| App Android : rappels de sorties, désactivés par défaut (opt-in), sans traceur | Grok | 2026-10-16 | **validée** par Pierre (annoncée dans le teaser) — à faire |
 | Post Reddit ciblé (ex-TV Time, anime, séries) | Grok + Claude (synthèse) | 2026-10-13 | **à faire** — après publication CWS |
 | Remplir `OFFICIAL_EXT_IDS` / `EXT_STORE_URL` + réactiver l'étape extension de l'onboarding | Grok | 2026-10-13 | **à faire** — après publication CWS |
 | Ajuster l'import RGPD avec de vrais exports des plateformes | Grok | 2026-10-13 | **à faire** |
