@@ -25,7 +25,7 @@ Règles entre IA :
 
 | Agent | Chantier | Branche / PR | Fichiers touchés | Statut |
 |---|---|---|---|---|
-| Grok Bot | Trois PR en attente de Pierre : #59 teaser Android, tablette (`grok/tablet-layout`), section appareils (`grok/devices-section`) | #59 + 2 PR ouvertes le 16/10 | voir Journal des PR | en attente de validation de Pierre — dernier chantier terminé : #58 (mergée 16/10 12:02) |
+| Grok Bot | Trois PR en attente de Pierre : #59 teaser Android, tablette (`grok/tablet-layout`), section appareils (`grok/devices-section`) | #59, #60, #61 | voir Journal des PR | en attente de validation de Pierre — dernier chantier terminé : #58 (mergée 16/10 12:02) |
 | Claude | Notifications : « × » par notification + « Tout marquer comme lu » (demandé par Pierre). Pierre a dit de laisser le chantier « cartes coupées » à Grok (réglé entre-temps par #53/#54 de mon côté et #55 de Grok, deux causes distinctes et complémentaires). Maquettes sociales toujours en pause (j'attends mon propre retour à Grok sur profil public/ordre). | PR #56 (`claude/notifs-dismiss-readall`), mergée le 16/10 11:32 | js/29-shell.js, js/00-actions.js, index.html, js/i18n/fr.js, js/i18n/en.js | en cours |
 
 ## 3) Journal des PR
@@ -36,7 +36,7 @@ Tableau exhaustif, la PR la plus récente en haut. Rempli rétroactivement le 20
 
 | PR | Titre | Auteur | Branche | Statut | Résumé + fichiers principaux | Migration SQL |
 |---|---|---|---|---|---|---|
-| (à venir) | Accueil : « Ta liste te suit » avec ordinateur + tablette + téléphone synchronisés | Grok | `grok/devices-section` | **ouverte le 16/10, en attente de l'accord de Pierre** | Remplace les 3 téléphones par ordinateur (centre), tablette, téléphone ; les trois font défiler le même fil sur la même ligne de temps (proportions identiques), pastille « Synchronisé » simultanée ; texte « téléphone, tablette ou ordinateur » FR/EN ; reduced motion respecté. Fichiers : index.html, landing/landing.css, js/i18n/*. | Non |
+| #61 | Accueil : « Ta liste te suit » avec ordinateur + tablette + téléphone synchronisés | Grok | `grok/devices-section` | **ouverte le 16/10 12:54 (heure de Paris), en attente de l'accord de Pierre** | Remplace les 3 téléphones par ordinateur (centre), tablette, téléphone ; les trois font défiler le même fil sur la même ligne de temps (proportions identiques), pastille « Synchronisé » simultanée ; texte « téléphone, tablette ou ordinateur » FR/EN ; reduced motion respecté. Fichiers : index.html, landing/landing.css, js/i18n/*. | Non |
 | #58 | Extension : liens vers le Chrome Web Store + étape extension de l'accueil | Grok | `grok/ext-store-live` | **mergée le 16/10 12:02** (heure de Paris, `b3b6d99`) | Fiche publique `hmoafofdaajkenkodmgbdjejbmkdjicc` (v0.8.0). Fichiers : js/28-pairing.js, js/21-detected.js, index.html, js/i18n/*, tests. | Non |
 | #57 | Coordination : Journal des PR — #51 et #56 mergées | Grok | `grok/journal-51-56` | **mergée le 16/10 11:51** (heure de Paris, `dbf4c4e`) | Statuts #51/#56, ligne #57, tableau « En cours ». Fichiers : `COORDINATION.md`. | Non |
 | #56 | Notifications : marquer comme lu (une à une ou toutes) | Claude | `claude/notifs-dismiss-readall` | **mergée le 16/10 11:32** (heure de Paris, `0f09d62`) | Bouton « × » par notification + « Tout marquer comme lu » dans le popover de la cloche (`hasNewEp=false` uniquement, jamais `lastWatchedAt`). Fichiers : `js/29-shell.js`, `js/00-actions.js`, `index.html`, `js/i18n/fr.js`, `js/i18n/en.js`. | Non |
