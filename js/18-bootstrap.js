@@ -24,32 +24,49 @@ document.addEventListener('keydown',function(e){
    (c'est exactement ce qu'on voit sur un select ouvert — menu plat, surbrillance
    bleue systeme). On masque le <select> (il reste dans le DOM, sa valeur et ses
    evenements 'change' continuent de piloter tout le code existant sans aucune
-   modif ailleurs) et on construit un bouton + menu entierement stylables par-dessus. */
+   modif ailleurs) et on construit un bouton + menu entierement stylables par-dessus.
+   Vignette par option (data-img sur <option>, ex. choix entre plusieurs fiches TMDB
+   au meme titre) : affichee dans le bouton fermé et devant chaque option du menu —
+   un <select> natif ne peut afficher aucune image par <option>, quel que soit le CSS. */
 function enhanceSelect(sel){
   if(!sel||sel._cselDone)return;sel._cselDone=true;
+  var hasImg=Array.prototype.some.call(sel.options,function(o){return o.getAttribute('data-img');});
   var wrap=document.createElement('div');
-  wrap.className='csel'+(sel.className?' '+sel.className:'');
+  wrap.className='csel'+(hasImg?' csel-img':'')+(sel.className?' '+sel.className:'');
   sel.parentNode.insertBefore(wrap,sel);
   wrap.appendChild(sel);
   var btn=document.createElement('button');
   btn.type='button';btn.className='csel-btn '+sel.className;
+  var thumb=null;
+  if(hasImg){thumb=document.createElement('span');thumb.className='csel-th';btn.appendChild(thumb);}
   var lbl=document.createElement('span');lbl.className='csel-lbl';
   var chev=document.createElementNS('http://www.w3.org/2000/svg','svg');
   chev.setAttribute('class','csel-chev');chev.setAttribute('viewBox','0 0 24 24');chev.setAttribute('fill','none');chev.setAttribute('stroke','currentColor');chev.setAttribute('stroke-width','2.4');
   chev.innerHTML='<polyline points="6 9 12 15 18 9"/>';
   btn.appendChild(lbl);btn.appendChild(chev);
-  var menu=document.createElement('div');menu.className='csel-menu';menu.setAttribute('role','listbox');
+  var menu=document.createElement('div');menu.className='csel-menu'+(hasImg?' csel-menu-img':'');menu.setAttribute('role','listbox');
   function curLabel(){var o=sel.options[sel.selectedIndex];return o?o.text:'';}
+  function curImg(){var o=sel.options[sel.selectedIndex];return o?o.getAttribute('data-img'):'';}
+  function setThumb(el,img){if(!el)return;el.classList.toggle('empty',!img);el.innerHTML=img?'<img src="'+img+'" alt="" loading="lazy" data-hide-broken>':'';}
   function renderMenu(){
     menu.innerHTML='';
     Array.prototype.forEach.call(sel.options,function(o,i){
       var opt=document.createElement('div');
       opt.className='csel-opt'+(i===sel.selectedIndex?' on':'');
-      opt.setAttribute('role','option');opt.textContent=o.text;
+      opt.setAttribute('role','option');
+      if(hasImg){
+        var im=o.getAttribute('data-img');
+        var th=document.createElement('span');th.className='csel-th'+(im?'':' empty');
+        if(im){var img=document.createElement('img');img.src=im;img.alt='';img.loading='lazy';img.setAttribute('data-hide-broken','');th.appendChild(img);}
+        var tx=document.createElement('span');tx.className='csel-opt-tx';tx.textContent=o.text;
+        opt.appendChild(th);opt.appendChild(tx);
+      }else{
+        opt.textContent=o.text;
+      }
       opt.onclick=function(e){
         e.stopPropagation();
         if(sel.selectedIndex!==i){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}));}
-        lbl.textContent=curLabel();
+        lbl.textContent=curLabel();setThumb(thumb,curImg());
         close();sfx('click');
       };
       menu.appendChild(opt);
@@ -69,12 +86,12 @@ function enhanceSelect(sel){
       var d=e.key==='ArrowDown'?1:-1;
       sel.selectedIndex=(sel.selectedIndex+d+n)%n;
       sel.dispatchEvent(new Event('change',{bubbles:true}));
-      lbl.textContent=curLabel();
+      lbl.textContent=curLabel();setThumb(thumb,curImg());
       if(isOpen())renderMenu();
     }
   };
-  sel.addEventListener('change',function(){lbl.textContent=curLabel();});
-  lbl.textContent=curLabel();
+  sel.addEventListener('change',function(){lbl.textContent=curLabel();setThumb(thumb,curImg());});
+  lbl.textContent=curLabel();setThumb(thumb,curImg());
   wrap.appendChild(btn);wrap.appendChild(menu);
 }
 function enhanceAllSelects(root){
