@@ -495,7 +495,7 @@ function _detRowHtml(g,c){
     detail=esc(t(c.kind==='update'?'det.inList':'det.inListSame',{title:c.item.title,from:_detListProgress(c.item),to:to}));
   }else if(c.kind==='ambiguous'&&c.reason==='list'){
     detail=esc(t('det.chooseList'))+' <select class="det-select" aria-label="'+esc(t('det.chooseList'))+'"'+uiAct('detTarget',[g.key],'change')+'><option value="">'+esc(t('det.choose'))+'</option>'
-      +c.items.map(function(it){return '<option value="'+esc(it.id)+'"'+(c.item&&c.item.id===it.id?' selected':'')+'>'+esc(it.title+(it.year?' ('+it.year+')':'')+' — '+_detListProgress(it))+'</option>';}).join('')+'</select>';
+      +c.items.map(function(it){return '<option value="'+esc(it.id)+'" data-img="'+(it.poster?esc(IB+'w92'+it.poster):'')+'"'+(c.item&&c.item.id===it.id?' selected':'')+'>'+esc(it.title+(it.year?' ('+it.year+')':'')+' — '+_detListProgress(it))+'</option>';}).join('')+'</select>';
   }else if(c.reason==='pending'){
     detail=esc(t('det.searching'));
   }else if(c.reason==='error'){
@@ -508,7 +508,7 @@ function _detRowHtml(g,c){
     detail=(cand?esc(addTxt):esc(t('det.chooseTmdb')));
     if(cands.length>1||!cand){
       detail+=' <select class="det-select" aria-label="'+esc(t('det.chooseTmdb'))+'"'+uiAct('detCand',[g.key],'change')+'>'+(cand?'':'<option value="">'+esc(t('det.choose'))+'</option>')
-        +cands.map(function(x,i){return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+esc(x.title+(x.year?' ('+x.year+')':'')+(x.originalTitle&&x.originalTitle!==x.title?' — '+x.originalTitle:'')+(x.tmdbType!==(g.kind==='movie'?'movie':'tv')?' · '+t(x.tmdbType==='movie'?'det.kindMovie':'det.kindShow'):''))+'</option>';}).join('')+'</select>';
+        +cands.map(function(x,i){return '<option value="'+i+'" data-img="'+(x.poster?esc(IB+'w92'+x.poster):'')+'"'+(i===sel?' selected':'')+'>'+esc(x.title+(x.year?' ('+x.year+')':'')+(x.originalTitle&&x.originalTitle!==x.title?' — '+x.originalTitle:'')+(x.tmdbType!==(g.kind==='movie'?'movie':'tv')?' · '+t(x.tmdbType==='movie'?'det.kindMovie':'det.kindShow'):''))+'</option>';}).join('')+'</select>';
     }
     /* Pas la bonne fiche parmi celles proposées : recherche à la main */
     if(!cand||c.cands&&c.cands[0]&&c.cands[0].manual)detail+=_detSearchHtml(g,s);
@@ -588,6 +588,7 @@ function renderDetected(){
       +'<div class="det-list">'+(rows||'<div class="det-empty">'+esc(t('det.emptyFilter'))+'</div>')+'</div>'
       :'<div class="det-empty"><div class="det-empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></div><div class="det-empty-t">'+esc(t('det.emptyTitle'))+'</div><div>'+esc(DET.loading&&!DET.loadedAt?t('det.loading'):t('det.empty'))+'</div></div>')
     +'<div class="det-foot">'+esc(t('det.privacy'))+'</div></div>';
+  enhanceAllSelects(box);
   if(focusKey!=null){
     box.querySelectorAll('.det-q').forEach(function(inp){
       if(inp.getAttribute('data-key')!==focusKey)return;
