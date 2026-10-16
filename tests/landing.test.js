@@ -56,7 +56,8 @@ test('un seul h1 dans index.html, dans la page d’accueil', () => {
 
 test('accueil : aucune ressource tierce, aucun <form> ni champ de mot de passe en double (le panneau reçoit #authView)', () => {
   const urls = [...LANDING.matchAll(/\s(?:src|href)="(https?:[^"]+)"/g)].map(m => m[1]);
-  assert.deepStrictEqual(urls, [], 'liens et ressources relatifs uniquement');
+  assert.deepStrictEqual(urls.filter(u => u !== 'https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc'), [], 'liens et ressources relatifs uniquement (seule exception : la fiche Chrome Web Store, simple lien sortant)');
+  assert.doesNotMatch(LANDING, /\ssrc="https?:/, 'aucune ressource tierce chargée');
   assert.doesNotMatch(LANDING, /<form[\s>]|type="password"|<iframe/i);
   assert.match(LANDING, /id="lpAuthHost"/);
   const js = read('js/23-landing.js');
@@ -88,9 +89,10 @@ test('pas de promesse qui n’existe pas : import TV Time/Trakt, calendrier, not
     assert.doesNotMatch(all, /TV ?Time|Trakt|Letterboxd|calendrier|calendar|notification push|push notification/i, l);
     assert.doesNotMatch(all, /\b\d[\d  .,]*\s*(utilisateurs|users|membres|members)\b/i, l + ' : aucun chiffre d’utilisateurs inventé');
   }
-  assert.match(DICTS.fr['lp.f2.soon'] || '', /Bientôt sur le Chrome Web Store/);
-  assert.match(DICTS.en['lp.f2.soon'] || '', /Coming soon to the Chrome Web Store/);
-  assert.doesNotMatch(LANDING, /chromewebstore\.google\.com|chrome\.google\.com\/webstore/, 'pas de lien vers une fiche non publiée');
+  assert.match(DICTS.fr['lp.f2.store'] || '', /Disponible sur le Chrome Web Store/);
+  assert.match(DICTS.en['lp.f2.store'] || '', /Available on the Chrome Web Store/);
+  const links = LANDING.match(/https:\/\/chromewebstore\.google\.com\/[^"]*/g) || [];
+  assert.ok(links.length >= 2 && links.every(u => u === 'https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc'), 'liens vers la fiche publiée uniquement');
 });
 
 test('référencement : titre et description par langue, hreflang fr/en et sitemap inchangés', () => {

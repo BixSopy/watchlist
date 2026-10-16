@@ -58,7 +58,9 @@ test('visiteur sans compte : page d’accueil avec un seul h1, application masqu
   assert.match(await page.title(), /^Cinepisode · /);
   // Sections annoncées, extension présentée comme « bientôt » (non publiée), lien vers la politique de confidentialité
   for (const id of ['#lp-features', '#lp-extension', '#lp-privacy', '#lp-faq', '#lp-join']) assert.equal(await page.locator(id).count(), 1, id);
-  assert.match(await page.locator('#lp-extension').textContent(), /Bientôt sur le Chrome Web Store/i);
+  assert.match(await page.locator('#lp-extension').textContent(), /Disponible sur le Chrome Web Store/i);
+  for (const a of await page.locator('#lp-extension a[href*="chromewebstore"]').all()) { assert.equal(await a.getAttribute('href'), 'https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc'); assert.equal(await a.getAttribute('target'), '_blank'); }
+  assert.equal(await page.locator('#lp-extension a[href*="chromewebstore"]').count(), 2);
   assert.equal(await page.locator('#lp-privacy a[href="/confidentialite"]').count() >= 1, true);
   assert.equal(await page.locator('#landing a[href="mailto:contact@cinepisode.com"]').count() >= 1, true);
   // Le panneau contient le vrai formulaire de compte (#authView déplacé, pas une copie)
@@ -189,7 +191,7 @@ test('anglais : /en en anglais (titre, description, h1, panneau), puis navigateu
   assert.match(await page.title(), /^Cinepisode · Free movie, series and anime tracker/);
   assert.match(await page.getAttribute('meta[name="description"]', 'content'), /^Track your movies/);
   assert.match(await page.locator('#landing h1').textContent(), /Everything you watch/);
-  assert.match(await page.locator('#lp-extension').textContent(), /Coming soon to the Chrome Web Store/i);
+  assert.match(await page.locator('#lp-extension').textContent(), /Available on the Chrome Web Store/i);
   await panelTitle(page).filter({ hasText: 'Create an account' }).waitFor();
   assert.doesNotMatch(await page.locator('#landing').innerText(), /Créer|Connexion|séries|Gratuit/, 'aucun texte français visible');
   assert.equal(await page.locator('#landing a[data-legal="privacy"]').first().getAttribute('href'), '/privacy');

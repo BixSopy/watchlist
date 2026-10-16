@@ -631,7 +631,7 @@
  "lp.f1.b2": "Épisode suivant en un geste",
  "lp.f1.b3": "Prochaine sortie affichée sur la fiche",
  "lp.f2.kicker": "Extension navigateur",
- "lp.f2.soon": "Bientôt sur le Chrome Web Store",
+ "lp.f2.store": "Disponible sur le Chrome Web Store",
  "lp.f2.title": "Ton historique Netflix, Prime Video et Crunchyroll, rapatrié.",
  "lp.f2.text": "L'extension Cinepisode lit ton historique de visionnage et l'envoie dans l'onglet « Détectés ». Rien n'entre dans ta liste sans ton accord : tu valides, tu corriges ou tu ignores.",
  "lp.f2.b1": "Tout l'historique du compte, quel que soit l'appareil utilisé",
