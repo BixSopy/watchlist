@@ -62,6 +62,10 @@
   --grain-opacity:.035;--aurora-opacity:1
 }
 *{box-sizing:border-box;margin:0;padding:0}
+/* <html> sans fond = blanc par défaut du navigateur dans la zone de rebond élastique au-dessus
+   de la page (trackpad macOS/iOS, scroll au-delà du haut) : un flash blanc qui semble « couper »
+   le haut du contenu juste en dessous du bandeau sticky. */
+html{background:var(--bg)}
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
 
 /* HEADER */
