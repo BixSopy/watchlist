@@ -87,6 +87,11 @@ test('pas de promesse qui n’existe pas : import TV Time/Trakt, calendrier, not
   for (const l of ['fr', 'en']) {
     const all = lpKeys(l).map(k => DICTS[l][k]).join('\n');
     assert.doesNotMatch(all, /TV ?Time|Trakt|Letterboxd|calendrier|calendar|notification push|push notification/i, l);
+    /* Rappels et hors connexion : promesses de l'application Android annoncée (« bientôt »), autorisées
+       seulement dans ce teaser (lp.and.*), jamais pour le site actuel. */
+    const site = lpKeys(l).filter(k => !k.startsWith('lp.and.')).map(k => DICTS[l][k]).join('\n');
+    assert.doesNotMatch(site, /rappel|reminder|hors connexion|offline/i, l + ' : pas de rappels ni de hors-connexion promis pour le site');
+    assert.match(DICTS[l]['lp.and.soon'], /Bientôt|Coming soon/, l + ' : le teaser Android reste annoncé comme « bientôt »');
     assert.doesNotMatch(all, /\b\d[\d  .,]*\s*(utilisateurs|users|membres|members)\b/i, l + ' : aucun chiffre d’utilisateurs inventé');
   }
   assert.match(DICTS.fr['lp.f2.store'] || '', /Disponible sur le Chrome Web Store/);
