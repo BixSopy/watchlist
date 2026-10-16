@@ -635,7 +635,7 @@
  "lp.f1.b2": "Next episode in one tap",
  "lp.f1.b3": "Next release shown on the title page",
  "lp.f2.kicker": "Browser extension",
- "lp.f2.soon": "Coming soon to the Chrome Web Store",
+ "lp.f2.store": "Available on the Chrome Web Store",
  "lp.f2.title": "Your Netflix, Prime Video and Crunchyroll history, brought home.",
  "lp.f2.text": "The Cinepisode extension reads your viewing history and sends it to the “Detected” tab. Nothing lands in your list without your say: you approve, fix or ignore.",
  "lp.f2.b1": "Your whole account history, whatever device you watched on",

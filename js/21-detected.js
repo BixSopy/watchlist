@@ -557,6 +557,7 @@ function detExtCardHtml(){
   if(on)sub=t('det.ext.onSub',{device:(d&&d.label)||t('det.ext.thisBrowser'),seen:typeof _devAgo==='function'?_devAgo(d&&d.last_seen_at):''});
   else sub=t(DET_EXT.state==='off'?'det.ext.offSub':'det.ext.unknownSub');
   return '<div class="det-ext'+(on?' on':'')+'"><span class="det-ext-dot" aria-hidden="true"></span><div class="det-ext-tx"><b>'+esc(t(on?'det.ext.on':DET_EXT.state==='off'?'det.ext.off':'det.ext.title'))+'</b><span>'+esc(sub)+'</span></div>'+
+    (!on&&typeof EXT_STORE_URL!=='undefined'&&EXT_STORE_URL?'<a class="btn btn-pill det-ext-btn det-ext-store" href="'+esc(EXT_STORE_URL)+'" target="_blank" rel="noopener">'+esc(t('onb.install'))+'</a>':'')+
     '<button type="button" class="btn btn-pill det-ext-btn" aria-expanded="'+(DET_EXT.importOpen?'true':'false')+'"'+uiAct('detImportToggle')+'>'+esc(t(DET_EXT.importOpen?'det.ext.importClose':'det.ext.import'))+'</button></div>';
 }
 function detImportToggle(){DET_EXT.importOpen=!DET_EXT.importOpen;sfx('click');renderDetected();if(DET_EXT.importOpen){var x=document.getElementById('detImp');if(x&&x.scrollIntoView)x.scrollIntoView({behavior:'smooth',block:'nearest'});}}

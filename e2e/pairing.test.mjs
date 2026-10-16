@@ -201,6 +201,8 @@ test('page d\'appairage sans identifiant d\'extension, téléphone, et fenêtre 
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto('https://cinepisode.com/?pair=1');
   await page.locator('#pairPage h1').filter({ hasText: 'Lien incomplet' }).waitFor();
+  assert.equal(await page.locator('#pairPage a.pair-btn').getAttribute('href'), 'https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc');
+  await shot(page, '08b-mobile-sans-extension');
   await page.goto('https://cinepisode.com/?pair=1&ext=' + extId + '&v=0.8.0');
   await page.locator('#pairPage h1').filter({ hasText: 'Autoriser' }).waitFor();
   await page.check('#pairAck');
@@ -226,6 +228,10 @@ test('page d\'appairage sans identifiant d\'extension, téléphone, et fenêtre 
   assert.equal(await page.locator('#onbMbk').count(), 0, 'une seule fois par compte');
   await page.evaluate(() => showOnboarding());
   await page.waitForTimeout(1200);
+  /* Extension publiée : étapes 2 et 3 revenues, bouton vers la fiche Chrome Web Store */
+  assert.equal(await page.locator('#onbMbk .onb-step').count(), 3);
+  assert.equal(await page.locator('#onbMbk a.pair-btn').getAttribute('href'), 'https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc');
+  assert.ok(await page.locator('#onbMbk a.pair-btn').isVisible());
   await shot(page, '10-mobile-accueil');
   await page.setViewportSize({ width: 1280, height: 860 });
   await page.waitForTimeout(300);

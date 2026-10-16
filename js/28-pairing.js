@@ -13,8 +13,8 @@
      composant autonome. Affiché sur la page d'appairage ; à intégrer dans Réglages par la refonte en cours.
    - maybeShowOnboarding(user) : fenêtre d'accueil (3 étapes) une seule fois, juste après la
      création du compte (appelée par js/15-sync.js). Aucun traceur, aucune requête vers un tiers. */
-var OFFICIAL_EXT_IDS=[];/* à remplir avec l'identifiant Chrome Web Store à la publication */
-var EXT_STORE_URL='';/* idem : lien de la fiche Chrome Web Store */
+var OFFICIAL_EXT_IDS=['hmoafofdaajkenkodmgbdjejbmkdjicc'];/* identifiant Chrome Web Store (publiée le 16/10/2026) ; une version chargée en mode développeur reste acceptée après confirmation */
+var EXT_STORE_URL='https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc';
 var PAIR_TOKEN_RE=/^cpd_[0-9a-f]{64}$/,EXT_ID_RE=/^[a-p]{32}$/;
 var _pair={ext:null,v:null,state:'idle',err:'',ack:false,devices:null};
 
@@ -77,7 +77,8 @@ function _pairRender(){
   var logged=typeof authUser!=='undefined'&&authUser,ready=logged&&typeof authProfileId!=='undefined'&&authProfileId;
   if(!_pair.ext){
     html=_pairCard('<div class="pair-ring warn">'+_pairIcon('warn')+'</div><h1>'+esc(t('pair.noExtTitle'))+'</h1><p>'+esc(t('pair.noExtText'))+'</p>'+
-      '<button type="button" class="pair-btn"'+uiAct('pairClose')+'>'+esc(t('pair.backToList'))+'</button>');
+      (EXT_STORE_URL?'<a class="pair-btn" href="'+esc(EXT_STORE_URL)+'" target="_blank" rel="noopener">'+esc(t('onb.install'))+'</a>':'')+
+      '<button type="button" class="pair-btn'+(EXT_STORE_URL?' ghost':'')+'"'+uiAct('pairClose')+'>'+esc(t('pair.backToList'))+'</button>');
   }else if(_pair.state==='done'){
     html=_pairCard('<div class="pair-ring ok">'+_pairIcon('check')+'</div><h1>'+esc(t('pair.doneTitle'))+'</h1><p>'+esc(t('pair.doneText',{device:d.label}))+'</p>'+
       '<button type="button" class="pair-btn"'+uiAct('pairClose')+'>'+esc(t('pair.backToList'))+'</button>'+
