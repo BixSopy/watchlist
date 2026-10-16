@@ -25,7 +25,7 @@ Règles entre IA :
 
 | Agent | Chantier | Branche / PR | Fichiers touchés | Statut |
 |---|---|---|---|---|
-| Grok Bot | Accueil public : teaser « Bientôt sur Android » (section avec téléphone animé, FR/EN, reduced motion respecté), variante B validée par Pierre | `grok/android-teaser` | index.html, landing/landing.css, js/i18n/fr.js, js/i18n/en.js, tests/landing.test.js | en attente de validation de Pierre — dernier chantier terminé : #58 (mergée 16/10 12:02) |
+| Grok Bot | Accueil public : teaser « Bientôt sur Android » (section avec téléphone animé, FR/EN, reduced motion respecté), variante B validée par Pierre | PR #59 (`grok/android-teaser`) | index.html, landing/landing.css, js/i18n/fr.js, js/i18n/en.js, tests/landing.test.js | en attente de validation de Pierre — dernier chantier terminé : #58 (mergée 16/10 12:02) |
 | Claude | Notifications : « × » par notification + « Tout marquer comme lu » (demandé par Pierre). Pierre a dit de laisser le chantier « cartes coupées » à Grok (réglé entre-temps par #53/#54 de mon côté et #55 de Grok, deux causes distinctes et complémentaires). Maquettes sociales toujours en pause (j'attends mon propre retour à Grok sur profil public/ordre). | PR #56 (`claude/notifs-dismiss-readall`), mergée le 16/10 11:32 | js/29-shell.js, js/00-actions.js, index.html, js/i18n/fr.js, js/i18n/en.js | en cours |
 
 ## 3) Journal des PR
@@ -36,7 +36,7 @@ Tableau exhaustif, la PR la plus récente en haut. Rempli rétroactivement le 20
 
 | PR | Titre | Auteur | Branche | Statut | Résumé + fichiers principaux | Migration SQL |
 |---|---|---|---|---|---|---|
-| (à venir) | Accueil : teaser « Bientôt sur Android » | Grok | `grok/android-teaser` | **ouverte le 16/10, en attente de l'accord de Pierre** | Nouvelle section après l'extension : téléphone animé (flottement 3D, reflet, notification), textes FR/EN `lp.and.*`. Le test « pas de promesse » autorise rappels/hors connexion uniquement dans ce teaser. Fichiers : index.html, landing/landing.css, js/i18n/*, tests/landing.test.js. | Non |
+| #59 | Accueil : teaser « Bientôt sur Android » | Grok | `grok/android-teaser` | **ouverte le 16/10 12:19 (heure de Paris), en attente de l'accord de Pierre** | Nouvelle section après l'extension : téléphone animé (flottement 3D, reflet, notification), textes FR/EN `lp.and.*`. Le test « pas de promesse » autorise rappels/hors connexion uniquement dans ce teaser. Fichiers : index.html, landing/landing.css, js/i18n/*, tests/landing.test.js. | Non |
 | #58 | Extension : liens vers le Chrome Web Store + étape extension de l'accueil | Grok | `grok/ext-store-live` | **mergée le 16/10 12:02** (heure de Paris, `b3b6d99`) | Fiche publique `hmoafofdaajkenkodmgbdjejbmkdjicc` (v0.8.0). Fichiers : js/28-pairing.js, js/21-detected.js, index.html, js/i18n/*, tests. | Non |
 | #57 | Coordination : Journal des PR — #51 et #56 mergées | Grok | `grok/journal-51-56` | **mergée le 16/10 11:51** (heure de Paris, `dbf4c4e`) | Statuts #51/#56, ligne #57, tableau « En cours ». Fichiers : `COORDINATION.md`. | Non |
 | #56 | Notifications : marquer comme lu (une à une ou toutes) | Claude | `claude/notifs-dismiss-readall` | **mergée le 16/10 11:32** (heure de Paris, `0f09d62`) | Bouton « × » par notification + « Tout marquer comme lu » dans le popover de la cloche (`hasNewEp=false` uniquement, jamais `lastWatchedAt`). Fichiers : `js/29-shell.js`, `js/00-actions.js`, `index.html`, `js/i18n/fr.js`, `js/i18n/en.js`. | Non |
