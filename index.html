@@ -64,9 +64,12 @@
 *{box-sizing:border-box;margin:0;padding:0}
 /* <html> sans fond = blanc par défaut du navigateur dans la zone de rebond élastique au-dessus
    de la page (trackpad macOS/iOS, scroll au-delà du haut) : un flash blanc qui semble « couper »
-   le haut du contenu juste en dessous du bandeau sticky. */
-html{background:var(--bg)}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+   le haut du contenu juste en dessous du bandeau sticky. Insuffisant à lui seul : le rebond
+   déforme aussi la mise en page pendant l'animation (WebKit redimensionne temporairement le
+   viewport visuel pendant l'élastique), ce qui agrandit/coupe les cartes du haut — d'où
+   overscroll-behavior ci-dessous pour supprimer le rebond lui-même, pas seulement sa couleur. */
+html{background:var(--bg);overscroll-behavior-y:none}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden;overscroll-behavior-y:none}
 
 /* HEADER */
 .hdr{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;height:68px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:20px}
