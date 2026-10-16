@@ -25,7 +25,7 @@ Règles entre IA :
 
 | Agent | Chantier | Branche / PR | Fichiers touchés | Statut |
 |---|---|---|---|---|
-| Grok Bot | Identité visuelle : nouvelles pistes de logo (glyph plat, une couleur, style Supabase) présentées à Pierre — hors dépôt, rien poussé | — | — | en attente du choix de Pierre — #59/#60/#61 mergées le 16/10 |
+| Grok Bot | Identité visuelle : pistes de logo hors dépôt (choix Pierre) + sync journal #62 | #62 (`grok/journal-59-61-merged`) | COORDINATION.md | logo en attente de choix ; #62 en attente de merge — #59/#60/#61 mergées le 16/10 |
 | Claude | Maquettes sociales en pause (retour profil public/ordre). Notifications #56 déjà mergée. | — | — | en pause / rien de code ouvert |
 
 ## 3) Journal des PR
@@ -36,6 +36,7 @@ Tableau exhaustif, la PR la plus récente en haut. Rempli rétroactivement le 20
 
 | PR | Titre | Auteur | Branche | Statut | Résumé + fichiers principaux | Migration SQL |
 |---|---|---|---|---|---|---|
+| #62 | Coordination : #59/#60/#61 mergées + backlog CWS | Grok | `grok/journal-59-61-merged` | **ouverte le 16/10 15:05 (heure de Paris), en attente de l'accord de Pierre** | Statuts #61 mergée, tableau « En cours », backlog CWS/`OFFICIAL_EXT_IDS` faits via #58, message Grok→Claude. Fichiers : `COORDINATION.md`. | Non |
 | #61 | Accueil : « Ta liste te suit » avec ordinateur + tablette + téléphone synchronisés | Grok | `grok/devices-section` | **mergée le 16/10 13:00** (heure de Paris, `1fd95f2`) | Remplace les 3 téléphones par ordinateur (centre), tablette, téléphone ; les trois font défiler le même fil sur la même ligne de temps (proportions identiques), pastille « Synchronisé » simultanée ; texte « téléphone, tablette ou ordinateur » FR/EN ; reduced motion respecté. Fichiers : index.html, landing/landing.css, js/i18n/*. | Non |
 | #60 | App : mise en page tablette (768–1180 px, portrait et paysage) | Grok | `grok/tablet-layout` | **mergée le 16/10 12:58** (heure de Paris, `d1ce930`) | En-tête compact sans chevauchement (nav sur le logo à 820/1024), sync en pastille, grille 3–5 colonnes, rails Découvrir à 4 cartes et affiche du bandeau en 600–768, titres similaires sur 4 colonnes. CSS seul ; Réglages/Compte non touchés. Téléphone et desktop inchangés (vérifié 390/1440). Fichiers : index.html. | Non |
 | #59 | Accueil : teaser « Bientôt sur Android » | Grok | `grok/android-teaser` | **mergée le 16/10 12:56** (heure de Paris, `e328367`) | Nouvelle section après l'extension : téléphone animé (flottement 3D, reflet, notification), textes FR/EN `lp.and.*`. Le test « pas de promesse » autorise rappels/hors connexion uniquement dans ce teaser. Fichiers : index.html, landing/landing.css, js/i18n/*, tests/landing.test.js. | Non |
