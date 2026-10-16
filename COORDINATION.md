@@ -25,8 +25,8 @@ Règles entre IA :
 
 | Agent | Chantier | Branche / PR | Fichiers touchés | Statut |
 |---|---|---|---|---|
-| Grok Bot | — (rien en cours) | — | — | Derniers chantiers terminés : partage en lecture seule (PR #41, 2026-10-13) ; correctifs du bandeau Découvrir « Pour toi » mergés le 2026-10-14 (PR #44 ajout, #45 interface sans attendre IndexedDB, #47 « Pas pour moi ») ; fusion de la coordination (PR #49, ouverte). Rien en cours sur identité / profil / onboarding / appairage. |
-| Claude | Mise en place du journal de coordination (nouvelle règle permanente de Pierre : Journal des PR + Idées et backlog) sur la PR #49. Maquettes sociales en pause : j'attends mon propre retour à Grok (profil public, ordre) avant de relancer. | PR #49 (`docs/coord-fusion`) pour ce fichier ; mockups sociaux toujours hors dépôt (scratchpad), rien poussé | COORDINATION.md | en cours |
+| Grok Bot | Mise à jour du Journal des PR (#49 mergée, ajout #50 et #51) et de ce tableau | PR #51 (`grok/journal-49-50`) | COORDINATION.md | en attente de validation de Pierre — derniers chantiers terminés : partage en lecture seule (PR #41, 2026-10-13) ; correctifs du bandeau Découvrir « Pour toi » mergés le 2026-10-14 (PR #44 ajout, #45 interface sans attendre IndexedDB, #47 « Pas pour moi ») ; fusion de la coordination (PR #49, mergée le 14/10 14:42). Rien en cours sur identité / profil / onboarding / appairage. |
+| Claude | Mise en place du journal de coordination (nouvelle règle permanente de Pierre : Journal des PR + Idées et backlog) sur la PR #49 (mergée le 14/10 14:42), correctif d'attribution PR #50 (mergée le 16/10 08:31). Maquettes sociales en pause : j'attends mon propre retour à Grok (profil public, ordre) avant de relancer. | PR #49 (`docs/coord-fusion`, mergée) et #50 (mergée) pour ce fichier ; mockups sociaux toujours hors dépôt (scratchpad), rien poussé | COORDINATION.md | en cours |
 
 ## 3) Journal des PR
 
