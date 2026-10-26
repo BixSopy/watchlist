@@ -526,6 +526,7 @@ var AUTH_VIEWS={
       return '<div class="auth-account-row"><span class="sync-dot '+(online?'synced':'offline')+'" id="authAccountDot"></span><span class="auth-account-email" id="authAccountEmail">'+esc(authUser.email||'')+'</span></div>'+
         '<div class="auth-sync-info" id="authSyncInfo">'+esc(pending?tn('auth.account.pending',pending):t('auth.account.allSynced'))+'</div>'+
         '<div class="auth-menu">'+
+        (typeof handleAccountRow==='function'?handleAccountRow():'')+
         _accBtn('syncNow',esc(t('auth.account.syncNow')),'<path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>')+
         _accBtn(['authGo','changePassword'],esc(t('auth.account.changePw')),'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>')+
         _accBtn(['authGo','changeEmail'],esc(t('auth.account.changeEmail')),'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/>')+
@@ -778,10 +779,10 @@ function exportAccountData(btn){
   supa.auth.getUser().then(function(r){
     var u=(r&&r.data&&r.data.user)||authUser;
     out.account={id:u.id,email:u.email,created_at:u.created_at,email_confirmed_at:u.email_confirmed_at||u.confirmed_at||null,last_sign_in_at:u.last_sign_in_at||null};
-    return supa.from('profiles').select('id,name,avatar,avatar_color,created_at,updated_at,plex_webhook_token').eq('account_id',u.id);
+    return supa.from('profiles').select('id,name,avatar,avatar_color,created_at,updated_at').eq('account_id',u.id);
   }).then(function(r){
     if(r.error)throw r.error;
-    out.profiles=(r.data||[]).map(function(p){var o=Object.assign({},p);o.has_tracking_token=!!o.plex_webhook_token;delete o.plex_webhook_token;return o;});
+    out.profiles=r.data||[];
     var ids=out.profiles.map(function(p){return p.id;});
     if(!ids.length)return [];
     var rows=[],page=0,size=1000;
@@ -806,6 +807,10 @@ function exportAccountData(btn){
         });
     }
     return nextDet().then(function(d){out.detected_media=d;return rows;});
+  }).then(function(rows){
+    /* Social : pseudo, amis, demandes, blocages, réglages de visibilité (js/35-social-privacy.js) */
+    if(typeof socialExportData!=='function')return rows;
+    return socialExportData(out.profiles.map(function(p){return p.id;})).then(function(s){if(s)out.social=s;return rows;});
   }).then(function(rows){
     out.local_device_copy={count:memDB.length,entries:memDB};
     var blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});

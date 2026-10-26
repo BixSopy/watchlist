@@ -74,9 +74,8 @@ var _UI_SETTING_FNS={toggleCompact:function(){toggleCompact();},toggleSound:func
 uiOn('settingFn',function(el,e,name){var f=_UI_SETTING_FNS[name];if(!f)return;f();renderSettingsMenu();});
 uiOn('settingSelect',function(el,e,key){_onSettingSelect(key,el.value);});
 uiOn('settingRange',function(el,e,key){_onSettingRange(key,el.value);});
-uiOn('copyWebhook',function(el,e,id){copyWebhookText(id);});
-uiOn('genWebhookToken',function(){generatePlexWebhookToken();});
-uiOn('toggleWebhookAdvanced',function(){togglePlexWebhookAdvanced();});
+uiOn('copyToken',function(el,e,id){copyTokenText(id);});
+uiOn('genTrackToken',function(){generateTrackToken();});
 uiOn('resetDismissed',function(){resetDismissedRecos();});
 uiOn('clearDiscoveryCache',function(){clearDiscoveryCache();});
 uiOn('setLang',function(el,e,code,opts){setLang(code,opts);});
@@ -120,6 +119,34 @@ uiOn('recapShare',function(){recapShare();});
 /* Partage en lecture seule (js/30-share.js) */
 uiOn('openShare',function(){openShare();});
 uiOn('menuShare',function(){toggleMenu();openShare();});
+/* Social : pseudo (js/32-handle.js) */
+uiOn('socClose',function(){socClose();});
+uiOn('handleInput',function(el){handleCheck(el.value);});
+uiOn('handlePick',function(el,e,h){var i=document.getElementById('hdInput');if(i)i.value=h;handleCheck(h);});
+uiOn('openHandle',function(){if(typeof closeAuthModal==='function')closeAuthModal();openHandleSheet('edit');});
+uiOn('handleSave',function(el){handleSave(el);});
+/* Social : amis et invitations (js/33-friends.js) */
+uiOn('openFriends',function(){openFriends();});
+uiOn('menuAddFriend',function(){toggleMenu();openFriends();});
+uiOn('openInvite',function(){openInvite();});
+uiOn('inviteCopy',function(el){inviteCopy(el);});
+uiOn('inviteShare',function(){inviteShare();});
+uiOn('inviteNewLink',function(el){inviteNewLink(el);});
+uiOn('openFriend',function(el,e,id){openFriend(id);});
+/* Social : demandes et fiche d'un ami (js/34-friend-requests.js) */
+uiOn('friendRespond',function(el,e,id,accept){friendRespond(el,id,accept);});
+uiOn('friendTab',function(el,e,s){FRIEND_VIEW.tab=s;friendViewRender();});
+uiOn('friendMore',function(){var m=document.getElementById('fvMenu');if(m)m.hidden=!m.hidden;});
+uiOn('friendRemove',function(){friendConfirm('remove');});
+uiOn('friendBlock',function(){friendConfirm('block');});
+uiOn('friendConfirmNo',function(el){var c=el.closest('.fv-confirm');if(c)c.remove();});
+uiOn('friendConfirmYes',function(el,e,kind){el.disabled=true;friendDo(kind);});
+uiOn('friendUnblock',function(el,e,id){el.disabled=true;friendUnblock(id);});
+/* Social : visibilité (js/35-social-privacy.js) */
+uiOn('socialPrivToggle',function(el,e,k){socialPrivToggle(el,k);});
+/* Social : onglet Activité/Amis (js/33-friends.js) et réactions (js/36-activity-feed.js) */
+uiOn('friendsTopTab',function(el,e,tab){friendsTopTab(el,e,tab);});
+uiOn('reactTap',function(el,e,eventId,emoji){reactTap(el,e,eventId,emoji);});
 uiOn('shareClose',function(){closeShare();});
 uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
 uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});

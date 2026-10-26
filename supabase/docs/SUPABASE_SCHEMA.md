@@ -84,13 +84,25 @@ Fonctions du schéma `public` (toutes `search_path = ''`) :
 | Fonction | Type | Appelable par | Rôle |
 |---|---|---|---|
 | `update_timestamp()` | trigger | — | met à jour `updated_at` |
-| `mark_watched_by_token(...)` | SECURITY DEFINER | anon (jeton) | webhook Plex/Tautulli |
 | `mark_watched_by_title(p_token, p_title, p_season, p_episode, p_type)` | SECURITY DEFINER | anon (jeton) | extension navigateur : titre comparé exactement après normalisation (`normalize_title_for_match`, sans correspondance partielle), progression qui ne recule jamais ; renvoie `{status: updated / already_up_to_date / not_found / ambiguous / invalid_token / invalid_input, title, season, episode}` |
 | `normalize_title_for_match(text)` | immuable | personne (interne) | minuscules, sans accents ni ponctuation, sans article de tête ni année entre parenthèses finale |
 | `consume_api_quota(p_bucket, p_cost)` | SECURITY DEFINER | authenticated | décompte le quota du compte (`auth.uid()`), renvoie `{allowed, scope, used, limit}` |
 | `delete_my_account()` | SECURITY DEFINER | authenticated | supprime le compte de `auth.uid()` et ses données ; exige une connexion de moins de 15 min (claim `amr`) |
 | `api_housekeeping()` | SECURITY DEFINER | personne (appelée par `consume_api_quota`) | purge compteurs et cache expirés |
 | `watchlist_items_limite()` | trigger | — | refuse au-delà de 20 000 titres par profil |
+
+**Social étape 2 (fil d'activité + réactions, migration `20261026230000_social_activite_reactions.sql`,
+non appliquée)** — s'ajoute à la couche sociale étape 1 (pseudo + amis, migrations `20261026120000`
+et `20261026210000`), elle aussi absente des tableaux ci-dessus mais bien réelle en prod :
+
+| Fonction | Type | Appelable par | Rôle |
+|---|---|---|---|
+| `_social_log_activity(p_profile_id, p_item_id, p_kind, p_season, p_episode)` | SECURITY DEFINER | personne (appelée par `mark_watched_by_title`) | pose/regroupe un évènement du fil (fenêtre de 3 h) |
+| `get_activity_feed(p_profile_id)` | SECURITY DEFINER | authenticated | fil des amis (table `friendships`), filtré par `social_settings.show_activity` de l'auteur ; 30 jours, plafonné à 25 entrées, pas de pagination |
+| `react_to_activity(p_profile_id, p_event_id, p_emoji)` | SECURITY DEFINER | authenticated | réaction emoji fixe (6 choix), une par personne par évènement ; réponse neutre si l'activité n'est pas visible |
+
+Tables : `activity_events` (un évènement par progression regroupée), `activity_reactions` (une ligne
+par personne par évènement). RLS activée, aucun accès direct hors fonctions ci-dessus.
 
 ## Réglages du tableau de bord (à faire à la main)
 
