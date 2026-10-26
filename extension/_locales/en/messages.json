@@ -553,5 +553,25 @@
   },
   "pairedRevoked": {
     "message": "This device was removed from the website. Link it again."
+  },
+  "reviewTitle": {
+    "message": "Is Cinepisode useful to you?"
+  },
+  "reviewSub": {
+    "message": "$COUNT$ episodes marked automatically. A Chrome Web Store review really helps an independent project.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewYes": {
+    "message": "Leave a review"
+  },
+  "reviewLater": {
+    "message": "Later"
+  },
+  "reviewNever": {
+    "message": "Don't ask again"
   }
 }

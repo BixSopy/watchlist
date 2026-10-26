@@ -228,12 +228,39 @@ $('openDetected').addEventListener('click', function () {
   chrome.tabs.create({ url: DETECTED_URL });
 });
 
-chrome.storage.local.get(['wlToken', 'wlLast', 'wlNow', 'wlPending'], function (res) {
+/* ---------- 0.8.1 : demande d'avis Chrome Web Store ----------
+ * Jamais à l'installation : seulement après REVIEW_AFTER épisodes marqués automatiquement (wlAutoEp,
+ * compté par background.js). « Plus tard » = dans 14 jours ; « Ne plus demander » et « Laisser un
+ * avis » = plus jamais. État local (wlReview), rien n'est envoyé. */
+var REVIEW_AFTER = 10;
+var REVIEW_LATER_MS = 14 * 24 * 3600 * 1000;
+var REVIEW_URL = 'https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc/reviews';
+function shouldAskReview(count, st, now) {
+  if (!(typeof count === 'number' && count >= REVIEW_AFTER)) return false;
+  if (st && (st.state === 'never' || st.state === 'done')) return false;
+  if (st && st.state === 'later' && typeof st.until === 'number' && now < st.until) return false;
+  return true;
+}
+function renderReview(count, st) {
+  var box = $('reviewAsk');
+  var on = !!token && shouldAskReview(count, st, Date.now());
+  box.hidden = !on;
+  if (on) $('reviewSub').textContent = msgWith('reviewSub', String(count | 0));
+}
+var reviewCount = 0, reviewState = null;
+function setReview(st) { reviewState = st; chrome.storage.local.set({ wlReview: st }); $('reviewAsk').hidden = true; }
+$('reviewYes').addEventListener('click', function () { setReview({ state: 'done', at: Date.now() }); chrome.tabs.create({ url: REVIEW_URL }); });
+$('reviewLater').addEventListener('click', function () { setReview({ state: 'later', until: Date.now() + REVIEW_LATER_MS }); });
+$('reviewNever').addEventListener('click', function () { setReview({ state: 'never', at: Date.now() }); });
+
+chrome.storage.local.get(['wlToken', 'wlLast', 'wlNow', 'wlPending', 'wlAutoEp', 'wlReview'], function (res) {
   res = res || {};
+  reviewCount = res.wlAutoEp; reviewState = res.wlReview || null;
   renderLast(res.wlLast);
   renderNow(res.wlNow);
   renderPending(res.wlPending);
   applyToken(res.wlToken);
+  renderReview(reviewCount, reviewState);
   /* Jeton d'appareil : encore valide ? (retiré depuis le site => retour à « non relié ») */
   if (/^cpd_/.test(res.wlToken || '')) chrome.runtime.sendMessage({ type: 'wl_check_pair' }, function (r) {
     void chrome.runtime.lastError;
@@ -245,6 +272,7 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   if (changes.wlLast) renderLast(changes.wlLast.newValue);
   if (changes.wlNow) renderNow(changes.wlNow.newValue);
   if (changes.wlPending) renderPending(changes.wlPending.newValue);
+  if (changes.wlAutoEp) { reviewCount = changes.wlAutoEp.newValue; renderReview(reviewCount, reviewState); }
   if (changes.wlImport) renderImport(changes.wlImport.newValue);
   if (changes.wlToken && !changes.wlToken.newValue && token) applyToken('');
   else if (changes.wlToken && changes.wlToken.newValue && changes.wlToken.newValue !== token) { statusEl.textContent = ''; statusEl.className = ''; changing = false; applyToken(changes.wlToken.newValue); show('main'); }

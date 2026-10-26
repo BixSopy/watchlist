@@ -553,5 +553,25 @@
   },
   "pairedRevoked": {
     "message": "Cet appareil a été retiré depuis le site. Relie-le à nouveau."
+  },
+  "reviewTitle": {
+    "message": "Cinepisode t'est utile ?"
+  },
+  "reviewSub": {
+    "message": "$COUNT$ épisodes marqués automatiquement. Un avis sur le Chrome Web Store aide beaucoup un projet indépendant.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewYes": {
+    "message": "Laisser un avis"
+  },
+  "reviewLater": {
+    "message": "Plus tard"
+  },
+  "reviewNever": {
+    "message": "Ne plus demander"
   }
 }

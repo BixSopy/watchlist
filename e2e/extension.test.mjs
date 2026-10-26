@@ -179,7 +179,7 @@ test('fenêtre 0.7.3 : non connecté -> jeton -> vue principale, Réglages qui g
   await page.waitForSelector('#viewSettings:not([hidden])');
   await page.waitForSelector('#viewMain', { state: 'hidden' });
   assert.equal(await page.textContent('#tokenMask'), '•••• ' + TOKEN.slice(-4));
-  assert.equal(await page.textContent('#version'), 'v0.8.0');
+  assert.equal(await page.textContent('#version'), 'v0.8.1');
   await page.click('#closeSettings');
   await page.waitForSelector('#viewSettings', { state: 'hidden' });
   /* avancement en direct écrit par le service worker : la carte « En ce moment » suit */

@@ -101,7 +101,7 @@ test('appairage : extension -> site -> « Autoriser cet appareil » -> jeton rem
   assert.equal(u.origin + u.pathname, 'https://cinepisode.com/');
   assert.equal(u.searchParams.get('pair'), '1');
   assert.equal(u.searchParams.get('ext'), extId);
-  assert.equal(u.searchParams.get('v'), '0.8.0');
+  assert.equal(u.searchParams.get('v'), '0.8.1');
   assert.ok(!/token|cpd_/.test(site.url()), 'aucun jeton dans l\'adresse');
 
   await site.locator('#pairPage .pair-card h1').filter({ hasText: 'Connecte-toi' }).waitFor();
@@ -203,7 +203,7 @@ test('page d\'appairage sans identifiant d\'extension, téléphone, et fenêtre 
   await page.locator('#pairPage h1').filter({ hasText: 'Lien incomplet' }).waitFor();
   assert.equal(await page.locator('#pairPage a.pair-btn').getAttribute('href'), 'https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc');
   await shot(page, '08b-mobile-sans-extension');
-  await page.goto('https://cinepisode.com/?pair=1&ext=' + extId + '&v=0.8.0');
+  await page.goto('https://cinepisode.com/?pair=1&ext=' + extId + '&v=0.8.1');
   await page.locator('#pairPage h1').filter({ hasText: 'Autoriser' }).waitFor();
   await page.check('#pairAck');
   await page.waitForTimeout(800);

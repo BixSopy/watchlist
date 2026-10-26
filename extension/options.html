@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-<!-- Fenêtre de l'extension 0.8.0 (appairage en un clic depuis le site). Textes : _locales/<langue>/messages.json (langue du navigateur, anglais par défaut).
+<!-- Fenêtre de l'extension 0.8.1 (appairage en un clic depuis le site). Textes : _locales/<langue>/messages.json (langue du navigateur, anglais par défaut).
      Trois états (non connecté, connecté au repos, détection en cours) et la vue Réglages, qui glisse depuis la droite. -->
 <div class="stage" id="stage">
 
@@ -67,6 +67,11 @@
       </div>
       <div id="importStatus" aria-live="polite"></div>
     </div>
+
+    <div class="sec rise review" id="reviewAsk" style="--d:4" hidden><div class="card">
+      <p class="rv-t" data-msg="reviewTitle"></p><p class="rv-s" id="reviewSub"></p>
+      <div class="acts"><button type="button" class="btn pri sm" id="reviewYes" data-msg="reviewYes"></button><button type="button" class="btn sm" id="reviewLater" data-msg="reviewLater"></button><button type="button" class="link muted" id="reviewNever" data-msg="reviewNever"></button></div>
+    </div></div>
 
     <div class="ft rise" style="--d:4"><span class="count" id="pending"></span><button type="button" class="link" id="openDetected" data-msg="seeDetected"></button></div>
   </section>
