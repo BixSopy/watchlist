@@ -45,6 +45,7 @@ var DET_CORE=(function(){
       var g=by[key];
       if(!g){g=by[key]={key:key,kind:kind,norm:r.normalized_title,title:r.raw_title,ids:[],sources:[],progress:null,lastMs:null,unknownProgress:false};order.push(key);}
       g.ids.push(r.id);
+      if(r.tvdb_id!=null&&g.tvdb==null&&kind==='show')g.tvdb=r.tvdb_id;/* import TV Time : id TVDB de la série */
       if(g.sources.indexOf(r.source)<0)g.sources.push(r.source);
       var w=ms(r.watched_at);
       if(w!==null&&(g.lastMs===null||w>g.lastMs)){g.lastMs=w;g.title=r.raw_title;}
@@ -155,6 +156,11 @@ var DET_CORE=(function(){
       year:String((isMovie?r.release_date:r.first_air_date)||'').slice(0,4),poster:r.poster_path||null,overview:r.overview||'',
       score:typeof r.vote_average==='number'&&r.vote_average>0?r.vote_average.toFixed(1):null,popularity:r.popularity||0,
       genreIds:r.genre_ids||[],originCountry:r.origin_country||[]};
+  }
+  /* Réponse de /find (id TVDB) -> candidats exacts (match 1) ; vide si TMDB ne connaît pas l'id */
+  function findCandidates(group,d){
+    var res=(group.kind==='movie'?(d&&d.movie_results):(d&&d.tv_results))||[];
+    return res.slice(0,1).map(function(r){var c=toCandidate(group,Object.assign({media_type:group.kind==='movie'?'movie':'tv'},r));if(c){c.match=1;c.manual=false;c.exact=true;}return c;}).filter(Boolean);
   }
   /* Résultats TMDB -> candidats classés (5 au plus). opts.previous : candidats déjà trouvés (autre
      langue, autre requête) fusionnés par fiche ; opts.manual : recherche tapée par l'utilisateur
@@ -284,7 +290,7 @@ var DET_CORE=(function(){
   }
 
   return{normalizeTitle:normalizeTitle,groupRows:groupRows,furthest:furthest,listMatches:listMatches,movesForward:movesForward,
-    itemByTmdb:itemByTmdb,levenshtein:levenshtein,similarity:similarity,rankCandidates:rankCandidates,isUnambiguous:isUnambiguous,
+    itemByTmdb:itemByTmdb,levenshtein:levenshtein,similarity:similarity,rankCandidates:rankCandidates,findCandidates:findCandidates,isUnambiguous:isUnambiguous,
     cleanSearchTitle:cleanSearchTitle,searchQueries:searchQueries,lookupPlan:lookupPlan,goodEnough:goodEnough,
     isAnime:isAnime,isSeriesFinished:isSeriesFinished,classify:classify,actionable:actionable,defaultChecked:defaultChecked,
     filterOf:filterOf,newEntryFields:newEntryFields,updateFields:updateFields};
@@ -388,6 +394,14 @@ function _detQueueLookups(){
 /* Recherches successives d'un titre (DET_CORE.lookupPlan) jusqu'à une fiche assez ressemblante */
 function _detLookup(g){
   var plan=DET_CORE.lookupPlan(g,TMDB_LANG),ranked=[],i=0;
+  /* Id TVDB connu (import TV Time) : /find d'abord, correspondance exacte ; repli sur la recherche par titre */
+  if(g.tvdb!=null&&/^\d{1,9}$/.test(String(g.tvdb))&&DET.requests<DET_REQ_MAX&&!DET.stopped){
+    DET.requests++;
+    return tf(TB+'/find/'+g.tvdb+'?external_source=tvdb_id&language='+encodeURIComponent(TMDB_LANG||'fr-FR')).then(function(d){
+      var exact=DET_CORE.findCandidates(g,d);
+      return exact.length?exact:next();
+    },function(err){if(err&&err.status===429)throw err;return next();});
+  }
   function next(){
     if(i>=plan.length||DET_CORE.goodEnough(ranked))return Promise.resolve(ranked);
     if(DET.requests>=DET_REQ_MAX||DET.stopped){var e=new Error('budget');e.budget=true;return ranked.length?Promise.resolve(ranked):Promise.reject(e);}
@@ -463,9 +477,9 @@ function onDetectedTabHidden(){
 }
 if(typeof window!=='undefined')window.addEventListener('hashchange',function(){if(location.hash==='#detectes')openDetectedTab();});
 
-var DET_SOURCE_KEY={netflix:'det.src.netflix',netflix_csv:'det.src.netflixCsv',live:'det.src.live',crunchyroll:'det.src.crunchyroll',prime:'det.src.prime',disney_gdpr:'det.src.disneyGdpr',apple_gdpr:'det.src.appleGdpr'};
+var DET_SOURCE_KEY={netflix:'det.src.netflix',netflix_csv:'det.src.netflixCsv',live:'det.src.live',crunchyroll:'det.src.crunchyroll',prime:'det.src.prime',disney_gdpr:'det.src.disneyGdpr',apple_gdpr:'det.src.appleGdpr',tvtime_gdpr:'det.src.tvtime'};
 /* Pastille par plateforme (couleurs dans index.html : .det-src-*) */
-var DET_SOURCE_CLS={netflix:'netflix',netflix_csv:'netflix',live:'live',crunchyroll:'crunchyroll',prime:'prime',disney_gdpr:'disney',apple_gdpr:'apple'};
+var DET_SOURCE_CLS={netflix:'netflix',netflix_csv:'netflix',live:'live',crunchyroll:'crunchyroll',prime:'prime',disney_gdpr:'disney',apple_gdpr:'apple',tvtime_gdpr:'tvtime'};
 function _detEp(p){return p?(p.approx?'≈ ':'')+'S'+pad(p.season)+' E'+pad(p.episode):'';}
 function _detListProgress(it){
   if(it.status==='termine')return t('status.termine');

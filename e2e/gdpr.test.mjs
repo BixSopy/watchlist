@@ -28,6 +28,7 @@ const FIX = new URL('../tests/fixtures/gdpr/', import.meta.url).pathname;
 const TMDB = {
   'tv:Ted Lasso': [{ id: 97546, name: 'Ted Lasso', original_name: 'Ted Lasso', first_air_date: '2020-08-14', popularity: 90, vote_average: 8.4, poster_path: '/ted.jpg' }],
   'tv:Severance': [{ id: 95396, name: 'Severance', original_name: 'Severance', first_air_date: '2022-02-17', popularity: 120, vote_average: 8.4, poster_path: '/sev.jpg' }],
+  'movie:Seven Sisters': [{ id: 406990, title: 'Seven Sisters', original_title: 'What Happened to Monday', release_date: '2017-08-18', popularity: 30, vote_average: 7, poster_path: '/ss.jpg' }],
   'movie:CODA': [{ id: 776503, title: 'CODA', original_title: 'CODA', release_date: '2021-08-13', popularity: 40, vote_average: 8, poster_path: '/coda.jpg' }],
 };
 async function newPage(t, opts = {}) {
@@ -35,7 +36,7 @@ async function newPage(t, opts = {}) {
   const ctx = await browser.newContext({ locale: opts.locale || 'fr-FR', viewport: opts.mobile ? { width: 390, height: 844 } : { width: 1280, height: 900 },
     ...(opts.mobile ? { deviceScaleFactor: 2, isMobile: true, hasTouch: true } : {}), reducedMotion: opts.reduced ? 'reduce' : 'no-preference' });
   const page = await ctx.newPage();
-  const problems = [], external = [];
+  const problems = [], external = [], finds = [];
   page.on('console', m => { const x = m.text(); if (m.type() === 'error' && !/^Failed to load resource: the server responded with a status of (4\d\d)/.test(x)) problems.push(x); if (/Content Security Policy/i.test(x)) problems.push(x); });
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
   page.on('request', r => { const u = new URL(r.url()); if (!/^(127\.0\.0\.1|localhost)$/.test(u.hostname) && !/^(data|blob):/.test(r.url()) && u.hostname !== 'batfulcvvquffgfeppcx.supabase.co' && u.hostname !== 'image.tmdb.org') external.push(u.hostname); });
@@ -45,13 +46,15 @@ async function newPage(t, opts = {}) {
     let body = { results: [] };
     const m = tp.match(/^\/search\/(tv|movie|multi)$/);
     if (m) body = { page: 1, results: TMDB[m[1] + ':' + u.searchParams.get('query')] || [] };
+    const f = tp.match(/^\/find\/(\d+)$/);
+    if (f) { finds.push([f[1], u.searchParams.get('external_source')]); body = { movie_results: [], tv_results: f[1] === '82066' ? [{ id: 1705, name: 'Fringe', original_name: 'Fringe', first_air_date: '2008-09-09', popularity: 60, vote_average: 8, poster_path: '/fr.jpg' }] : [] }; }
     const d = tp.match(/^\/tv\/(\d+)$/);
     if (d) body = { id: +d[1], status: 'Returning Series', number_of_episodes: 30, seasons: [{ season_number: 1, episode_count: 10 }, { season_number: 2, episode_count: 10 }] };
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
   await page.route('https://image.tmdb.org/**', r => r.fulfill({ status: 404, body: '' }));
   t.after(() => ctx.close());
-  return { page, db, problems, external };
+  return { page, db, problems, external, finds };
 }
 async function login(page) {
   await page.click('#syncStatusPill');
@@ -148,6 +151,57 @@ test('Import RGPD : texte Disney+ collé, anglais, animations réduites', async 
   assert.match(await page.locator('.gd-res').textContent(), /4 titles found/);
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => !document.getElementById('gdprMbk').classList.contains('on'));
+  assert.deepEqual(problems, []);
+});
+
+test('Import TV Time : zip officiel lu localement, série trouvée par id TVDB (/find), film par titre', async t => {
+  const { page, db, problems, external, finds } = await newPage(t);
+  await page.goto(server.url + '/');
+  await login(page);
+  await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
+  await page.click('button[data-v="detectes"]:visible');
+  await page.click('.det-ext-btn');
+  await page.locator('.gd-plat.gd-tvtime').waitFor();
+  assert.match(await page.locator('.gd-plat.gd-tvtime').textContent(), /Service fermé/);
+  await page.click('.gd-plat.gd-tvtime');
+  // Pas de demande possible : directement le dépôt du fichier
+  await page.locator('#gdprFile').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('#gdprMbk .gd-prog').count(), 0);
+  assert.match(await page.locator('#gdprView').textContent(), /15 juillet 2026/);
+  await shot(page, '7-tvtime', '#gdprMbk .gd-modal');
+  const v2 = 'key,created_at,s_id,series_name,episode_id,season_number,episode_number,ep_id\nwatch-episode-a-1,2021-10-10 11:49:11,82066,Fringe,1331151,2,10,\nwatch-episode-a-2,2021-10-11 11:49:11,82066,Fringe,1331152,2,11,\nuser-series-b,2021-05-19 06:06:35,353309,Haunted,,,,';
+  const v1 = 'type,type-uuid-n,created_at,release_date,alpha_range_key,movie_name,entity_type,watch_date_range_key\nwatch,watch-x-0,2022-04-10 11:26:55,2017-10-12,watch-alpha-what-happened-to-monday,Seven Sisters,movie,watch-date-1649590015';
+  const zip = await page.evaluate(async ([a, b]) => { /* zip « stored » construit dans la page */
+    const enc = new TextEncoder(), files = [['gdpr/tracking-prod-records-v2.csv', enc.encode(a)], ['gdpr/tracking-prod-records.csv', enc.encode(b)], ['gdpr/access_token.csv', enc.encode('token\nSECRET')]];
+    const parts = [], cen = []; let off = 0;
+    const w = (n, v, o, buf) => { for (let i = 0; i < n; i++) buf[o + i] = (v >>> (8 * i)) & 255; };
+    for (const [name, data] of files) {
+      const nb = enc.encode(name), lh = new Uint8Array(30), ch = new Uint8Array(46);
+      w(4, 0x04034b50, 0, lh); w(4, data.length, 18, lh); w(4, data.length, 22, lh); w(2, nb.length, 26, lh);
+      w(4, 0x02014b50, 0, ch); w(4, data.length, 20, ch); w(4, data.length, 24, ch); w(2, nb.length, 28, ch); w(4, off, 42, ch);
+      parts.push(lh, nb, data); cen.push(ch, nb); off += 30 + nb.length + data.length;
+    }
+    const cl = cen.reduce((s, x) => s + x.length, 0), e = new Uint8Array(22);
+    w(4, 0x06054b50, 0, e); w(2, files.length, 8, e); w(2, files.length, 10, e); w(4, cl, 12, e); w(4, off, 16, e);
+    return Array.from(new Uint8Array(await new Blob([...parts, ...cen, e]).arrayBuffer()));
+  }, [v2, v1]);
+  await page.locator('#gdprFile').setInputFiles({ name: 'tv-time-personal-data.zip', mimeType: 'application/zip', buffer: Buffer.from(zip) });
+  await page.locator('.gd-res').waitFor();
+  assert.match(await page.locator('.gd-res').textContent(), /2 titres trouvés/);
+  await page.click('#gdprSendBtn');
+  await page.waitForFunction(() => !document.getElementById('gdprMbk').classList.contains('on'));
+  await page.locator('.det-row').nth(1).waitFor();
+  await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche'));
+  assert.deepEqual((await page.locator('.det-name').allTextContents()).sort(), ['Fringe', 'Seven Sisters']);
+  assert.deepEqual(finds, [['82066', 'tvdb_id']]);
+  assert.match(await page.locator('.det-src-tvtime').first().textContent(), /TV Time/);
+  await shot(page, '8-tvtime-detectes');
+  await page.click('#detAddSelBtn');
+  await page.waitForFunction(() => typeof memDB !== 'undefined' && memDB.filter(i => !i.deleted).length === 2);
+  const fr = await page.evaluate(() => memDB.find(i => i.title === 'Fringe'));
+  assert.deepEqual([fr.tmdbId, fr.saison, fr.episode], [1705, 2, 11]);
+  assert.equal(db.detected.length, 0);
+  assert.deepEqual(external, []);
   assert.deepEqual(problems, []);
 });
 
