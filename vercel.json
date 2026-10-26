@@ -137,6 +137,10 @@
     {
       "source": "/s/:token",
       "destination": "/api/share?t=:token"
+    },
+    {
+      "source": "/u/:handle",
+      "destination": "/api/invite?h=:handle"
     }
   ],
   "functions": {

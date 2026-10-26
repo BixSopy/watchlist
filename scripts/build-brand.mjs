@@ -434,7 +434,8 @@ function buildApp(out) {
   /* /fr, /en… : même app (index.html), langue imposée par l'adresse */
   vercel.rewrites = [{ source: '/:lang(' + LANGS.join('|') + ')', destination: '/' },
     /* Liens de partage en lecture seule : page rendue par api/share.js */
-    { source: '/s/:token', destination: '/api/share?t=:token' }];
+    { source: '/s/:token', destination: '/api/share?t=:token' },
+    { source: '/u/:handle', destination: '/api/invite?h=:handle' }];
   /* Redirections de domaine (désactivées tant que domains.redirects=false) */
   const dm = brand.domains || {};
   const apex = new URL(brand.baseUrl).hostname;
