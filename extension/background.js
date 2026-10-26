@@ -1,7 +1,7 @@
 'use strict';
 /* Service worker (MV3) : reçoit les détections du relai Netflix (content/netflix-bridge.js),
  * revalide l'expéditeur et la forme du message, dédoublonne, puis appelle la fonction Supabase
- * mark_watched_by_title() — même jeton que Tautulli, bornée à la watchlist de son propriétaire.
+ * mark_watched_by_title() — bornée à la watchlist de son propriétaire.
  *
  * Le résultat de la dernière détection est gardé dans chrome.storage.local (clé wlLast, jamais le
  * jeton) pour que la fenêtre de l'extension l'affiche en clair (« Mis à jour : Dark S2E3 »...).

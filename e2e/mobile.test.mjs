@@ -111,13 +111,13 @@ for (const vp of ['m360', 'm390', 'm412']) {
   });
 }
 
-test('G3 : le menu Réglages reste ouvert (et à sa place) après Mode compact, Sons, Section Suivi repliée et Config avancée Tautulli', async t => {
+test('G3 : le menu Réglages reste ouvert (et à sa place) après Mode compact, Sons et Section Suivi repliée', async t => {
   const { page, db, problems } = await newPage(t, { vp: 'm390' });
   db.profiles[0].plex_webhook_token = 'a'.repeat(48);
   await page.tap('button.hbtn[data-click="toggleMenu"]');
   await page.tap('#optMenuMain [data-click="openSettings"]');
   await page.waitForTimeout(300);
-  for (const sel of ['[data-args*="toggleCompact"]', '[data-args*="toggleSound"]', '[data-args*="toggleSuiviSection"]', '[data-click="toggleWebhookAdvanced"]']) {
+  for (const sel of ['[data-args*="toggleCompact"]', '[data-args*="toggleSound"]', '[data-args*="toggleSuiviSection"]']) {
     const el = page.locator('#settingsBody ' + sel).first();
     await el.waitFor();
     // Le panneau peut être redessiné juste après l'ouverture (jeton webhook chargé) : on vise le nœud courant

@@ -84,7 +84,6 @@ Fonctions du schéma `public` (toutes `search_path = ''`) :
 | Fonction | Type | Appelable par | Rôle |
 |---|---|---|---|
 | `update_timestamp()` | trigger | — | met à jour `updated_at` |
-| `mark_watched_by_token(...)` | SECURITY DEFINER | anon (jeton) | webhook Plex/Tautulli |
 | `mark_watched_by_title(p_token, p_title, p_season, p_episode, p_type)` | SECURITY DEFINER | anon (jeton) | extension navigateur : titre comparé exactement après normalisation (`normalize_title_for_match`, sans correspondance partielle), progression qui ne recule jamais ; renvoie `{status: updated / already_up_to_date / not_found / ambiguous / invalid_token / invalid_input, title, season, episode}` |
 | `normalize_title_for_match(text)` | immuable | personne (interne) | minuscules, sans accents ni ponctuation, sans article de tête ni année entre parenthèses finale |
 | `consume_api_quota(p_bucket, p_cost)` | SECURITY DEFINER | authenticated | décompte le quota du compte (`auth.uid()`), renvoie `{allowed, scope, used, limit}` |
