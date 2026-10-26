@@ -111,6 +111,12 @@ uiOn('p3NewReadAll',function(el,e){e.stopPropagation();sfx('click');p3NewReadAll
 uiOn('plexSimOpen',function(el,e,i){var r=_plexSimRes[i];if(r){sfx('open');openPlexTmdb(r);var m=document.querySelector('#plexMbk .plex-wrap');if(m)m.scrollTop=0;}});
 uiOn('p3Disc',function(el,e,v){sfx('click');p3SetDisc(v);});
 uiOn('detImportToggle',function(){detImportToggle();});
+/* Récap à partager (js/31-recap.js) */
+uiOn('openRecap',function(){document.getElementById('statsMbk').classList.remove('on');openRecap();});
+uiOn('recapClose',function(){closeRecap();});
+uiOn('recapPeriod',function(el,e,p){RECAP.period=p;recapBuild();});
+uiOn('recapDownload',function(){recapDownload();});
+uiOn('recapShare',function(){recapShare();});
 /* Partage en lecture seule (js/30-share.js) */
 uiOn('openShare',function(){openShare();});
 uiOn('menuShare',function(){toggleMenu();openShare();});

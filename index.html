@@ -2052,6 +2052,10 @@ body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe
 .cf-refl{position:absolute;left:0;right:0;top:calc(100% + 10px);height:100%;border-radius:16px;overflow:hidden;pointer-events:none;transform:scaleY(-1);opacity:.2;
   -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 32%);mask-image:linear-gradient(to top,#000 0%,transparent 32%)}
 .cf-refl img{width:100%;height:100%;object-fit:cover;display:block}
+/* ===== Récap à partager (js/31-recap.js) ===== */
+.rc-prev{margin:16px auto 0;width:min(270px,62vw);aspect-ratio:9/16;border-radius:18px;overflow:hidden;background:#0a0a0c;border:1px solid rgba(255,255,255,.1);display:grid;place-items:center}
+.rc-prev img{width:100%;height:100%;display:block}.rc-empty{padding:0 18px;text-align:center;color:var(--text2);font-size:13px;line-height:1.5}.rc-load{color:var(--text2)}
+.rc-acts{display:flex;gap:10px;justify-content:center;margin-top:16px}
 /* ===== Partage en lecture seule (js/30-share.js) ===== */
 .p3-share-b{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:999px;font:650 13.5px 'Inter',sans-serif;color:var(--text);background:var(--p3-glass);border:1px solid rgba(255,255,255,.09);cursor:pointer;transition:background .2s}
 .p3-share-b:hover{background:rgba(255,255,255,.1)}.p3-share-b svg{width:16px;height:16px}
@@ -2737,7 +2741,7 @@ body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe
     <div class="modal-x-wrap"><button type="button" class="modal-x" data-click="closeStatsTop" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="mtitle" data-i18n="set.kbdStats">Statistiques</div>
     <div id="statsContent"></div>
-    <div class="mact"><button class="btn btn-ghost" data-click="closeStats" data-i18n="common.close">Fermer</button></div>
+    <div class="mact"><button class="btn btn-ghost" data-click="openRecap" data-i18n="recap.open">Récap à partager</button><button class="btn btn-ghost" data-click="closeStats" data-i18n="common.close">Fermer</button></div>
   </div>
 </div>
 <!-- FOLDER MODAL -->
@@ -2878,5 +2882,6 @@ body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe
 <script src="js/28-pairing.js"></script>
 <script src="js/29-shell.js"></script>
 <script src="js/30-share.js"></script>
+<script src="js/31-recap.js"></script>
 </body>
 </html>
