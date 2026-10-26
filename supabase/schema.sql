@@ -1800,6 +1800,7 @@ create table public.activity_events (
       or (kind = 'episode' and season is not null and episode is not null))
 );
 create index activity_events_profile_recent_idx on public.activity_events(profile_id, updated_at desc);
+create index activity_events_item_idx on public.activity_events(watchlist_item_id);  -- conseil Supabase (20261026240000)
 alter table public.activity_events enable row level security;
 revoke all on table public.activity_events from anon, authenticated;
 
@@ -1810,6 +1811,7 @@ create table public.activity_reactions (
   created_at timestamptz not null default now(),
   primary key (event_id, profile_id)
 );
+create index activity_reactions_profile_idx on public.activity_reactions(profile_id);  -- conseil Supabase (20261026240000)
 alter table public.activity_reactions enable row level security;
 revoke all on table public.activity_reactions from anon, authenticated;
 
