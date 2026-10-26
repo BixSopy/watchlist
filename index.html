@@ -1346,6 +1346,7 @@ body.view-calendar .nav-right .stabs,body.view-calendar .nav-right .sort-sel,bod
 /* Page d'accueil des visiteurs (#landing, js/00-landing-gate.js, landing/landing.css) : l'app reste
    masquée tant que <html> n'a pas la classe lp-member (aussi sans JavaScript, ex. robots d'indexation) */
 html:not(.lp-member) .hdr,html:not(.lp-member) .layout,html:not(.lp-member) .app-foot,html:not(.lp-member) .aurora-bg{display:none!important}
+html:not(.lp-member) .p3-tabbar{display:none!important}
 html.lp-member #landing{display:none!important}
 /* ===== ACCUEIL v2 (js/25-home.js) : rangée « Continuer », onglets agrandis, sous-onglets, recos pleine colonne ===== */
 .hero-btn.primary{background:linear-gradient(135deg,#8adcff,var(--accent) 55%,#3aa8f0);color:var(--on-accent);box-shadow:0 8px 24px rgba(var(--accent-rgb),.35),inset 0 1px 0 rgba(255,255,255,.5)}
@@ -2186,6 +2187,61 @@ body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe
       <span class="lp-src">Netflix</span><span class="lp-src">Prime Video</span><span class="lp-src">Crunchyroll</span><span class="lp-src">Disney+</span><span class="lp-src">Apple TV</span>
       <span class="lp-src lp-src-soft" data-i18n="lp.sources.plex">et Plex via Tautulli</span>
     </div>
+  </div>
+</section>
+
+<!-- Vitrine animée au défilement (js/23-landing.js : _lpShow ; landing/landing.css : .lp-show).
+     Affiches et titres réels via TMDB (attribution en bas de section), chargés au besoin depuis image.tmdb.org.
+     Noms de plateformes en texte seul : aucun logo, aucun partenariat. -->
+<section class="lp-show" id="lp-show" data-lp-show aria-labelledby="lp-show-t">
+  <div class="lp-show-stick">
+    <div class="lp-sh-bg" aria-hidden="true"><i data-k="n"></i><i data-k="p"></i><i data-k="c"></i></div>
+    <div class="lp-sh-word" aria-hidden="true"><span>CINEPISODE</span></div>
+    <div class="lp-sh-plat" aria-hidden="true"><span data-k="n">Netflix</span><span data-k="p">Prime Video</span><span data-k="c">Crunchyroll</span></div>
+    <div class="lp-sh-layer" aria-hidden="true"><span class="lp-fl lp-fl-b" style="--x:8%;--y:14%;--s:1;--r:-8deg" data-d="0.6"><img class="" data-tmdb="/iGZkjG3BDTuWsWu9Cdmh2jh3q7d.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-f" style="--x:82%;--y:10%;--s:1.15;--r:7deg" data-d="1.4"><img class="" data-tmdb="/4Tw8TB9ikrcgzJgR0LOvgfnXD74.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-b" style="--x:88%;--y:62%;--s:0.9;--r:9deg" data-d="0.5"><img class="" data-tmdb="/j8K7vgF3Kp5T6EwJvez9B4it6CB.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-f" style="--x:4%;--y:66%;--s:1.2;--r:-6deg" data-d="1.6"><img class="" data-tmdb="/ypS7R36Vjcn51zZsXsta5onnaCo.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-b" style="--x:22%;--y:82%;--s:0.8;--r:4deg" data-d="0.4"><img class="" data-tmdb="/qpyaW4xUPeIiYA5ckg5zAZFHvsb.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-f" style="--x:70%;--y:84%;--s:1;--r:-5deg" data-d="1.2"><img class="" data-tmdb="/dB4EDhre2dsC2kxYDavyKWqLQwi.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-b" style="--x:60%;--y:4%;--s:0.75;--r:-4deg" data-d="0.35"><img class="" data-tmdb="/1UzED7WZJgzEIeVz1xiuZ1529nb.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-f" style="--x:30%;--y:4%;--s:0.85;--r:6deg" data-d="1.1"><img class="" data-tmdb="/heV89pC6pv5fz1plikfyQxYuE4L.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-b" style="--x:94%;--y:36%;--s:0.8;--r:-7deg" data-d="0.55"><img class="" data-tmdb="/xUfRZu2mi8jH6SzQEJGP6tjBuYj.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-fl lp-fl-b" style="--x:2%;--y:40%;--s:0.85;--r:5deg" data-d="0.45"><img class="" data-tmdb="/4pMd9VAdqm96KA2W4X8yetgc7EF.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span></div>
+    <div class="lp-sh-stage">
+      <div class="lp-sh-dev" aria-hidden="true">
+        <div class="lp-sh-bar"><i></i><i></i><i></i><span class="lp-sh-url">streaming.example/watch</span></div>
+        <div class="lp-sh-scr">
+          <div class="lp-sh-player">
+            <img class="lp-sh-art" data-tmdb="/xmjW474DJ27bqTYNvS4MvraJgiQ.jpg" alt="" width="342" height="513" loading="lazy" decoding="async">
+            <div class="lp-sh-shade"></div>
+            <span class="lp-sh-live"><i></i><span data-i18n="lp.show.playing">En lecture</span></span>
+            <div class="lp-sh-meta"><b>Severance</b><small>S02 E03</small></div>
+            <div class="lp-sh-ctl"><span class="lp-sh-play"></span><span class="lp-sh-track"><span class="lp-sh-fill"></span><span class="lp-sh-mark"></span></span><span class="lp-sh-time">38:12</span></div>
+            <div class="lp-sh-check"><span class="lp-sh-ckic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span><span data-i18n="lp.show.check">Épisode vu, automatiquement</span></div>
+          </div>
+          <div class="lp-sh-list">
+            <div class="lp-sh-lh"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" style="fill:var(--accent)"/><path d="M9 7.3 17 12 9 16.7z" style="fill:var(--on-accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--><span data-i18n="lp.show.list">Détectés aujourd’hui</span></div>
+            <ul><li class="lp-sh-row" data-k="n"><span class="lp-sh-rp"><img class="" data-tmdb="/iGZkjG3BDTuWsWu9Cdmh2jh3q7d.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-sh-rm"><b>Stranger Things</b><small><span class="lp-sh-src">Netflix</span>S05 E01</small></span><span class="lp-sh-tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span></li><li class="lp-sh-row" data-k="p"><span class="lp-sh-rp"><img class="" data-tmdb="/4Tw8TB9ikrcgzJgR0LOvgfnXD74.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-sh-rm"><b>The Boys</b><small><span class="lp-sh-src">Prime Video</span>S04 E06</small></span><span class="lp-sh-tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span></li><li class="lp-sh-row" data-k="c"><span class="lp-sh-rp"><img class="" data-tmdb="/j8K7vgF3Kp5T6EwJvez9B4it6CB.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></span><span class="lp-sh-rm"><b>Frieren</b><small><span class="lp-sh-src">Crunchyroll</span>S01 E28</small></span><span class="lp-sh-tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span></li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="lp-sh-recap" aria-hidden="true">
+        <div class="lp-sh-rc-wm">cin<em>episode</em></div>
+        <div class="lp-sh-rc-t" data-i18n="lp.show.rc.title">Ton mois d’octobre</div>
+        <div class="lp-sh-rc-fan"><img class="" data-tmdb="/j8K7vgF3Kp5T6EwJvez9B4it6CB.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"><img class="" data-tmdb="/iaJfffjCqXATU5msr4PAgOWLMl4.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"><img class="" data-tmdb="/ypS7R36Vjcn51zZsXsta5onnaCo.jpg" alt="" width="342" height="513" loading="lazy" decoding="async"></div>
+        <div class="lp-sh-rc-n">112</div>
+        <div class="lp-sh-rc-l" data-i18n="lp.show.rc.eps">épisodes vus</div>
+        <div class="lp-sh-rc-tiles"><span><b>3</b><small data-i18n="lp.show.rc.done">séries finies</small></span><span><b>4</b><small data-i18n="lp.show.rc.films">films</small></span></div>
+        <div class="lp-sh-rc-url">cinepisode.com</div>
+      </div>
+    </div>
+    <div class="lp-sh-caps">
+      <h2 class="lp-sh-cap" id="lp-show-t" data-s="0"><span class="lp-sh-k" data-i18n="lp.show.k1">Comment ça marche</span><span class="lp-sh-h"><span data-i18n="lp.show.c1a">Tu regardes.</span> <em data-i18n="lp.show.c1b">On note.</em></span><span class="lp-sh-d" data-i18n="lp.show.c1d">Lance ton épisode comme d’habitude. L’extension suit ta progression en silence.</span></h2>
+      <p class="lp-sh-cap" data-s="1"><span class="lp-sh-h" data-i18n="lp.show.c2">Passé 80 %, c’est noté.</span><span class="lp-sh-d" data-i18n="lp.show.c2d">L’épisode est repéré tout seul et t’attend dans « Détectés ». Rien à saisir.</span></p>
+      <p class="lp-sh-cap" data-s="2"><span class="lp-sh-h" data-i18n="lp.show.c3">Trois plateformes. Une seule liste.</span><span class="lp-sh-d" data-i18n="lp.show.c3d">Netflix, Prime Video, Crunchyroll : ton historique arrive au même endroit.</span></p>
+      <p class="lp-sh-cap" data-s="3"><span class="lp-sh-h" data-i18n="lp.show.c4">Et chaque mois, ton récap.</span><span class="lp-sh-d" data-i18n="lp.show.c4d">Une image au format story, prête à partager.</span></p>
+    </div>
+    <div class="lp-sh-prog" aria-hidden="true"><span></span></div>
+  </div>
+  <div class="lp-wrap lp-sh-end">
+    <p class="lp-h2 lp-reveal" data-i18n="lp.show.endT">Prêt à ne plus rien noter à la main ?</p>
+    <div class="lp-ctas lp-reveal">
+      <a class="lp-btn lp-btn-primary lp-btn-lg" href="https://chromewebstore.google.com/detail/hmoafofdaajkenkodmgbdjejbmkdjicc" target="_blank" rel="noopener"><span data-i18n="onb.install">Installer l'extension</span></a>
+      <a href="#lp-join" class="lp-btn lp-btn-ghost lp-btn-lg" data-click="lpAuth" data-args="[&quot;signup&quot;]"><span data-i18n="lp.show.open">Ouvrir l’app</span></a>
+    </div>
+    <p class="lp-sh-tmdb" data-i18n="lp.show.tmdb">Affiches et titres : TMDB. Cinepisode n’est affilié à aucune plateforme ni à aucun studio.</p>
   </div>
 </section>
 

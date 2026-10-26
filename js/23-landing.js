@@ -101,6 +101,7 @@ function _lpMotion(){
     nums.forEach(function(n){io.observe(n);});
   }
   _lpScenes();
+  _lpShow();
   if(_lpSD())return;
   r.classList.add('lp-nosd');
   var stage=document.querySelector('#landing .lp-stage-3d'),hero=document.querySelector('#landing .lp-hero-in'),
@@ -142,6 +143,49 @@ function _lpScenes(){
   function req(){if(!tick){tick=true;requestAnimationFrame(frame);}}
   addEventListener('scroll',req,{passive:true});addEventListener('resize',req);frame();
 }
+/* Vitrine #lp-show : affiches TMDB chargées à l'approche (src posé ici : aucune ressource tierce dans le
+   HTML), puis scène épinglée pilotée par le défilement. La progression cible vient du scroll ; la valeur
+   affichée la rejoint en douceur (lerp) à chaque image, et les affiches dérivent lentement dans le temps.
+   Boucle active seulement quand la section est à l'écran ; uniquement transform / opacity / variables CSS. */
+function _lpShow(){
+  var S=document.querySelector('#landing [data-lp-show]');if(!S||S._lp)return;S._lp=1;
+  var imgs=[].slice.call(S.querySelectorAll('img[data-tmdb]'));
+  function load(){imgs.forEach(function(i){if(!i.getAttribute('src'))i.src=(typeof IB!=='undefined'?IB:'https://image.tmdb.org/t/p/')+(i.closest('.lp-sh-rp')?'w92':'w342')+i.getAttribute('data-tmdb');});}
+  if(typeof IntersectionObserver==='undefined')load();
+  else{var lio=new IntersectionObserver(function(es){if(es.some(function(e){return e.isIntersecting;})){lio.disconnect();load();}},{rootMargin:'800px 0px'});lio.observe(S);}
+  if(!document.documentElement.classList.contains('lp-anim'))return;
+  var fl=[].slice.call(S.querySelectorAll('.lp-fl')).map(function(el,i){return {el:el,d:+el.getAttribute('data-d')||1,ph:i*1.7};}),
+      caps=[].slice.call(S.querySelectorAll('.lp-sh-cap')),rows=[].slice.call(S.querySelectorAll('.lp-sh-row')),
+      plat=[].slice.call(S.querySelectorAll('.lp-sh-plat span')),cur=0,tgt=0,run=false,vis=false,lastCap=-1,lastK='';
+  function clamp(x){return x<0?0:x>1?1:x;}
+  function seg(p,a,b){return clamp((p-a)/(b-a));}
+  function ease(x){return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;}
+  function bell(p,a,b,f){return Math.min(seg(p,a,a+f),1-seg(p,b-f,b));}
+  function measure(){var b=S.getBoundingClientRect();tgt=clamp(-b.top/Math.max(1,b.height-innerHeight*1.25));}
+  function frame(ts){
+    run=false;if(!lpIsGuest())return;
+    cur+=(tgt-cur)*.12;if(Math.abs(tgt-cur)<.0004)cur=tgt;
+    var p=cur,a=seg(p,.1,.42),ck=ease(seg(p,.355,.39)),l=ease(seg(p,.46,.52)),r=ease(seg(p,.8,.92)),
+        tn=bell(p,.46,.62,.05),tp=bell(p,.57,.73,.05),tc=bell(p,.68,.86,.05),st=S.style;
+    st.setProperty('--p',p.toFixed(4));st.setProperty('--in',ease(seg(p,0,.1)).toFixed(4));st.setProperty('--a',a.toFixed(4));st.setProperty('--ck',(ck*(1-l)).toFixed(4));
+    st.setProperty('--l',l.toFixed(4));st.setProperty('--r',r.toFixed(4));st.setProperty('--tn',tn.toFixed(3));st.setProperty('--tp',tp.toFixed(3));st.setProperty('--tc',tc.toFixed(3));
+    var sec=(ts||0)/1000;
+    fl.forEach(function(f){var y=(.5-p)*f.d*55,dx=Math.sin(sec*.35+f.ph)*6*f.d,dy=Math.cos(sec*.3+f.ph)*8*f.d;
+      f.el.style.transform='translate3d('+dx.toFixed(1)+'px,calc('+y.toFixed(2)+'vh + '+dy.toFixed(1)+'px),0) rotate(calc(var(--r) + '+(Math.sin(sec*.25+f.ph)*2).toFixed(2)+'deg))';});
+    var c=p<.3?0:p<.46?1:p<.8?2:3;
+    if(c!==lastCap){lastCap=c;caps.forEach(function(e,i){e.classList.toggle('on',i===c);});}
+    var k=tc>.5?'c':tp>.5?'p':tn>.5?'n':'';
+    if(k!==lastK){lastK=k;plat.forEach(function(e){e.classList.toggle('on',e.getAttribute('data-k')===k);});}
+    rows.forEach(function(e,i){e.classList.toggle('on',p>.53+i*.1);});
+    if(vis)req();
+  }
+  function req(){if(!run){run=true;requestAnimationFrame(frame);}}
+  addEventListener('scroll',function(){if(vis)measure();},{passive:true});
+  addEventListener('resize',function(){measure();req();});
+  if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(function(es){vis=es[0].isIntersecting;if(vis){measure();req();}}).observe(S);
+  else{vis=true;measure();req();}
+  measure();cur=tgt;req();
+}
 /* FAQ : ouverture et fermeture animées (sans JS, <details> natif) */
 function _lpFaq(){
   document.querySelectorAll('#landing .lp-faq-item').forEach(function(d){
@@ -169,6 +213,7 @@ function _lpSetup(view){
   lpMountAuth(view);
   _lpReveal();
   _lpMotion();
+  _lpShow();
   _lpFaq();
   _lpSlider();
   _lpCheckLocal(0);
