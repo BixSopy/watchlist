@@ -19,7 +19,7 @@ function friendRespond(el,id,accept){
     var st=r.data&&r.data.status;
     if(r.error||!st||st==='not_found'||st==='friend_limit'){li.querySelectorAll('button').forEach(function(b){b.disabled=false;});toast(t(st==='friend_limit'?'friends.err.limit':'friends.err.generic'),'err');return;}
     var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(accept){li.classList.add('joined');if(typeof sfx==='function')sfx('done');toast(t('friends.nowFriends',{handle:(r.data.friend&&r.data.friend.handle)||''}));}
+    if(accept){li.classList.add('joined');if(typeof sfx==='function')sfx('done');var src=((SOCIAL.me&&SOCIAL.me.incoming)||[]).filter(function(x){return x.id===id;})[0]||{};toast(t('friends.nowFriends',{handle:(r.data.friend&&r.data.friend.handle)||src.handle||''}));}
     else li.classList.add('gone');
     setTimeout(function(){socialLoad(true);},reduce?0:accept?900:320);
   });
