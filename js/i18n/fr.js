@@ -1034,6 +1034,7 @@
  "handle.err.dot": "Pas de point au début, à la fin ni deux à la suite",
  "handle.err.chars": "Lettres, chiffres, point ou _ uniquement",
  "handle.err.reserved": "Ce pseudo est réservé",
+ "handle.err.check": "Impossible de vérifier, réessaie",
  "handle.err.net": "Vérification impossible, réessaie dans un instant",
  "handle.tooSoon": "Tu pourras le changer à partir du {date}",
  "handle.save": "Enregistrer",
