@@ -113,6 +113,27 @@ function markLegacyItemsDirtyOnce(userId){
   return n;
 }
 
+/* Email de bienvenue (api/welcome.js) : demandé une fois, à la première connexion d'un compte
+   confirmé et récent. Le serveur décide (marque welcome_email_sent_at dans app_metadata) ; ce
+   drapeau local évite seulement de redemander à chaque chargement. */
+function maybeSendWelcome(user){
+  try{
+    if(!user||!user.id)return;
+    if(user.app_metadata&&user.app_metadata.welcome_email_sent_at)return;
+    if(!(user.email_confirmed_at||user.confirmed_at))return;
+    var created=Date.parse(user.created_at||'');
+    if(!(created>0)||Date.now()-created>7*86400000)return;
+    var key='wl_welcome_'+user.id;
+    if(localStorage.getItem(key))return;
+    _getAccessToken().then(function(tok){
+      if(!tok)return;
+      return fetch('/api/welcome',{method:'POST',headers:{Authorization:'Bearer '+tok},credentials:'omit',cache:'no-store'}).then(function(r){
+        if(r.ok)localStorage.setItem(key,'1');
+      });
+    }).catch(function(){});
+  }catch(e){}
+}
+
 function initAuth(){
   if(!supa){updateSyncStatusUI('anon');return;}
   supa.auth.getSession().then(function(res){
@@ -152,6 +173,7 @@ function onAuthResolved(user){
     authProfileId=profileId;
     /* Fenêtre d'accueil (installation de l'extension) une seule fois, juste après l'inscription (js/28-pairing.js) */
     if(typeof maybeShowOnboarding==='function')maybeShowOnboarding(user);
+    maybeSendWelcome(user);
     markLegacyItemsDirtyOnce(user.id);
     _onApiAuthRestored();
     refreshAuthModalView();

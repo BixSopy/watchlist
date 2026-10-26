@@ -233,6 +233,44 @@ function buildEmails(out) {
     ...subjects }, null, 2) + '\n';
 }
 
+/* ---------- emails envoyés par l'app (api/welcome.js via Resend) ----------
+   Sources : branding/app-emails/<langue>/<modèle>.html, même syntaxe que les emails
+   d'authentification ; {{EXT_URL}} et {{APP_URL}} sont remplacés par la fonction. Sortie :
+   api/_lib/app-emails.json { <modèle>: { <langue>: { subject, html, text } } }. */
+const APP_EMAIL_TEMPLATES = ['welcome'];
+function htmlToText(html) {
+  return html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (m, href, label) => {
+    const l = label.replace(/<[^>]+>/g, '').trim();
+    return href.startsWith('mailto:') ? l : l + ' : ' + href;
+  }).replace(/<\/(p|h1|tr)>/gi, '\n\n').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#[0-9]+;/g, '')
+    .split('\n').map(l => l.replace(/\s+/g, ' ').trim()).join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+}
+function buildAppEmails(out) {
+  const layout = read('branding/emails/_layout.html');
+  const res = { $comment: GENERATED, defaultLanguage: DEFAULT_LANG };
+  for (const t of APP_EMAIL_TEMPLATES) {
+    res[t] = {};
+    for (const lang of LANGS) {
+      const file = 'branding/app-emails/' + lang + '/' + t + '.html';
+      if (!fs.existsSync(rel(file))) continue;
+      const { meta, body } = parseSource(read(file));
+      const subject = fill(meta.subject).replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+      const content = emailBody(fill(body.trim()), lang);
+      const html = fill(layout, {
+        lang, title: escHtml(subject), preheader: fill(meta.preheader || ''),
+        tagline: escHtml(langMeta(lang).tagline),
+        footerReason: escHtml(T(lang, 'mail.footer.reason', { name: brand.name })),
+        footerQuestion: escHtml(T(lang, 'mail.footer.question')),
+        content,
+      });
+      res[t][lang] = { subject, html, text: htmlToText(content) };
+    }
+    if (!res[t][DEFAULT_LANG]) throw new Error('branding/app-emails/' + DEFAULT_LANG + '/' + t + '.html manquant');
+  }
+  out['api/_lib/app-emails.json'] = JSON.stringify(res, null, 2) + '\n';
+}
+
 /* ---------- pages légales ---------- */
 function hreflangLinks(urls, xDefault) {
   return Object.entries(urls).map(([l, u]) => `\n<link rel="alternate" hreflang="${l}" href="${escHtml(u)}">`).join('') +
@@ -422,6 +460,7 @@ function main() {
   buildApp(out);
   buildLegal(out);
   buildEmails(out);
+  buildAppEmails(out);
   const stale = [];
   for (const [file, content] of Object.entries(out)) {
     const p = rel(file);
