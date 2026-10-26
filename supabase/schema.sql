@@ -1634,6 +1634,7 @@ begin
 
   get diagnostics v_updated = row_count;
   if v_updated > 0 then
+    perform public._social_log_activity(v_profile_id, v_item.id, case when v_is_episode then 'episode' else 'film' end, p_season, p_episode);
     return jsonb_build_object('status', 'updated', 'title', v_item.title, 'season', p_season, 'episode', p_episode);
   end if;
   return jsonb_build_object('status', 'already_up_to_date', 'title', v_item.title,
@@ -1772,3 +1773,126 @@ revoke all on function public.get_public_share(text) from public;
 grant execute on function public.create_share(uuid, text, text[], text[], boolean, boolean, text) to authenticated;
 grant execute on function public.revoke_share(uuid) to authenticated;
 grant execute on function public.get_public_share(text) to anon, authenticated;
+
+-- =============================================================================
+-- NOTE : la couche sociale « pseudo + amis » (étape 1, migrations 20261026120000 et
+-- 20261026210000, PR #70→#75 de Grok) n'est pas mirroirée ci-dessus dans ce fichier — c'est un
+-- écart préexistant à cette section, pas introduit ici. Les tables profiles.handle/invite_code,
+-- friendships, friend_requests, blocks, social_settings, reserved_handles, social_rate et leurs
+-- fonctions (_social_*, check_handle, set_handle, get_invite, send_friend_request,
+-- set_social_settings, get_my_social, get_friend_view, etc.) n'existent donc QUE dans les
+-- migrations, pas ici. La section ci-dessous (étape 2) en dépend directement : ce fichier seul,
+-- sans les migrations correspondantes, ne suffit pas à la recréer.
+-- =============================================================================
+-- Migration 20261026230000_social_activite_reactions.sql (fil d'activité + réactions, étape 2)
+-- =============================================================================
+
+create table public.activity_events (
+  id                 uuid primary key default extensions.gen_random_uuid(),
+  profile_id         uuid not null references public.profiles(id) on delete cascade,
+  watchlist_item_id  uuid not null references public.watchlist_items(id) on delete cascade,
+  kind               text not null check (kind in ('episode', 'film')),
+  season             integer,
+  episode            integer,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now(),
+  check ((kind = 'film' and season is null and episode is null)
+      or (kind = 'episode' and season is not null and episode is not null))
+);
+create index activity_events_profile_recent_idx on public.activity_events(profile_id, updated_at desc);
+create index activity_events_item_idx on public.activity_events(watchlist_item_id);  -- conseil Supabase (20261026240000)
+alter table public.activity_events enable row level security;
+revoke all on table public.activity_events from anon, authenticated;
+
+create table public.activity_reactions (
+  event_id   uuid not null references public.activity_events(id) on delete cascade,
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  emoji      text not null check (emoji in ('👍', '❤️', '🔥', '😮', '😂', '🍿')),
+  created_at timestamptz not null default now(),
+  primary key (event_id, profile_id)
+);
+create index activity_reactions_profile_idx on public.activity_reactions(profile_id);  -- conseil Supabase (20261026240000)
+alter table public.activity_reactions enable row level security;
+revoke all on table public.activity_reactions from anon, authenticated;
+
+create or replace function public._social_log_activity(
+  p_profile_id uuid, p_item_id uuid, p_kind text, p_season integer, p_episode integer
+)
+returns void language plpgsql volatile security definer set search_path = '' as $$
+begin
+  update public.activity_events
+     set season = p_season, episode = p_episode, updated_at = now()
+   where profile_id = p_profile_id and watchlist_item_id = p_item_id
+     and updated_at > now() - interval '3 hours';
+  if not found then
+    insert into public.activity_events(profile_id, watchlist_item_id, kind, season, episode)
+    values (p_profile_id, p_item_id, p_kind, p_season, p_episode);
+  end if;
+end $$;
+revoke all on function public._social_log_activity(uuid, uuid, text, integer, integer) from public, anon, authenticated;
+
+-- Fil d'activité des amis : 30 jours, plafonné à 25 entrées affichées, pas de pagination.
+create or replace function public.get_activity_feed(p_profile_id uuid)
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
+declare v_items jsonb;
+begin
+  if not public._social_owns(p_profile_id) then return jsonb_build_object('status', 'not_authenticated'); end if;
+  select coalesce(jsonb_agg(x.item order by x.updated_at desc), '[]'::jsonb) into v_items
+  from (
+    select e.updated_at, jsonb_build_object(
+        'event_id', e.id, 'updated_at', e.updated_at, 'friend', public._social_card(e.profile_id),
+        'kind', e.kind, 'season', e.season, 'episode', e.episode,
+        'title', w.title, 'type', w.type, 'poster_path', w.poster_path,
+        'reactions', coalesce((select jsonb_object_agg(r.emoji, r.n) from
+                       (select ar.emoji, count(*) n from public.activity_reactions ar where ar.event_id = e.id group by ar.emoji) r),
+                     '{}'::jsonb),
+        'my_reaction', (select ar.emoji from public.activity_reactions ar
+                          where ar.event_id = e.id and ar.profile_id = p_profile_id)
+      ) as item
+    from public.activity_events e
+    join public.watchlist_items w on w.id = e.watchlist_item_id and not coalesce(w.deleted, false)
+    join public.friendships f on f.a = least(p_profile_id, e.profile_id) and f.b = greatest(p_profile_id, e.profile_id)
+    left join public.social_settings s on s.profile_id = e.profile_id
+    where coalesce(s.show_activity, true) and e.updated_at > now() - interval '30 days'
+    order by e.updated_at desc
+    limit 25
+  ) x;
+  return jsonb_build_object('status', 'ok', 'items', v_items);
+end $$;
+revoke all on function public.get_activity_feed(uuid) from public, anon;
+grant execute on function public.get_activity_feed(uuid) to authenticated;
+
+-- Réagir (un tap = pose/remplace, retaper le même retire). Réponse neutre si l'activité n'existe
+-- pas, n'est plus visible (bloqué/pas ami) ou si son auteur masque son activité.
+create or replace function public.react_to_activity(p_profile_id uuid, p_event_id uuid, p_emoji text)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare v_owner uuid; v_existing text; v_counts jsonb; v_status text;
+begin
+  if not public._social_owns(p_profile_id) then return jsonb_build_object('status', 'not_authenticated'); end if;
+  if p_emoji is null or p_emoji not in ('👍', '❤️', '🔥', '😮', '😂', '🍿') then
+    return jsonb_build_object('status', 'invalid_emoji');
+  end if;
+  select e.profile_id into v_owner from public.activity_events e where e.id = p_event_id;
+  if v_owner is null then return jsonb_build_object('status', 'not_found'); end if;
+  if v_owner <> p_profile_id then
+    if not exists (select 1 from public.friendships f where f.a = least(p_profile_id, v_owner) and f.b = greatest(p_profile_id, v_owner))
+       or not coalesce((select show_activity from public.social_settings where profile_id = v_owner), true) then
+      return jsonb_build_object('status', 'not_found');
+    end if;
+  end if;
+  select ar.emoji into v_existing from public.activity_reactions ar where ar.event_id = p_event_id and ar.profile_id = p_profile_id;
+  if v_existing = p_emoji then
+    delete from public.activity_reactions where event_id = p_event_id and profile_id = p_profile_id;
+    v_status := 'removed';
+  else
+    insert into public.activity_reactions(event_id, profile_id, emoji) values (p_event_id, p_profile_id, p_emoji)
+      on conflict (event_id, profile_id) do update set emoji = excluded.emoji, created_at = now();
+    v_status := 'ok';
+  end if;
+  select coalesce(jsonb_object_agg(r.emoji, r.n), '{}'::jsonb) into v_counts
+    from (select ar.emoji, count(*) n from public.activity_reactions ar where ar.event_id = p_event_id group by ar.emoji) r;
+  return jsonb_build_object('status', v_status, 'counts', v_counts,
+    'my_reaction', (select ar.emoji from public.activity_reactions ar where ar.event_id = p_event_id and ar.profile_id = p_profile_id));
+end $$;
+revoke all on function public.react_to_activity(uuid, uuid, text) from public, anon;
+grant execute on function public.react_to_activity(uuid, uuid, text) to authenticated;
