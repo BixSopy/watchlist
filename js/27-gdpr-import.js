@@ -15,7 +15,9 @@ var GDPR_CORE=(function(){
   var DAY=86400000;
   var PLATFORMS={
     apple:{id:'apple',name:'Apple TV',source:'apple_gdpr',url:'https://privacy.apple.com/',delayDays:7,steps:5},
-    disney:{id:'disney',name:'Disney+',source:'disney_gdpr',url:'https://privacy.thewaltdisneycompany.com/en/current-privacy-policy/data-subject-rights-portal/',delayDays:30,steps:5}
+    disney:{id:'disney',name:'Disney+',source:'disney_gdpr',url:'https://privacy.thewaltdisneycompany.com/en/current-privacy-policy/data-subject-rights-portal/',delayDays:30,steps:5},
+    /* Service fermé : plus de demande possible, on importe l'export déjà gardé (closed) */
+    tvtime:{id:'tvtime',name:'TV Time',source:'tvtime_gdpr',url:null,delayDays:0,steps:0,closed:true}
   };
 
   /* ---------- CSV (guillemets, BOM, séparateur , ; ou tabulation) ---------- */
@@ -166,10 +168,120 @@ var GDPR_CORE=(function(){
     return out;
   }
 
+  /* ---------- TV Time (service fermé le 15/07/2026) ----------
+     Deux exports existent (sources : watchd.pro/articles/tv-time-export-files, parseur TV Time de
+     trakt-web, SeriesGuide#1174, theopentv.com) :
+     - export RGPD officiel « tv-time-personal-data.zip » : tracking-prod-records-v2.csv (épisodes :
+       key « watch-episode-… » / « rewatch-episode-… », s_id = id TVDB de la série, series_name,
+       season_number|s_no, episode_number|ep_no, created_at), tracking-prod-records.csv (films :
+       entity_type=movie, type=watch, movie_name localisé, release_date, alpha_range_key
+       « watch-alpha-<slug anglais> », watch_date_range_key « watch-date-<unix> » ; plus une partie
+       des épisodes : entity_type=episode, series_name, series_id), seen_episode.csv (archives
+       anciennes). Le zip contient aussi des fichiers sensibles (access_token.csv…) : jamais lus.
+     - extension « TV Time Out » : tvtime-series-episodes.csv (seules les lignes is_watched=true
+       sont vues ; tvdb_id y est l'id de l'ÉPISODE, pas de la série), tvtime-movies.csv, et les
+       mêmes données en JSON (série → saisons → épisodes).
+     Variantes gérées : noms de colonnes changeants, dates dans la clé, revisionnages en doublon,
+     date « 0001-01-01 » (date inconnue). Événements : {title,type,season,episode,watchedAt,pct,tvdb}
+     où tvdb = id TVDB de la SÉRIE (sert à /find sur TMDB), jamais celui d'un épisode. */
+  var TT_SHOW=['series name','tv show name','show name','series title','show title','series','show','serie'];
+  var TT_SHOWID=['s id','series id','tv show id','show id','series tvdb id','show tvdb id','tvdb show id','tvdb series id'];
+  var TT_SEASON=['season number','s no','episode season number','season'];
+  var TT_EP=['episode number','ep no','episode'];
+  var TT_DATE=['watched at','watch date','seen at','seen date','created at','date'];
+  var TT_MOVIE=['movie name','title','name','movie title','movie'];
+  function ttInt(v){if(v==null||v==='')return null;var s=String(v).trim();if(!/^\d{1,9}$/.test(s))return null;return +s;}
+  function ttDate(o){
+    var k=String(pick(o,['watch date range key','key','type uuid n'])||'').match(/watch-date-(\d{9,11})/);
+    if(k)return +k[1]*1000;
+    var v=pick(o,TT_DATE);if(!v||/^0001-/.test(v))return null;
+    var ms=toMs(v);return ms!=null&&ms>0?ms:null;
+  }
+  function ttTrue(v){return /^(true|1|yes|oui)$/i.test(String(v==null?'':v).trim());}
+  function ttFalse(v){return /^(false|0|no|non)$/i.test(String(v==null?'':v).trim());}
+  function ttEpisode(o,show,tvdb){
+    var title=show||pick(o,TT_SHOW);
+    if(!title&&tvdb==null)return null;
+    var se=ttInt(pick(o,TT_SEASON)),ep=ttInt(pick(o,TT_EP));
+    return{title:title||null,type:'show',season:se,episode:ep,watchedAt:ttDate(o),pct:null,tvdb:tvdb};
+  }
+  function ttYear(v){var y=ttInt(String(v||'').slice(0,4));return y!=null&&y>=1888?y:null;}
+  function ttMovie(o){
+    var slug=String(pick(o,['alpha range key'])||'').replace(/^(re)?(watch|towatch)-alpha-/,'').replace(/-/g,' ').trim();
+    var title=pick(o,['movie name','movie title'])||pick(o,['title','name'])||slug;
+    if(!title)return null;
+    return{title:title,type:'movie',season:null,episode:null,watchedAt:ttDate(o),pct:null,tvdb:null,year:ttYear(pick(o,['release date','year']))};
+  }
+  /* Une ligne CSV/objet TV Time → événement, ou null (pas un visionnage) */
+  function ttRow(o,file){
+    var f=String(file||'').toLowerCase(),key=String(pick(o,['key'])||''),type=low(pick(o,['type'])||''),ent=low(pick(o,['entity type'])||'');
+    if(/tvtime-movies/.test(f)){if(ttFalse(pick(o,['is watched','watched'])))return null;return ttMovie(o);}
+    if(/tvtime-series-episodes|tvtime-episodes/.test(f)){
+      if(!ttTrue(pick(o,['is watched','watched'])))return null;
+      return ttEpisode(o,null,ttInt(pick(o,['series tvdb id','show tvdb id','tvdb show id','series id','show id'])));
+    }
+    if(/seen_episode/.test(f))return ttEpisode(o,null,ttInt(pick(o,TT_SHOWID)));
+    if(key){
+      if(/^(re)?watch-episode-/.test(key))return ttEpisode(o,null,ttInt(pick(o,TT_SHOWID)));
+      if(!/^(re)?watch-/.test(key))return null;/* user-series-, follow-, towatch-… : pas un visionnage */
+    }
+    if(type&&type!=='watch'&&type!=='rewatch')return null;
+    if(ent==='movie')return ttMovie(o);
+    if(ent==='episode')return ttEpisode(o,null,ttInt(pick(o,TT_SHOWID)));
+    if(!type&&!key)return null;
+    return pick(o,TT_SEASON)!=null||pick(o,TT_SHOW)?ttEpisode(o,null,ttInt(pick(o,TT_SHOWID))):(pick(o,['movie name'])?ttMovie(o):null);
+  }
+  function parseTvTimeObjs(objs,file){var out=[];(objs||[]).forEach(function(o){var e=ttRow(o,file);if(e)out.push(e);});return out;}
+  /* JSON de TV Time Out : série → saisons → épisodes (is_watched), ou liste de films */
+  function parseTvTimeJson(v,file){
+    var out=[],movies=/movie/.test(String(file||'').toLowerCase());
+    function walk(x,show,tvdb,season){
+      if(Array.isArray(x)){x.forEach(function(y){walk(y,show,tvdb,season);});return;}
+      if(!x||typeof x!=='object')return;
+      if(Array.isArray(x.seasons)){
+        var name=pick(x,['name','title'].concat(TT_SHOW))||show,id=ttInt(pick(x,['tvdb id','tvdb','id tvdb']))||(x.id&&typeof x.id==='object'?ttInt(x.id.tvdb):null);
+        x.seasons.forEach(function(s){walk(s,name,id!=null?id:tvdb,s&&s.number!=null?ttInt(s.number):ttInt(pick(s||{},TT_SEASON)));});return;
+      }
+      if(Array.isArray(x.episodes)){var sn=season!=null?season:ttInt(pick(x,['number'].concat(TT_SEASON)));x.episodes.forEach(function(e){walk(e,show||pick(x,TT_SHOW),tvdb,sn);});return;}
+      if(show&&(x.is_watched!==undefined||x.watched!==undefined)){
+        if(!(x.is_watched===true||x.watched===true||ttTrue(x.is_watched)||ttTrue(x.watched)))return;
+        var ev=ttEpisode(x,show,tvdb);if(!ev)return;
+        if(ev.season==null)ev.season=season;if(ev.episode==null)ev.episode=ttInt(x.number);
+        out.push(ev);return;
+      }
+      if(movies||pick(x,['movie name'])){if(x.is_watched===false||ttFalse(x.is_watched))return;var m=ttMovie(x);if(m)out.push(m);return;}
+      Object.keys(x).forEach(function(k){if(x[k]&&typeof x[k]==='object')walk(x[k],show,tvdb,season);});
+    }
+    walk(v,null,null,null);
+    return out;
+  }
+  /* Après lecture de tous les fichiers : nom de série retrouvé par son id TVDB (fichiers qui ne
+     donnent que s_id), revisionnages fusionnés (premier visionnage gardé) */
+  function tvtimeFinalize(events){
+    var names={};
+    (events||[]).forEach(function(e){if(e&&e.tvdb!=null&&e.title&&!names[e.tvdb])names[e.tvdb]=e.title;});
+    var by={},out=[];
+    (events||[]).forEach(function(e){
+      if(!e)return;
+      if(!e.title&&e.tvdb!=null)e.title=names[e.tvdb]||null;
+      if(!e.title)return;
+      var k=e.type+'|'+(e.tvdb!=null?'#'+e.tvdb:low(e.title))+'|'+e.season+'|'+e.episode;
+      if(e.type==='show'&&(e.season==null||e.episode==null))k+='|'+out.length;
+      var prev=by[k];
+      if(prev){if(e.watchedAt!=null&&(prev.watchedAt==null||e.watchedAt<prev.watchedAt))prev.watchedAt=e.watchedAt;return;}
+      by[k]=e;out.push(e);
+    });
+    return out;
+  }
+
   /* ---------- Fichier texte → événements ---------- */
   function looksCsv(text){var f=String(text).replace(/^\uFEFF/,'').split(/\r?\n/,1)[0]||'';return /[,;\t]/.test(f)&&/(name|title|titre|date)/i.test(f);}
   function parseText(platform,name,text){
     var n=String(name||'').toLowerCase();
+    if(platform==='tvtime'){
+      if(/\.json$/.test(n)||/^\s*[[{]/.test(text)){try{return parseTvTimeJson(JSON.parse(text),n);}catch(e){return [];}}
+      return parseTvTimeObjs(parseCsv(text),n);
+    }
     if(/\.json$/.test(n)||/^\s*[[{]/.test(text)){
       try{var arrs=walkJson(JSON.parse(text),[]);var ev=[];arrs.forEach(function(a){ev=ev.concat(platform==='apple'?parseApple(a):parseDisneyObjs(a));});return ev;}catch(e){}
     }
@@ -180,6 +292,7 @@ var GDPR_CORE=(function(){
   function wanted(platform,name){
     var b=String(name).split('/').pop().toLowerCase();
     if(/\.zip$/.test(b))return 'zip';
+    if(platform==='tvtime')return /^(tracking-prod-records(-v2)?|seen_episode|tvtime-(series-episodes|episodes|movies|series))\.(csv|json)$/.test(b)?'text':null;
     if(platform==='apple')return /video play activity|tv app.*(play|activity)|playback activity/.test(b)&&/\.(csv|json)$/.test(b)?'text':null;
     return /(watch|view|titles|histor|playback|visionn)/.test(b)&&/\.(csv|json|txt)$/.test(b)?'text':(/\.pdf$/.test(b)?'pdf':null);
   }
@@ -190,9 +303,9 @@ var GDPR_CORE=(function(){
     (events||[]).forEach(function(ev,i){
       if(!ev||!ev.title)return;
       var norm=normalize(ev.title);if(!norm)return;
-      var k=ev.type+'|'+norm+'|'+ev.season+'|'+ev.episode+'|'+ev.watchedAt;if(seen[k])return;seen[k]=1;
+      var k=ev.type+'|'+norm+'|'+ev.season+'|'+ev.episode+'|'+ev.watchedAt+'|'+(ev.tvdb||'');if(seen[k])return;seen[k]=1;
       rows.push({id:null,source:source,raw_title:ev.title,normalized_title:norm,media_type:ev.type==='movie'?'movie':'show',
-        season:ev.season,episode:ev.episode,watched_at:ev.watchedAt?new Date(ev.watchedAt).toISOString():null,progress_pct:ev.pct,state:'pending'});
+        season:ev.season,episode:ev.episode,tvdb_id:ev.tvdb!=null?ev.tvdb:null,watched_at:ev.watchedAt?new Date(ev.watchedAt).toISOString():null,progress_pct:ev.pct,state:'pending'});
     });
     return rows;
   }
@@ -207,17 +320,18 @@ var GDPR_CORE=(function(){
   function status(st,p,now){
     st=st||{};
     if(st.importedAt)return{kind:'imported',at:st.importedAt,count:st.count||0};
+    if(PLATFORMS[p]&&PLATFORMS[p].closed)return{kind:'none'};
     if(!st.requestedAt)return{kind:'none'};
     var r=readyAt(st,p);
     return{kind:now>=r?'due':'waiting',at:st.requestedAt,readyAt:r,daysLeft:Math.max(0,Math.ceil((r-now)/DAY))};
   }
   function dueReminders(state,now){
-    return Object.keys(PLATFORMS).filter(function(p){var s=status(state&&state[p],p,now);return s.kind==='due'&&!((state[p]||{}).remindedDay===dayKey(now));});
+    return Object.keys(PLATFORMS).filter(function(p){if(PLATFORMS[p].closed)return false;var s=status(state&&state[p],p,now);return s.kind==='due'&&!((state[p]||{}).remindedDay===dayKey(now));});
   }
   function dayKey(ms){return new Date(ms).toISOString().slice(0,10);}
 
   return{PLATFORMS:PLATFORMS,parseCsv:parseCsv,parseApple:parseApple,parseDisneyObjs:parseDisneyObjs,parseDisneyText:parseDisneyText,
-    parseText:parseText,splitEpisode:splitEpisode,toMs:toMs,wanted:wanted,toRows:toRows,summarize:summarize,status:status,readyAt:readyAt,dueReminders:dueReminders,dayKey:dayKey};
+    parseText:parseText,parseTvTimeObjs:parseTvTimeObjs,parseTvTimeJson:parseTvTimeJson,tvtimeFinalize:tvtimeFinalize,splitEpisode:splitEpisode,toMs:toMs,wanted:wanted,toRows:toRows,summarize:summarize,status:status,readyAt:readyAt,dueReminders:dueReminders,dayKey:dayKey};
 })();
 
 /* ---------- Lecture de zip (y compris imbriqués) et de PDF simples, sans bibliothèque ---------- */
@@ -312,11 +426,13 @@ function setP(p,patch){var s=load();s[p]=Object.assign({},s[p]||{},patch);Object
 function mbk(){return document.getElementById('gdprMbk');}
 function d(ms){return fmtDate(ms,{day:'numeric',month:'long'});}
 var LOGO={apple:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.5 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9s-2-.9-3.3-.9c-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.2 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.8-1-2.8-4.2zM14 5.1c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z"/></svg>',
+  tvtime:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8 2.5l4 3.5 4-3.5"/></svg>',
   disney:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 15c3-6 12-9 18-4"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M17 6v6M14 9h6"/></svg>'};
 
 function statusLine(p){
   var s=C.status(load()[p],p,Date.now());
   if(s.kind==='imported')return{cls:'ok',txt:tn('gd.st.imported',s.count,{date:d(s.at)})};
+  if(P[p].closed)return{cls:'none',txt:t('gd.'+p+'.st')};
   if(s.kind==='due')return{cls:'due',txt:t('gd.st.due',{date:d(s.at)})};
   if(s.kind==='waiting')return{cls:'wait',txt:t('gd.st.waiting',{date:d(s.at),ready:d(s.readyAt)}),pct:Math.round(100*(1-s.daysLeft/P[p].delayDays))};
   return{cls:'none',txt:t('gd.st.none')};
@@ -325,12 +441,12 @@ function statusLine(p){
 window.gdprCardHtml=function(){
   return '<div class="gd-card">'
     +'<div class="gd-card-h"><div><div class="gd-card-t">'+esc(t('gd.card.title'))+'</div><div class="gd-card-s">'+esc(t('gd.card.sub'))+'</div></div></div>'
-    +'<div class="gd-plats">'+['disney','apple'].map(function(p){
+    +'<div class="gd-plats">'+['disney','apple','tvtime'].map(function(p){
       var s=statusLine(p);
       return '<button type="button" class="gd-plat gd-'+p+' gd-'+s.cls+'" data-sfx-hover'+uiAct('gdprOpen',[p])+'>'
         +'<span class="gd-logo">'+LOGO[p]+'</span><span class="gd-pb"><span class="gd-pn">'+esc(P[p].name)+'</span><span class="gd-ps">'+esc(s.txt)+'</span>'
         +(s.pct!=null?'<span class="gd-bar"><i style="--p:'+s.pct+'%"></i></span>':'')+'</span>'
-        +'<span class="gd-go">'+esc(t(s.cls==='none'?'gd.card.start':s.cls==='ok'?'gd.card.again':s.cls==='due'?'gd.card.import':'gd.card.continue'))+'</span></button>';
+        +'<span class="gd-go">'+esc(t(P[p].closed&&s.cls==='none'?'gd.card.import':s.cls==='none'?'gd.card.start':s.cls==='ok'?'gd.card.again':s.cls==='due'?'gd.card.import':'gd.card.continue'))+'</span></button>';
     }).join('')+'</div></div>';
 };
 
@@ -341,9 +457,11 @@ function stepsHtml(p){
 function render(){
   var v=document.getElementById('gdprView');if(!v)return;
   var p=ui.p,st=load()[p]||{},s=C.status(st,p,Date.now());
-  var tabs='<div class="gd-seg" role="tablist">'+['disney','apple'].map(function(x){return '<button type="button" role="tab" aria-selected="'+(x===p)+'" class="'+(x===p?'on':'')+'"'+uiAct('gdprPlat',[x])+'>'+LOGO[x]+esc(P[x].name)+'</button>';}).join('')+'<i class="gd-seg-hl" style="--x:'+(p==='disney'?0:1)+'"></i></div>';
-  var prog='<div class="gd-prog">'+[0,1,2].map(function(i){return '<span class="'+(i<ui.step?'done':i===ui.step?'on':'')+'"><b>'+(i+1)+'</b>'+esc(t('gd.step'+i))+'</span>';}).join('<i></i>')+'</div>';
+  var TABS=['disney','apple','tvtime'],closed=!!P[p].closed;
+  var tabs='<div class="gd-seg" role="tablist" style="--n:'+TABS.length+'">'+TABS.map(function(x){return '<button type="button" role="tab" aria-selected="'+(x===p)+'" class="'+(x===p?'on':'')+'"'+uiAct('gdprPlat',[x])+'>'+LOGO[x]+esc(P[x].name)+'</button>';}).join('')+'<i class="gd-seg-hl" style="--x:'+Math.max(0,TABS.indexOf(p))+'"></i></div>';
+  var prog=closed?'':'<div class="gd-prog">'+[0,1,2].map(function(i){return '<span class="'+(i<ui.step?'done':i===ui.step?'on':'')+'"><b>'+(i+1)+'</b>'+esc(t('gd.step'+i))+'</span>';}).join('<i></i>')+'</div>';
   var body='';
+  if(closed)ui.step=2;
   if(ui.step===0){
     body='<p class="gd-lead">'+esc(t('gd.'+p+'.lead'))+'</p>'+stepsHtml(p)
       +'<div class="gd-note">'+esc(t('gd.'+p+'.delay'))+'</div>'
@@ -360,7 +478,7 @@ function render(){
       +'<button type="button" class="btn btn-ghost gd-reset"'+uiAct('gdprReset',[p])+'>'+esc(t('gd.reset'))+'</button></div>';
   }else{
     var r=ui.result;
-    body='<label class="gd-drop'+(ui.busy?' busy':'')+'" id="gdprDrop"><input type="file" id="gdprFile" multiple accept=".zip,.csv,.json,.txt,.pdf">'
+    body=(closed?'<p class="gd-lead">'+esc(t('gd.'+p+'.lead'))+'</p><div class="gd-note">'+esc(t('gd.'+p+'.note'))+'</div>':'')+'<label class="gd-drop'+(ui.busy?' busy':'')+'" id="gdprDrop"><input type="file" id="gdprFile" multiple accept=".zip,.csv,.json,.txt,.pdf">'
       +'<span class="gd-drop-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></span>'
       +'<span class="gd-drop-t">'+esc(ui.busy?t('gd.reading'):t('gd.drop'))+'</span><span class="gd-drop-s">'+esc(t('gd.'+p+'.files'))+'</span></label>'
       +(p==='disney'?'<details class="gd-paste"><summary>'+esc(t('gd.paste'))+'</summary><textarea id="gdprPaste" rows="4" placeholder="Titles Watched&#10;Profil  Titre  2024-01-31">'+esc(ui.paste)+'</textarea><button type="button" class="btn btn-ghost"'+uiAct('gdprPasteGo')+'>'+esc(t('gd.pasteGo'))+'</button></details>':'')
@@ -380,6 +498,7 @@ function render(){
   }
 }
 function finish(p,events){
+  if(p==='tvtime')events=C.tvtimeFinalize(events);
   var rows=C.toRows(events,P[p].source,DET_CORE.normalizeTitle);
   var groups=DET_CORE.groupRows(rows).map(function(g){g.ids=[];g.key=g.key+':'+P[p].source;g.local=true;return g;});
   ui.result={groups:groups,sum:C.summarize(groups)};

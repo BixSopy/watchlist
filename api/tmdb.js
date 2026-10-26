@@ -22,12 +22,15 @@ const ROUTES = [
   { re: /^\/search\/(multi|movie|tv)$/, ttl: 15 * 60 },
   { re: /^\/trending\/(all|movie|tv)\/(day|week)$/, ttl: 3600 },
   { re: /^\/discover\/(movie|tv)$/, ttl: 3600 },
+  /* Import TV Time : id TVDB -> fiche TMDB (external_source obligatoire, voir plus bas) */
+  { re: /^\/find\/\d{1,9}$/, ttl: 24 * 3600, need: 'external_source' },
 ];
 
 /* Paramètres autorisés et leur format */
 const PARAMS = {
   /* Langue de l'interface (fr-FR, en-US…) : fait partie de la clé de cache, comme tous les paramètres */
   language: /^[a-z]{2}(-[A-Z]{2})?$/,
+  external_source: /^tvdb_id$/,
   region: /^[A-Z]{2}$/,
   watch_region: /^[A-Z]{2}$/,
   page: /^([1-9]\d{0,2})$/,
@@ -60,6 +63,8 @@ function buildUpstream(params) {
     if (!re.test(v)) return { error: 'param', name: k };
     out.set(k, v);
   }
+  if (route.need && !out.has(route.need)) return { error: 'param', name: route.need };
+  if (out.has('external_source') && !/^\/find\//.test(path)) out.delete('external_source');
   if (out.has('page') && Number(out.get('page')) > 500) return { error: 'param', name: 'page' };
   out.sort();
   return { path, query: out.toString(), ttl: route.ttl };
