@@ -1101,5 +1101,17 @@
  "friends.tab.encours": "Watching",
  "friends.tab.avoir": "Up next",
  "friends.tab.termine": "Finished",
- "friends.tabEmpty": "Nothing here yet."
+ "friends.tabEmpty": "Nothing here yet.",
+ "privacy.title": "What my friends can see",
+ "privacy.sub": "Only friends you've accepted see this. Nobody else.",
+ "privacy.list": "My list",
+ "privacy.listSub": "What I'm watching, want to watch and have finished",
+ "privacy.progress": "My progress",
+ "privacy.progressSub": "The season and episode I'm on",
+ "privacy.ratings": "My ratings",
+ "privacy.ratingsSub": "The stars I give",
+ "privacy.activity": "My activity",
+ "privacy.activitySub": "What I'm watching right now",
+ "privacy.notes": "Your personal notes always stay private.",
+ "privacy.saved": "Visibility updated"
 };

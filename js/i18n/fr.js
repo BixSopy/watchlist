@@ -1097,5 +1097,17 @@
  "friends.tab.encours": "En cours",
  "friends.tab.avoir": "À voir",
  "friends.tab.termine": "Terminé",
- "friends.tabEmpty": "Rien ici pour l'instant."
+ "friends.tabEmpty": "Rien ici pour l'instant.",
+ "privacy.title": "Ce que voient mes amis",
+ "privacy.sub": "Seuls tes amis acceptés voient ces infos. Personne d'autre.",
+ "privacy.list": "Ma liste",
+ "privacy.listSub": "Les titres en cours, à voir et terminés",
+ "privacy.progress": "Ma progression",
+ "privacy.progressSub": "La saison et l'épisode où j'en suis",
+ "privacy.ratings": "Mes notes",
+ "privacy.ratingsSub": "Les étoiles que je donne",
+ "privacy.activity": "Mon activité",
+ "privacy.activitySub": "Ce que je regarde en ce moment",
+ "privacy.notes": "Tes notes perso restent toujours privées.",
+ "privacy.saved": "Visibilité mise à jour"
 };

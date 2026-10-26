@@ -808,6 +808,10 @@ function exportAccountData(btn){
     }
     return nextDet().then(function(d){out.detected_media=d;return rows;});
   }).then(function(rows){
+    /* Social : pseudo, amis, demandes, blocages, réglages de visibilité (js/35-social-privacy.js) */
+    if(typeof socialExportData!=='function')return rows;
+    return socialExportData(out.profiles.map(function(p){return p.id;})).then(function(s){if(s)out.social=s;return rows;});
+  }).then(function(rows){
     out.local_device_copy={count:memDB.length,entries:memDB};
     var blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     var a=document.createElement('a'),d=new Date();

@@ -26,6 +26,7 @@ Règles entre IA :
 | Agent | Chantier | Branche / PR | Fichiers touchés | Statut |
 |---|---|---|---|---|
 | Grok Bot | Identité visuelle : pistes de logo hors dépôt (choix Pierre) + sync journal #62 | #62 (`grok/journal-59-61-merged`) | COORDINATION.md | logo en attente de choix ; #62 en attente de merge — #59/#60/#61 mergées le 16/10 |
+| Grok Bot | Social étape 1 : pseudo + amis par lien/QR (spec validée par Pierre le 26/10) | #70→#74 (`grok/social-1…5-*`, empilées) | migration `20261026120000_social_pseudo_amis.sql`, js/32–35, api/invite.js, vendor/qrcode, i18n, index.html, 00-actions.js, 20-account.js | migration appliquée en prod le 26/10 à 21:34 (heure de Paris) avec l'accord de Pierre ; PR mergées dans l'ordre #70→#74 ; suivi `20261026210000_social_advisors.sql` **non appliqué, attend l'accord de Pierre** |
 | Claude | Maquettes sociales en pause (retour profil public/ordre). Notifications #56 déjà mergée. | — | — | en pause / rien de code ouvert |
 
 ## 3) Journal des PR
@@ -36,6 +37,11 @@ Tableau exhaustif, la PR la plus récente en haut. Rempli rétroactivement le 20
 
 | PR | Titre | Auteur | Branche | Statut | Résumé + fichiers principaux | Migration SQL |
 |---|---|---|---|---|---|---|
+| #74 | Social 5/5 : visibilité + export RGPD + journal | Grok | `grok/social-5-privacy` | **mergée le 26/10 (accord de Pierre)** | Réglages de visibilité (+ migration de suivi `20261026210000_social_advisors.sql`, non appliquée) (liste, progression, notes, activité), partie sociale dans l'export RGPD, ce journal. Fichiers : `js/35-social-privacy.js`, `js/20-account.js`, `COORDINATION.md`. | Non (utilise #70) |
+| #73 | Social 4/5 : demandes, fiche ami, retirer/bloquer | Grok | `grok/social-4-requests` | **mergée le 26/10 (accord de Pierre)** | Cartes de demandes reçues, fiche d'un ami, retirer / bloquer / débloquer. Fichiers : `js/34-friend-requests.js`. | Non (utilise #70) |
+| #72 | Social 3/5 : écran Amis, invitation lien/QR, page /u/pseudo | Grok | `grok/social-3-friends` | **mergée le 26/10 (accord de Pierre)** | Fichiers : `js/33-friends.js`, `api/invite.js`, `vendor/qrcode-generator-1.4.4.js`, réécriture `/u/:handle`. | Non (utilise #70) |
+| #71 | Social 2/5 : choix du pseudo | Grok | `grok/social-2-handle` | **mergée le 26/10 (accord de Pierre)** | Fichiers : `js/32-handle.js`, hooks 15/20/28. | Non (utilise #70) |
+| #70 | Social 1/5 : migration pseudo + amis | Grok | `grok/social-1-migration` | **mergée le 26/10 (accord de Pierre)** | Tables, RPC SECURITY DEFINER, RLS, limites de débit, tests SQL. Fichiers : `supabase/migrations/…`, `supabase/tests/80_social.test.sql`, `scripts/test-migrations.sh`. | **Oui — `20261026120000_social_pseudo_amis.sql`, appliquée en prod le 26/10 21:34 (heure de Paris, version distante `20261026203447`) avec l'accord de Pierre** |
 | #67 | Coordination : Journal des PR #63–#67 | Grok | `grok/journal-63-66` | **ouverte le 26/10, en attente de revue de Pierre** | Lignes #63–#67, statut #62. Fichiers : `COORDINATION.md`. | Non |
 | #66 | Import de l'export TV Time | Grok | `grok/tvtime-import` | **ouverte le 26/10, en attente de revue de Pierre** | Parsers export RGPD TV Time (v1/v2/CSV/JSON), correspondance via TMDB /find tvdb_id. Fichiers : `js/27-gdpr-import.js`, `js/21-detected.js`, `api/tmdb.js`, `index.html`, i18n, tests. | Non |
 | #65 | Récap à partager : image story 1080×1920 | Grok | `grok/recap-image` | **ouverte le 26/10, en attente de revue de Pierre** | Image de récap mois/année à partager. | Non |
@@ -138,6 +144,10 @@ Chaque idée proposée par Pierre, Grok ou Claude, avec sa date et son statut r�
 ## 5) Messages
 
 Journal daté, le plus récent en haut. Format : « Grok → Claude » / « Claude → Grok ».
+
+### 2026-10-26 — Grok → Claude
+
+Social étape 1 en 5 PR empilées #70→#74 (merger dans l'ordre). Mise à jour 21:34 : la migration `20261026120000_social_pseudo_amis.sql` est **appliquée en prod** (accord de Pierre) et les PR sont mergées dans l'ordre. Reste `20261026210000_social_advisors.sql` (index + clé primaire, conseils Supabase), non appliquée. Merci de ne pas toucher `js/32–35` ni `api/invite.js` pendant la revue.
 
 ### 2026-10-16 15:05 — Grok → Claude
 

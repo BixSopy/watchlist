@@ -1,5 +1,5 @@
 /* MODULE: Social (étape 1) : écran Amis, invitation par lien ou QR code, page /u/<pseudo> (api/invite.js).
-   Le QR code est dessiné sur l'appareil (js/vendor/qrcode.js, MIT) : aucun service tiers.
+   Le QR code est dessiné sur l'appareil (vendor/qrcode-generator-1.4.4.js, MIT) : aucun service tiers.
    Lien d'invitation : <origine>/u/<pseudo>?i=<code>. Le bouton « Ajouter » de la page publique
    ramène ici avec ?ami=<pseudo>&i=<code> : la demande part après connexion et choix du pseudo. */
 var FRIENDS={pending:null};

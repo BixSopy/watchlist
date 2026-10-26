@@ -143,6 +143,8 @@ uiOn('friendBlock',function(){friendConfirm('block');});
 uiOn('friendConfirmNo',function(el){var c=el.closest('.fv-confirm');if(c)c.remove();});
 uiOn('friendConfirmYes',function(el,e,kind){el.disabled=true;friendDo(kind);});
 uiOn('friendUnblock',function(el,e,id){el.disabled=true;friendUnblock(id);});
+/* Social : visibilité (js/35-social-privacy.js) */
+uiOn('socialPrivToggle',function(el,e,k){socialPrivToggle(el,k);});
 uiOn('shareClose',function(){closeShare();});
 uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
 uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});
