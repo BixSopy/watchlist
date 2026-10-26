@@ -134,6 +134,17 @@ function addPending(n) {
   } catch (e) { /* rien */ }
 }
 
+/* 0.8.1 : nombre d'épisodes marqués vus automatiquement (clé wlAutoEp, locale, jamais envoyée).
+ * Sert uniquement à demander un avis Chrome Web Store au bon moment (options.js, après 10). */
+function countAutoEpisode() {
+  try {
+    chrome.storage.local.get(['wlAutoEp'], function (res) {
+      var cur = res && typeof res.wlAutoEp === 'number' ? res.wlAutoEp : 0;
+      chrome.storage.local.set({ wlAutoEp: cur + 1 });
+    });
+  } catch (e) { /* rien */ }
+}
+
 function rpc(body, name) {
   return fetch(SUPA_URL + '/rest/v1/rpc/' + (name || 'mark_watched_by_title'), {
     method: 'POST',
@@ -175,6 +186,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       var result = out.r.ok ? interpret(out.data) : { status: 'server_error' };
       if (out.r.ok) lastSent = { key: key, at: Date.now() };
       remember(det, result);
+      if (det.kind === 'episode' && (result.status === 'updated' || result.status === 'legacy_updated')) countAutoEpisode();
       /* Pas dans la liste / plusieurs titres : envoyé à l'onglet « Détectés » de Cinepisode */
       if (result.status === 'not_found' || result.status === 'ambiguous') pushLive(token, det);
       sendResponse({ ok: out.r.ok, status: result.status });

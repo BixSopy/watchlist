@@ -9,7 +9,7 @@ const read = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
 
 test('manifeste : seul le site de production peut parler à l\'extension', () => {
   const m = JSON.parse(read('extension/manifest.json'));
-  assert.strictEqual(m.version, '0.8.0');
+  assert.strictEqual(m.version, '0.8.1');
   assert.deepStrictEqual(m.externally_connectable, { matches: ['https://cinepisode.com/*'] });
   assert.ok(!('key' in m));
 });

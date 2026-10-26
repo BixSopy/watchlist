@@ -267,7 +267,7 @@ test('extension : plus de page d\'import ni de TMDB, relai limité à netflix.co
 
 test('manifeste 0.7.0 : permissions minimales (pas de cinepisode.com), plateformes facultatives et CSP stricte', () => {
   const m = JSON.parse(read('extension/manifest.json'));
-  assert.strictEqual(m.version, '0.8.0');
+  assert.strictEqual(m.version, '0.8.1');
   assert.strictEqual(m.name, '__MSG_extName__', 'nom inchangé (fiche Chrome Web Store)');
   assert.strictEqual(m.short_name, 'Cinepisode');
   assert.ok(!('key' in m), 'pas de clé ajoutée : identifiant de l\'extension inchangé');
