@@ -133,7 +133,16 @@ uiOn('openInvite',function(){openInvite();});
 uiOn('inviteCopy',function(el){inviteCopy(el);});
 uiOn('inviteShare',function(){inviteShare();});
 uiOn('inviteNewLink',function(el){inviteNewLink(el);});
-uiOn('openFriend',function(el,e,id){if(typeof openFriend==='function')openFriend(id);});
+uiOn('openFriend',function(el,e,id){openFriend(id);});
+/* Social : demandes et fiche d'un ami (js/34-friend-requests.js) */
+uiOn('friendRespond',function(el,e,id,accept){friendRespond(el,id,accept);});
+uiOn('friendTab',function(el,e,s){FRIEND_VIEW.tab=s;friendViewRender();});
+uiOn('friendMore',function(){var m=document.getElementById('fvMenu');if(m)m.hidden=!m.hidden;});
+uiOn('friendRemove',function(){friendConfirm('remove');});
+uiOn('friendBlock',function(){friendConfirm('block');});
+uiOn('friendConfirmNo',function(el){var c=el.closest('.fv-confirm');if(c)c.remove();});
+uiOn('friendConfirmYes',function(el,e,kind){el.disabled=true;friendDo(kind);});
+uiOn('friendUnblock',function(el,e,id){el.disabled=true;friendUnblock(id);});
 uiOn('shareClose',function(){closeShare();});
 uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
 uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});

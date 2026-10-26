@@ -89,3 +89,29 @@ test('réécriture /u/:handle et QR code local (pas de service tiers)', () => {
   assert.ok(html.indexOf('/vendor/qrcode-generator-1.4.4.js') < html.indexOf('<script src="js/33-friends.js"'));
   assert.match(read('vendor/qrcode-generator-1.4.4.js'), /MIT license/);
 });
+
+/* ---- Demandes et fiche d'un ami (js/34-friend-requests.js) ---- */
+global.t = (k, v) => k + (v ? JSON.stringify(v) : ''); global.tn = (k, n) => k + ':' + n;
+global.uiAct = (n, a) => ' data-click="' + n + '"' + (a ? ' data-args="' + esc(JSON.stringify(a)) + '"' : '');
+global.friendAvatar = F.friendAvatar; global.friendName = p => (p && p.name) || '@' + (p && p.handle);
+global.SOCIAL = { me: { handle: 'moi' } };
+const R = require(path.join(ROOT, 'js', '34-friend-requests.js'));
+test('demande reçue : boutons Accepter / Refuser, nom échappé', () => {
+  const h = R.friendsIncomingHtml([{ id: 'r1', handle: 'zoe', name: '<img>' }]);
+  assert.match(h, /friendRespond/); assert.ok(!h.includes('<img>'));
+  assert.match(h, /\[&quot;r1&quot;,true\]/); assert.match(h, /\[&quot;r1&quot;,false\]/);
+});
+test('fiche d\'un ami : liste privée, onglets, affiches validées', () => {
+  assert.match(R.friendViewHtml({ handle: 'zoe' }, { show_list: false, items: [] }), /friends\.private/);
+  R.FRIEND_VIEW.tab = 'encours';
+  const h = R.friendViewHtml({ handle: 'zoe' }, { show_list: true, items: [
+    { status: 'encours', title: 'A<b>', poster_path: '/ok.jpg', season: 2, episode: 3 },
+    { status: 'encours', title: 'B', poster_path: 'javascript:x' }, { status: 'avoir', title: 'C' }] });
+  assert.match(h, /S2 E3/); assert.ok(!h.includes('A<b>')); assert.ok(!h.includes('javascript:'));
+  assert.match(h, /friends\.tab\.avoir <em>1<\/em>/);
+});
+test('refus, retrait et blocage silencieux côté base', () => {
+  const sql = read('supabase/migrations/20261026120000_social_pseudo_amis.sql');
+  assert.match(sql, /status = 'declined'/);
+  assert.match(sql, /r\.from_profile = p_profile_id and r\.expires_at > now\(\)/); /* l'expéditeur voit toujours « en attente » */
+});

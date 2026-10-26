@@ -2169,6 +2169,40 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 .iv-copy{flex:none;padding:8px 14px;border:0;border-radius:999px;background:rgba(92,200,255,.14);color:#5cc8ff;font:800 13px 'Inter',sans-serif;cursor:pointer;transition:background .2s,color .2s}.iv-copy:hover{background:rgba(92,200,255,.24)}.iv-copy.ok{background:#5cc8ff;color:#06070a}
 .iv-acts{display:flex;gap:10px;margin-top:12px}.iv-acts .soc-cta{flex:1;margin:0;width:auto}
 @media (prefers-reduced-motion:reduce){.fr-badge.pop,.fr-list li,.fr-live,.fr-ghosts i,.qr-ring,.qr-svg g rect,.qr-logo{animation:none!important}.fr-list li,.qr-svg g rect{opacity:1;transform:none}}
+/* ===== Social : demandes reçues et fiche d'un ami (js/34-friend-requests.js) ===== */
+.rq-list{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:8px}
+.rq{position:relative;display:flex;align-items:center;gap:12px;padding:12px;border-radius:20px;background:linear-gradient(135deg,rgba(92,200,255,.12),rgba(58,123,255,.06));border:1px solid rgba(92,200,255,.25);overflow:hidden;animation:rqIn .5s calc(var(--i,0)*80ms) var(--p3-spring) both}
+@keyframes rqIn{from{opacity:0;transform:translateX(40px)}60%{transform:translateX(-5px)}}
+.rq-avs{position:relative;width:62px;height:44px;flex:none}.rq-avs .fr-av{position:absolute;top:0;transition:transform .45s var(--p3-spring),opacity .3s}
+.rq-them{left:0;z-index:1}.rq-me{left:18px;opacity:0;transform:translateX(16px) scale(.7)}
+.rq-check{position:absolute;left:12px;top:4px;z-index:2;width:36px;height:36px;border-radius:50%;background:#5cc8ff;display:grid;place-items:center;transform:scale(0);box-shadow:0 0 0 0 rgba(92,200,255,.6)}
+.rq-check svg{width:20px;height:20px;fill:none;stroke:#06070a;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24}
+.rq.joined .rq-them{transform:translateX(-4px)}.rq.joined .rq-me{opacity:1;transform:translateX(0)}
+.rq.joined .rq-check{animation:rqBurst .5s .3s var(--p3-spring) forwards}.rq.joined .rq-check svg{animation:hdDraw .3s .55s var(--p3-ease) forwards}
+@keyframes rqBurst{0%{transform:scale(0)}60%{transform:scale(1.2);box-shadow:0 0 0 14px rgba(92,200,255,0)}100%{transform:scale(1);box-shadow:0 0 0 18px rgba(92,200,255,0)}}
+.rq.gone{animation:rqOut .3s var(--p3-ease) forwards}@keyframes rqOut{to{opacity:0;transform:translateX(-30px);height:0;padding:0;margin:0}}
+.rq-txt{flex:1;min-width:0;display:grid;gap:2px}.rq-txt b{font:800 15px 'Inter',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rq-txt span{color:rgba(240,240,240,.6);font:400 13px 'IBM Plex Sans',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rq-acts{display:flex;gap:6px;flex:none}.rq-acts button{padding:9px 14px;border-radius:999px;border:0;font:800 13px 'Inter',sans-serif;cursor:pointer;transition:background .2s,transform .3s var(--p3-spring)}
+.rq-yes{background:#5cc8ff;color:#06070a}.rq-yes:hover{background:#7ad4ff;transform:translateY(-1px)}.rq-no{background:rgba(255,255,255,.07);color:#f0f0f0}.rq-no:hover{background:rgba(255,255,255,.13)}
+.rq.joined .rq-acts{opacity:0;transition:opacity .2s}
+.soc-wrap.fv-wrap{width:620px}
+.fv-head{position:relative;display:flex;align-items:center;gap:14px;margin:0 40px 18px 0}.fv-head .fv-av{width:60px;height:60px;font-size:26px;box-shadow:0 0 0 3px #16161a,0 0 0 5px rgba(92,200,255,.5)}
+.fv-more{margin-left:auto;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.07);color:#f0f0f0;font:900 18px 'Inter',sans-serif;cursor:pointer}
+.fv-menu{position:absolute;right:0;top:44px;z-index:3;display:grid;min-width:160px;padding:6px;border-radius:16px;background:rgba(30,30,36,.98);border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 50px rgba(0,0,0,.5);animation:p3Pop .25s var(--p3-spring)}
+.fv-menu[hidden]{display:none}
+.fv-menu button{padding:10px 12px;border:0;border-radius:10px;background:none;color:#f0f0f0;text-align:left;font:600 14px 'Inter',sans-serif;cursor:pointer}.fv-menu button:hover{background:rgba(255,255,255,.07)}.fv-menu .dng{color:#ff8a8a}
+.fv-tabs{display:flex;gap:6px;margin-bottom:14px;overflow:auto}.fv-tabs button{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:none;color:rgba(240,240,240,.7);font:700 13px 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.fv-tabs button.on{background:#f0f0f0;color:#0a0a0c}.fv-tabs em{font-style:normal;opacity:.55;margin-left:2px}
+.fv-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:16px 12px}
+.fv-grid li{min-width:0;opacity:0;animation:frIn .4s calc(var(--i)*30ms) var(--p3-ease) forwards}.fv-grid b{display:block;margin-top:6px;font:700 12.5px 'Inter',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fv-grid li>span{color:rgba(240,240,240,.5);font:400 11.5px 'IBM Plex Sans',sans-serif}
+.fv-p{aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.05);display:grid;place-items:center;font:900 28px 'Inter',sans-serif;color:rgba(240,240,240,.3)}.fv-p img{width:100%;height:100%;object-fit:cover}
+.fv-skel{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:12px}.fv-skel i{aspect-ratio:2/3;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.09),rgba(255,255,255,.04));background-size:200% 100%;animation:fvSk 1.2s linear infinite}@keyframes fvSk{to{background-position:-200% 0}}
+.fv-priv{text-align:center;color:rgba(240,240,240,.55);padding:30px 0}
+.fv-confirm{position:absolute;inset:auto 0 0 0;padding:20px;border-radius:24px 24px 0 0;background:rgba(30,30,36,.98);border-top:1px solid rgba(255,255,255,.1);animation:shUp .3s var(--p3-ease)}.fv-confirm p{margin:0 0 12px;color:rgba(240,240,240,.65);line-height:1.45}.fv-confirm b{color:#f0f0f0}
+.soc-cta.dng{background:#ff6b6b;color:#0a0a0c}.soc-cta.dng:hover{background:#ff8a8a}
+.fr-blk{margin-top:18px}.fr-blk summary{cursor:pointer;color:rgba(240,240,240,.5);font:700 12.5px 'Inter',sans-serif;padding:6px 4px}.fr-ub{flex:none;padding:7px 12px}
+@media (max-width:768px){.soc-mbk{grid-template-columns:minmax(0,1fr)}.soc-wrap.fv-wrap{width:100%;min-width:0}.rq{flex-wrap:wrap}.rq-acts{width:100%}.rq-acts button{flex:1}.fv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){.rq,.rq.gone,.fv-grid li,.fv-skel i,.fv-menu,.fv-confirm,.rq.joined .rq-check,.rq.joined .rq-check svg{animation:none!important}.fv-grid li{opacity:1}.rq.joined .rq-check{transform:scale(1)}.rq.joined .rq-check svg{stroke-dashoffset:0}.rq-avs .fr-av{transition:none}}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
@@ -2964,5 +2998,6 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 <script src="js/32-handle.js"></script>
 <script src="/vendor/qrcode-generator-1.4.4.js" integrity="sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k" crossorigin="anonymous"></script>
 <script src="js/33-friends.js"></script>
+<script src="js/34-friend-requests.js"></script>
 </body>
 </html>
