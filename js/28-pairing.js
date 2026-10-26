@@ -194,7 +194,8 @@ function maybeShowOnboarding(user){
   var created=Date.parse(user.created_at||'');
   if(!(created>0)||Date.now()-created>ONB_FRESH_MS)return;
   try{localStorage.setItem(key,'1');}catch(e){}
-  showOnboarding();
+  /* Pseudo d'abord (js/32-handle.js), puis la fenêtre d'accueil */
+  if(typeof handleOnboardFirst==='function')handleOnboardFirst(showOnboarding);else showOnboarding();
 }
 /* Fenêtre d'accueil. Tant que l'extension n'est pas publiée (EXT_STORE_URL vide), les étapes et le bouton
    de l'extension sont masqués ; dès que l'URL est renseignée, elles reviennent et le bouton ouvre la fiche

@@ -526,6 +526,7 @@ var AUTH_VIEWS={
       return '<div class="auth-account-row"><span class="sync-dot '+(online?'synced':'offline')+'" id="authAccountDot"></span><span class="auth-account-email" id="authAccountEmail">'+esc(authUser.email||'')+'</span></div>'+
         '<div class="auth-sync-info" id="authSyncInfo">'+esc(pending?tn('auth.account.pending',pending):t('auth.account.allSynced'))+'</div>'+
         '<div class="auth-menu">'+
+        (typeof handleAccountRow==='function'?handleAccountRow():'')+
         _accBtn('syncNow',esc(t('auth.account.syncNow')),'<path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>')+
         _accBtn(['authGo','changePassword'],esc(t('auth.account.changePw')),'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>')+
         _accBtn(['authGo','changeEmail'],esc(t('auth.account.changeEmail')),'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/>')+
