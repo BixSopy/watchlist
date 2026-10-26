@@ -218,7 +218,7 @@ var GDPR_CORE=(function(){
     if(/tvtime-movies/.test(f)){if(ttFalse(pick(o,['is watched','watched'])))return null;return ttMovie(o);}
     if(/tvtime-series-episodes|tvtime-episodes/.test(f)){
       if(!ttTrue(pick(o,['is watched','watched'])))return null;
-      return ttEpisode(o,null,ttInt(pick(o,['series tvdb id','show tvdb id','tvdb show id','series id','show id'])));
+      return ttEpisode(o,pick(o,TT_SHOW)||pick(o,['title']),ttInt(pick(o,['series tvdb id','show tvdb id','tvdb show id','series id','show id'])));/* export réel : « title » = nom de la SÉRIE */
     }
     if(/seen_episode/.test(f))return ttEpisode(o,null,ttInt(pick(o,TT_SHOWID)));
     if(key){

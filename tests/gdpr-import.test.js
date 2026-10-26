@@ -105,3 +105,12 @@ test('liens officiels, câblage et confidentialité (aucun envoi du fichier)', (
   const src = read('js/27-gdpr-import.js');
   assert.doesNotMatch(src, /fetch\(|XMLHttpRequest|sendBeacon|supa\./, 'le fichier n\'est jamais envoyé');
 });
+
+test('TV Time Out : tvtime-series-episodes.csv réel (« title » = nom de la série, trakt-web fixture)', () => {
+  const csv = 'series_tvdb_id,series_imdb_id,series_uuid,title,season,episode,tvdb_id,is_watched,watched_at,rewatch_count,special\n'
+    + '346328,,u0,Elite,1,1,6671792,true,2019-10-04 03:43:42,0,false\n'
+    + '346328,,u1,Elite,6,1,9367539,false,,0,false\n'
+    + '248736,,u8,Grimm,1,1,4099457,true,2018-07-15 04:59:42,0,false\n';
+  const ev = G.tvtimeFinalize(G.parseText('tvtime', 'tvtime-series-episodes.csv', csv));
+  assert.deepStrictEqual(ev.map(e => [e.title, e.season, e.episode, e.tvdb]), [['Elite', 1, 1, 346328], ['Grimm', 1, 1, 248736]]);
+});
