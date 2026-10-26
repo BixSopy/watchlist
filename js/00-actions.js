@@ -120,6 +120,12 @@ uiOn('recapShare',function(){recapShare();});
 /* Partage en lecture seule (js/30-share.js) */
 uiOn('openShare',function(){openShare();});
 uiOn('menuShare',function(){toggleMenu();openShare();});
+/* Social : pseudo (js/32-handle.js) */
+uiOn('socClose',function(){socClose();});
+uiOn('handleInput',function(el){handleCheck(el.value);});
+uiOn('handlePick',function(el,e,h){var i=document.getElementById('hdInput');if(i)i.value=h;handleCheck(h);});
+uiOn('openHandle',function(){if(typeof closeAuthModal==='function')closeAuthModal();openHandleSheet('edit');});
+uiOn('handleSave',function(el){handleSave(el);});
 uiOn('shareClose',function(){closeShare();});
 uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
 uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});

@@ -176,6 +176,7 @@ function onAuthResolved(user){
     maybeSendWelcome(user);
     markLegacyItemsDirtyOnce(user.id);
     _onApiAuthRestored();
+    if(typeof socialLoad==='function')socialLoad();
     refreshAuthModalView();
     updateSyncStatusUI('syncing');
     syncNow();
