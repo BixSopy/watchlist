@@ -2209,6 +2209,23 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 .sp-rows{display:grid;gap:6px}.sp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 14px;border:0;border-radius:16px;background:rgba(255,255,255,.035);color:#f0f0f0;text-align:left;cursor:pointer;transition:background .2s,opacity .2s}
 .sp-row:hover:not(:disabled){background:rgba(255,255,255,.07)}.sp-row:disabled{opacity:.4;cursor:default}.sp-row b{display:block;font:700 14px 'Inter',sans-serif}.sp-row em{font:400 12.5px 'IBM Plex Sans',sans-serif;font-style:normal;color:rgba(240,240,240,.5)}
 .sp-row[aria-checked="true"] .p3-sw{background:#5cc8ff}.sp-row[aria-checked="true"] .p3-sw:after{transform:translateX(12px)}
+/* ===== Social : fil d'activité + réactions (js/36-activity-feed.js) ===== */
+.fr-toptabs{margin-top:2px}
+.act-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.act-item{opacity:0;transform:translateY(8px);animation:frIn .4s calc(var(--i,0)*45ms) var(--p3-ease) forwards}
+.act-row{border-radius:18px 18px 6px 6px}
+.act-time{flex:none;margin-left:4px;color:rgba(240,240,240,.4);font:600 11px 'IBM Plex Mono',monospace;white-space:nowrap}
+.act-reacts{display:flex;flex-wrap:wrap;gap:4px;padding:6px 10px 8px;border-radius:6px 6px 18px 18px;background:rgba(255,255,255,.02)}
+.act-react{display:inline-flex;align-items:center;gap:3px;padding:4px 9px;border:0;border-radius:999px;background:transparent;font-size:15px;line-height:1.2;cursor:pointer;transition:background .2s,transform .2s var(--p3-spring)}
+.act-react:hover{background:rgba(255,255,255,.07)}
+.act-react.on{background:rgba(92,200,255,.16)}
+.act-react em{font-style:normal;font:700 11px 'Inter',sans-serif;color:rgba(240,240,240,.6)}
+.act-react.on em{color:#5cc8ff}
+.act-react.pop{animation:actPop .4s var(--p3-spring)}
+@keyframes actPop{0%{transform:scale(.4)}55%{transform:scale(1.35)}}
+.act-skel{display:grid;gap:10px}
+.act-skel i{display:block;height:66px;border-radius:18px;background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.09),rgba(255,255,255,.04));background-size:200% 100%;animation:fvSk 1.2s linear infinite}
+@media (prefers-reduced-motion:reduce){.act-item,.act-react.pop{animation:none!important}.act-item{opacity:1;transform:none}}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
@@ -3006,5 +3023,6 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 <script src="js/33-friends.js"></script>
 <script src="js/34-friend-requests.js"></script>
 <script src="js/35-social-privacy.js"></script>
+<script src="js/36-activity-feed.js"></script>
 </body>
 </html>

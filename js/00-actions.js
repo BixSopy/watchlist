@@ -145,6 +145,9 @@ uiOn('friendConfirmYes',function(el,e,kind){el.disabled=true;friendDo(kind);});
 uiOn('friendUnblock',function(el,e,id){el.disabled=true;friendUnblock(id);});
 /* Social : visibilité (js/35-social-privacy.js) */
 uiOn('socialPrivToggle',function(el,e,k){socialPrivToggle(el,k);});
+/* Social : onglet Activité/Amis (js/33-friends.js) et réactions (js/36-activity-feed.js) */
+uiOn('friendsTopTab',function(el,e,tab){friendsTopTab(el,e,tab);});
+uiOn('reactTap',function(el,e,eventId,emoji){reactTap(el,e,eventId,emoji);});
 uiOn('shareClose',function(){closeShare();});
 uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
 uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});

@@ -1108,7 +1108,15 @@
  "privacy.ratings": "Mes notes",
  "privacy.ratingsSub": "Les étoiles que je donne",
  "privacy.activity": "Mon activité",
- "privacy.activitySub": "Ce que je regarde en ce moment",
+ "privacy.activitySub": "Ce que je regarde, dans le fil d'activité de mes amis",
  "privacy.notes": "Tes notes perso restent toujours privées.",
- "privacy.saved": "Visibilité mise à jour"
+ "privacy.saved": "Visibilité mise à jour",
+ "friends.tabActivity": "Activité",
+ "friends.tabFriends": "Amis",
+ "act.empty": "Rien pour l'instant",
+ "act.emptySub": "Ce que regardent tes amis apparaîtra ici, au fil de leurs épisodes.",
+ "act.justNow": "à l'instant",
+ "act.reactAria": "Réagir à cette activité",
+ "act.myReaction": "Ta réaction : {emoji}",
+ "act.err.generic": "Une erreur est survenue, réessaie"
 };

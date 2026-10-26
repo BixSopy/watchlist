@@ -92,6 +92,19 @@ Fonctions du schéma `public` (toutes `search_path = ''`) :
 | `api_housekeeping()` | SECURITY DEFINER | personne (appelée par `consume_api_quota`) | purge compteurs et cache expirés |
 | `watchlist_items_limite()` | trigger | — | refuse au-delà de 20 000 titres par profil |
 
+**Social étape 2 (fil d'activité + réactions, migration `20261026230000_social_activite_reactions.sql`,
+non appliquée)** — s'ajoute à la couche sociale étape 1 (pseudo + amis, migrations `20261026120000`
+et `20261026210000`), elle aussi absente des tableaux ci-dessus mais bien réelle en prod :
+
+| Fonction | Type | Appelable par | Rôle |
+|---|---|---|---|
+| `_social_log_activity(p_profile_id, p_item_id, p_kind, p_season, p_episode)` | SECURITY DEFINER | personne (appelée par `mark_watched_by_title`) | pose/regroupe un évènement du fil (fenêtre de 3 h) |
+| `get_activity_feed(p_profile_id)` | SECURITY DEFINER | authenticated | fil des amis (table `friendships`), filtré par `social_settings.show_activity` de l'auteur ; 30 jours, plafonné à 25 entrées, pas de pagination |
+| `react_to_activity(p_profile_id, p_event_id, p_emoji)` | SECURITY DEFINER | authenticated | réaction emoji fixe (6 choix), une par personne par évènement ; réponse neutre si l'activité n'est pas visible |
+
+Tables : `activity_events` (un évènement par progression regroupée), `activity_reactions` (une ligne
+par personne par évènement). RLS activée, aucun accès direct hors fonctions ci-dessus.
+
 ## Réglages du tableau de bord (à faire à la main)
 
 Voir la section « Mise en ligne publique » et « Après l'achat de cinepisode.com » du

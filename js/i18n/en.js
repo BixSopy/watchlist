@@ -1112,7 +1112,15 @@
  "privacy.ratings": "My ratings",
  "privacy.ratingsSub": "The stars I give",
  "privacy.activity": "My activity",
- "privacy.activitySub": "What I'm watching right now",
+ "privacy.activitySub": "What I'm watching, in my friends' activity feed",
  "privacy.notes": "Your personal notes always stay private.",
- "privacy.saved": "Visibility updated"
+ "privacy.saved": "Visibility updated",
+ "friends.tabActivity": "Activity",
+ "friends.tabFriends": "Friends",
+ "act.empty": "Nothing yet",
+ "act.emptySub": "What your friends are watching will show up here, episode by episode.",
+ "act.justNow": "just now",
+ "act.reactAria": "React to this activity",
+ "act.myReaction": "Your reaction: {emoji}",
+ "act.err.generic": "Something went wrong, try again"
 };

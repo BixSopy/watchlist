@@ -41,11 +41,20 @@ function friendsHeaderBtn(){
 }
 
 /* ---- Écran Amis ---- */
+var FRIENDS_TOP='activity';   /* onglet par défaut : « qu'est-ce qu'il y a de neuf » avant la liste statique */
+function friendsTopTabsHtml(){
+  return '<div class="fv-tabs fr-toptabs" role="tablist">'+
+    '<button type="button" role="tab" aria-selected="'+(FRIENDS_TOP==='activity')+'" class="'+(FRIENDS_TOP==='activity'?'on':'')+'"'+uiAct('friendsTopTab',['activity'])+'>'+esc(t('friends.tabActivity'))+'</button>'+
+    '<button type="button" role="tab" aria-selected="'+(FRIENDS_TOP==='list')+'" class="'+(FRIENDS_TOP==='list'?'on':'')+'"'+uiAct('friendsTopTab',['list'])+'>'+esc(t('friends.tabFriends'))+'</button>'+
+  '</div>';
+}
 function friendsHtml(){
   var me=SOCIAL.me||{},fr=me.friends||[],inc=me.incoming||[],out=me.outgoing||[];
   var h='<div class="fr-top"><div><h2>'+esc(t('friends.title'))+'</h2><p class="soc-sub">@'+esc(me.handle||'')+(fr.length?' · '+esc(tn('friends.count',fr.length)):'')+'</p></div>'+
     '<button type="button" class="fr-add"'+uiAct('openInvite')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'+esc(t('friends.add'))+'</button></div>';
   if(inc.length&&typeof friendsIncomingHtml==='function')h+=friendsIncomingHtml(inc);
+  h+=friendsTopTabsHtml();
+  if(FRIENDS_TOP==='activity')return h+(typeof activityFeedHtml==='function'?activityFeedHtml():'');
   if(!fr.length&&!out.length&&!inc.length){
     h+='<div class="fr-empty"><div class="fr-ghosts" aria-hidden="true"><i></i><i></i><i></i></div><h3>'+esc(t('friends.empty'))+'</h3><p class="soc-sub">'+esc(t('friends.emptySub'))+'</p>'+
       '<button type="button" class="soc-cta"'+uiAct('openInvite')+'>'+esc(t('friends.invite'))+'</button></div>';
@@ -68,11 +77,18 @@ function friendsHtml(){
   if(typeof socialPrivacyHtml==='function')h+=socialPrivacyHtml();
   return h;
 }
+function friendsTopTab(el,e,tab){
+  if(tab!==FRIENDS_TOP){FRIENDS_TOP=tab;friendsRefresh();}
+  if(tab==='activity'&&typeof activityLoad==='function')activityLoad().then(friendsRefresh);
+}
 function openFriends(){
   if(!authUser){if(typeof openAuthModal==='function')openAuthModal();return;}
   socialLoad(true).then(function(me){
     if(!SOCIAL.available||!me)return toast(t('friends.unavailable'),'nfo');
-    ensureHandle(function(){socModal(friendsHtml(),{cls:'fr-wrap',label:t('friends.title')});});
+    ensureHandle(function(){
+      socModal(friendsHtml(),{cls:'fr-wrap',label:t('friends.title')});
+      if(FRIENDS_TOP==='activity'&&typeof activityLoad==='function')activityLoad(true).then(friendsRefresh);
+    });
   });
 }
 function friendsRefresh(){var w=document.querySelector('#socMbk .fr-wrap');if(!w)return;var x=w.querySelector('.soc-x');w.innerHTML='';if(x)w.appendChild(x);w.insertAdjacentHTML('beforeend',friendsHtml());}
