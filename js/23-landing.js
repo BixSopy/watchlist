@@ -93,6 +93,18 @@ function _lpReveal(){
 var LP_TINT=[[10,30,56],[6,44,66],[30,14,30],[10,36,72],[6,40,54],[14,30,70],[4,48,60],[12,26,60],[8,44,70]];
 var LP_PLAT=[[90,14,22],[10,52,96],[96,46,10]];
 var LP_DEV=[{w:880,h:550,r:22,bz:12},{w:600,h:800,r:36,bz:14},{w:340,h:700,r:52,bz:11}];
+/* Type d'appareil du visiteur (pour le formulaire final dans le bon appareil). ?device=phone|tablet|pc force. */
+function lpDevice(){
+  try{var q=(location.search.match(/[?&]device=(phone|tablet|pc)\b/)||[])[1];if(q)return q;}catch(e){}
+  var n=navigator,w=Math.min(screen.width||innerWidth,innerWidth||9999),W=Math.max(screen.width||0,screen.height||0),coarse=false;
+  try{coarse=matchMedia('(pointer:coarse)').matches;}catch(e){}
+  var ipad=n.platform==='MacIntel'&&n.maxTouchPoints>1,ua=n.userAgent||'';
+  if(n.userAgentData&&n.userAgentData.mobile)return 'phone';
+  if(/iPad|Tablet/i.test(ua)||ipad||(/Android/i.test(ua)&&!/Mobile/i.test(ua)))return 'tablet';
+  if(/iPhone|iPod|Mobile/i.test(ua))return 'phone';
+  if(coarse)return w<600?'phone':W<=1366?'tablet':'pc';
+  return 'pc';
+}
 function _lpImgs(){
   if(_lp.imgs)return;_lp.imgs=1;
   var base=(typeof IB!=='undefined'?IB:'https://image.tmdb.org/t/p/');
@@ -119,10 +131,13 @@ function _lpJourney(){
   var fl=QA('.lp-j-far .lp-fl').map(function(e,i,a){return {e:e,far:1,a0:i/a.length*6.283+.4,k:i};})
     .concat(QA('.lp-j-near .lp-fl').map(function(e,i,a){return {e:e,far:0,a0:i/a.length*6.283+1.1,k:i+8};}));
   var exRows=QA('.lp-ex-row'),exPl=QA('.lp-ex-pl'),rsRows=QA('.lp-rs-row'),stRes=QA('.lp-st-res .lp-po'),pvRows=QA('.lp-pv span'),
-      tabs=QA('.lp-ls-tabs span'),grid=QA('.lp-ls-grid .lp-po'),nums=QA('[data-to]'),qt=Q('.lp-st-qt');
+      tabs=QA('.lp-ls-tabs span'),pill=Q('.lp-ls-pill'),imp=QA('.lp-im'),exPo=exRows.map(function(r){return r.querySelector('.lp-po');}),DV={phone:2,tablet:1,pc:0}[lpDevice()],grid=QA('.lp-ls-grid .lp-po'),nums=QA('[data-to]'),qt=Q('.lp-st-qt');
   var TY={'Dune':1,'Oppenheimer':1,'Spider-Verse':1,'Frieren':3,'One Piece':3};
-  grid.forEach(function(p){p._ty=TY[p.getAttribute('data-t')]||2;});
+  grid.forEach(function(p,i){p._ty=TY[p.getAttribute('data-t')]||2;p.style.setProperty('--k',i);});
+  if(scr[8])scr[8].setAttribute('data-dev',['pc','tablet','phone'][DV]);
   var reduced=_lpReduced(),anim=document.documentElement.classList.contains('lp-anim');
+  var shadow=Q('.lp-j-shadow'),mx=0,my=0,tmx=0,tmy=0,fine=false;try{fine=matchMedia('(pointer:fine)').matches;}catch(e){}
+  if(fine&&!reduced)addEventListener('mousemove',function(e){tmx=e.clientX/innerWidth*2-1;tmy=e.clientY/innerHeight*2-1;if(vis)req();},{passive:true});
   var tops=[],hs=[],vw=0,vh=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
   function clamp(x){return x<0?0:x>1?1:x;}
   function seg(x,a,b){return clamp((x-a)/(b-a));}
@@ -155,6 +170,8 @@ function _lpJourney(){
     /* Mue de l'appareil */
     var m=ease(seg(g,2.72,3.22))+ease(seg(g,5.72,6.22)),a0=Math.min(1,Math.floor(m)),mt=m-a0,A=LP_DEV[a0],B=LP_DEV[Math.min(2,a0+1)];
     var W=lerp(A.w,B.w,mt),H=lerp(A.h,B.h,mt),R=lerp(A.r,B.r,mt),BZ=lerp(A.bz,B.bz,mt);
+    /* Appel final : l'appareil prend la forme de celui du visiteur */
+    var mf=ease(seg(g,7.82,8.18)),F=LP_DEV[DV];if(mf>0&&DV!==2){W=lerp(W,F.w,mf);H=lerp(H,F.h,mf);R=lerp(R,F.r,mf);BZ=lerp(BZ,F.bz,mf)}
     var bw=mob?vw*.86:vw*.46,bh=mob?vh*.44:vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?64+vh*.24:vh*.52;
     var s=Math.min(bw/W,bh/H),morphing=(mt>0&&mt<1);
     if(g<1.2&&!mob){s*=lerp(1.06,1,seg(g,.3,1.2));}
@@ -163,9 +180,15 @@ function _lpJourney(){
         float=reduced?0:Math.sin(tm*.8)*4;
     if(dv._w!==W||dv._h!==H){dv._w=W;dv._h=H;dv.style.width=W.toFixed(1)+'px';dv.style.height=H.toFixed(1)+'px';dv.style.margin='0';}
     dv.style.left='0';dv.style.top='0';
-    dv.style.transform='translate3d('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float).toFixed(1)+'px,0) perspective(1800px) rotateX('+tilt.toFixed(2)+'deg) rotateY('+(spin-(mob?0:tilt*.6)).toFixed(2)+'deg) scale('+s.toFixed(4)+')';
+    /* Relief 3D en CSS : inclinaison (défilement + souris sur ordinateur), tranche, reflet, ombre au sol */
+    mx+=(tmx-mx)*.08;my+=(tmy-my)*.08;var mm=Math.abs(tmx-mx)+Math.abs(tmy-my)>.002;
+    var rx=tilt+(reduced?0:(fine?-my*7:Math.sin(g*1.7)*2.5)),ry=spin-(mob?0:tilt*.6)+(reduced?0:(fine?mx*9:Math.cos(g*1.3)*3.5));
+    dv.style.transform='translate3d('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float).toFixed(1)+'px,0) perspective(1800px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+s.toFixed(4)+')';
+    set(dv,'--sh',(50+ry*3).toFixed(1)+'%');
+    if(shadow){shadow.style.transform='translate3d('+(cx-50+ry*3*s).toFixed(1)+'px,'+(cy+H*s/2+18+float*.3+rx*1.2).toFixed(1)+'px,0) scale('+(W*s/100*(1-Math.abs(ry)/90)).toFixed(3)+','+(1+Math.abs(rx)/12).toFixed(3)+')';shadow.style.opacity=String(.75-Math.min(.35,Math.abs(float)/40));}
     set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');
-    set(dv,'--bo',1-clamp(m-1));set(dv,'--po',clamp((m-1.4)/.6));
+    var bo=1-clamp(m-1),po=clamp((m-1.4)/.6);if(DV===0){bo=lerp(bo,1,mf);po=lerp(po,0,mf);}else if(DV===1){po=lerp(po,0,mf);}
+    set(dv,'--bo',bo);set(dv,'--po',po);
     set(dv,'--gl',(110-(morphing?mt*160:0)-bell(f[1],.62,.8,.06)*160)+'%');
     /* Scènes (fondu enchaîné) */
     var RG={0:[-1,2],2:[2,3],3:[3,4],4:[4,5],5:[5,6],6:[6,7],7:[7,8],8:[8,10]};
@@ -190,11 +213,23 @@ function _lpJourney(){
     /* 2 · Extension : import, titres qui arrivent dans Détectés, validation */
     set(scr[2],'--pp',ease(seg(f[2],.02,.14)));
     exPl.forEach(function(p,i){set(p,'--ip',ease(seg(f[2],.1+i*.1,.38+i*.1)));});
-    var n=0;exRows.forEach(function(r,i){var v=ease(seg(f[2],.26+i*.07,.36+i*.07));if(v>.5)n++;set(r,'--ri',v);var okr=f[2]>.74+i*.03;if(r._ok!==okr){r._ok=okr;r.classList.toggle('ok',okr);}});
+    var n=0;exRows.forEach(function(r,i){var v=ease(seg(f[2],.12+i*.07,.22+i*.07));if(v>.5)n++;set(r,'--ri',v);var okr=f[2]>.74+i*.03;if(r._ok!==okr){r._ok=okr;r.classList.toggle('ok',okr);}});
+    /* Chaque affiche importée vole jusqu'à la vignette exacte de sa ligne puis s'y fond (FLIP) */
+    var sb=stick.getBoundingClientRect();
+    imp.forEach(function(c,i){
+      var u=reduced?1:seg(f[2],.16+i*.07,.36+i*.07),ln=reduced?1:seg(u,.86,1),tp=exPo[i];
+      if(tp)set(tp,'--ln',g>=3?1:ln);
+      var o=(u>0&&u<1&&g<3)?Math.min(1,u*5)*(1-ln):0;set(c,'opacity',o);if(o<=0||!tp)return;
+      var r=tp.getBoundingClientRect(),tx=r.left-sb.left,ty=r.top-sb.top,ts=r.width/120,e=ease(u),
+          sx=vw*(mob?.5:.58)+((i*37)%5-2)*vw*.05,sy=-vh*.25-i*20,ss=mob?.7:1.15;
+      var x=lerp(sx,tx,e),y=lerp(sy,ty,e)-Math.sin(Math.PI*e)*vh*.06,sc=lerp(ss,ts,e),rot=(1-e)*(i%2?14:-12);
+      c.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) scale('+sc.toFixed(4)+') rotate('+rot.toFixed(2)+'deg)';
+    });
     if(detN&&detN._n!==n){detN._n=n;detN.textContent=String(n);}
     /* 3 · Ma liste : filtres, saga, fiche avec les notes */
     var tb=f[3]<.16?0:f[3]<.27?1:f[3]<.38?2:f[3]<.5?3:0;
-    if(S._tb!==tb){S._tb=tb;tabs.forEach(function(e,i){e.classList.toggle('on',i===tb);});grid.forEach(function(p){p.style.opacity=(tb&&p._ty!==tb)?'.14':'';});}
+    if(S._tb!==tb){S._tb=tb;tabs.forEach(function(e,i){e.classList.toggle('on',i===tb);});grid.forEach(function(p){p.classList.toggle('off',!!(tb&&p._ty!==tb));});S._pl=0;}
+    if(pill&&!S._pl&&tabs[tb]&&tabs[tb].offsetWidth){S._pl=1;pill.style.setProperty('--px',tabs[tb].offsetLeft+'px');pill.style.setProperty('--pw',tabs[tb].offsetWidth+'px');}
     set(scr[3],'--gi',reduced?1:ease(seg(g,2.85,3.12)));set(scr[3],'--sg',seg(f[3],.52,.58)*(1-seg(f[3],.62,.66)));set(scr[3],'--fi',ease(seg(f[3],.58,.74)));
     /* 4 · Reprendre */
     set(scr[4],'--a1',ease(seg(f[4],0,.18)));set(scr[4],'--bp',1+bell(f[4],.24,.4,.07)*.1);
@@ -219,7 +254,7 @@ function _lpJourney(){
     /* 8 · Appel final */
     set(scr[8],'--ct',back(seg(f[8],0,.3)));
     /* Affiches en profondeur : orbite lente autour de l'appareil ; au chapitre 2 elles affluent vers la liste */
-    var stream=reduced?0:bell(g,2.06,2.9,.12),lx=cx-W*s*.22,ly=cy;
+    var stream=0,lx=cx,ly=cy,hw=W*s/2+40,hh=H*s/2+40;
     fl.forEach(function(p,i){
       var ang=p.a0+g*(p.far?.35:-.5)+tm*(p.far?.03:.05),rx=(mob?vw*.55:vw*(p.far?.36:.3)),ry=(mob?vh*.3:vh*(p.far?.42:.38)),
           x=cx+Math.cos(ang)*rx,y=cy+Math.sin(ang)*ry,sc=p.far?.9:1,o=p.far?.45:.9,rot=Math.sin(ang*1.3)*10;
@@ -227,6 +262,8 @@ function _lpJourney(){
       if(stream>0){var u=((f[2]*1.5+p.k/14)%1),sx=vw*(.75+((p.k*29)%30)/100),sy=-vh*.12;
         var zx=lerp(sx,lx,ease(u)),zy=lerp(sy,ly,ease(u));x=lerp(x,zx,stream);y=lerp(y,zy,stream);sc=lerp(sc,1.1-u*.8,stream);o=lerp(o,Math.sin(Math.PI*u)*(p.far?.6:1),stream);rot=lerp(rot,(1-u)*-14,stream);}
       if(!mob)o*=seg(x,vw*.5,vw*.6);
+      /* jamais par-dessus l'interface : fondu près de l'appareil */
+      var dx=Math.abs(x-cx)/hw,dy=Math.abs(y-cy)/hh;o*=seg(Math.max(dx,dy),1,1.25);
       if(reduced)o=0;
       set(p.e,'opacity',o);if(o>.01)p.e.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) translate(-50%,-50%) scale('+sc.toFixed(3)+') rotate('+rot.toFixed(2)+'deg)';
     });
