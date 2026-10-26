@@ -64,6 +64,7 @@ function friendsHtml(){
       return '<li><div class="fr-row">'+friendAvatar(o)+'<span class="fr-meta"><b>'+esc(friendName(o))+'</b><span>@'+esc(o.handle)+'</span></span><span class="fr-pend">'+esc(t('friends.pending'))+'</span></div></li>';
     }).join('')+'</ul>';
   }
+  if(typeof friendsBlockedHtml==='function')h+=friendsBlockedHtml();
   if(typeof socialPrivacyHtml==='function')h+=socialPrivacyHtml();
   return h;
 }
