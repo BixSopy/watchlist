@@ -47,7 +47,7 @@ const CSS = `:root{--bg:#0a0a0c;--t:#f0f0f0;--t2:#a1a1aa;--a:#5cc8ff}*{box-sizin
 .top{display:flex;align-items:center;justify-content:space-between;padding:18px 28px}.logo{color:var(--t);text-decoration:none;font:900 19px Inter,sans-serif;letter-spacing:-.02em}.logo em{font-style:normal;color:var(--a)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;background:var(--a);color:#06070a;font:800 15px Inter,sans-serif;text-decoration:none;transition:background .2s,transform .3s cubic-bezier(.34,1.4,.5,1)}.btn:hover{background:#7ad4ff;transform:translateY(-2px)}
 .btn.g{background:rgba(255,255,255,.07);color:var(--t);border:1px solid rgba(255,255,255,.12)}
-main{min-height:calc(100vh - 140px);display:grid;place-items:center;padding:20px}
+main{min-height:calc(100vh - 140px);display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:20px}
 .card{width:420px;max-width:100%;text-align:center;padding:40px 28px 32px;border-radius:32px;background:rgba(22,22,26,.72);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);box-shadow:0 40px 100px rgba(0,0,0,.6);animation:in .5s cubic-bezier(.34,1.4,.5,1)}
 @keyframes in{from{opacity:0;transform:translateY(16px) scale(.97)}}
 .av{width:104px;height:104px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;font:900 44px Inter,sans-serif;color:#06070a;box-shadow:0 0 0 4px rgba(10,10,12,1),0 0 0 6px rgba(92,200,255,.55),0 18px 50px rgba(92,200,255,.25)}
