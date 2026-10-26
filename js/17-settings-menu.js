@@ -7,8 +7,8 @@ function toggleMenu(){
   if(!opening)closeSettingsView();
 }
 /* Clic en dehors du menu : on le ferme. Le chemin de l'événement (composedPath) est figé au moment du clic :
-   un interrupteur qui redessine le panneau pendant le clic (Mode compact, Sons, Section Suivi repliée,
-   Config avancée Tautulli) est détaché du document quand cet écouteur passe, et e.target.closest('.opt-menu')
+   un interrupteur qui redessine le panneau pendant le clic (Mode compact, Sons, Section Suivi repliée)
+   est détaché du document quand cet écouteur passe, et e.target.closest('.opt-menu')
    renvoyait null, ce qui fermait le menu. */
 document.addEventListener('click',function(e){
   var menu=document.getElementById('optMenu');
@@ -48,7 +48,7 @@ var SET_ICONS={
   appearance:'<line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.3"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="15" cy="17" r="2.3"/>',
   reco:'<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',
   suivi:'<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>',
-  webhook:'<path d="M10 14a5 5 0 0 0 7 0l2.5-2.5a5 5 0 0 0-7-7L11 6"/><path d="M14 10a5 5 0 0 0-7 0L4.5 12.5a5 5 0 0 0 7 7L13 18"/>',
+  token:'<path d="M10 14a5 5 0 0 0 7 0l2.5-2.5a5 5 0 0 0-7-7L11 6"/><path d="M14 10a5 5 0 0 0-7 0L4.5 12.5a5 5 0 0 0 7 7L13 18"/>',
   data:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
   kbd:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h.01M11 10h.01M15 10h.01M17 10h.01M7 14h10"/>'
 };
@@ -74,59 +74,43 @@ function _rangeRow(label,hint,key,value){
 function _kbdRow(key,label){
   return '<div class="kbd-row"><div class="setting-label">'+label+'</div><div class="kbd-key">'+key+'</div></div>';
 }
-/* Bloc copiable (URL/en-têtes/gabarit JSON à coller dans Tautulli) */
-function _webhookCodeField(id,label,text){
+/* Bloc copiable (ex. le jeton de suivi auto) */
+function _tokenCodeField(id,label,text){
   return '<div class="webhook-field"><div class="webhook-field-lbl">'+label+'</div><div class="webhook-code-row">'+
     '<div class="webhook-code" id="'+id+'">'+esc(text)+'</div>'+
-    '<button type="button" class="webhook-copy-btn" '+uiAct('copyWebhook',[id])+'>'+esc(t('common.copy'))+'</button>'+
+    '<button type="button" class="webhook-copy-btn" '+uiAct('copyToken',[id])+'>'+esc(t('common.copy'))+'</button>'+
     '</div></div>';
 }
-function copyWebhookText(id){
+function copyTokenText(id){
   var el=document.getElementById(id);if(!el)return;
   var text=el.textContent;
   (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(function(){
     sfx('click');toast(t('common.copied'));
   }).catch(function(){toast(t('common.copyFailed'),'err');});
 }
-/* Section "Suivi auto" (Session 19) : un seul jeton, utilisé par l'extension navigateur
- * ET par Tautulli (Plex) -> mark_watched_by_token()/mark_watched_by_title(). Le détail
- * technique Tautulli (URL/en-têtes/gabarits) est replié par défaut : la plupart des gens
- * n'utilisent que l'extension, qui n'a besoin que du jeton tout seul. */
-var _plexWebhookAdvancedOpen=false;
-function togglePlexWebhookAdvanced(){_plexWebhookAdvancedOpen=!_plexWebhookAdvancedOpen;sfx('click');renderSettingsMenu();}
-function _plexWebhookSection(idx){
-  var html=_secOpen(idx)+_secTitle('webhook',esc(t('set.autoTrack')));
+/* Section "Suivi auto" (Session 19) : un seul jeton, collé dans l'extension navigateur
+ * (Netflix, Crunchyroll, Prime Video) pour authentifier mark_watched_by_title(). */
+function _trackTokenSection(idx){
+  var html=_secOpen(idx)+_secTitle('token',esc(t('set.autoTrack')));
   if(!supa||!authProfileId){
     html+='<div class="setting-hint">'+esc(t('set.autoTrackLogin'))+'</div>';
     html+='</div>';
     return html;
   }
-  if(!_plexWebhookTokenLoaded){
+  if(!_trackTokenLoaded){
     html+='<div class="setting-hint">'+esc(t('common.loading'))+'</div></div>';
-    loadPlexWebhookToken(function(){renderSettingsMenu();});
+    loadTrackToken(function(){renderSettingsMenu();});
     return html;
   }
-  if(!plexWebhookToken){
+  if(!trackToken){
     html+='<div class="setting-hint">'+esc(t('set.tokenIntro'))+'</div>';
-    html+='<div class="settings-action-row" data-click="genWebhookToken"><div class="setting-label">'+esc(t('set.tokenGenerate'))+'</div></div>';
+    html+='<div class="settings-action-row" data-click="genTrackToken"><div class="setting-label">'+esc(t('set.tokenGenerate'))+'</div></div>';
     html+='</div>';
     return html;
   }
-  html+=_webhookCodeField('whToken',esc(t('set.yourToken')),plexWebhookToken);
+  html+=_tokenCodeField('whToken',esc(t('set.yourToken')),trackToken);
   html+='<div class="setting-hint">'+esc(t('set.tokenHelp'))+'</div>';
-  html+='<div class="settings-action-row" data-click="toggleWebhookAdvanced"><div class="setting-label">'+esc(_plexWebhookAdvancedOpen?t('set.hide'):t('set.tautulliAdvanced'))+'</div></div>';
-  if(_plexWebhookAdvancedOpen){
-    var rpcUrl=SUPA_URL+'/rest/v1/rpc/mark_watched_by_token';
-    var headers=JSON.stringify({apikey:SUPA_KEY},null,0);
-    var bodyEp=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:'{season_num}',p_episode:'{episode_num}'},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
-    var bodyFilm=JSON.stringify({p_token:plexWebhookToken,p_tmdb_id:'{themoviedb_id}',p_season:null,p_episode:null},null,0).replace(/"\{/g,'{').replace(/\}"/g,'}');
-    html+='<div class="setting-hint">'+t('set.tautulliHelp')+'</div>';
-    html+=_webhookCodeField('whUrl','URL',rpcUrl);
-    html+=_webhookCodeField('whHeaders',esc(t('set.headers')),headers);
-    html+=_webhookCodeField('whBodyEp',esc(t('set.bodyEp')),bodyEp);
-    html+=_webhookCodeField('whBodyFilm',esc(t('set.bodyFilm')),bodyFilm);
-  }
-  html+='<div class="settings-action-row" data-click="genWebhookToken"><div class="setting-label">'+esc(t('set.tokenRegenerate'))+'</div></div>';
+  html+='<div class="settings-action-row" data-click="genTrackToken"><div class="setting-label">'+esc(t('set.tokenRegenerate'))+'</div></div>';
   html+='</div>';
   return html;
 }
@@ -203,7 +187,7 @@ function renderSettingsMenu(){
   html+=_toggleRow(esc(t('set.providers')),'','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
   html+=_toggleRow(esc(t('set.reminders')),esc(t('set.remindersHint')),'wl_reminders_global',wlSettings.wl_reminders_global==='1');
   html+='</div>';
-  html+=_plexWebhookSection(idx++);
+  html+=_trackTokenSection(idx++);
   html+=_secOpen(idx++)+_secTitle('data',esc(t('set.data')));
   html+='<div class="settings-action-row" data-click="menuAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.accountSync'))+'</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';
   if(authUser)html+='<div class="settings-action-row" data-click="menuExportAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.exportGdpr'))+'</div></div></div>';

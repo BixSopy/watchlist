@@ -301,23 +301,23 @@ function startSyncLoop(){
 }
 function stopSyncLoop(){if(syncLoopTimer){clearInterval(syncLoopTimer);syncLoopTimer=null;}}
 
-/* --- Jeton webhook Plex/Tautulli (Session 19) : voir mark_watched_by_token() côté Supabase --- */
-var plexWebhookToken=null,_plexWebhookTokenLoaded=false;
-function loadPlexWebhookToken(cb){
+/* --- Jeton de suivi auto : authentifie l'extension navigateur (mark_watched_by_title()) --- */
+var trackToken=null,_trackTokenLoaded=false;
+function loadTrackToken(cb){
   if(!supa||!authProfileId){cb&&cb();return;}
   supa.from('profiles').select('plex_webhook_token').eq('id',authProfileId).single().then(function(res){
-    if(!res.error&&res.data)plexWebhookToken=res.data.plex_webhook_token||null;
-    _plexWebhookTokenLoaded=true;
+    if(!res.error&&res.data)trackToken=res.data.plex_webhook_token||null;
+    _trackTokenLoaded=true;
     cb&&cb();
-  }).catch(function(){_plexWebhookTokenLoaded=true;cb&&cb();});
+  }).catch(function(){_trackTokenLoaded=true;cb&&cb();});
 }
-function generatePlexWebhookToken(){
+function generateTrackToken(){
   if(!supa||!authProfileId)return;
   var bytes=new Uint8Array(24);crypto.getRandomValues(bytes);
   var token=Array.prototype.map.call(bytes,function(b){return b.toString(16).padStart(2,'0');}).join('');
   supa.from('profiles').update({plex_webhook_token:token}).eq('id',authProfileId).then(function(res){
     if(res.error){toast(t('sync.tokenFailed'),'err');return;}
-    plexWebhookToken=token;sfx('done');toast(t('sync.tokenDone'));
+    trackToken=token;sfx('done');toast(t('sync.tokenDone'));
     if(typeof renderSettingsMenu==='function')renderSettingsMenu();
   });
 }
