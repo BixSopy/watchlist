@@ -126,6 +126,14 @@ uiOn('handleInput',function(el){handleCheck(el.value);});
 uiOn('handlePick',function(el,e,h){var i=document.getElementById('hdInput');if(i)i.value=h;handleCheck(h);});
 uiOn('openHandle',function(){if(typeof closeAuthModal==='function')closeAuthModal();openHandleSheet('edit');});
 uiOn('handleSave',function(el){handleSave(el);});
+/* Social : amis et invitations (js/33-friends.js) */
+uiOn('openFriends',function(){openFriends();});
+uiOn('menuAddFriend',function(){toggleMenu();openFriends();});
+uiOn('openInvite',function(){openInvite();});
+uiOn('inviteCopy',function(el){inviteCopy(el);});
+uiOn('inviteShare',function(){inviteShare();});
+uiOn('inviteNewLink',function(el){inviteNewLink(el);});
+uiOn('openFriend',function(el,e,id){if(typeof openFriend==='function')openFriend(id);});
 uiOn('shareClose',function(){closeShare();});
 uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
 uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});
