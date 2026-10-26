@@ -1038,6 +1038,7 @@
  "handle.err.dot": "No dot at the start, at the end, or two in a row",
  "handle.err.chars": "Only letters, numbers, dots or _",
  "handle.err.reserved": "This username is reserved",
+ "handle.err.check": "Couldn't check, try again",
  "handle.err.net": "Couldn't check right now, try again in a moment",
  "handle.tooSoon": "You can change it again on {date}",
  "handle.save": "Save",

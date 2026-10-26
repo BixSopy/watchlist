@@ -133,3 +133,16 @@ test('export RGPD : get_my_social par profil, null sans migration', async () => 
   assert.equal(await P.socialExportData(['p1']), null);
   assert.match(read('js/20-account.js'), /socialExportData\(/);
 });
+
+test('pseudo : réponse de check_handle -> état (bug prod 26/10 : « available » affichait « déjà pris »)', () => {
+  const V = (r, v = 'abc', mine) => H.handleCheckView(r, v, mine);
+  assert.deepStrictEqual(V({ data: { status: 'available' } }), { state: 'free', key: 'handle.free' });
+  assert.deepStrictEqual(V({ data: { status: 'available' } }, 'abc', 'abc'), { state: 'mine', key: 'handle.mine' });
+  assert.strictEqual(V({ data: { status: 'taken' } }).state, 'taken');
+  assert.deepStrictEqual(V({ data: { status: 'reserved' } }), { state: 'taken', key: 'handle.err.reserved' });
+  for (const r of [{ error: { message: 'x' } }, { data: null }, { data: { status: 'not_authenticated' } }, null])
+    assert.deepStrictEqual(V(r), { state: 'bad', key: 'handle.err.check' });
+  const sql = read('supabase/migrations/20261026120000_social_pseudo_amis.sql');
+  for (const st of ["'available'", "'taken'", "'reserved'", "'invalid'", "'not_authenticated'"]) assert.ok(sql.includes(st), st);
+  for (const f of ['js/i18n/fr.js', 'js/i18n/en.js']) assert.match(read(f), /"handle\.err\.check"/);
+});

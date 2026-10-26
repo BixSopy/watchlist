@@ -92,6 +92,17 @@ function _hdSet(state,msg,sugg){
   if(b)b.disabled=!(state==='free'||state==='mine');
   if(s)s.innerHTML=(sugg||[]).slice(0,3).map(function(x,i){return '<button type="button" class="hd-pill" style="--i:'+i+'"'+uiAct('handlePick',[x])+'>@'+esc(x)+'</button>';}).join('');
 }
+/* Réponse de check_handle -> état de l'interface. Le serveur renvoie available | taken | reserved | invalid | not_authenticated.
+   Seuls taken/reserved affichent « déjà pris » ; une erreur ou un statut inconnu affiche « impossible de vérifier ». */
+function handleCheckView(r,v,myHandle){
+  var st=r&&!r.error&&r.data&&r.data.status;
+  if(st==='available'||st==='free')return v&&v===myHandle?{state:'mine',key:'handle.mine'}:{state:'free',key:'handle.free'};
+  if(st==='mine')return {state:'mine',key:'handle.mine'};
+  if(st==='taken')return {state:'taken',key:'handle.taken'};
+  if(st==='reserved')return {state:'taken',key:'handle.err.reserved'};
+  if(st==='invalid')return {state:'bad',key:handleFormatError(v)||'handle.err.reserved'};
+  return {state:'bad',key:'handle.err.check'};
+}
 function handleCheck(raw){
   var v=handleNormalize(raw),inp=document.getElementById('hdInput');
   if(inp&&inp.value!==v){var pos=inp.selectionStart;inp.value=v;try{inp.setSelectionRange(pos,pos);}catch(_){}}
@@ -103,13 +114,9 @@ function handleCheck(raw){
   HANDLE_UI.timer=setTimeout(function(){
     supa.rpc('check_handle',{p_profile_id:authProfileId,p_handle:v}).then(function(r){
       if(seq!==HANDLE_UI.seq)return;
-      var d=r.data||{};
-      if(r.error){_hdSet('bad',t('handle.err.net'));return;}
-      if(d.status==='free')_hdSet('free',t('handle.free',{handle:v}));
-      else if(d.status==='mine')_hdSet('mine',t('handle.mine'));
-      else if(d.status==='invalid')_hdSet('bad',t(handleFormatError(v)||'handle.err.reserved'));
-      else _hdSet('taken',t('handle.taken'),d.suggestions);
-    });
+      var d=r.data||{},view=handleCheckView(r,v,SOCIAL.me&&SOCIAL.me.handle);
+      _hdSet(view.state,t(view.key,{handle:v}),view.state==='taken'?d.suggestions:undefined);
+    },function(){if(seq===HANDLE_UI.seq)_hdSet('bad',t('handle.err.check'));});
   },320);
 }
 function handleSave(el){
@@ -123,7 +130,8 @@ function handleSave(el){
     el.disabled=false;
     if(st==='too_soon')_hdSet('bad',t('handle.tooSoon',{date:new Date(r.data.next_change_at).toLocaleDateString(typeof LOCALE!=='undefined'?LOCALE:undefined)}));
     else if(st==='taken')_hdSet('taken',t('handle.taken'),r.data.suggestions);
-    else _hdSet('bad',t('handle.err.net'));
+    else if(st==='reserved')_hdSet('taken',t('handle.err.reserved'));
+    else _hdSet('bad',t('handle.err.check'));
   });
 }
 function _handleDone(){
@@ -150,5 +158,5 @@ function handleAccountRow(){
   var h=SOCIAL.me&&SOCIAL.me.handle;
   return _accBtn('openHandle',esc(h?t('handle.row',{handle:h}):t('handle.rowNone')),'<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>');
 }
-if(typeof module!=='undefined')module.exports={handleNormalize:handleNormalize,handleValid:handleValid,handleFormatError:handleFormatError,handleSuggestFrom:handleSuggestFrom,socialUnavailable:socialUnavailable};
+if(typeof module!=='undefined')module.exports={handleNormalize:handleNormalize,handleValid:handleValid,handleFormatError:handleFormatError,handleSuggestFrom:handleSuggestFrom,socialUnavailable:socialUnavailable,handleCheckView:handleCheckView};
 socialOnChange(function(){if(typeof refreshAuthModalView==='function')try{refreshAuthModalView();}catch(_){}});
