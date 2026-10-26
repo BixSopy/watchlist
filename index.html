@@ -2202,6 +2202,12 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 .fr-blk{margin-top:18px}.fr-blk summary{cursor:pointer;color:rgba(240,240,240,.5);font:700 12.5px 'Inter',sans-serif;padding:6px 4px}.fr-ub{flex:none;padding:7px 12px}
 @media (max-width:768px){.rq{flex-wrap:wrap}.rq-acts{width:100%}.rq-acts button{flex:1}.fv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){.rq,.rq.gone,.fv-grid li,.fv-skel i,.fv-menu,.fv-confirm,.rq.joined .rq-check,.rq.joined .rq-check svg{animation:none!important}.fv-grid li{opacity:1}.rq.joined .rq-check{transform:scale(1)}.rq.joined .rq-check svg{stroke-dashoffset:0}.rq-avs .fr-av{transition:none}}
+/* ===== Social : visibilité (js/35-social-privacy.js) ===== */
+.sp{margin-top:20px;padding:4px 0 0;border-top:1px solid rgba(255,255,255,.07)}.sp summary{display:flex;align-items:center;gap:8px;cursor:pointer;padding:12px 4px;font:800 14px 'Inter',sans-serif;list-style:none}.sp summary::-webkit-details-marker{display:none}
+.sp summary svg{width:16px;height:16px;fill:none;stroke:#5cc8ff;stroke-width:2}.sp>.soc-sub{font-size:13px;margin:0 4px 10px}
+.sp-rows{display:grid;gap:6px}.sp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 14px;border:0;border-radius:16px;background:rgba(255,255,255,.035);color:#f0f0f0;text-align:left;cursor:pointer;transition:background .2s,opacity .2s}
+.sp-row:hover:not(:disabled){background:rgba(255,255,255,.07)}.sp-row:disabled{opacity:.4;cursor:default}.sp-row b{display:block;font:700 14px 'Inter',sans-serif}.sp-row em{font:400 12.5px 'IBM Plex Sans',sans-serif;font-style:normal;color:rgba(240,240,240,.5)}
+.sp-row[aria-checked="true"] .p3-sw{background:#5cc8ff}.sp-row[aria-checked="true"] .p3-sw:after{transform:translateX(12px)}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
@@ -2998,5 +3004,6 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 <script src="/vendor/qrcode-generator-1.4.4.js" integrity="sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k" crossorigin="anonymous"></script>
 <script src="js/33-friends.js"></script>
 <script src="js/34-friend-requests.js"></script>
+<script src="js/35-social-privacy.js"></script>
 </body>
 </html>

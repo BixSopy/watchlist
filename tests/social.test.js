@@ -115,3 +115,21 @@ test('refus, retrait et blocage silencieux côté base', () => {
   assert.match(sql, /status = 'declined'/);
   assert.match(sql, /r\.from_profile = p_profile_id and r\.expires_at > now\(\)/); /* l'expéditeur voit toujours « en attente » */
 });
+
+/* ---- Visibilité et export RGPD (js/35-social-privacy.js) ---- */
+const P = require(path.join(ROOT, 'js', '35-social-privacy.js'));
+test('visibilité : 4 interrupteurs, notes masquées par défaut, dépendants grisés si liste privée', () => {
+  SOCIAL.me = { settings: { show_list: true, show_progress: true, show_ratings: false, show_activity: true } };
+  let h = P.socialPrivacyHtml();
+  assert.equal((h.match(/role="switch"/g) || []).length, 4);
+  assert.match(h, /aria-checked="false"[^>]*\[&quot;show_ratings&quot;\]/);
+  SOCIAL.me.settings.show_list = false; h = P.socialPrivacyHtml();
+  assert.equal((h.match(/ disabled/g) || []).length, 3);
+});
+test('export RGPD : get_my_social par profil, null sans migration', async () => {
+  global.supa = { rpc: (n, a) => Promise.resolve(n === 'get_my_social' && a.p_profile_id === 'p1' ? { data: { status: 'ok', handle: 'moi', friends: [] } } : { error: { code: 'PGRST202' } }) };
+  assert.deepEqual(await P.socialExportData(['p1', 'p2']), [{ profile_id: 'p1', handle: 'moi', friends: [] }]);
+  global.supa = { rpc: () => Promise.resolve({ error: { code: 'PGRST202' } }) };
+  assert.equal(await P.socialExportData(['p1']), null);
+  assert.match(read('js/20-account.js'), /socialExportData\(/);
+});
