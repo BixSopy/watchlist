@@ -1,7 +1,7 @@
 # Cinepisode — Suivi auto (extension navigateur)
 
 Marque automatiquement ta progression (saison/épisode) dans Cinepisode pendant
-que tu regardes, sans action manuelle. Même jeton que la synchro Plex/Tautulli.
+que tu regardes, sans action manuelle.
 
 Textes de l'extension en français et en anglais (`_locales/fr`, `_locales/en`, choisis par
 Chrome selon la langue du navigateur, anglais par défaut). L'extension n'écrit rien dans la
@@ -9,7 +9,7 @@ console : le titre regardé n'a pas à y apparaître.
 
 *English: automatically marks your progress (season/episode) in Cinepisode while you watch.
 Install: `chrome://extensions` → Developer mode → Load unpacked → `extension/`, then paste the
-token from Cinepisode (Settings › Auto-tracking (Netflix, Plex...) › Generate my token).*
+token from Cinepisode (Settings › Auto-tracking (Netflix, Crunchyroll, Prime Video) › Generate my token).*
 
 ## Historique et onglet « Détectés » (0.5.0)
 
@@ -269,7 +269,7 @@ l'expéditeur (cette extension, onglet Netflix) et la forme avant d'appeler Supa
 2. Active le **Mode développeur** (coin supérieur droit)
 3. **Charger l'extension non empaquetée** → sélectionne le dossier `extension/`
 4. Clique sur l'icône de l'extension → colle le jeton généré depuis l'app
-   (Réglages › Suivi auto (Netflix, Plex...) › Générer mon jeton)
+   (Réglages › Suivi auto (Netflix, Crunchyroll, Prime Video) › Générer mon jeton)
 
 ## Vérifier Netflix
 

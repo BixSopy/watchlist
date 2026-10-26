@@ -74,9 +74,8 @@ var _UI_SETTING_FNS={toggleCompact:function(){toggleCompact();},toggleSound:func
 uiOn('settingFn',function(el,e,name){var f=_UI_SETTING_FNS[name];if(!f)return;f();renderSettingsMenu();});
 uiOn('settingSelect',function(el,e,key){_onSettingSelect(key,el.value);});
 uiOn('settingRange',function(el,e,key){_onSettingRange(key,el.value);});
-uiOn('copyWebhook',function(el,e,id){copyWebhookText(id);});
-uiOn('genWebhookToken',function(){generatePlexWebhookToken();});
-uiOn('toggleWebhookAdvanced',function(){togglePlexWebhookAdvanced();});
+uiOn('copyToken',function(el,e,id){copyTokenText(id);});
+uiOn('genTrackToken',function(){generateTrackToken();});
 uiOn('resetDismissed',function(){resetDismissedRecos();});
 uiOn('clearDiscoveryCache',function(){clearDiscoveryCache();});
 uiOn('setLang',function(el,e,code,opts){setLang(code,opts);});

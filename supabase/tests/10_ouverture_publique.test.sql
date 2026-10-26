@@ -45,7 +45,6 @@ select pg_temp.check(not has_column_privilege('authenticated', 'public.profiles'
 select pg_temp.check(not has_column_privilege('authenticated', 'public.profiles', 'account_id', 'update'), 'account_id non modifiable');
 select pg_temp.check(has_column_privilege('authenticated', 'public.profiles', 'plex_webhook_token', 'update'), 'plex_webhook_token modifiable');
 select pg_temp.check(has_column_privilege('authenticated', 'public.profiles', 'account_id', 'insert'), 'insertion du profil (account_id) possible');
-select pg_temp.check(has_function_privilege('anon', 'public.mark_watched_by_token(text,integer,integer,integer)', 'execute'), 'webhook Plex toujours appelable (anon)');
 
 -- ---------- Quotas ----------
 set role authenticated;

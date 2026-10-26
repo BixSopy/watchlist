@@ -52,7 +52,7 @@ create table public.profiles (
   is_manager   boolean default true,
   created_at   timestamptz default now(),
   updated_at   timestamptz default now(),
-  plex_webhook_token text unique,               -- jeton webhook Tautulli -> mark_watched_by_token()
+  plex_webhook_token text unique,               -- jeton de suivi auto -> mark_watched_by_title() (extension)
   constraint profiles_account_id_key unique (account_id)
 );
 
@@ -129,66 +129,11 @@ create unique index keep_alive_une_par_heure
   on public.keep_alive ((date_trunc('hour', pinged_at at time zone 'utc')));
 
 -- -----------------------------------------------------------------------------
--- FONCTION : mark_watched_by_token — webhook Plex/Tautulli (Session 19)
--- Appelée hors session utilisateur (pas de JWT), authentifiée par un jeton
--- stocké sur le profil. SECURITY DEFINER borné à ce lookup + update ciblé.
--- -----------------------------------------------------------------------------
-create or replace function public.mark_watched_by_token(
-  p_token text,
-  p_tmdb_id integer,
-  p_season integer,
-  p_episode integer
-)
-returns boolean
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_profile_id uuid;
-  v_updated integer;
-begin
-  if p_token is null or p_token = '' or p_tmdb_id is null then
-    return false;
-  end if;
-
-  select id into v_profile_id from public.profiles where plex_webhook_token = p_token;
-  if v_profile_id is null then
-    return false;
-  end if;
-
-  if p_season is not null and p_episode is not null then
-    update public.watchlist_items
-    set saison = p_season,
-        episode = p_episode,
-        status = case when status in ('avoir','todo') then 'encours' else status end
-    where profile_id = v_profile_id
-      and tmdb_id = p_tmdb_id
-      and deleted = false
-      and (saison is null or episode is null
-           or p_season > saison
-           or (p_season = saison and p_episode >= episode));
-  else
-    update public.watchlist_items
-    set status = 'termine'
-    where profile_id = v_profile_id
-      and tmdb_id = p_tmdb_id
-      and deleted = false
-      and status <> 'termine';
-  end if;
-
-  get diagnostics v_updated = row_count;
-  return v_updated > 0;
-end;
-$$;
-
-revoke all on function public.mark_watched_by_token(text, integer, integer, integer) from public;
-grant execute on function public.mark_watched_by_token(text, integer, integer, integer) to anon, authenticated;
-
--- -----------------------------------------------------------------------------
 -- FONCTIONS : normalize_title_for_match + mark_watched_by_title — extension navigateur
--- Variante par titre de mark_watched_by_token() (pas de tmdb_id côté extension, clé TMDB
--- jamais exposée). État après 20261008120000_mark_watched_fiable.sql : titre normalisé
+-- Retrait de mark_watched_by_token() (webhook Plex/Tautulli, Session 19) le 2026-10-26 :
+-- trop complexe à configurer côté utilisateur et peu fiable. Le jeton de suivi
+-- (profiles.plex_webhook_token) reste en place, il authentifie cette fonction-ci.
+-- État après 20261008120000_mark_watched_fiable.sql : titre normalisé
 -- (minuscules, accents, ponctuation, article initial, année entre parenthèses), égalité
 -- exacte uniquement, type vérifié, résultat jsonb (updated / already_up_to_date / not_found /
 -- ambiguous / invalid_token / invalid_input).
@@ -649,8 +594,8 @@ commit;
 -- saison/épisode, ou fiche TMDB d'un nouveau titre à ajouter. Pas de dates de visionnage,
 -- pas de liste complète de ce qui a été regardé.
 --
--- Trois fonctions, toutes authentifiées par le jeton de suivi (profiles.plex_webhook_token, le
--- même que Tautulli et l'extension), SECURITY DEFINER, search_path figé, bornées au profil du
+-- Trois fonctions, toutes authentifiées par le jeton de suivi de l'extension
+-- (profiles.plex_webhook_token), SECURITY DEFINER, search_path figé, bornées au profil du
 -- jeton, exécutables par anon et authenticated. Le jeton est vérifié en un seul endroit,
 -- extension_profile_for_token() (non appelable par les clients) : le jour où l'extension aura un
 -- jeton par appareil (appairage sans copier-coller), seule cette fonction changera.
@@ -1371,7 +1316,7 @@ notify pgrst, 'reload schema';
 --    transmet aussitôt à l'extension (chrome.runtime.sendMessage, externally_connectable).
 --  * Révocation : revoked_at non nul => le jeton est refusé immédiatement partout.
 --  * L'ancien jeton de suivi (profiles.plex_webhook_token) reste accepté pendant la transition
---    (extension <= 0.7.3 et Tautulli). Il pourra être retiré pour l'extension plus tard.
+--    (extension <= 0.7.3). Il pourra être retiré plus tard.
 --  * Rejouable (idempotente). Aucune donnée supprimée.
 -- =============================================================================================
 

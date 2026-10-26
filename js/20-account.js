@@ -779,10 +779,10 @@ function exportAccountData(btn){
   supa.auth.getUser().then(function(r){
     var u=(r&&r.data&&r.data.user)||authUser;
     out.account={id:u.id,email:u.email,created_at:u.created_at,email_confirmed_at:u.email_confirmed_at||u.confirmed_at||null,last_sign_in_at:u.last_sign_in_at||null};
-    return supa.from('profiles').select('id,name,avatar,avatar_color,created_at,updated_at,plex_webhook_token').eq('account_id',u.id);
+    return supa.from('profiles').select('id,name,avatar,avatar_color,created_at,updated_at').eq('account_id',u.id);
   }).then(function(r){
     if(r.error)throw r.error;
-    out.profiles=(r.data||[]).map(function(p){var o=Object.assign({},p);o.has_tracking_token=!!o.plex_webhook_token;delete o.plex_webhook_token;return o;});
+    out.profiles=r.data||[];
     var ids=out.profiles.map(function(p){return p.id;});
     if(!ids.length)return [];
     var rows=[],page=0,size=1000;
