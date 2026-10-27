@@ -74,6 +74,9 @@ test('inscription : validation du mot de passe, consentement, puis écran « vé
   // Code à 6 chiffres reçu par email
   await page.fill('#authCode', '123456');
   await page.click('.auth-submit');
+  // Juste après l'inscription : offre (facultative) de configurer la double authentification.
+  await title(page).filter({ hasText: 'Protège ton compte' }).waitFor();
+  await page.click('text=Plus tard');
   await title(page).filter({ hasText: 'Mon compte' }).waitFor();
   const verify = db.calls.find(c => c.path === '/auth/v1/verify');
   assert.deepEqual({ email: verify.body.email, token: verify.body.token, type: verify.body.type }, { email: 'nouveau@exemple.fr', token: '123456', type: 'email' });
@@ -182,6 +185,9 @@ test('« J’ai un code » : code saisi sur un autre appareil, sans demande pré
   await page.fill('#authCode', '123456');
   await shot(page, '10-j-ai-un-code');
   await page.click('.auth-submit');
+  // Le code type="email" est accepté en premier par le serveur simulé, comme pour une inscription.
+  await title(page).filter({ hasText: 'Protège ton compte' }).waitFor();
+  await page.click('text=Plus tard');
   await title(page).filter({ hasText: 'Mon compte' }).waitFor();
   assert.equal(db.calls.find(c => c.path === '/auth/v1/verify').body.type, 'email');
   assert.deepEqual(problems, []);

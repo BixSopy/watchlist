@@ -155,10 +155,31 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .auth-menu-ic{width:30px;height:30px;border-radius:50%;background:rgba(var(--accent-rgb),.12);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;transition:background var(--tr-fast)}
 .auth-menu-btn:hover .auth-menu-ic{background:rgba(var(--accent-rgb),.2)}
 .auth-menu-ic svg{width:15px;height:15px}
+.auth-menu-label{flex:1}
+/* Pastille d'état (ligne « Double authentification » du menu de compte) */
+.auth-badge{font-size:10.5px;font-weight:700;letter-spacing:.02em;color:var(--accent);background:rgba(var(--accent-rgb),.14);border:1px solid rgba(var(--accent-rgb),.3);border-radius:999px;padding:3px 9px;flex:none;white-space:nowrap}
+.auth-badge.on{color:var(--green);background:rgba(75,232,122,.14);border-color:rgba(75,232,122,.32)}
 .auth-danger{margin-top:16px;text-align:center}
 .auth-warn{font-size:12.5px;line-height:1.6;color:#ffb3b3;background:rgba(232,75,75,.08);border:1px solid rgba(232,75,75,.25);border-radius:var(--r-md);padding:11px 13px;margin-bottom:16px}
 .auth-warn b{color:#ff8a8a}.auth-warn .auth-link{font-size:inherit}
 .auth-legal{text-align:center;font-size:11px;color:var(--text3);margin-top:14px}.auth-legal a{color:var(--text2)}
+/* Double authentification (js/37-mfa.js) : QR + secret manuel, codes de secours */
+@keyframes mfaPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes mfaFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.mfa-qr-wrap{display:flex;justify-content:center;margin-bottom:16px}
+.mfa-qr{width:184px;height:184px;background:#fff;border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow-card);animation:mfaPop .35s var(--spring)}
+.mfa-secret-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:-6px 0 18px;flex-wrap:wrap}
+.mfa-secret-row code{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.06em;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 10px;word-break:break-all}
+.mfa-codes-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.mfa-codes-grid code{font-family:'IBM Plex Mono',monospace;font-size:13.5px;letter-spacing:.03em;text-align:center;color:var(--text);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 6px;box-shadow:var(--shadow-card);animation:mfaFadeUp .3s var(--spring) backwards}
+.mfa-codes-grid code:nth-child(1){animation-delay:0ms}.mfa-codes-grid code:nth-child(2){animation-delay:25ms}
+.mfa-codes-grid code:nth-child(3){animation-delay:50ms}.mfa-codes-grid code:nth-child(4){animation-delay:75ms}
+.mfa-codes-grid code:nth-child(5){animation-delay:100ms}.mfa-codes-grid code:nth-child(6){animation-delay:125ms}
+.mfa-codes-grid code:nth-child(7){animation-delay:150ms}.mfa-codes-grid code:nth-child(8){animation-delay:175ms}
+.mfa-codes-grid code:nth-child(9){animation-delay:200ms}.mfa-codes-grid code:nth-child(10){animation-delay:225ms}
+.mfa-codes-actions{display:flex;justify-content:center;gap:18px;margin-bottom:16px}
+.mfa-codes-remaining{font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 12px;margin-bottom:14px;text-align:center}
+@media (prefers-reduced-motion:reduce){.mfa-qr,.mfa-codes-grid code{animation:none}}
 .sb-auth-msg{flex-direction:column;gap:12px;text-align:center;line-height:1.55}
 .sb-cta{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 /* PIED DE PAGE (contenu généré depuis brand.config.json) */
@@ -2752,5 +2773,6 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 <script src="js/34-friend-requests.js"></script>
 <script src="js/35-social-privacy.js"></script>
 <script src="js/36-activity-feed.js"></script>
+<script src="js/37-mfa.js"></script>
 </body>
 </html>
