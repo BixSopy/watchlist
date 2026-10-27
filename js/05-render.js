@@ -125,14 +125,15 @@ function secHtml(label,items,statusClass){
 var _heroItemId=null,_heroItems=[],_heroIdx=0,_heroTimer=null;
 /* Vrai dès qu'on choisit une vignette de « Continuer » : le balayage automatique s'arrête (js/25-home.js) */
 var _heroManual=false,_heroSig='';
-function heroStartIndex(n){return n>2?Math.floor((n-1)/2):0;}
+/* « Ce soir » s'ouvre sur le titre vu le plus récemment (liste triée du plus récent au plus ancien) */
+function heroStartIndex(n){return 0;}
 function _heroCandidates(){
   var tab=activeTab;
   return memDB.filter(function(i){
     if(i.deleted||i.status!=='encours'||!i.tmdbId)return false;
     if(tab==='film'||tab==='serie'||tab==='anime')return i.type===tab;
     return true;/* 'all', 'discover', 'calendar' et 'detectes' : toutes les series/anime/films en cours */
-  }).sort(function(a,b){return(b.lastWatchedAt||b.updatedAtLocal||b.addedAt||0)-(a.lastWatchedAt||a.updatedAtLocal||a.addedAt||0);});
+  }).sort(function(a,b){return(b.lastWatchedAt||b.addedAt||0)-(a.lastWatchedAt||a.addedAt||0);});/* vraie date de visionnage, pas la date technique de synchro */
 }
 function renderHero(){
   var band=document.getElementById('heroBand');
@@ -142,7 +143,7 @@ function renderHero(){
   if(typeof updateTabCounts==='function')updateTabCounts();
   if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;if(typeof renderContinue==='function')renderContinue([],0);if(typeof renderHomeNext==='function')renderHomeNext();return;}
   /* Nouvel ensemble de titres en cours (premier affichage, autre onglet, ajout/retrait) : on part du titre
-     du milieu pour que le carrousel soit rempli des deux côtés. Un simple réordonnancement (épisode suivant,
+     le plus récent (index 0). Un simple réordonnancement (épisode suivant,
      synchro) ne recentre pas, et un choix manuel est respecté. */
   var hsig=_heroItems.map(function(i){return i.id;}).sort().join(',');
   if(hsig!==_heroSig){_heroSig=hsig;if(!_heroManual)_heroIdx=heroStartIndex(_heroItems.length);}
@@ -183,11 +184,12 @@ function _heroSwipeInit(band){
     var n=_heroItems.length;_heroGoTo((_heroIdx+(dx<0?1:n-1))%n);
   },{passive:true});
 }
-/* « Vu il y a 2 jours » (date de dernière modification locale), vide si inconnue */
+/* « Vu il y a 2 jours » : uniquement depuis la vraie date de visionnage (lastWatchedAt), vide si
+   inconnue. Arrondi vers le bas : 18 mois = « il y a 1 an », jamais « 2 ans ». */
 function heroAgo(ts,now){
-  if(!ts)return '';var d=Math.round(((now||Date.now())-ts)/86400000);if(d<0)d=0;
+  if(!ts)return '';var d=Math.floor(((now||Date.now())-ts)/86400000);if(d<0)d=0;
   try{var rtf=new Intl.RelativeTimeFormat(LOCALE,{numeric:'auto'});
-    return t('hero.seen',{when:d<1?rtf.format(0,'day'):d<30?rtf.format(-d,'day'):d<365?rtf.format(-Math.round(d/30),'month'):rtf.format(-Math.round(d/365),'year')});}catch(e){return '';}
+    return t('hero.seen',{when:d<1?rtf.format(0,'day'):d<30?rtf.format(-d,'day'):d<365?rtf.format(-Math.max(1,Math.floor(d/30)),'month'):rtf.format(-Math.floor(d/365),'year')});}catch(e){return '';}
 }
 function _showHeroItem(idx){
   var item=_heroItems[idx];if(!item)return;
@@ -197,7 +199,7 @@ function _showHeroItem(idx){
   document.getElementById('heroMeta').innerHTML=esc(typeLbl)+(epT?' &bull; '+esc(epT):'')+(item.tmdbScore?' &bull; <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
   /* Maquette « Cinéma » : « REPRENDRE · TYPE », SxxExx · Vu il y a…, « Épisode suivant » + « Fiche » */
   var kk=document.getElementById('heroKicker');if(kk)kk.textContent=t('hero.resume')+' · '+typeLbl;
-  var ago=heroAgo(item.lastWatchedAt||item.updatedAtLocal);
+  var ago=heroAgo(item.lastWatchedAt);/* jamais updatedAtLocal : date de synchro, pas de visionnage */
   document.getElementById('heroMeta').innerHTML=(epT?esc('S'+pad(item.saison)+' · E'+pad(item.episode))+' · ':'')+esc(ago||typeLbl)+(item.tmdbScore?' · <span class="hero-score">&#9733; '+esc(String(item.tmdbScore))+'</span>':'');
   var isSer=item.type!=='film'&&item.status==='encours';
   var pl=document.getElementById('heroBtnPlay'),pls=pl.querySelector('span');if(pls)pls.textContent=isSer?t('hero.nextEp'):t('hero.resume');
