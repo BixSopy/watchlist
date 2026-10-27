@@ -76,12 +76,12 @@ test('carrousel : départ sur le plus récent (05-render.js) et barre indétermi
   assert.match(html, /prefers-reduced-motion:reduce\)\{\.cf-bar\.unk i,\.cf-card \.cf-pg\.unk i\{animation:none/);
 });
 
-test('carrousel : repère de position (point bleu, libellés FR/EN, mouvement réduit)', () => {
+test('carrousel : repère de position (point bleu sans texte, mouvement réduit)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'js/25-home.js'), 'utf8');
   const pct = new Function('idx', 'n', src.match(/function cfPosPct\(idx,n\)\{([^}]*)\}/)[1]);
   assert.deepEqual([pct(0, 10), pct(9, 10), pct(0, 1)], [0, 100, 0]);
   assert.match(html, /id="cfPosDot"/);
   assert.match(html, /\.cf-pos-t i\{[^}]*#5cc8ff/);
   assert.match(html, /prefers-reduced-motion:reduce\)\{\.cf-pos-t i/);
-  for (const l of ['fr', 'en']) { const t = fs.readFileSync(path.join(ROOT, 'js/i18n/' + l + '.js'), 'utf8'); assert.match(t, /"cont\.newest"/); assert.match(t, /"cont\.oldest"/); }
+  assert.doesNotMatch(html, /cf-pos-[lr]|cont\.(newest|oldest)/);
 });

@@ -57,8 +57,6 @@
  "home.filmInProgress": "Movie in progress",
  "home.weekEmpty": "Nothing scheduled in the next 7 days",
  "cont.title": "Continue watching",
- "cont.newest": "Most recent",
- "cont.oldest": "Oldest",
  "cont.seeAll": "See all",
  "cont.prev": "Previous",
  "cont.next": "Next",

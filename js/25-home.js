@@ -69,15 +69,11 @@ function _cfCard(item,i){
   return b;
 }
 var _cfIdx=0;
-/* Repère de position sous le carrousel : point bleu (gauche = plus récent, droite = plus ancien).
-   « Plus récent / Plus ancien » n'apparaissent que pendant qu'on fait défiler, puis s'effacent. */
-var _cfPosLast=-1,_cfPosT=null;
+/* Repère de position sous le carrousel : point bleu (gauche = plus récent, droite = plus ancien).  Aucun texte. */
 function cfPosPct(idx,n){return n>1?Math.round(idx/(n-1)*1000)/10:0;}
 function _cfPosSet(idx,n){
-  var box=document.getElementById('cfPos'),dot=document.getElementById('cfPosDot');if(!box||!dot)return;
+  var dot=document.getElementById('cfPosDot');if(!dot)return;
   dot.style.left=cfPosPct(idx,n)+'%';
-  if(_cfPosLast>=0&&idx!==_cfPosLast){box.classList.add('show');clearTimeout(_cfPosT);_cfPosT=setTimeout(function(){box.classList.remove('show');},1200);}
-  _cfPosLast=idx;
 }
 function renderContinue(items,idx){
   var band=document.getElementById('heroBand'),ring=document.getElementById('cfRing');

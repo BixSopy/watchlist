@@ -53,8 +53,6 @@
  "home.filmInProgress": "Film en cours",
  "home.weekEmpty": "Rien de prévu dans les 7 prochains jours",
  "cont.title": "Continuer",
- "cont.newest": "Plus récent",
- "cont.oldest": "Plus ancien",
  "cont.seeAll": "Tout voir",
  "cont.prev": "Précédent",
  "cont.next": "Suivant",
