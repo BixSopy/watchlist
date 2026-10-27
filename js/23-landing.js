@@ -117,7 +117,7 @@ function _lpImgs(){
   if(_lp.imgs)return;_lp.imgs=1;
   var base=(typeof IB!=='undefined'?IB:'https://image.tmdb.org/t/p/');
   document.querySelectorAll('#landing img[data-tmdb]').forEach(function(i){
-    i.addEventListener('load',function(){i.classList.add('on');},{once:true});
+    i.decoding='async';i.addEventListener('load',function(){var on=function(){i.classList.add('on');};if(i.decode)i.decode().then(on,on);else on();},{once:true});
     i.src=base+(i.getAttribute('data-w')||'w185')+i.getAttribute('data-tmdb');
   });
 }
@@ -128,7 +128,7 @@ function _lpImgs(){
    clic « Créer mon compte ». wheel/touchmove sont, eux, toujours un vrai geste de l'utilisateur. */
 function _lpImgsOnGesture(){
   if(_lp.gest)return;_lp.gest=1;
-  var ev=['wheel','touchmove'];
+  var ev=['wheel','touchmove','touchstart','keydown'];
   function go(){var J=document.querySelector('#landing [data-lp-j]');if(J&&J.getBoundingClientRect().bottom<innerHeight*.5)return;ev.forEach(function(e){removeEventListener(e,go,true);});_lpImgs();}
   ev.forEach(function(e){addEventListener(e,go,{passive:true,capture:true});});
 }
@@ -138,7 +138,13 @@ function _lpJourney(){
   var stick=Q('.lp-j-stick'),dv=Q('.lp-dv'),flash=Q('.lp-j-flash'),fly=Q('.lp-j-fly'),story=Q('.lp-j-story'),prog=Q('.lp-j-prog'),
       chs=QA('.lp-ch'),words=QA('.lp-j-w'),scr={},time=document.getElementById('lpTime'),detN=document.getElementById('lpDetN'),
       stepsLine=Q('.lp-j-steps-line i'),stepCount=Q('.lp-j-step-count'),mtext=Q('.lp-j-mtext'),
-      mtextK=mtext&&mtext.querySelector('.lp-kicker'),mtextH=mtext&&mtext.querySelector('h2'),mtextP=mtext&&mtext.querySelector('.lp-p');
+      mtextK=mtext&&mtext.querySelector('.lp-kicker'),mtextH=mtext&&mtext.querySelector('h2'),mtextP=mtext&&mtext.querySelector('.lp-p'),
+      nav=document.querySelector('#landing .lp-nav'),heroT=Q('.lp-ch[data-ch="0"] .lp-ch-t'),
+      ctaCard=Q('.lp-cta-card'),ctaHome=ctaCard&&ctaCard.parentNode,ctaMob=Q('.lp-ch[data-ch="8"] .lp-ch-t');
+  /* Mobile : le vrai formulaire sort de l'appareil et s'affiche en pleine largeur sous les 3 étapes
+     (dans un téléphone dessiné, il était trop petit). Retour dans l'appareil au-dessus de 860px. */
+  function placeCta(m){if(!ctaCard||!ctaMob||ctaCard._m===m)return;ctaCard._m=m;
+    if(m){ctaMob.appendChild(ctaCard);ctaCard.classList.add('lp-cta-m');ctaCard.setAttribute('data-dev',ctaHome.getAttribute('data-dev')||'phone');}else{ctaHome.appendChild(ctaCard);ctaCard.classList.remove('lp-cta-m');}}
   /* Étape 2 (« mon historique arrive tout seul ») : compteur qui monte en boucle avec l'icône,
      sur la même horloge que l'animation CSS (document.timeline, pas de setInterval séparé). */
   if(stepCount&&!_lpReduced()){
@@ -171,7 +177,9 @@ function _lpJourney(){
   function lerp(a,b,k){return a+(b-a)*k;}
   function set(el,k,v){var key=k;if(!el)return;var s=typeof v==='number'?v.toFixed(4):v;if(el['_'+key]===s)return;el['_'+key]=s;el.style.setProperty(k,s);}
   function measure(){
-    vw=innerWidth;vh=innerHeight;var y=scrollY||0;
+    var nw=innerWidth,nh=innerHeight;/* Mobile : la barre d'adresse qui se replie change innerHeight à chaque geste ; on garde
+       la plus grande hauteur pour une même largeur (= 100lvh en CSS), sinon tout le décor saute. */
+    if(nw<=860&&nw===vw&&Math.abs(nh-vh)<170)nh=Math.max(nh,vh);vw=nw;vh=nh;var y=scrollY||0;
     chs.forEach(function(c,i){var b=c.getBoundingClientRect();tops[i]=b.top+y;hs[i]=b.height;});
     target();
   }
@@ -198,8 +206,20 @@ function _lpJourney(){
     var mf=ease(seg(g,7.82,8.18)),F=LP_DEV[DV];if(mf>0&&DV!==2){W=lerp(W,F.w,mf);H=lerp(H,F.h,mf);R=lerp(R,F.r,mf);BZ=lerp(BZ,F.bz,mf)}
     /* Mobile, chapitre 8 : les 3 étapes passent en haut, l'appareil (et son formulaire) descend
        pour leur laisser la place — « les 3 étapes s'empilent au-dessus de l'appareil ». */
-    var ch8=mob?ease(seg(g,7.55,8.15)):0;
-    var bw=mob?vw*.86:vw*.46,bh=mob?lerp(vh*.42,vh*.32,ch8):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?lerp(60+vh*.23,vh*.76,ch8):vh*.52;
+    /* Mobile : zone réservée aux visuels, entre la barre de navigation et le texte (bandeau bas
+       ou texte du hero). Rien d'animé n'entre jamais dans la zone du texte. */
+    var aT=0,aB=vh,dvo=1;
+    if(mob){
+      var ih=innerHeight,nb=nav?nav.getBoundingClientRect().bottom:60,ab=ih-12;
+      if(mtext&&mtext.classList.contains('on'))ab=Math.min(ab,ih-(mtext.offsetHeight||Math.min(ih*.3,230))-14-14);
+      if(heroT){var hr=heroT.getBoundingClientRect();if(hr.top<ih&&hr.bottom>nb)ab=Math.min(ab,hr.top-14);}
+      if(S._ab==null||reduced)S._ab=ab;else S._ab+=(ab-S._ab)*.18;
+      aT=Math.max(56,nb)+10;aB=Math.max(aT,S._ab);
+      dvo=seg(aB-aT,120,200)*(1-seg(g,7.4,7.7));
+      set(stick,'--at',aT.toFixed(0)+'px');set(stick,'--ab',aB.toFixed(0)+'px');
+      placeCta(true);
+    }else placeCta(false);
+    var bw=mob?vw*.86:vw*.46,bh=mob?Math.max(40,(aB-aT)*.9):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?(aT+aB)/2:vh*.52;
     var s=Math.min(bw/W,bh/H),morphing=(mt>0&&mt<1);
     if(g<1.2&&!mob){s*=lerp(1.06,1,seg(g,.3,1.2));}
     if(g>8.05){s*=1+ease(seg(g,8.05,8.5))*.06;}
@@ -210,9 +230,13 @@ function _lpJourney(){
     /* Relief 3D en CSS : inclinaison (défilement + souris sur ordinateur), tranche, reflet, ombre au sol */
     mx+=(tmx-mx)*.08;my+=(tmy-my)*.08;var mm=Math.abs(tmx-mx)+Math.abs(tmy-my)>.002;
     var rx=tilt+(reduced?0:(fine?-my*7:Math.sin(g*1.7)*2.5)),ry=spin-(mob?0:tilt*.6)+(reduced?0:(fine?mx*9:Math.cos(g*1.3)*3.5));
-    dv.style.transform='translate3d('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float).toFixed(1)+'px,0) perspective(1800px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+s.toFixed(4)+')';
+    /* Mobile : transformation 2D seulement. Les rotations 3D (perspective) créaient sur Chrome Android
+       des calques composités qui échappaient au rognage du décor et élargissaient la page. */
+    if(mob){if(mt>0&&mt<1)s*=1-Math.sin(Math.PI*mt)*.06;dv.style.transform='translate('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float*.5).toFixed(1)+'px) scale('+s.toFixed(4)+')';rx=0;ry=0;}
+    else dv.style.transform='translate3d('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float).toFixed(1)+'px,0) perspective(1800px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+s.toFixed(4)+')';
+    set(dv,'opacity',dvo);
     set(dv,'--sh',(50+ry*3).toFixed(1)+'%');
-    if(shadow){shadow.style.transform='translate3d('+(cx-50+ry*3*s).toFixed(1)+'px,'+(cy+H*s/2+18+float*.3+rx*1.2).toFixed(1)+'px,0) scale('+(W*s/100*(1-Math.abs(ry)/90)).toFixed(3)+','+(1+Math.abs(rx)/12).toFixed(3)+')';shadow.style.opacity=String(.75-Math.min(.35,Math.abs(float)/40));}
+    if(shadow){shadow.style.transform='translate3d('+(cx-50+ry*3*s).toFixed(1)+'px,'+(cy+H*s/2+18+float*.3+rx*1.2).toFixed(1)+'px,0) scale('+(W*s/100*(1-Math.abs(ry)/90)).toFixed(3)+','+(1+Math.abs(rx)/12).toFixed(3)+')';shadow.style.opacity=String((.75-Math.min(.35,Math.abs(float)/40))*dvo);}
     set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');
     var bo=1-clamp(m-1),po=clamp((m-1.4)/.6);if(DV===0){bo=lerp(bo,1,mf);po=lerp(po,0,mf);}else if(DV===1){po=lerp(po,0,mf);}
     set(dv,'--bo',bo);set(dv,'--po',po);
@@ -274,9 +298,9 @@ function _lpJourney(){
     set(scr[7],'--fan',ease(seg(f[7],.02,.22)));set(scr[7],'--pv',ease(seg(f[7],.56,.68)));
     pvRows.forEach(function(r,i){set(r,'--ri',ease(seg(f[7],.6+i*.06,.7+i*.06)));});
     var so=seg(f[7],.24,.4)*(1-seg(f[7],.56,.64));
-    if(!reduced&&so>0){var st=ease(seg(f[7],.24,.42)),pw=W*s,px=mob?cx:cx+pw/2+150,py=mob?cy+40:cy-20;
+    if(!reduced&&so>0){var st=ease(seg(f[7],.24,.42)),pw=W*s,px=mob?cx:cx+pw/2+150,py=mob?cy:cy-20,stS=mob?Math.min(.8,(aB-aT)*.86/380):1;
       story.style.opacity=String(so);
-      story.style.transform='translate3d('+(lerp(cx,px,st)-110).toFixed(1)+'px,'+(lerp(cy,py,st)-190).toFixed(1)+'px,0) scale('+lerp(.4,mob?.8:1,st).toFixed(3)+') rotate('+lerp(0,7,st).toFixed(2)+'deg)';
+      story.style.transform='translate3d('+(lerp(cx,px,st)-110).toFixed(1)+'px,'+(lerp(cy,py,st)-190).toFixed(1)+'px,0) scale('+lerp(.4*stS,stS,st).toFixed(3)+') rotate('+lerp(0,7,st).toFixed(2)+'deg)';
     }else if(story.style.opacity!=='0')story.style.opacity='0';
     /* 8 · Appel final : formulaire réel dans l'appareil, ligne des 3 étapes qui se remplit au scroll */
     set(scr[8],'--ct',back(seg(f[8],0,.3)));
@@ -290,6 +314,7 @@ function _lpJourney(){
       if(stream>0){var u=((f[2]*1.5+p.k/14)%1),sx=vw*(.75+((p.k*29)%30)/100),sy=-vh*.12;
         var zx=lerp(sx,lx,ease(u)),zy=lerp(sy,ly,ease(u));x=lerp(x,zx,stream);y=lerp(y,zy,stream);sc=lerp(sc,1.1-u*.8,stream);o=lerp(o,Math.sin(Math.PI*u)*(p.far?.6:1),stream);rot=lerp(rot,(1-u)*-14,stream);}
       if(!mob)o*=seg(x,vw*.5,vw*.6);
+      else{var ph=(p.far?60:96)*1.5/2;o*=seg(aB-(y+ph),-10,30)*seg((y-ph)-aT,-10,30)*(1-seg(g,7.3,7.6));}
       /* jamais par-dessus l'interface : fondu près de l'appareil. La marge inclut la moitié de la
          plus grande dimension de l'affiche (largeur CSS clamp() + aspect-ratio 2/3, ± rotation) :
          une marge fixe (40px) ne suffisait pas pour les affiches « near » (jusqu'à 170px de large),
@@ -324,13 +349,46 @@ function _lpJourney(){
     if(vis&&!reduced)req();
   }
   function req(){if(!run){run=true;requestAnimationFrame(frame);}}
-  addEventListener('scroll',function(){if(vis){target();req();}},{passive:true});
-  addEventListener('resize',function(){measure();req();});
+  addEventListener('scroll',function(){if(vis&&!simple){target();req();}},{passive:true});
+  addEventListener('resize',function(){if(!simple){measure();req();}});
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){measure();req();});
   addEventListener('load',function(){measure();req();});
-  if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(function(es){vis=es[0].isIntersecting;if(vis){measure();req();}}).observe(S);
+  /* Mobile (≤860px) : version simple. Le décor collant multi-appareils (grands calques animés, flous,
+     écrans basculés en direct) dépassait le budget GPU des téléphones Android : écrans noirs pendant
+     1 à 4 s, appareil qui saute quand la barre de Chrome se replie. Ici, chaque chapitre reçoit une
+     image figée de son écran, pré-rendue une seule fois au chargement (copie de l'appareil dans
+     l'état final du chapitre), et le texte en dessous. Scroll natif, apparition douce (opacity /
+     transform, une seule fois). Plus aucun calcul au défilement ni au redimensionnement en hauteur. */
+  var simple=false;
+  function buildStatic(){
+    if(S._st)return;S._st=1;var keepR=reduced;reduced=true;
+    for(var i=0;i<=7;i++){
+      tgt=cur=i===0?.5:i+.92;frame(performance.now());
+      var cl=dv.cloneNode(true);cl.removeAttribute('id');[].forEach.call(cl.querySelectorAll('[id]'),function(e){e.removeAttribute('id');});
+      [].forEach.call(cl.querySelectorAll('.lp-s'),function(e){if(!(parseFloat(e.style.opacity)>0))e.parentNode.removeChild(e);else{e.style.opacity='1';e.classList.add('vis');}});
+      [].forEach.call(cl.querySelectorAll('.lp-cta-card'),function(e){e.parentNode.removeChild(e);});
+      cl.style.transform='none';cl.style.opacity='1';cl.style.position='relative';cl.classList.add('lp-dv-st');
+      var w=document.createElement('div');w.className='lp-mv';w.setAttribute('aria-hidden','true');
+      var inr=document.createElement('div');inr.className='lp-mv-in';inr._w=dv._w;inr._h=dv._h;inr.appendChild(cl);w.appendChild(inr);
+      var ch=chs[i];ch.insertBefore(w,ch.firstChild);
+    }
+    reduced=keepR;cur=-1;fitStatic();
+  }
+  function fitStatic(){QA('.lp-mv-in').forEach(function(e){var cw=e.parentNode.clientWidth||vw-24,k=Math.min(cw/e._w,(innerHeight*.5)/e._h);
+    e.style.width=e._w+'px';e.style.height=e._h+'px';e.style.transform='scale('+k.toFixed(4)+')';e.parentNode.style.height=(e._h*k).toFixed(0)+'px';});}
+  function setSimple(on){
+    if(on===simple)return;simple=on;S.classList.toggle('lp-jm',on);
+    if(on){buildStatic();placeCta(true);if(stepsLine)stepsLine.style.height='100%';
+      if(typeof IntersectionObserver!=='undefined'&&!S._io){S._io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('on','lp-in');S._io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px'});}
+      chs.forEach(function(c){if(S._io)S._io.observe(c);else c.classList.add('on','lp-in');});
+    }else{measure();req();}
+  }
+  var mq=matchMedia('(max-width:860px)');
+  addEventListener('resize',function(){var m=mq.matches;if(m!==simple)setSimple(m);else if(m&&S._fw!==innerWidth){S._fw=innerWidth;fitStatic();}});
+  if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(function(es){vis=es[0].isIntersecting&&!simple;if(vis){measure();req();}}).observe(S);
   else vis=true;
-  measure();req();
+  measure();S._fw=innerWidth;
+  if(mq.matches)setSimple(true);else req();
 }
 /* FAQ : ouverture et fermeture animées (sans JS, <details> natif) */
 function _lpFaq(){
