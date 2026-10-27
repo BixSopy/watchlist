@@ -34,10 +34,18 @@ function lpShowAuth(view){
   var sec=document.getElementById('lp-join');if(!sec)return;
   var reduced=_lpReduced();
   sec.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
-  setTimeout(function(){
-    var i=document.getElementById('authEmail');
-    if(i&&_lpHost().contains(i))try{i.focus({preventScroll:true});}catch(e){i.focus();}
-  },reduced?0:500);
+  /* Le champ email vit dans l'appareil (chapitre 8) : tant que le défilement animé (lerp) n'a pas
+     rattrapé le scroll, sa scène reste invisibility:hidden (comme les autres), et .focus() dessus
+     ne fait rien — sans erreur, sans retenter. On retente donc par intervalles le temps qu'il faille. */
+  var tries=0;
+  (function tryFocus(){
+    var i=document.getElementById('authEmail'),host=_lpHost();
+    if(i&&host&&host.contains(i)&&getComputedStyle(i).visibility!=='hidden'){
+      try{i.focus({preventScroll:true});}catch(e){i.focus();}
+      return;
+    }
+    if(++tries<50)setTimeout(tryFocus,150);
+  })();
 }
 /* Accueil → app (connexion réussie, ou liste locale ouverte sans compte) */
 function lpLeave(){
@@ -84,63 +92,228 @@ function _lpReveal(){
   els.forEach(function(el){_lp.io.observe(el);});
   document.documentElement.classList.add('lp-ready');
 }
-/* Défilement façon Apple : compteurs, et repli des effets liés au défilement (--lp-t) quand le
-   navigateur ne connaît pas animation-timeline. Lecture des positions puis écriture, une fois par image. */
-function _lpSD(){try{return !!(window.CSS&&CSS.supports('animation-timeline: view()'));}catch(e){return false;}}
-function _lpCount(el){
-  var to=+el.getAttribute('data-count')||0;if(!to)return;
-  var t0=0,d=1400;el.textContent='0';
-  function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/d);k=1-Math.pow(1-k,3);el.textContent=String(Math.round(to*k));if(k<1)requestAnimationFrame(step);}
-  requestAnimationFrame(step);
+/* Visite guidée (#lp-j) : un seul appareil épinglé qui se transforme au fil du défilement
+   (ordinateur → tablette → téléphone). La cible g (numéro de chapitre décimal) vient du scroll ; la
+   valeur affichée la rejoint en douceur (lerp) à chaque image. Boucle active seulement quand la
+   section est à l'écran (IntersectionObserver). Écritures : transform, opacity et variables CSS
+   (la taille de l'appareil ne change que pendant la mue). Mouvement réduit : une scène fixe par
+   chapitre, sans interpolation ni éléments volants. */
+var LP_TINT=[[10,30,56],[6,44,66],[30,14,30],[10,36,72],[6,40,54],[14,30,70],[4,48,60],[12,26,60],[8,44,70]];
+var LP_PLAT=[[90,14,22],[10,52,96],[96,46,10]];
+var LP_DEV=[{w:880,h:550,r:22,bz:12},{w:600,h:800,r:36,bz:14},{w:340,h:700,r:52,bz:11}];
+/* Type d'appareil du visiteur (pour le formulaire final dans le bon appareil). ?device=phone|tablet|pc force. */
+function lpDevice(){
+  try{var q=(location.search.match(/[?&]device=(phone|tablet|pc)\b/)||[])[1];if(q)return q;}catch(e){}
+  var n=navigator,w=Math.min(screen.width||innerWidth,innerWidth||9999),W=Math.max(screen.width||0,screen.height||0),coarse=false;
+  try{coarse=matchMedia('(pointer:coarse)').matches;}catch(e){}
+  var ipad=n.platform==='MacIntel'&&n.maxTouchPoints>1,ua=n.userAgent||'';
+  if(n.userAgentData&&n.userAgentData.mobile)return 'phone';
+  if(/iPad|Tablet/i.test(ua)||ipad||(/Android/i.test(ua)&&!/Mobile/i.test(ua)))return 'tablet';
+  if(/iPhone|iPod|Mobile/i.test(ua))return 'phone';
+  if(coarse)return w<600?'phone':W<=1366?'tablet':'pc';
+  return 'pc';
 }
-function _lpMotion(){
-  var r=document.documentElement;if(!r.classList.contains('lp-anim')||_lp.motion)return;_lp.motion=true;
-  var nums=document.querySelectorAll('#landing [data-count]');
-  if(typeof IntersectionObserver!=='undefined'){
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){io.unobserve(e.target);_lpCount(e.target);}});},{threshold:.6});
-    nums.forEach(function(n){io.observe(n);});
-  }
-  _lpScenes();
-  if(_lpSD())return;
-  r.classList.add('lp-nosd');
-  var stage=document.querySelector('#landing .lp-stage-3d'),hero=document.querySelector('#landing .lp-hero-in'),
-      vis=[].slice.call(document.querySelectorAll('#landing .lp-spot-vis')),tick=false;
-  function frame(){
-    tick=false;if(!lpIsGuest())return;
-    var vh=innerHeight,y=scrollY||0,out=[];
-    if(stage){out.push([stage,Math.max(0,Math.min(1,y/600))]);}
-    if(hero)out.push([hero,Math.max(0,Math.min(1,y/640))]);
-    vis.forEach(function(v){var b=v.parentNode.getBoundingClientRect();out.push([v,Math.max(0,Math.min(1,(vh-b.top)/(vh+b.height)))]);});
-    out.forEach(function(o){o[0].style.setProperty('--lp-t',o[1].toFixed(4));});
-  }
-  function req(){if(!tick){tick=true;requestAnimationFrame(frame);}}
-  addEventListener('scroll',req,{passive:true});addEventListener('resize',req);frame();
+function _lpImgs(){
+  if(_lp.imgs)return;_lp.imgs=1;
+  var base=(typeof IB!=='undefined'?IB:'https://image.tmdb.org/t/p/');
+  document.querySelectorAll('#landing img[data-tmdb]').forEach(function(i){
+    i.addEventListener('load',function(){i.classList.add('on');},{once:true});
+    i.src=base+(i.getAttribute('data-w')||'w185')+i.getAttribute('data-tmdb');
+  });
 }
-/* Scènes V3 : progression --p (0 → 1) des sections [data-lp-p] et [data-lp-pin], étape de la section
-   épinglée, sous-navigation givrée. Lecture des positions puis écriture, une fois par image. */
-function _lpScenes(){
-  var L=document.getElementById('landing');if(!L)return;
-  var pin=L.querySelector('[data-lp-pin]'),scenes=[].slice.call(L.querySelectorAll('[data-lp-p]')),
-      sub=document.getElementById('lpSubnav'),hero=L.querySelector('.lp-hero'),tick=false,last=-1;
-  var steps=pin?[].slice.call(pin.querySelectorAll('.lp-pin-step')):[],scr=pin?[].slice.call(pin.querySelectorAll('.lp-scr')):[],
-      dots=pin?[].slice.call(pin.querySelectorAll('.lp-pin-dots i')):[];
+/* Affiches TMDB : aucune ressource tierce au chargement, seulement au premier geste de défilement.
+   « wheel »/« touchmove » seulement (pas « scroll ») : un scroll peut être déclenché par le
+   navigateur lui-même (ex. focus automatique d'un champ qui scrolle pour le mettre en vue à
+   l'ouverture du panneau d'inscription), ce qui chargeait toutes les affiches à tort sur un simple
+   clic « Créer mon compte ». wheel/touchmove sont, eux, toujours un vrai geste de l'utilisateur. */
+function _lpImgsOnGesture(){
+  if(_lp.gest)return;_lp.gest=1;
+  var ev=['wheel','touchmove'];
+  function go(){var J=document.querySelector('#landing [data-lp-j]');if(J&&J.getBoundingClientRect().bottom<innerHeight*.5)return;ev.forEach(function(e){removeEventListener(e,go,true);});_lpImgs();}
+  ev.forEach(function(e){addEventListener(e,go,{passive:true,capture:true});});
+}
+function _lpJourney(){
+  var S=document.querySelector('#landing [data-lp-j]');if(!S||S._lp)return;S._lp=1;
+  var Q=function(s){return S.querySelector(s);},QA=function(s){return [].slice.call(S.querySelectorAll(s));};
+  var stick=Q('.lp-j-stick'),dv=Q('.lp-dv'),flash=Q('.lp-j-flash'),fly=Q('.lp-j-fly'),story=Q('.lp-j-story'),prog=Q('.lp-j-prog'),
+      chs=QA('.lp-ch'),words=QA('.lp-j-w'),scr={},time=document.getElementById('lpTime'),detN=document.getElementById('lpDetN'),
+      stepsLine=Q('.lp-j-steps-line i'),stepCount=Q('.lp-j-step-count');
+  /* Étape 2 (« mon historique arrive tout seul ») : compteur qui monte en boucle avec l'icône,
+     sur la même horloge que l'animation CSS (document.timeline, pas de setInterval séparé). */
+  if(stepCount&&!_lpReduced()){
+    stepCount.textContent='0';
+    (function tickCount(){
+      if(!S.isConnected)return;
+      var ph=((document.timeline&&document.timeline.currentTime)||0)%6000,v=0;
+      if(ph>=2000&&ph<4000)v=Math.round(24*((ph-2000)/2000));else if(ph>=4000)v=24;
+      if(stepCount._v!==v){stepCount._v=v;stepCount.textContent=String(v);}
+      requestAnimationFrame(tickCount);
+    })();
+  }
+  QA('.lp-s').forEach(function(e){scr[e.getAttribute('data-s')]=e;});
+  var fl=QA('.lp-j-far .lp-fl').map(function(e,i,a){return {e:e,far:1,a0:i/a.length*6.283+.4,k:i};})
+    .concat(QA('.lp-j-near .lp-fl').map(function(e,i,a){return {e:e,far:0,a0:i/a.length*6.283+1.1,k:i+8};}));
+  var exRows=QA('.lp-ex-row'),exPl=QA('.lp-ex-pl'),rsRows=QA('.lp-rs-row'),stRes=QA('.lp-st-res .lp-po'),pvRows=QA('.lp-pv span'),
+      tabs=QA('.lp-ls-tabs span'),pill=Q('.lp-ls-pill'),imp=QA('.lp-im'),exPo=exRows.map(function(r){return r.querySelector('.lp-po');}),DV={phone:2,tablet:1,pc:0}[lpDevice()],grid=QA('.lp-ls-grid .lp-po'),nums=QA('[data-to]'),qt=Q('.lp-st-qt');
+  var TY={'Dune':1,'Oppenheimer':1,'Spider-Verse':1,'Frieren':3,'One Piece':3};
+  grid.forEach(function(p,i){p._ty=TY[p.getAttribute('data-t')]||2;p.style.setProperty('--k',i);});
+  if(scr[8])scr[8].setAttribute('data-dev',['pc','tablet','phone'][DV]);
+  var reduced=_lpReduced(),anim=document.documentElement.classList.contains('lp-anim');
+  var shadow=Q('.lp-j-shadow'),mx=0,my=0,tmx=0,tmy=0,fine=false;try{fine=matchMedia('(pointer:fine)').matches;}catch(e){}
+  if(fine&&!reduced)addEventListener('mousemove',function(e){tmx=e.clientX/innerWidth*2-1;tmy=e.clientY/innerHeight*2-1;if(vis)req();},{passive:true});
+  var tops=[],hs=[],vw=0,vh=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
   function clamp(x){return x<0?0:x>1?1:x;}
-  function frame(){
-    tick=false;if(!lpIsGuest())return;
-    var vh=innerHeight,w=[];
-    if(hero&&sub)w.push(function(b){return function(){sub.classList.toggle('on',b);};}(hero.getBoundingClientRect().bottom<80));
-    scenes.forEach(function(el){var b=el.getBoundingClientRect(),
-      p=el.classList.contains('lp-huge')?clamp(-b.top/Math.max(1,b.height-vh)):clamp((vh-b.top)/(vh+b.height));
-      w.push(function(){el.style.setProperty('--p',p.toFixed(4));});});
-    if(pin){var b=pin.getBoundingClientRect(),stick=pin.querySelector('.lp-pin-stick'),
-      hd=stick&&stick.previousElementSibling,top=hd?hd.offsetTop+hd.offsetHeight:0,/* pas stick.offsetTop : il bouge une fois épinglé */p=clamp((-b.top-top)/Math.max(1,b.height-top-vh)),k=Math.min(steps.length-1,Math.floor(p*steps.length*.999));
-      w.push(function(){pin.style.setProperty('--p',p.toFixed(4));
-        if(k!==last){last=k;steps.forEach(function(s,i){s.classList.toggle('on',i===k);s.classList.toggle('past',i<k);s.setAttribute('aria-hidden',i===k?'false':'true');});
-          scr.forEach(function(s,i){s.classList.toggle('on',i===k);});dots.forEach(function(d,i){d.classList.toggle('on',i<=k);});}});}
-    w.forEach(function(f){f();});
+  function seg(x,a,b){return clamp((x-a)/(b-a));}
+  function ease(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;}
+  function back(x){var c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2);}
+  function bell(x,a,b,f){return Math.min(seg(x,a,a+f),1-seg(x,b-f,b));}
+  function lerp(a,b,k){return a+(b-a)*k;}
+  function set(el,k,v){var key=k;if(!el)return;var s=typeof v==='number'?v.toFixed(4):v;if(el['_'+key]===s)return;el['_'+key]=s;el.style.setProperty(k,s);}
+  function measure(){
+    vw=innerWidth;vh=innerHeight;var y=scrollY||0;
+    chs.forEach(function(c,i){var b=c.getBoundingClientRect();tops[i]=b.top+y;hs[i]=b.height;});
+    target();
   }
-  function req(){if(!tick){tick=true;requestAnimationFrame(frame);}}
-  addEventListener('scroll',req,{passive:true});addEventListener('resize',req);frame();
+  function target(){
+    var y=(scrollY||0)+vh*.38,g=0;
+    for(var i=0;i<chs.length;i++){if(y>=tops[i])g=i+clamp((y-tops[i])/hs[i]);}
+    if(y<tops[0])g=0;
+    if(reduced)g=Math.min(chs.length-1,Math.floor(g))+.92;
+    tgt=Math.min(g,chs.length-.001);
+  }
+  function frame(now){
+    run=false;if(!lpIsGuest())return;
+    if(cur<0||reduced)cur=tgt;else{cur+=(tgt-cur)*.09;if(Math.abs(tgt-cur)<.0005)cur=tgt;}
+    var g=cur,tm=(now-T0)/1000,mob=vw<=860,f=[];
+    for(var i=0;i<9;i++)f[i]=clamp(g-i);
+    /* Teinte du chapitre (et des plateformes au chapitre 2) */
+    var c0=Math.min(8,Math.floor(g)),c1=Math.min(8,c0+1),k=ease(seg(g-c0,.7,1)),tint=LP_TINT[c0].map(function(v,j){return lerp(v,LP_TINT[c1][j],k);});
+    if(c0===2){var pk=f[2]*3-.2,a=Math.max(0,Math.min(2,Math.floor(pk))),b=Math.min(2,a+1),w=clamp(pk-a),pc=LP_PLAT[a].map(function(v,j){return lerp(v,LP_PLAT[b][j],w);}),ww=bell(f[2],.08,.8,.12);tint=tint.map(function(v,j){return lerp(v,pc[j],ww);});}
+    set(S,'--tint',tint.map(Math.round).join(','));
+    /* Mue de l'appareil */
+    var m=ease(seg(g,2.72,3.22))+ease(seg(g,5.72,6.22)),a0=Math.min(1,Math.floor(m)),mt=m-a0,A=LP_DEV[a0],B=LP_DEV[Math.min(2,a0+1)];
+    var W=lerp(A.w,B.w,mt),H=lerp(A.h,B.h,mt),R=lerp(A.r,B.r,mt),BZ=lerp(A.bz,B.bz,mt);
+    /* Appel final : l'appareil prend la forme de celui du visiteur */
+    var mf=ease(seg(g,7.82,8.18)),F=LP_DEV[DV];if(mf>0&&DV!==2){W=lerp(W,F.w,mf);H=lerp(H,F.h,mf);R=lerp(R,F.r,mf);BZ=lerp(BZ,F.bz,mf)}
+    /* Mobile, chapitre 8 : les 3 étapes passent en haut, l'appareil (et son formulaire) descend
+       pour leur laisser la place — « les 3 étapes s'empilent au-dessus de l'appareil ». */
+    var ch8=mob?ease(seg(g,7.55,8.15)):0;
+    var bw=mob?vw*.86:vw*.46,bh=mob?lerp(vh*.42,vh*.32,ch8):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?lerp(60+vh*.23,vh*.76,ch8):vh*.52;
+    var s=Math.min(bw/W,bh/H),morphing=(mt>0&&mt<1);
+    if(g<1.2&&!mob){s*=lerp(1.06,1,seg(g,.3,1.2));}
+    if(g>8.05){s*=1+ease(seg(g,8.05,8.5))*.06;}
+    var tilt=reduced?0:(1-ease(seg(g,.2,1.05)))*14,spin=reduced?0:Math.sin(Math.PI*(mt))*(a0?-1:1)*16,
+        float=reduced?0:Math.sin(tm*.8)*4;
+    if(dv._w!==W||dv._h!==H){dv._w=W;dv._h=H;dv.style.width=W.toFixed(1)+'px';dv.style.height=H.toFixed(1)+'px';dv.style.margin='0';}
+    dv.style.left='0';dv.style.top='0';
+    /* Relief 3D en CSS : inclinaison (défilement + souris sur ordinateur), tranche, reflet, ombre au sol */
+    mx+=(tmx-mx)*.08;my+=(tmy-my)*.08;var mm=Math.abs(tmx-mx)+Math.abs(tmy-my)>.002;
+    var rx=tilt+(reduced?0:(fine?-my*7:Math.sin(g*1.7)*2.5)),ry=spin-(mob?0:tilt*.6)+(reduced?0:(fine?mx*9:Math.cos(g*1.3)*3.5));
+    dv.style.transform='translate3d('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float).toFixed(1)+'px,0) perspective(1800px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+s.toFixed(4)+')';
+    set(dv,'--sh',(50+ry*3).toFixed(1)+'%');
+    if(shadow){shadow.style.transform='translate3d('+(cx-50+ry*3*s).toFixed(1)+'px,'+(cy+H*s/2+18+float*.3+rx*1.2).toFixed(1)+'px,0) scale('+(W*s/100*(1-Math.abs(ry)/90)).toFixed(3)+','+(1+Math.abs(rx)/12).toFixed(3)+')';shadow.style.opacity=String(.75-Math.min(.35,Math.abs(float)/40));}
+    set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');
+    var bo=1-clamp(m-1),po=clamp((m-1.4)/.6);if(DV===0){bo=lerp(bo,1,mf);po=lerp(po,0,mf);}else if(DV===1){po=lerp(po,0,mf);}
+    set(dv,'--bo',bo);set(dv,'--po',po);
+    set(dv,'--gl',(110-(morphing?mt*160:0)-bell(f[1],.62,.8,.06)*160)+'%');
+    /* Scènes (fondu enchaîné) */
+    var RG={0:[-1,2],2:[2,3],3:[3,4],4:[4,5],5:[5,6],6:[6,7],7:[7,8],8:[8,10]};
+    Object.keys(RG).forEach(function(key){var e=scr[key];if(!e)return;var r=RG[key],o=Math.min(seg(g,r[0]-.08,r[0]+.08),1-seg(g,r[1]-.08,r[1]+.08));
+      if(reduced)o=(g>=r[0]&&g<r[1])?1:0;set(e,'opacity',o);var v=o>.001;if(e._v!==v){e._v=v;e.classList.toggle('vis',v);}});
+    /* Grands mots */
+    words.forEach(function(w,i){var o=bell(g,i-.15,i+1.1,.3)*(mob?.7:1),x=(.5-clamp((g-i+.15)/1.25))*(reduced?0:24);
+      set(w,'opacity',o);if(o>0)w.style.transform='translate3d('+x.toFixed(2)+'vw,'+(mob?'-14vh':'0')+',0) scale('+(1+.06*clamp(g-i)).toFixed(3)+')';});
+    /* 1 · Lecteur : la barre suit le défilement ; à 80 % la coche */
+    var pg=f[1]<.67?seg(f[1],.04,.67)*.8:.8+seg(f[1],.67,1)*.14;
+    set(scr[0],'--pg',pg);
+    var sec=Math.round(pg*2512);if(time){var tx=('0'+Math.floor(sec/60)).slice(-2)+':'+('0'+sec%60).slice(-2);if(time._t!==tx){time._t=tx;time.textContent=tx;}}
+    var okIn=seg(f[1],.67,.71),ok=Math.min(back(okIn),1.15)*(1-seg(f[1],.84,.9));
+    set(scr[0],'--ok',okIn?Math.max(0,ok):0);set(scr[0],'--rp',seg(f[1],.67,.79));
+    var dt=ease(seg(f[1],.74,.8));set(scr[0],'--dt',dt);
+    var ft=seg(f[1],.78,.92);set(scr[0],'--cd',seg(ft,.8,1));
+    set(flash,'opacity',reduced?0:bell(f[1],.66,.82,.05)*.9);flash.style.transform='scale('+(.3+seg(f[1],.66,.8)*1.2).toFixed(3)+')';
+    if(!reduced&&ft>0&&ft<1){var sx=cx,sy=cy,ex=cx+(W/2-14-130)*s,ey=cy+(-H/2+34+14+62)*s,ff=ease(ft);
+      fly.style.opacity=String(Math.min(1,ft*6)*(1-seg(ft,.82,1)));
+      fly.style.transform='translate3d('+(lerp(sx,ex,ff)-110).toFixed(1)+'px,'+(lerp(sy,ey,ff)-30-Math.sin(Math.PI*ff)*90*s).toFixed(1)+'px,0) scale('+lerp(1.5,.8,ff).toFixed(3)+') rotate('+(Math.sin(Math.PI*ff)*-8).toFixed(2)+'deg)';
+    }else if(fly.style.opacity!=='0')fly.style.opacity='0';
+    /* 2 · Extension : import, titres qui arrivent dans Détectés, validation */
+    set(scr[2],'--pp',ease(seg(f[2],.02,.14)));
+    exPl.forEach(function(p,i){set(p,'--ip',ease(seg(f[2],.1+i*.1,.38+i*.1)));});
+    var n=0;exRows.forEach(function(r,i){var v=ease(seg(f[2],.12+i*.07,.22+i*.07));if(v>.5)n++;set(r,'--ri',v);var okr=f[2]>.74+i*.03;if(r._ok!==okr){r._ok=okr;r.classList.toggle('ok',okr);}});
+    /* Chaque affiche importée vole jusqu'à la vignette exacte de sa ligne puis s'y fond (FLIP) */
+    var sb=stick.getBoundingClientRect();
+    imp.forEach(function(c,i){
+      var u=reduced?1:seg(f[2],.16+i*.07,.36+i*.07),ln=reduced?1:seg(u,.86,1),tp=exPo[i];
+      if(tp)set(tp,'--ln',g>=3?1:ln);
+      var o=(u>0&&u<1&&g<3)?Math.min(1,u*5)*(1-ln):0;set(c,'opacity',o);if(o<=0||!tp)return;
+      var r=tp.getBoundingClientRect(),tx=r.left-sb.left,ty=r.top-sb.top,ts=r.width/120,e=ease(u),
+          sx=vw*(mob?.5:.58)+((i*37)%5-2)*vw*.05,sy=-vh*.25-i*20,ss=mob?.7:1.15;
+      var x=lerp(sx,tx,e),y=lerp(sy,ty,e)-Math.sin(Math.PI*e)*vh*.06,sc=lerp(ss,ts,e),rot=(1-e)*(i%2?14:-12);
+      c.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) scale('+sc.toFixed(4)+') rotate('+rot.toFixed(2)+'deg)';
+    });
+    if(detN&&detN._n!==n){detN._n=n;detN.textContent=String(n);}
+    /* 3 · Ma liste : filtres, saga, fiche avec les notes */
+    var tb=f[3]<.16?0:f[3]<.27?1:f[3]<.38?2:f[3]<.5?3:0;
+    if(S._tb!==tb){S._tb=tb;tabs.forEach(function(e,i){e.classList.toggle('on',i===tb);});grid.forEach(function(p){p.classList.toggle('off',!!(tb&&p._ty!==tb));});S._pl=0;}
+    if(pill&&!S._pl&&tabs[tb]&&tabs[tb].offsetWidth){S._pl=1;pill.style.setProperty('--px',tabs[tb].offsetLeft+'px');pill.style.setProperty('--pw',tabs[tb].offsetWidth+'px');}
+    set(scr[3],'--gi',reduced?1:ease(seg(g,2.85,3.12)));set(scr[3],'--sg',seg(f[3],.52,.58)*(1-seg(f[3],.62,.66)));set(scr[3],'--fi',ease(seg(f[3],.58,.74)));
+    /* 4 · Reprendre */
+    set(scr[4],'--a1',ease(seg(f[4],0,.18)));set(scr[4],'--bp',1+bell(f[4],.24,.4,.07)*.1);
+    rsRows.forEach(function(r,i){set(r,'--ri',ease(seg(f[4],.3+i*.12,.44+i*.12)));});
+    /* 5 · Stats, recherche en langage naturel, recommandations */
+    var ct=ease(seg(f[5],.02,.4));nums.forEach(function(e){var to=+e.getAttribute('data-to'),inStats=!!e.closest('.lp-s-st'),
+      v=Math.round(to*(inStats?ct:ease(seg(f[7],.05,.35))));if(e._v!==v){e._v=v;e.textContent=v>=1000?String(v).replace(/\B(?=(\d{3})+(?!\d))/g,'\u202f'):String(v);}});
+    set(scr[5],'--bv',ease(seg(f[5],.12,.42)));set(scr[5],'--q',seg(f[5],.44,.5));
+    if(qt){if(!qt._full||qt._lang!==document.documentElement.lang){qt._full=t('lp.j.query');qt._lang=document.documentElement.lang;qt._c=-1;}
+      var nc=Math.round(qt._full.length*seg(f[5],.5,.7));if(reduced)nc=qt._full.length;if(qt._c!==nc){qt._c=nc;qt.textContent=qt._full.slice(0,nc);}}
+    stRes.forEach(function(r,i){set(r,'--ri',ease(seg(f[5],.72+i*.05,.84+i*.05)));});
+    /* 6 · Synchronisé */
+    set(scr[6],'--sy',back(seg(f[6],.28,.42))*(1-seg(f[6],.9,1)*0));set(scr[6],'--gi',1);
+    /* 7 · Récap en story (la carte sort du téléphone), puis confidentialité */
+    set(scr[7],'--fan',ease(seg(f[7],.02,.22)));set(scr[7],'--pv',ease(seg(f[7],.56,.68)));
+    pvRows.forEach(function(r,i){set(r,'--ri',ease(seg(f[7],.6+i*.06,.7+i*.06)));});
+    var so=seg(f[7],.24,.4)*(1-seg(f[7],.56,.64));
+    if(!reduced&&so>0){var st=ease(seg(f[7],.24,.42)),pw=W*s,px=mob?cx:cx+pw/2+150,py=mob?cy+40:cy-20;
+      story.style.opacity=String(so);
+      story.style.transform='translate3d('+(lerp(cx,px,st)-110).toFixed(1)+'px,'+(lerp(cy,py,st)-190).toFixed(1)+'px,0) scale('+lerp(.4,mob?.8:1,st).toFixed(3)+') rotate('+lerp(0,7,st).toFixed(2)+'deg)';
+    }else if(story.style.opacity!=='0')story.style.opacity='0';
+    /* 8 · Appel final : formulaire réel dans l'appareil, ligne des 3 étapes qui se remplit au scroll */
+    set(scr[8],'--ct',back(seg(f[8],0,.3)));
+    if(stepsLine)stepsLine.style.height=(seg(f[8],.04,.5)*100).toFixed(1)+'%';
+    /* Affiches en profondeur : orbite lente autour de l'appareil ; au chapitre 2 elles affluent vers la liste */
+    var stream=0,lx=cx,ly=cy;
+    fl.forEach(function(p,i){
+      var ang=p.a0+g*(p.far?.35:-.5)+tm*(p.far?.03:.05),rx=(mob?vw*.55:vw*(p.far?.36:.3)),ry=(mob?vh*.3:vh*(p.far?.42:.38)),
+          x=cx+Math.cos(ang)*rx,y=cy+Math.sin(ang)*ry,sc=p.far?.9:1,o=p.far?.45:.9,rot=Math.sin(ang*1.3)*10;
+      o*=seg(g,.15,.6)*(1-seg(g,8.2,8.7)*.8);
+      if(stream>0){var u=((f[2]*1.5+p.k/14)%1),sx=vw*(.75+((p.k*29)%30)/100),sy=-vh*.12;
+        var zx=lerp(sx,lx,ease(u)),zy=lerp(sy,ly,ease(u));x=lerp(x,zx,stream);y=lerp(y,zy,stream);sc=lerp(sc,1.1-u*.8,stream);o=lerp(o,Math.sin(Math.PI*u)*(p.far?.6:1),stream);rot=lerp(rot,(1-u)*-14,stream);}
+      if(!mob)o*=seg(x,vw*.5,vw*.6);
+      /* jamais par-dessus l'interface : fondu près de l'appareil. La marge inclut la moitié de la
+         plus grande dimension de l'affiche (largeur CSS clamp() + aspect-ratio 2/3, ± rotation) :
+         une marge fixe (40px) ne suffisait pas pour les affiches « near » (jusqu'à 170px de large),
+         qui frôlaient encore le bord de l'appareil à certaines largeurs d'écran (ex. 1280px). */
+      var pw=p.far?Math.min(96,Math.max(56,vw*.06)):Math.min(170,Math.max(90,vw*.1)),half=pw*1.5/2+15,hw=W*s/2+half,hh=H*s/2+half;
+      var dx=Math.abs(x-cx)/hw,dy=Math.abs(y-cy)/hh;o*=seg(Math.max(dx,dy),1,1.25);
+      if(reduced)o=0;
+      set(p.e,'opacity',o);if(o>.01)p.e.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) translate(-50%,-50%) scale('+sc.toFixed(3)+') rotate('+rot.toFixed(2)+'deg)';
+    });
+    set(prog,'--gp',g/(chs.length));
+    /* Texte du chapitre courant : fenêtres disjointes (pas de recouvrement entre chapitres voisins).
+       Texte désormais sticky/fixe à l'écran (voir landing.css) : deux chapitres « on » en même temps
+       s'afficheraient au même endroit, superposés et illisibles, au lieu de se croiser pendant le
+       défilement comme avant. Le fondu CSS (transition .8-1.1s) fait la bascule visuelle. */
+    chs.forEach(function(c,i){var last=i===chs.length-1,on=g>=i-.5&&(last||g<i+.5);if(c._on!==on){c._on=on;c.classList.toggle('on',on);}});
+    if(vis&&!reduced)req();
+  }
+  function req(){if(!run){run=true;requestAnimationFrame(frame);}}
+  addEventListener('scroll',function(){if(vis){target();req();}},{passive:true});
+  addEventListener('resize',function(){measure();req();});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){measure();req();});
+  addEventListener('load',function(){measure();req();});
+  if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(function(es){vis=es[0].isIntersecting;if(vis){measure();req();}}).observe(S);
+  else vis=true;
+  measure();req();
 }
 /* FAQ : ouverture et fermeture animées (sans JS, <details> natif) */
 function _lpFaq(){
@@ -155,22 +328,13 @@ function _lpFaq(){
     });
   });
 }
-/* Curseur de cartes : boutons ‹ › (le glissement et l'aimantation sont natifs) */
-function _lpSlider(){
-  document.querySelectorAll('#landing [data-sl]').forEach(function(b){
-    if(b._lp)return;b._lp=1;
-    b.addEventListener('click',function(){var s=document.getElementById('lpSlider');if(!s)return;
-      var c=s.querySelector('.lp-card'),w=c?c.getBoundingClientRect().width+18:320;
-      s.scrollBy({left:(+b.getAttribute('data-sl'))*w,behavior:_lpReduced()?'auto':'smooth'});});
-  });
-}
 function _lpSetup(view){
   document.title=t('lp.meta.title',{name:BRAND.name});
   lpMountAuth(view);
   _lpReveal();
-  _lpMotion();
+  _lpImgsOnGesture();
+  _lpJourney();
   _lpFaq();
-  _lpSlider();
   _lpCheckLocal(0);
 }
 (function(){
