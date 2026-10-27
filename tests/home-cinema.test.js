@@ -82,6 +82,11 @@ test('carrousel : repère de position (point bleu sans texte, mouvement réduit)
   assert.deepEqual([pct(0, 10), pct(9, 10), pct(0, 1)], [0, 100, 0]);
   assert.match(html, /id="cfPosDot"/);
   assert.match(html, /\.cf-pos-t i\{[^}]*#5cc8ff/);
-  assert.match(html, /prefers-reduced-motion:reduce\)\{\.cf-pos-t i/);
   assert.doesNotMatch(html, /cf-pos-[lr]|cont\.(newest|oldest)/);
+  assert.match(html, /\.cf-pos\{[^}]*opacity:0/);
+  assert.match(html, /\.cf-pos\.on\{opacity:1\}/);
+  assert.match(html, /prefers-reduced-motion:reduce\)\{\.cf-pos,\.cf-pos-t i\{transition:none/);
+  assert.match(src, /function cfGo\(i\)\{cfPosShow\(\);/);
+  assert.match(src, /classList\.remove\('on'\);\},1200\)/);
+  assert.doesNotMatch(src.match(/function renderContinue[\s\S]*?\n\}/)[0], /cfPosShow/);
 });

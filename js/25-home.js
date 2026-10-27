@@ -120,7 +120,10 @@ function renderContinue(items,idx){
   _cfInit(document.getElementById('cfStage'));
 }
 /* Va au titre i (borné), arrête le balayage automatique */
-function cfGo(i){
+/* Repère visible seulement pendant la navigation manuelle, masqué ~1,2 s après */
+var _cfPosT=null;
+function cfPosShow(){var p=document.getElementById('cfPos');if(!p)return;p.classList.add('on');clearTimeout(_cfPosT);_cfPosT=setTimeout(function(){p.classList.remove('on');},1200);}
+function cfGo(i){cfPosShow();
   if(!_heroItems.length)return;
   i=Math.max(0,Math.min(_heroItems.length-1,i));
   _heroManual=true;

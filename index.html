@@ -1405,12 +1405,13 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 .cf-ctr{font:500 12px 'IBM Plex Mono',monospace;color:var(--text2)}
 .cf-head .cont-all{margin-left:auto}
 .cf-stage{position:relative;height:calc(var(--cf-h) + 80px);perspective:1100px;perspective-origin:50% 40%;outline:none;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;margin-top:6px}
-.cf-pos{display:flex;align-items:center;justify-content:center;margin:-4px auto 14px;width:min(260px,62vw)}
+.cf-pos{display:flex;align-items:center;justify-content:center;margin:-4px auto 14px;width:min(260px,62vw);opacity:0;transition:opacity .25s}
+.cf-pos.on{opacity:1}
 .cf-pos-t{position:relative;flex:1;height:2px;border-radius:2px;background:rgba(240,240,240,.12)}
 .cf-pos-t i{position:absolute;top:50%;left:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#5cc8ff;box-shadow:0 0 8px rgba(92,200,255,.55);transition:left .35s cubic-bezier(.22,.8,.25,1)}
 #heroBand.single .cf-pos{display:none}
 @media (max-width:768px){.cf-pos{width:min(220px,70vw);margin:-8px auto 12px}}
-@media (prefers-reduced-motion:reduce){.cf-pos-t i{transition:none!important}}
+@media (prefers-reduced-motion:reduce){.cf-pos,.cf-pos-t i{transition:none!important}}
 .cf-stage.drag{cursor:grabbing}
 .cf-stage:focus-visible{box-shadow:inset 0 0 0 2px var(--accent);border-radius:16px}
 .cf-ring{position:absolute;left:50%;top:22px;transform-style:preserve-3d;transition:transform .35s cubic-bezier(.22,.8,.25,1)}
