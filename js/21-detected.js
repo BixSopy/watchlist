@@ -456,9 +456,18 @@ function detSearchBtn(key){
   var inp=row&&row.querySelector('.det-q');
   detSearch(key,inp?inp.value:null);
 }
+/* renderDetected() reconstruit toute la liste (innerHTML) : si l'utilisateur a un sélecteur
+   d'affiches ouvert (.csel.open, enhanceSelect) pour départager une fiche ambiguë, ça le referme
+   aussitôt, même sans qu'il ait choisi quoi que ce soit — gênant pour les mises à jour qui
+   arrivent en fond (recherche TMDB automatique, état de l'extension). On attend qu'il l'ait
+   refermé lui-même avant d'appliquer un rendu venu de l'extérieur. */
+function _detRenderUnlessPicking(fn){
+  if(document.querySelector('#detectedSection .csel.open')){setTimeout(function(){_detRenderUnlessPicking(fn);},400);return;}
+  fn();
+}
 function _detScheduleRender(){
   clearTimeout(DET.renderTimer);
-  DET.renderTimer=setTimeout(function(){updateDetectedBadge();if(activeTab==='detectes')renderDetected();},120);
+  DET.renderTimer=setTimeout(function(){_detRenderUnlessPicking(function(){updateDetectedBadge();if(activeTab==='detectes')renderDetected();});},120);
 }
 
 /* ---------- Onglet ---------- */
@@ -562,8 +571,8 @@ function detExtLoad(force){
   DET_EXT.at=Date.now();
   try{
     supa.from('extension_devices').select('id,label,ext_version,last_seen_at,revoked_at').is('revoked_at',null).order('last_seen_at',{ascending:false}).limit(5)
-      .then(function(res){if(res.error)throw res.error;var l=res.data||[];DET_EXT.state=l.length?'on':'off';DET_EXT.dev=l[0]||null;DET_EXT.n=l.length;renderDetected();})
-      .catch(function(){DET_EXT.state='unknown';renderDetected();});
+      .then(function(res){if(res.error)throw res.error;var l=res.data||[];DET_EXT.state=l.length?'on':'off';DET_EXT.dev=l[0]||null;DET_EXT.n=l.length;_detRenderUnlessPicking(renderDetected);})
+      .catch(function(){DET_EXT.state='unknown';_detRenderUnlessPicking(renderDetected);});
   }catch(e){DET_EXT.state='unknown';}
 }
 function detExtCardHtml(){
