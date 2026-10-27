@@ -512,3 +512,45 @@ html:not(.lp-anim) .lp-ex-row .lp-po{opacity:1}
 .lp-dv-glint{transform:translateZ(2px)}
 .lp-j-shadow{position:absolute;left:0;top:0;width:100px;height:40px;margin-top:-20px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.75),rgba(0,0,0,0));filter:blur(8px);transform-origin:50% 50%;will-change:transform,opacity;z-index:2;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.lp-dv-gloss{background-position:50% 0}}
+
+/* ===== Landing mobile (reprise Grok, après #82) =====
+   1) Filet de sécurité anti-défilement horizontal. La cause réelle (calques 3D de l'appareil qui
+      échappaient au rognage du décor sur Chrome Android) est traitée en JS : 2D seulement sur mobile.
+   2) Décor : hauteur = grand viewport (100lvh) pour ne jamais laisser de bande noire quand la barre
+      d'adresse se replie ; rognage strict (clip-path) ; affiches masquées en dégradé aux bords de la
+      zone visuelle (--at/--ab posées par le JS), donc jamais coupées net ni sous le texte.
+   3) Chapitre 8 : plus de bloc fixe (il restait collé par-dessus la section suivante) ; texte et
+      formulaire dans le flux, formulaire en pleine largeur. */
+html.lp-guest,html.lp-guest body{overflow-x:hidden;overflow-x:clip}
+@media (max-width:860px){
+  .lp-j{touch-action:pan-y}
+  .lp-j-stick{height:100vh;height:100lvh;clip-path:inset(0)}
+  .lp-j-words{display:none}
+  .lp-j-far .lp-fl{filter:saturate(.8) brightness(.8)}
+  .lp-j-far,.lp-j-near,.lp-j-imp{
+    -webkit-mask-image:linear-gradient(180deg,transparent var(--at,60px),#000 calc(var(--at,60px) + 36px),#000 calc(var(--ab,70vh) - 36px),transparent var(--ab,70vh));
+            mask-image:linear-gradient(180deg,transparent var(--at,60px),#000 calc(var(--at,60px) + 36px),#000 calc(var(--ab,70vh) - 36px),transparent var(--ab,70vh))}
+  .lp-ch[data-ch="0"] .lp-ch-t{background:var(--bg);box-shadow:0 -40px 40px var(--bg);position:relative;z-index:2}
+  .lp-j-mtext{max-height:none}
+  .lp-j-mtext .lp-p{-webkit-line-clamp:2}
+
+  .lp-ch[data-ch="8"]{min-height:0;display:block;padding:calc(84px + env(safe-area-inset-top)) 0 56px}
+  .lp-ch[data-ch="8"] .lp-ch-t{position:relative;left:auto;top:auto;transform:none;z-index:2;max-height:none;overflow:visible;
+    width:auto;margin:0 14px;padding:22px 18px 18px;border-radius:26px;background:linear-gradient(180deg,#121318,#0a0a0c);border:1px solid var(--lp-line)}
+  .lp-ch[data-ch="8"]:not(.on) .lp-ch-t{pointer-events:auto}
+  .lp-cta-card.lp-cta-m{width:100%;max-width:none;max-height:none;transform:none;opacity:1;overflow:visible;margin-top:22px;padding:22px 0 0;
+    border-top:1px solid var(--lp-line);gap:8px}
+  .lp-cta-m .lp-cta-ic svg{width:52px;height:52px;transform:none;filter:drop-shadow(0 0 24px rgba(var(--accent-rgb),.6))}
+  .lp-cta-m .lp-cta-w{font-size:26px}
+  .lp-cta-m .lp-cta-d{font-size:15px}
+  .lp-cta-m[data-dev="phone"] .lp-cta-d [data-dev="phone"],.lp-cta-m[data-dev="tablet"] .lp-cta-d [data-dev="tablet"],.lp-cta-m[data-dev="pc"] .lp-cta-d [data-dev="pc"]{display:inline}
+  .lp-cta-m .lp-auth{max-height:none;overflow:visible;padding:20px 16px;border:1px solid rgba(255,255,255,.08)}
+  .lp-cta-m .lp-auth .auth-title{font-size:20px}
+  .lp-cta-m .lp-auth .auth-tab{font-size:14.5px;padding:10px}
+  .lp-cta-m .lp-auth .field{margin-bottom:14px}
+  .lp-cta-m .lp-auth .field label{font-size:13px}
+  .lp-cta-m .lp-auth .field input[type=email],.lp-cta-m .lp-auth .field input[type=password],.lp-cta-m .lp-auth .field input[type=text]{padding:14px 16px;font-size:16px;border-radius:12px}
+  .lp-cta-m .lp-auth .auth-submit,.lp-cta-m .lp-auth .lp-btn{min-height:52px;font-size:16px}
+  .lp-cta-m .lp-auth .auth-p{font-size:15px}
+  .lp-cta-m .lp-auth .auth-check,.lp-cta-m .lp-auth .auth-link{font-size:14px}
+}
