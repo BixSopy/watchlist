@@ -554,3 +554,31 @@ html.lp-guest,html.lp-guest body{overflow-x:hidden;overflow-x:clip}
   .lp-cta-m .lp-auth .auth-p{font-size:15px}
   .lp-cta-m .lp-auth .auth-check,.lp-cta-m .lp-auth .auth-link{font-size:14px}
 }
+
+/* ── Mobile, version simple (classe .lp-jm posée par js/23-landing.js sous 860px) ──
+   Le décor collant est retiré : chaque chapitre = écran figé pré-rendu + texte dessous, scroll natif.
+   Aucun flou, aucun calque animé en continu ; seule une apparition opacity/transform à l'entrée. */
+@media (max-width:860px){
+  .lp-j.lp-jm .lp-j-stick,.lp-j.lp-jm .lp-j-mtext,.lp-j.lp-jm .lp-j-tail,.lp-j.lp-jm .lp-j-hint{display:none}
+  .lp-j.lp-jm .lp-j-chs{margin-top:0;pointer-events:auto}
+  .lp-j.lp-jm .lp-ch{min-height:0;display:block;padding:44px 0 8px}
+  .lp-j.lp-jm .lp-ch[data-ch="0"]{min-height:0;padding:calc(76px + env(safe-area-inset-top)) 0 12px}
+  .lp-j.lp-jm .lp-ch:not([data-ch="8"]) .lp-ch-t{display:block;position:relative;top:auto;transform:none;width:auto;margin:22px 20px 0;padding:0;background:none;box-shadow:none;max-width:none}
+  .lp-j.lp-jm .lp-ch[data-ch="0"] .lp-ch-t{margin-top:26px}
+  .lp-j.lp-jm .lp-ch:not([data-ch="0"]) .lp-j-plats,.lp-j.lp-jm .lp-ch:not([data-ch="0"]) .lp-j-link{display:flex}
+  .lp-j.lp-jm .lp-ch[data-ch="8"]{padding-top:56px}
+  .lp-mv{position:relative;margin:0 12px;display:flex;justify-content:center;overflow:visible}
+  .lp-mv::after{content:"";position:absolute;left:12%;right:12%;bottom:-14px;height:22px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);z-index:-1}
+  .lp-mv-in{flex:none;transform-origin:top center;position:relative}
+  .lp-mv .lp-dv{position:relative!important;left:0!important;top:0!important;margin:0!important;transform:none!important;opacity:1!important;will-change:auto!important}
+  .lp-mv .lp-s{opacity:1!important}
+  .lp-mv *{animation-play-state:paused}
+  .lp-mv,.lp-j.lp-jm .lp-ch-t>*{will-change:auto}
+  html.lp-anim .lp-j.lp-jm .lp-ch .lp-mv{opacity:0;transform:translateY(28px);transition:opacity .7s var(--lp-expo),transform .9s var(--lp-expo)}
+  html.lp-anim .lp-j.lp-jm .lp-ch.lp-in .lp-mv{opacity:1;transform:none}
+  .lp-nav.lp-scrolled{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(8,9,11,.94)}
+  .lp-mv [style*="blur"],.lp-mv .lp-pl-play,.lp-mv .lp-pl-det{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
+@media (max-width:860px) and (prefers-reduced-motion:reduce){
+  html.lp-anim .lp-j.lp-jm .lp-ch .lp-mv,html.lp-anim .lp-j.lp-jm .lp-ch .lp-ch-t>*{opacity:1!important;transform:none!important;transition:none!important}
+}

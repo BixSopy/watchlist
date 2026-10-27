@@ -117,7 +117,7 @@ function _lpImgs(){
   if(_lp.imgs)return;_lp.imgs=1;
   var base=(typeof IB!=='undefined'?IB:'https://image.tmdb.org/t/p/');
   document.querySelectorAll('#landing img[data-tmdb]').forEach(function(i){
-    i.addEventListener('load',function(){i.classList.add('on');},{once:true});
+    i.decoding='async';i.addEventListener('load',function(){var on=function(){i.classList.add('on');};if(i.decode)i.decode().then(on,on);else on();},{once:true});
     i.src=base+(i.getAttribute('data-w')||'w185')+i.getAttribute('data-tmdb');
   });
 }
@@ -349,13 +349,46 @@ function _lpJourney(){
     if(vis&&!reduced)req();
   }
   function req(){if(!run){run=true;requestAnimationFrame(frame);}}
-  addEventListener('scroll',function(){if(vis){target();req();}},{passive:true});
-  addEventListener('resize',function(){measure();req();});
+  addEventListener('scroll',function(){if(vis&&!simple){target();req();}},{passive:true});
+  addEventListener('resize',function(){if(!simple){measure();req();}});
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){measure();req();});
   addEventListener('load',function(){measure();req();});
-  if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(function(es){vis=es[0].isIntersecting;if(vis){measure();req();}}).observe(S);
+  /* Mobile (≤860px) : version simple. Le décor collant multi-appareils (grands calques animés, flous,
+     écrans basculés en direct) dépassait le budget GPU des téléphones Android : écrans noirs pendant
+     1 à 4 s, appareil qui saute quand la barre de Chrome se replie. Ici, chaque chapitre reçoit une
+     image figée de son écran, pré-rendue une seule fois au chargement (copie de l'appareil dans
+     l'état final du chapitre), et le texte en dessous. Scroll natif, apparition douce (opacity /
+     transform, une seule fois). Plus aucun calcul au défilement ni au redimensionnement en hauteur. */
+  var simple=false;
+  function buildStatic(){
+    if(S._st)return;S._st=1;var keepR=reduced;reduced=true;
+    for(var i=0;i<=7;i++){
+      tgt=cur=i===0?.5:i+.92;frame(performance.now());
+      var cl=dv.cloneNode(true);cl.removeAttribute('id');[].forEach.call(cl.querySelectorAll('[id]'),function(e){e.removeAttribute('id');});
+      [].forEach.call(cl.querySelectorAll('.lp-s'),function(e){if(!(parseFloat(e.style.opacity)>0))e.parentNode.removeChild(e);else{e.style.opacity='1';e.classList.add('vis');}});
+      [].forEach.call(cl.querySelectorAll('.lp-cta-card'),function(e){e.parentNode.removeChild(e);});
+      cl.style.transform='none';cl.style.opacity='1';cl.style.position='relative';cl.classList.add('lp-dv-st');
+      var w=document.createElement('div');w.className='lp-mv';w.setAttribute('aria-hidden','true');
+      var inr=document.createElement('div');inr.className='lp-mv-in';inr._w=dv._w;inr._h=dv._h;inr.appendChild(cl);w.appendChild(inr);
+      var ch=chs[i];ch.insertBefore(w,ch.firstChild);
+    }
+    reduced=keepR;cur=-1;fitStatic();
+  }
+  function fitStatic(){QA('.lp-mv-in').forEach(function(e){var cw=e.parentNode.clientWidth||vw-24,k=Math.min(cw/e._w,(innerHeight*.5)/e._h);
+    e.style.width=e._w+'px';e.style.height=e._h+'px';e.style.transform='scale('+k.toFixed(4)+')';e.parentNode.style.height=(e._h*k).toFixed(0)+'px';});}
+  function setSimple(on){
+    if(on===simple)return;simple=on;S.classList.toggle('lp-jm',on);
+    if(on){buildStatic();placeCta(true);if(stepsLine)stepsLine.style.height='100%';
+      if(typeof IntersectionObserver!=='undefined'&&!S._io){S._io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('on','lp-in');S._io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px'});}
+      chs.forEach(function(c){if(S._io)S._io.observe(c);else c.classList.add('on','lp-in');});
+    }else{measure();req();}
+  }
+  var mq=matchMedia('(max-width:860px)');
+  addEventListener('resize',function(){var m=mq.matches;if(m!==simple)setSimple(m);else if(m&&S._fw!==innerWidth){S._fw=innerWidth;fitStatic();}});
+  if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(function(es){vis=es[0].isIntersecting&&!simple;if(vis){measure();req();}}).observe(S);
   else vis=true;
-  measure();req();
+  measure();S._fw=innerWidth;
+  if(mq.matches)setSimple(true);else req();
 }
 /* FAQ : ouverture et fermeture animées (sans JS, <details> natif) */
 function _lpFaq(){
