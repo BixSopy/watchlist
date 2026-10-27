@@ -125,7 +125,8 @@ function secHtml(label,items,statusClass){
 var _heroItemId=null,_heroItems=[],_heroIdx=0,_heroTimer=null;
 /* Vrai dès qu'on choisit une vignette de « Continuer » : le balayage automatique s'arrête (js/25-home.js) */
 var _heroManual=false,_heroSig='';
-function heroStartIndex(n){return n>2?Math.floor((n-1)/2):0;}
+/* « Ce soir » s'ouvre sur le titre vu le plus récemment (liste triée du plus récent au plus ancien) */
+function heroStartIndex(n){return 0;}
 function _heroCandidates(){
   var tab=activeTab;
   return memDB.filter(function(i){
@@ -142,7 +143,7 @@ function renderHero(){
   if(typeof updateTabCounts==='function')updateTabCounts();
   if(!_heroItems.length){band.classList.remove('on');_heroItemId=null;if(typeof renderContinue==='function')renderContinue([],0);if(typeof renderHomeNext==='function')renderHomeNext();return;}
   /* Nouvel ensemble de titres en cours (premier affichage, autre onglet, ajout/retrait) : on part du titre
-     du milieu pour que le carrousel soit rempli des deux côtés. Un simple réordonnancement (épisode suivant,
+     le plus récent (index 0). Un simple réordonnancement (épisode suivant,
      synchro) ne recentre pas, et un choix manuel est respecté. */
   var hsig=_heroItems.map(function(i){return i.id;}).sort().join(',');
   if(hsig!==_heroSig){_heroSig=hsig;if(!_heroManual)_heroIdx=heroStartIndex(_heroItems.length);}

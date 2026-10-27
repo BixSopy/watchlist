@@ -69,6 +69,16 @@ function _cfCard(item,i){
   return b;
 }
 var _cfIdx=0;
+/* Repère de position sous le carrousel : point bleu (gauche = plus récent, droite = plus ancien).
+   « Plus récent / Plus ancien » n'apparaissent que pendant qu'on fait défiler, puis s'effacent. */
+var _cfPosLast=-1,_cfPosT=null;
+function cfPosPct(idx,n){return n>1?Math.round(idx/(n-1)*1000)/10:0;}
+function _cfPosSet(idx,n){
+  var box=document.getElementById('cfPos'),dot=document.getElementById('cfPosDot');if(!box||!dot)return;
+  dot.style.left=cfPosPct(idx,n)+'%';
+  if(_cfPosLast>=0&&idx!==_cfPosLast){box.classList.add('show');clearTimeout(_cfPosT);_cfPosT=setTimeout(function(){box.classList.remove('show');},1200);}
+  _cfPosLast=idx;
+}
 function renderContinue(items,idx){
   var band=document.getElementById('heroBand'),ring=document.getElementById('cfRing');
   if(!band||!ring)return;
@@ -103,6 +113,7 @@ function renderContinue(items,idx){
     c.setAttribute('aria-hidden',d?'true':'false');
     c.style.pointerEvents=o?'':'none';
   });
+  _cfPosSet(idx,items.length);
   var ctr=document.getElementById('contCtr');if(ctr)ctr.textContent=(idx+1)+' / '+items.length;
   /* nombres d'épisodes manquants : titre actif d'abord, puis ses voisins visibles */
   for(var k=0;k<=CF_WIN;k++){ensureSeasonCount(items[idx+k]);if(k)ensureSeasonCount(items[idx-k]);}
