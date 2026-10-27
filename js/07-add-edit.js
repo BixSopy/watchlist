@@ -144,7 +144,9 @@ function updateEntryProgress(id,f){
   var item=memDB.find(function(i){return i.id==id;});if(!item)return null;
   item.status=f.status;item.saison=f.saison;item.episode=f.episode;
   if(f.seasonEpCount!=null){item.seasonEpCount=f.seasonEpCount;item.seasonEpCountSeason=f.seasonEpCountSeason;}
-  item.hasNewEp=false;item.lastWatchedAt=f.watchedAt||Date.now();item.updatedAtLocal=Date.now();item.needsSync=true;
+  /* date de l'historique importé ; sans date connue on garde l'ancienne (pas « aujourd'hui » inventé) */
+  if(f.watchedAt&&!(item.lastWatchedAt>f.watchedAt))item.lastWatchedAt=f.watchedAt;
+  item.hasNewEp=false;item.updatedAtLocal=Date.now();item.needsSync=true;
   dbPut(item,function(){});
   return item;
 }

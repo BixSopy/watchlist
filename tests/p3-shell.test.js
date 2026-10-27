@@ -22,6 +22,15 @@ test('heroAgo : « Vu il y a 3 jours », vide sans date', () => {
   const now = Date.parse('2026-10-13T12:00:00Z');
   assert.equal(ctx.heroAgo(now - 3 * 86400000, now), 'Vu il y a 3 jours');
   assert.equal(ctx.heroAgo(0, now), '');
+  assert.equal(ctx.heroAgo(null, now), '');
+  assert.equal(ctx.heroAgo(now - 548 * 86400000, now), 'Vu l’année dernière', '18 mois ne devient pas « 2 ans »');
+  assert.equal(ctx.heroAgo(now - 45 * 86400000, now), 'Vu le mois dernier');
+});
+test('Ce soir : le « Vu il y a » ne retombe jamais sur la date de synchro (updatedAtLocal)', () => {
+  const s = read('js/05-render.js');
+  assert.match(s, /heroAgo\(item\.lastWatchedAt\)/);
+  assert.doesNotMatch(fn(s, '_showHeroItem'), /heroAgo\([^)]*updatedAtLocal/);
+  assert.doesNotMatch(fn(s, '_heroCandidates'), /updatedAtLocal/);
 });
 test('navigation : cinq vues, pilule en haut et barre du téléphone, script chargé en dernier', () => {
   const s = read('js/29-shell.js'), html = read('index.html');
