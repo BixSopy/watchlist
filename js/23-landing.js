@@ -137,7 +137,8 @@ function _lpJourney(){
   var Q=function(s){return S.querySelector(s);},QA=function(s){return [].slice.call(S.querySelectorAll(s));};
   var stick=Q('.lp-j-stick'),dv=Q('.lp-dv'),flash=Q('.lp-j-flash'),fly=Q('.lp-j-fly'),story=Q('.lp-j-story'),prog=Q('.lp-j-prog'),
       chs=QA('.lp-ch'),words=QA('.lp-j-w'),scr={},time=document.getElementById('lpTime'),detN=document.getElementById('lpDetN'),
-      stepsLine=Q('.lp-j-steps-line i'),stepCount=Q('.lp-j-step-count');
+      stepsLine=Q('.lp-j-steps-line i'),stepCount=Q('.lp-j-step-count'),mtext=Q('.lp-j-mtext'),
+      mtextK=mtext&&mtext.querySelector('.lp-kicker'),mtextH=mtext&&mtext.querySelector('h2'),mtextP=mtext&&mtext.querySelector('.lp-p');
   /* Étape 2 (« mon historique arrive tout seul ») : compteur qui monte en boucle avec l'icône,
      sur la même horloge que l'animation CSS (document.timeline, pas de setInterval séparé). */
   if(stepCount&&!_lpReduced()){
@@ -304,6 +305,22 @@ function _lpJourney(){
        s'afficheraient au même endroit, superposés et illisibles, au lieu de se croiser pendant le
        défilement comme avant. Le fondu CSS (transition .8-1.1s) fait la bascule visuelle. */
     chs.forEach(function(c,i){var last=i===chs.length-1,on=g>=i-.5&&(last||g<i+.5);if(c._on!==on){c._on=on;c.classList.toggle('on',on);}});
+    /* Mobile (1-7) : un seul bandeau fixe dont le JS recopie le texte du chapitre actif, plutôt que
+       7 bandeaux fixes indépendants empilés (voir landing.css, règle .lp-j-mtext). */
+    if(mob&&mtext){
+      var curCh=null;
+      for(var mi=1;mi<=7;mi++){if(chs[mi]&&chs[mi].classList.contains('on')){curCh=mi;break;}}
+      if(mtext._ch!==curCh){
+        mtext._ch=curCh;
+        if(curCh!=null){
+          var mt=chs[curCh].querySelector('.lp-ch-t'),mk=mt&&mt.querySelector('.lp-kicker'),mh=mt&&mt.querySelector('h2'),mp=mt&&mt.querySelector('.lp-p');
+          if(mtextK)mtextK.innerHTML=mk?mk.innerHTML:'';
+          if(mtextH)mtextH.innerHTML=mh?mh.innerHTML:'';
+          if(mtextP)mtextP.innerHTML=mp?mp.innerHTML:'';
+          mtext.classList.add('on');
+        }else mtext.classList.remove('on');
+      }
+    }
     if(vis&&!reduced)req();
   }
   function req(){if(!run){run=true;requestAnimationFrame(frame);}}

@@ -355,6 +355,7 @@ html.lp-anim .lp-faq-item.lp-open .lp-faq-a p{opacity:1;transform:none}
    .lp-j-chs, cette marge de 100vh manquerait tout à la fin : .lp-j-tail la restitue, sans être un
    « .lp-ch » donc sans effet sur le calcul JS du chapitre courant. */
 .lp-j-tail{height:100vh;height:100svh}
+.lp-j-mtext{display:none}
 .lp-ch{min-height:115vh;padding:0 clamp(20px,5vw,72px);pointer-events:none}
 .lp-ch[data-ch="0"]{min-height:100vh;min-height:100svh;padding-top:72px}
 .lp-ch[data-ch="1"]{min-height:190vh}
@@ -421,9 +422,12 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
 /* Mobile : l'appareil occupe le haut de l'écran (~60 %), le texte prend une bande fixée en bas qui
    ne le recouvre jamais (sauf chapitre 8 : la bande passe en haut, l'appareil descend — « les 3
    étapes s'empilent au-dessus de l'appareil »). Chapitres 1-7 : titre + une seule ligne (le reste du
-   paragraphe est tronqué), qui changent en fondu (classe .on posée par le JS, cf. le bloc juste
-   au-dessus). Chaque bande porte son propre fond flouté (pas de calque partagé : un backdrop-filter
-   séparé de la bande de texte produit un flou qui déborde sur le texte dans Chromium). */
+   paragraphe est tronqué). Un seul élément fixe (.lp-j-mtext) porte ce texte, son contenu est
+   recopié par le JS selon le chapitre actif (frame(), js/23-landing.js) — plutôt que 7 éléments
+   fixes indépendants empilés au même endroit, dont un seul visible à la fois via l'opacité : sur un
+   vrai téléphone, plusieurs calques fixes avec flou (backdrop-filter) qui changent d'opacité pendant
+   le défilement peuvent clignoter/trembler (coût de compositing). Pas de flou ici : fond en dégradé
+   opaque, plus robuste. */
 @media (max-width:860px){
   .lp-j-bg{background:radial-gradient(130% 70% at 50% 24%,rgba(var(--tint),1),rgba(var(--tint),.3) 50%,var(--bg) 85%)}
   .lp-j-flash{left:50%;top:26%}
@@ -433,11 +437,13 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
 
   .lp-ch-t{max-width:none;width:calc(100% - 24px)}
   .lp-ch[data-ch="0"] .lp-ch-t{width:100%;padding:0 4px;background:linear-gradient(180deg,rgba(10,10,12,.2),rgba(10,10,12,.9) 30%)}
-  .lp-ch:not([data-ch="0"]):not([data-ch="8"]) .lp-ch-t{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;
-    max-height:min(30vh,230px);overflow:hidden;padding:18px 22px;pointer-events:none;border-radius:22px;background:rgba(10,10,12,.82);
-    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--lp-line);opacity:0;transition:opacity .4s}
-  .lp-ch:not([data-ch="0"]):not([data-ch="8"]).on .lp-ch-t{opacity:1;pointer-events:auto}
-  .lp-ch:not([data-ch="0"]) .lp-p,.lp-ch:not([data-ch="0"]) .lp-lead{overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+  .lp-ch:not([data-ch="0"]):not([data-ch="8"]) .lp-ch-t{display:none}
+  .lp-j-mtext{display:block;position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;
+    max-height:min(30vh,230px);overflow:hidden;padding:18px 22px;pointer-events:none;border-radius:22px;
+    background:linear-gradient(180deg,#121318,#0a0a0c);border:1px solid var(--lp-line);opacity:0;
+    visibility:hidden;transition:opacity .4s}
+  .lp-j-mtext.on{opacity:1;visibility:visible;pointer-events:auto}
+  .lp-j-mtext .lp-p{overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
   .lp-ch:not([data-ch="0"]) .lp-j-plats,.lp-ch:not([data-ch="0"]) .lp-cta-row,.lp-ch:not([data-ch="0"]) .lp-j-link{display:none}
 
   .lp-j-h1{font-size:clamp(2rem,8.6vw,3rem);margin-top:12px}
@@ -454,8 +460,8 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
      descend pour lui laisser la place (cy ajusté en JS). */
   .lp-ch[data-ch="8"]{align-items:flex-start;padding-top:calc(20px + env(safe-area-inset-top))}
   .lp-ch[data-ch="8"] .lp-ch-t{position:fixed;left:12px;top:calc(14px + env(safe-area-inset-top));z-index:6;
-    max-height:52vh;overflow:auto;padding:18px 20px;border-radius:22px;background:rgba(10,10,12,.86);
-    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--lp-line)}
+    max-height:52vh;overflow:auto;padding:18px 20px;border-radius:22px;background:linear-gradient(180deg,#121318,#0a0a0c);
+    border:1px solid var(--lp-line)}
   .lp-ch[data-ch="8"]:not(.on) .lp-ch-t{pointer-events:none}
   .lp-j-h2.lp-j-big{font-size:clamp(1.6rem,7.4vw,2.3rem)}
   .lp-j-steps{margin:16px 0 4px;gap:14px}
