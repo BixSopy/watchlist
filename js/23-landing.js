@@ -118,7 +118,11 @@ function _lpImgs(){
   var base=(typeof IB!=='undefined'?IB:'https://image.tmdb.org/t/p/');
   document.querySelectorAll('#landing img[data-tmdb]').forEach(function(i){
     i.addEventListener('load',function(){i.classList.add('on');},{once:true});
-    i.src=base+(i.getAttribute('data-w')||'w185')+i.getAttribute('data-tmdb');
+    /* data-hi : taille TMDB plus grande pour les écrans haute densité (rétina, téléphones). Seulement
+       les images affichées en grand (fond Severance, affiche du récap) : le w780 de TMDB est très compressé
+       (36 Ko) et visiblement flou une fois affiché sur ~780 px CSS × 2. Les petites affiches restent en w185. */
+    var hi=i.getAttribute('data-hi'),w=(hi&&(window.devicePixelRatio||1)>=1.5)?hi:(i.getAttribute('data-w')||'w185');
+    i.src=base+w+i.getAttribute('data-tmdb');
   });
 }
 /* Affiches TMDB : aucune ressource tierce au chargement, seulement au premier geste de défilement.
