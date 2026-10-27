@@ -523,7 +523,7 @@ var AUTH_VIEWS={
       if(!authUser)return '<p class="auth-p">'+esc(t('auth.account.notSignedIn'))+'</p><div class="mact"><button type="button" class="btn btn-primary" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.signIn'))+'</button></div>';
       var pending=memDB.filter(function(i){return i.needsSync;}).length;
       var online=navigator.onLine;
-      return '<div class="auth-account-row"><span class="sync-dot '+(online?'synced':'offline')+'" id="authAccountDot"></span><span class="auth-account-email" id="authAccountEmail">'+esc(authUser.email||'')+'</span></div>'+
+      return '<div class="auth-account-row"><span class="auth-avatar" aria-hidden="true">'+esc((authUser.email||'?').charAt(0).toUpperCase())+'</span><span class="sync-dot '+(online?'synced':'offline')+'" id="authAccountDot"></span><span class="auth-account-email" id="authAccountEmail">'+esc(authUser.email||'')+'</span></div>'+
         '<div class="auth-sync-info" id="authSyncInfo">'+esc(pending?tn('auth.account.pending',pending):t('auth.account.allSynced'))+'</div>'+
         '<div class="auth-menu">'+
         (typeof handleAccountRow==='function'?handleAccountRow():'')+
@@ -645,7 +645,7 @@ var AUTH_VIEWS={
 /* action : nom d'action (js/00-actions.js), ou [nom, ...arguments] */
 function _accBtn(action,label,svgPath){
   var a=Array.isArray(action)?action:[action];
-  return '<button type="button" class="auth-menu-btn"'+uiAct(a[0],a.slice(1))+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+svgPath+'</svg><span>'+label+'</span></button>';
+  return '<button type="button" class="auth-menu-btn"'+uiAct(a[0],a.slice(1))+'><span class="auth-menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+svgPath+'</svg></span><span>'+label+'</span></button>';
 }
 
 /* ---------- Actions partagées ---------- */
