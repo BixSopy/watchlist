@@ -106,6 +106,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .modal-add.auth-modal{max-width:420px;position:relative;padding:28px 28px 24px}
 @media (max-width:768px){.modal-add.auth-modal{max-width:100%;padding:22px 20px 28px}}
 .auth-title{margin-bottom:18px;padding-right:28px}
+/* Fenêtre de compte (#authMbk) : même traitement que les autres titres de fenêtre (.mtitle),
+   l'accueil (.lp-auth) et l'avis (.fb-modal) — seule celle-ci restait sur l'IBM Plex Mono de base. */
+#authMbk .mtitle.auth-title{font-family:'Inter',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.025em}
 .auth-close{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--tr)}
 .auth-close:hover{color:var(--text);border-color:var(--border2)}.auth-close svg{width:14px;height:14px}
 .auth-modal .field input[type=email],.auth-modal .field input[type=password],.auth-modal .field input[type=text]{font-size:16px}
