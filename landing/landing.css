@@ -513,72 +513,61 @@ html:not(.lp-anim) .lp-ex-row .lp-po{opacity:1}
 .lp-j-shadow{position:absolute;left:0;top:0;width:100px;height:40px;margin-top:-20px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.75),rgba(0,0,0,0));filter:blur(8px);transform-origin:50% 50%;will-change:transform,opacity;z-index:2;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.lp-dv-gloss{background-position:50% 0}}
 
-/* ===== Landing mobile (reprise Grok, après #82) =====
-   1) Filet de sécurité anti-défilement horizontal. La cause réelle (calques 3D de l'appareil qui
-      échappaient au rognage du décor sur Chrome Android) est traitée en JS : 2D seulement sur mobile.
-   2) Décor : hauteur = grand viewport (100lvh) pour ne jamais laisser de bande noire quand la barre
-      d'adresse se replie ; rognage strict (clip-path) ; affiches masquées en dégradé aux bords de la
-      zone visuelle (--at/--ab posées par le JS), donc jamais coupées net ni sous le texte.
-   3) Chapitre 8 : plus de bloc fixe (il restait collé par-dessus la section suivante) ; texte et
-      formulaire dans le flux, formulaire en pleine largeur. */
+/* Filet de sécurité anti-défilement horizontal (conservé de #83) */
 html.lp-guest,html.lp-guest body{overflow-x:hidden;overflow-x:clip}
-@media (max-width:860px){
-  .lp-j{touch-action:pan-y}
-  .lp-j-stick{height:100vh;height:100lvh;clip-path:inset(0)}
-  .lp-j-words{display:none}
-  .lp-j-far .lp-fl{filter:saturate(.8) brightness(.8)}
-  .lp-j-far,.lp-j-near,.lp-j-imp{
-    -webkit-mask-image:linear-gradient(180deg,transparent var(--at,60px),#000 calc(var(--at,60px) + 36px),#000 calc(var(--ab,70vh) - 36px),transparent var(--ab,70vh));
-            mask-image:linear-gradient(180deg,transparent var(--at,60px),#000 calc(var(--at,60px) + 36px),#000 calc(var(--ab,70vh) - 36px),transparent var(--ab,70vh))}
-  .lp-ch[data-ch="0"] .lp-ch-t{background:var(--bg);box-shadow:0 -40px 40px var(--bg);position:relative;z-index:2}
-  .lp-j-mtext{max-height:none}
-  .lp-j-mtext .lp-p{-webkit-line-clamp:2}
 
-  .lp-ch[data-ch="8"]{min-height:0;display:block;padding:calc(84px + env(safe-area-inset-top)) 0 56px}
-  .lp-ch[data-ch="8"] .lp-ch-t{position:relative;left:auto;top:auto;transform:none;z-index:2;max-height:none;overflow:visible;
-    width:auto;margin:0 14px;padding:22px 18px 18px;border-radius:26px;background:linear-gradient(180deg,#121318,#0a0a0c);border:1px solid var(--lp-line)}
-  .lp-ch[data-ch="8"]:not(.on) .lp-ch-t{pointer-events:auto}
-  .lp-cta-card.lp-cta-m{width:100%;max-width:none;max-height:none;transform:none;opacity:1;overflow:visible;margin-top:22px;padding:22px 0 0;
-    border-top:1px solid var(--lp-line);gap:8px}
-  .lp-cta-m .lp-cta-ic svg{width:52px;height:52px;transform:none;filter:drop-shadow(0 0 24px rgba(var(--accent-rgb),.6))}
-  .lp-cta-m .lp-cta-w{font-size:26px}
-  .lp-cta-m .lp-cta-d{font-size:15px}
-  .lp-cta-m[data-dev="phone"] .lp-cta-d [data-dev="phone"],.lp-cta-m[data-dev="tablet"] .lp-cta-d [data-dev="tablet"],.lp-cta-m[data-dev="pc"] .lp-cta-d [data-dev="pc"]{display:inline}
-  .lp-cta-m .lp-auth{max-height:none;overflow:visible;padding:20px 16px;border:1px solid rgba(255,255,255,.08)}
-  .lp-cta-m .lp-auth .auth-title{font-size:20px}
-  .lp-cta-m .lp-auth .auth-tab{font-size:14.5px;padding:10px}
-  .lp-cta-m .lp-auth .field{margin-bottom:14px}
-  .lp-cta-m .lp-auth .field label{font-size:13px}
-  .lp-cta-m .lp-auth .field input[type=email],.lp-cta-m .lp-auth .field input[type=password],.lp-cta-m .lp-auth .field input[type=text]{padding:14px 16px;font-size:16px;border-radius:12px}
-  .lp-cta-m .lp-auth .auth-submit,.lp-cta-m .lp-auth .lp-btn{min-height:52px;font-size:16px}
-  .lp-cta-m .lp-auth .auth-p{font-size:15px}
-  .lp-cta-m .lp-auth .auth-check,.lp-cta-m .lp-auth .auth-link{font-size:14px}
+/* ==== Mobile allégé (v7 validée par Pierre le 27/10) : scène animée conservée, contenu des écrans allégé ==== */
+
+/* v5 : la scène bouge comme avant ; seul le CONTENU des écrans est allégé sur mobile */
+@media (max-width:860px){
+ /* 1. plus de contexte 3D empilé : l'appareil devient un seul plan aplati */
+ .lp-dv{transform-style:flat!important}
+ .lp-dv::before,.lp-dv::after,.lp-dv-gloss,.lp-dv-glint{display:none!important}
+ .lp-dv-scr{transform:none!important;will-change:transform;contain:strict;isolation:auto}
+ /* 2. aucun flou / filtre / mélange à l'intérieur des écrans */
+ .lp-s *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+ .lp-pl-play{background:rgba(40,42,50,.85)!important}
+ .lp-pl-det{background:#14151b!important}
+ .lp-ls-grid .lp-g{filter:none!important;transition:opacity .24s,transform .3s!important}
+ .lp-ls-grid .lp-g.off{--fo:.18}
+ .lp-cta-ic svg{filter:none!important}
+ .lp-s *{box-shadow:none!important;text-shadow:none!important}
+ /* 3. un seul écran actif, isolé ; ses pièces animées ont leur propre calque (pas de re-peinture) */
+ .lp-s{contain:strict}
+ .lp-s:not(.vis){display:none!important}
+ .lp-s.vis{will-change:opacity}
+ .lp-s.vis :is(.lp-s-bd,.lp-pl-play,.lp-pl-fill,.lp-pl-knob,.lp-ok,.lp-pl-det,.lp-pl-card,.lp-ex-row,.lp-ex-pop,.lp-fi,.lp-rs-hero,.lp-rs-row,.lp-st-bars i,.lp-st-res .lp-po,.lp-sy-pill,.lp-rc,.lp-pv>span,.lp-cta-card){will-change:transform,opacity}
+ /* 4. rectangle noir en haut : la carte fixe du chapitre 8 (.lp-ch[data-ch=8] .lp-ch-t) gardait son fond
+    sombre visible tout le long (seuls ses enfants étaient à opacité 0) -> elle n'apparaît qu'au chapitre 8 */
+ .lp-ch[data-ch="8"] .lp-ch-t{transform:none!important;opacity:0;visibility:hidden;translate:0 -14px;
+   transition:opacity .8s cubic-bezier(.16,1,.3,1),translate .9s cubic-bezier(.16,1,.3,1),visibility 0s .9s}
+ .lp-ch[data-ch="8"].on .lp-ch-t{opacity:1;visibility:visible;translate:0 0;transition-delay:0s}
+ /* 5. bandeau de texte du bas : fondu plus doux et plus long */
+ .lp-j-mtext{translate:0 18px;transition:opacity .85s cubic-bezier(.16,1,.3,1),translate .9s cubic-bezier(.16,1,.3,1),visibility 0s .9s!important}
+ .lp-j-mtext.on{translate:0 0;transition-delay:0s!important}
+ .lp-j-mtext>*{transition:opacity .7s ease-out .12s}
+ .lp-j-mtext.lp-sw>*{opacity:0;transition:opacity .25s ease-in}
 }
 
-/* ── Mobile, version simple (classe .lp-jm posée par js/23-landing.js sous 860px) ──
-   Le décor collant est retiré : chaque chapitre = écran figé pré-rendu + texte dessous, scroll natif.
-   Aucun flou, aucun calque animé en continu ; seule une apparition opacity/transform à l'entrée. */
 @media (max-width:860px){
-  .lp-j.lp-jm .lp-j-stick,.lp-j.lp-jm .lp-j-mtext,.lp-j.lp-jm .lp-j-tail,.lp-j.lp-jm .lp-j-hint{display:none}
-  .lp-j.lp-jm .lp-j-chs{margin-top:0;pointer-events:auto}
-  .lp-j.lp-jm .lp-ch{min-height:0;display:block;padding:44px 0 8px}
-  .lp-j.lp-jm .lp-ch[data-ch="0"]{min-height:0;padding:calc(76px + env(safe-area-inset-top)) 0 12px}
-  .lp-j.lp-jm .lp-ch:not([data-ch="8"]) .lp-ch-t{display:block;position:relative;top:auto;transform:none;width:auto;margin:22px 20px 0;padding:0;background:none;box-shadow:none;max-width:none}
-  .lp-j.lp-jm .lp-ch[data-ch="0"] .lp-ch-t{margin-top:26px}
-  .lp-j.lp-jm .lp-ch:not([data-ch="0"]) .lp-j-plats,.lp-j.lp-jm .lp-ch:not([data-ch="0"]) .lp-j-link{display:flex}
-  .lp-j.lp-jm .lp-ch[data-ch="8"]{padding-top:56px}
-  .lp-mv{position:relative;margin:0 12px;display:flex;justify-content:center;overflow:visible}
-  .lp-mv::after{content:"";position:absolute;left:12%;right:12%;bottom:-14px;height:22px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);z-index:-1}
-  .lp-mv-in{flex:none;transform-origin:top center;position:relative}
-  .lp-mv .lp-dv{position:relative!important;left:0!important;top:0!important;margin:0!important;transform:none!important;opacity:1!important;will-change:auto!important}
-  .lp-mv .lp-s{opacity:1!important}
-  .lp-mv *{animation-play-state:paused}
-  .lp-mv,.lp-j.lp-jm .lp-ch-t>*{will-change:auto}
-  html.lp-anim .lp-j.lp-jm .lp-ch .lp-mv{opacity:0;transform:translateY(28px);transition:opacity .7s var(--lp-expo),transform .9s var(--lp-expo)}
-  html.lp-anim .lp-j.lp-jm .lp-ch.lp-in .lp-mv{opacity:1;transform:none}
-  .lp-nav.lp-scrolled{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(8,9,11,.94)}
-  .lp-mv [style*="blur"],.lp-mv .lp-pl-play,.lp-mv .lp-pl-det{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+ /* v5 doublait le calque de l'écran (lp-dv-scr + lp-s) : on revient à un seul calque, celui de l'appareil */
+ .lp-dv-scr{will-change:auto!important;contain:paint}
+ .lp-s.vis{will-change:auto!important}
+ .lp-s.vis :is(.lp-s-bd,.lp-pl-play,.lp-pl-fill,.lp-pl-knob,.lp-ok,.lp-pl-det,.lp-pl-card,.lp-ex-row,.lp-ex-pop,.lp-fi,.lp-rs-hero,.lp-rs-row,.lp-st-bars i,.lp-st-res .lp-po,.lp-sy-pill,.lp-rc,.lp-pv>span,.lp-cta-card){will-change:auto!important}
+ /* ombre portée de l'appareil : 120 px de flou = calque 50 % plus grand que l'appareil */
+ .lp-dv{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 24px 40px -16px rgba(0,0,0,.9)!important}
+ /* halo du chapitre 1 : 140vmax (11 Mpx de texture permanente) -> 60vmax, agrandi par le GPU */
+ .lp-j-flash{width:60vmax!important;height:60vmax!important;margin:-30vmax 0 0 -30vmax!important;scale:2.33}
+ /* colonne de chapitres (412 x 11 400 px au-dessus de la scène) : rien à peindre sauf ch. 0 et 8 */
+ .lp-ch:not([data-ch="0"]):not([data-ch="8"]){visibility:hidden}
 }
-@media (max-width:860px) and (prefers-reduced-motion:reduce){
-  html.lp-anim .lp-j.lp-jm .lp-ch .lp-mv,html.lp-anim .lp-j.lp-jm .lp-ch .lp-ch-t>*{opacity:1!important;transform:none!important;transition:none!important}
+
+@media (max-width:860px){
+ .lp-ch[data-ch="8"] .lp-ch-t{max-width:min(340px,82vw)!important;margin-left:auto!important;margin-right:auto!important;left:0!important;right:0!important}
+ .lp-s-cta{gap:8px;padding:0 16px}
+ .lp-s-cta .lp-cta-ic,.lp-s-cta .lp-cta-d,.lp-s-cta .lp-cta-u{display:none!important}
+ .lp-s-cta .lp-cta-card{width:100%!important;max-width:none}
+ .lp-s-cta input,.lp-s-cta select,.lp-s-cta textarea{font-size:16px!important;min-height:44px}
+ .lp-s-cta button,.lp-s-cta .lp-btn,.lp-s-cta a.lp-btn{min-height:44px;font-size:16px!important}
+ .lp-s-cta .lp-cta-d,.lp-s-cta .auth-p{font-size:15px!important}
 }
