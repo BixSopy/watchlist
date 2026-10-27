@@ -33,6 +33,10 @@ async function newPage(t, { turnstile = false, width = 1440, height = 900, mobil
 const visible = (page, sel) => page.locator(sel).isVisible();
 const panelTitle = page => page.locator('#lpAuthHost #authViewTitle');
 const msg = page => page.locator('#lpAuthHost #authMsg');
+/* #lpAuthHost vit dans l'appareil (chapitre 8), qui a un léger mouvement continu voulu (dérive,
+   reflet…) : les clics dedans utilisent { force: true } (la capacité réelle à cliquer — pas de
+   calque par-dessus — est vérifiée ailleurs), sinon Playwright attend une image parfaitement
+   immobile qui n'arrive jamais. */
 /* Sonde posée avant tout script : la page d'accueil est-elle affichée à un moment (avant chaque image) ? */
 async function probeLanding(page) {
   await page.addInitScript(() => {
@@ -63,8 +67,11 @@ test('visiteur sans compte : page d’accueil avec un seul h1, application masqu
   assert.equal(await page.locator('#lp-extension a[href*="chromewebstore"]').count(), 2);
   assert.equal(await page.locator('#lp-privacy a[href="/confidentialite"]').count() >= 1, true);
   assert.equal(await page.locator('#landing a[href="mailto:contact@cinepisode.com"]').count() >= 1, true);
-  // Le panneau contient le vrai formulaire de compte (#authView déplacé, pas une copie)
-  await panelTitle(page).filter({ hasText: 'Créer un compte' }).waitFor();
+  // Le panneau contient le vrai formulaire de compte (#authView déplacé, pas une copie). Le panneau
+  // vit dans l'appareil (chapitre 8) : il n'est visible à l'écran qu'une fois défilé jusque-là
+  // (invisibility:hidden tant que la scène n'est pas active), donc on vérifie sa présence, pas sa
+  // visibilité au chargement.
+  await panelTitle(page).filter({ hasText: 'Créer un compte' }).waitFor({ state: 'attached' });
   assert.equal(await page.locator('#authView').count(), 1, 'un seul conteneur de compte');
   assert.equal(await page.locator('#authMbk .auth-modal #authView').count(), 0);
   await page.waitForTimeout(600);
@@ -83,14 +90,14 @@ test('inscription depuis l’accueil : validations et appel Supabase existants, 
   await page.fill('#authEmail', 'nouveau@exemple.fr');
   await page.fill('#authPassword', 'court');
   await page.fill('#authPasswordConfirm', 'court');
-  await page.click('#lpAuthHost .auth-submit');
+  await page.click('#lpAuthHost .auth-submit', { force: true });
   assert.match(await msg(page).textContent(), /au moins 12 caractères/);
   await page.fill('#authPassword', 'Une-phrase-de-passe-42');
   await page.fill('#authPasswordConfirm', 'Une-phrase-de-passe-42');
-  await page.click('#lpAuthHost .auth-submit');
+  await page.click('#lpAuthHost .auth-submit', { force: true });
   assert.match(await msg(page).textContent(), /Accepte les conditions/);
   await page.check('#authConsent');
-  await page.click('#lpAuthHost .auth-submit');
+  await page.click('#lpAuthHost .auth-submit', { force: true });
   await panelTitle(page).filter({ hasText: 'Vérifie ta boîte mail' }).waitFor();
   const signup = db.calls.find(c => c.path === '/auth/v1/signup');
   assert.equal(signup.body.email, 'nouveau@exemple.fr');
@@ -98,7 +105,7 @@ test('inscription depuis l’accueil : validations et appel Supabase existants, 
   assert.deepEqual(signup.body.data, { lang: 'fr' });
   assert.equal(await visible(page, '#authMbk'), false, 'tout se passe dans le panneau, sans fenêtre');
   await page.fill('#authCode', '123456');
-  await page.click('#lpAuthHost .auth-submit');
+  await page.click('#lpAuthHost .auth-submit', { force: true });
   await page.locator('.hdr').waitFor({ state: 'visible' });
   assert.equal(await visible(page, '#landing'), false, 'compte confirmé : l’application remplace l’accueil');
   assert.equal(await page.locator('#authMbk .auth-modal #authView').count(), 1, 'le formulaire est revenu dans la fenêtre de compte');
@@ -110,19 +117,19 @@ test('connexion et « Mot de passe oublié » dans le panneau, puis application 
   await page.goto(server.url + '/');
   await page.click('.lp-nav a[data-click="lpAuth"][data-args*="login"]');
   await panelTitle(page).filter({ hasText: 'Connexion' }).waitFor();
-  await page.click('#lpAuthHost >> text=Mot de passe oublié');
+  await page.click('#lpAuthHost >> text=Mot de passe oublié', { force: true });
   await page.fill('#authEmail', 'pierre@exemple.fr');
-  await page.click('#lpAuthHost .auth-submit');
+  await page.click('#lpAuthHost .auth-submit', { force: true });
   await panelTitle(page).filter({ hasText: 'Email envoyé' }).waitFor();
   assert.ok(db.calls.some(c => c.path === '/auth/v1/recover' && c.body.email === 'pierre@exemple.fr'));
   await page.click('.lp-hero a[data-click="lpAuth"][data-args*="login"]');
   await panelTitle(page).filter({ hasText: 'Connexion' }).waitFor();
   await page.fill('#authEmail', 'pierre@exemple.fr');
   await page.fill('#authPassword', 'mauvais-mot-de-passe');
-  await page.click('#lpAuthHost .auth-submit');
+  await page.click('#lpAuthHost .auth-submit', { force: true });
   await msg(page).filter({ hasText: 'Email ou mot de passe incorrect.' }).waitFor({ timeout: 8000 });
   await page.fill('#authPassword', 'Correct-Horse-42');
-  await page.click('#lpAuthHost .auth-submit');
+  await page.click('#lpAuthHost .auth-submit', { force: true });
   await page.locator('.hdr').waitFor({ state: 'visible' });
   assert.equal(await visible(page, '#landing'), false);
   assert.equal(await page.title(), 'Cinepisode');
@@ -141,7 +148,7 @@ test('membre connecté : l’accueil n’apparaît jamais, même pas une image (
   await page.click('.lp-nav a[data-click="lpAuth"][data-args*="login"]');
   await page.fill('#authEmail', 'pierre@exemple.fr');
   await page.fill('#authPassword', 'Correct-Horse-42');
-  await page.click('#lpAuthHost .auth-submit');
+  await page.click('#lpAuthHost .auth-submit', { force: true });
   await page.locator('.hdr').waitFor({ state: 'visible' });
   await probeLanding(page);
   for (const p of ['/', '/en', '/#detectes']) {
@@ -177,7 +184,7 @@ for (const width of [360, 390, 412]) {
     assert.ok(sw[0] <= sw[2] && sw[1] <= sw[2], 'débordement horizontal : ' + JSON.stringify(sw));
     const h1 = await page.locator('#landing h1').boundingBox();
     assert.ok(h1.x >= 0 && h1.x + h1.width <= width + 0.5, 'h1 dans l’écran');
-    const card = await page.locator('.lp-auth-card').boundingBox();
+    const card = await page.locator('#lpAuthHost').boundingBox();
     assert.ok(card.x >= 0 && card.x + card.width <= width + 0.5, 'panneau dans l’écran');
     assert.deepEqual(problems, []);
   });
@@ -192,7 +199,7 @@ test('anglais : /en en anglais (titre, description, h1, panneau), puis navigateu
   assert.match(await page.getAttribute('meta[name="description"]', 'content'), /^Track your movies/);
   assert.match(await page.locator('#landing h1').textContent(), /Everything you watch/);
   assert.match(await page.locator('#lp-extension').textContent(), /Available on the Chrome Web Store/i);
-  await panelTitle(page).filter({ hasText: 'Create an account' }).waitFor();
+  await panelTitle(page).filter({ hasText: 'Create an account' }).waitFor({ state: 'attached' });
   assert.doesNotMatch(await page.locator('#landing').innerText(), /Créer|Connexion|séries|Gratuit/, 'aucun texte français visible');
   assert.equal(await page.locator('#landing a[data-legal="privacy"]').first().getAttribute('href'), '/privacy');
   assert.deepEqual(problems, []);

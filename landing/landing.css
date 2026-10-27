@@ -95,24 +95,24 @@ html.lp-guest{scroll-behavior:smooth;scroll-padding-top:84px}
 .lp-faq-item[open] .lp-faq-chev{transform:rotate(180deg);color:var(--accent)}
 .lp-faq-item p{color:var(--lp-muted);font-size:16px;line-height:1.7;padding:0 44px 26px 4px;margin-top:-6px}
 
-/* ---------- Inscription ---------- */
-.lp-join-in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,480px);gap:clamp(40px,7vw,110px);align-items:center}
-@media (max-width:900px){.lp-join-in{grid-template-columns:1fr}}
-.lp-auth-card{position:relative;border-radius:28px;padding:1px;background:linear-gradient(160deg,rgba(var(--accent-rgb),.55),rgba(255,255,255,.08) 30%,rgba(255,255,255,.05) 70%,rgba(var(--lp-violet),.45));box-shadow:0 40px 100px -30px rgba(0,0,0,.8),0 0 80px -20px rgba(var(--accent-rgb),.25)}
-.lp-auth{border-radius:27px;background:linear-gradient(180deg,#121318,#0d0e12);padding:clamp(26px,4vw,40px);min-height:200px}
-.lp-auth .auth-title{font-family:'Inter',sans-serif;font-size:24px;font-weight:750;letter-spacing:-.025em;margin-bottom:20px;padding-right:0}
-.lp-auth .auth-tabs{padding:4px;border-radius:12px;margin-bottom:22px}
-.lp-auth .auth-tab{font-size:14px;padding:10px;border-radius:9px}
-.lp-auth .field{margin-bottom:18px}
-.lp-auth .field label{font-size:12px}
-.lp-auth .field input[type=email],.lp-auth .field input[type=password],.lp-auth .field input[type=text]{padding:13px 14px;border-radius:12px;background:#17181d;border-color:rgba(255,255,255,.1)}
-.lp-auth .auth-submit{min-height:50px;border-radius:999px;font-size:15.5px;font-family:'Inter',sans-serif;font-weight:650;margin-top:8px}
-.lp-auth .auth-check{font-size:13.5px}
-.lp-auth .auth-link{font-size:14px}
-.lp-auth .auth-p,.lp-auth .auth-hero p{font-size:15px}
-.lp-auth .auth-local-note{font-size:13px;opacity:.9;margin-top:16px}
+/* ---------- Inscription (vrai formulaire monté dans l'écran de l'appareil, chapitre 8) ---------- */
+.lp-auth{border-radius:16px;background:linear-gradient(180deg,#121318,#0d0e12);padding:16px;min-height:0;width:100%;max-height:100%;overflow-y:auto;pointer-events:auto}
+.lp-auth .auth-title{font-family:'Inter',sans-serif;font-size:17px;font-weight:750;letter-spacing:-.02em;margin-bottom:12px;padding-right:0}
+.lp-auth .auth-tabs{padding:3px;border-radius:10px;margin-bottom:14px}
+.lp-auth .auth-tab{font-size:12.5px;padding:7px;border-radius:7px}
+.lp-auth .field{margin-bottom:11px}
+.lp-auth .field label{font-size:11px}
+.lp-auth .field input[type=email],.lp-auth .field input[type=password],.lp-auth .field input[type=text]{padding:10px 12px;border-radius:10px;background:#17181d;border-color:rgba(255,255,255,.1);font-size:13.5px}
+.lp-auth .auth-submit{min-height:40px;border-radius:999px;font-size:13.5px;font-family:'Inter',sans-serif;font-weight:650;margin-top:4px}
+.lp-auth .auth-check{font-size:12px}
+.lp-auth .auth-link{font-size:12.5px}
+.lp-auth .auth-p,.lp-auth .auth-hero p{font-size:13px}
+.lp-auth .auth-local-note{font-size:11.5px;opacity:.9;margin-top:10px}
 .lp-auth .auth-alt+.auth-local-note,.lp-auth .lang-switch-auth,.lp-auth .mact:has(>[data-click="closeAuth"]){display:none}
-.lp-auth-ph{display:grid;gap:18px}
+.lp-auth-ph{display:grid;gap:12px}
+/* Dans l'écran de l'appareil (chapitre 8) : jeton Turnstile et messages restent compacts */
+.lp-j-auth{position:relative;z-index:1}
+.lp-j-auth .auth-msg{font-size:12px}
 
 /* ---------- Pied de page ---------- */
 .lp-foot{border-top:1px solid var(--lp-line);padding:56px 0 calc(40px + env(safe-area-inset-bottom));color:var(--lp-faint);font-size:14.5px}
@@ -343,14 +343,25 @@ html.lp-anim .lp-faq-item.lp-open .lp-faq-a p{opacity:1;transform:none}
 .lp-j-prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.05)}
 .lp-j-prog i{display:block;height:100%;background:var(--accent);transform-origin:0;transform:scaleX(var(--gp,0))}
 
-/* Chapitres (texte qui défile à gauche de l'appareil) */
-.lp-j-chs{position:relative;z-index:2;margin-top:-100vh;margin-top:-100svh}
-.lp-ch{min-height:115vh;display:flex;align-items:center;padding:0 clamp(20px,5vw,72px);pointer-events:none}
+/* Chapitres (texte qui défile à gauche de l'appareil). .lp-ch-t est sticky (plutôt que centré par
+   flex dans la boîte du chapitre) : pour les chapitres plus hauts que 100vh (1, 2, 8 — plus de
+   « piste » de scroll pour d'autres effets), un texte simplement centré sort du viewport avant la
+   fin du chapitre alors que le JS le garde « on » (opaque) — colonne vide un instant. Sticky le
+   garde à l'écran pendant toute la traversée du chapitre ; le fondu .on reste piloté par le JS. */
+.lp-j-chs{position:relative;z-index:2;margin-top:-100vh;margin-top:-100svh;pointer-events:none}
+/* .lp-j-stick (l'appareil, sticky) ne peut rester épinglé que tant qu'il reste, dans .lp-j-chs,
+   au moins sa propre hauteur (100vh) de défilement après le point courant — sinon il quitte l'écran
+   par le haut avant la fin du dernier chapitre (formulaire coupé). Comme le chapitre 8 finit
+   .lp-j-chs, cette marge de 100vh manquerait tout à la fin : .lp-j-tail la restitue, sans être un
+   « .lp-ch » donc sans effet sur le calcul JS du chapitre courant. */
+.lp-j-tail{height:100vh;height:100svh}
+.lp-ch{min-height:115vh;padding:0 clamp(20px,5vw,72px);pointer-events:none}
 .lp-ch[data-ch="0"]{min-height:100vh;min-height:100svh;padding-top:72px}
 .lp-ch[data-ch="1"]{min-height:190vh}
 .lp-ch[data-ch="2"]{min-height:160vh}
 .lp-ch[data-ch="8"]{min-height:120vh}
-.lp-ch-t{max-width:min(36vw,520px);pointer-events:auto}
+.lp-ch-t{position:sticky;top:50vh;top:50svh;transform:translateY(-50%);max-width:min(36vw,520px);pointer-events:auto}
+.lp-ch[data-ch="0"] .lp-ch-t{position:static;transform:none}
 .lp-j-h1{margin:22px 0 0;max-width:12ch;font-weight:900;font-size:clamp(2.6rem,1rem + 4.4vw,5.2rem);letter-spacing:-.05em}
 .lp-j-h2{font-weight:900;font-size:clamp(2.1rem,1rem + 3vw,4.2rem);line-height:1;letter-spacing:-.05em}
 .lp-j-big{font-size:clamp(2.6rem,1rem + 4vw,5.4rem)}
@@ -372,24 +383,83 @@ html.lp-anim .lp-ch.on .lp-ch-t>:nth-child(2){transition-delay:.06s}
 html.lp-anim .lp-ch.on .lp-ch-t>:nth-child(3){transition-delay:.12s}
 html.lp-anim .lp-ch.on .lp-ch-t>:nth-child(n+4){transition-delay:.18s}
 
-/* Mobile : appareil en haut, texte en bas sur un voile */
+/* Chapitre 8 : 3 étapes vivantes (boucle de 6 s, en synchro avec _lpSteps() en JS) reliées par une
+   ligne qui se remplit au scroll (--sp posé par le JS, chapitre 8). Le vrai formulaire est dans
+   l'écran de l'appareil (.lp-j-auth, voir .lp-s-cta) : plus de bouton ici, juste l'extension. */
+.lp-j-big{font-size:clamp(2.2rem,1rem + 3.2vw,4.4rem)}
+.lp-j-steps{position:relative;display:grid;gap:22px;margin:30px 0 8px;padding-left:2px}
+.lp-j-steps-line{position:absolute;left:19px;top:8px;bottom:8px;width:2px;background:rgba(255,255,255,.1);border-radius:1px;overflow:hidden}
+.lp-j-steps-line i{display:block;width:100%;height:calc(var(--sp,0)*100%);background:linear-gradient(180deg,var(--accent),#2b7fff);border-radius:1px;box-shadow:0 0 10px rgba(var(--accent-rgb),.6);transition:height .1s linear}
+.lp-j-step{position:relative;z-index:1;display:flex;gap:16px;align-items:flex-start}
+.lp-j-step-ic{position:relative;flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#17181d;border:1.5px solid var(--lp-line2);color:var(--lp-faint)}
+.lp-j-step-ic svg{width:17px;height:17px}
+.lp-j-step div>b{display:block;font:700 15.5px 'Inter',sans-serif;color:var(--lp-text);margin-bottom:3px}
+.lp-j-step div>p{margin:0;font-size:13.5px;color:var(--lp-muted);line-height:1.5}
+.lp-j-step-pop{position:absolute;top:-6px;right:-6px;width:15px;height:15px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:800 11px/15px 'Inter',sans-serif;text-align:center;opacity:0;transform:scale(.3) translateY(4px)}
+.lp-j-step-count{font:800 10px 'Inter',sans-serif;position:absolute;bottom:-5px;right:-7px;min-width:17px;height:17px;line-height:17px;text-align:center;border-radius:999px;background:var(--accent);color:var(--on-accent);letter-spacing:-.02em}
+.lp-j-step-dot{opacity:0}
+.lp-j-step-ck{stroke-dasharray:11;stroke-dashoffset:11}
+html.lp-anim .lp-j-step-ic{animation:lpStepLit 6s ease-in-out infinite}
+html.lp-anim .lp-j-step[data-step="0"] .lp-j-step-ic{animation-delay:0s}
+html.lp-anim .lp-j-step[data-step="1"] .lp-j-step-ic{animation-delay:2s}
+html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ic{animation-delay:4s}
+@keyframes lpStepLit{
+  0%,3%{border-color:var(--lp-line2);color:var(--lp-faint);background:#17181d;box-shadow:none;transform:scale(1)}
+  12%,24%{border-color:var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),.16);box-shadow:0 0 0 5px rgba(var(--accent-rgb),.15),0 0 22px rgba(var(--accent-rgb),.4);transform:scale(1.07)}
+  33%,100%{border-color:var(--lp-line2);color:var(--lp-faint);background:#17181d;box-shadow:none;transform:scale(1)}
+}
+html.lp-anim .lp-j-step[data-step="0"] .lp-j-step-pop{animation:lpStepPop 6s ease-in-out infinite}
+@keyframes lpStepPop{0%,5%{opacity:0;transform:scale(.3) translateY(4px)}14%,22%{opacity:1;transform:scale(1) translateY(0)}30%,100%{opacity:0;transform:scale(.3) translateY(4px)}}
+html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-in-out infinite;animation-delay:4s}
+@keyframes lpStepCk{0%,12%{stroke-dashoffset:11}24%,30%{stroke-dashoffset:0}33%,100%{stroke-dashoffset:11}}
+.lp-j-ext-link{display:inline-flex;margin-top:24px}
+@media (prefers-reduced-motion:reduce){
+  html.lp-anim .lp-j-step-ic,html.lp-anim .lp-j-step-pop,html.lp-anim .lp-j-step-ck{animation:none!important}
+  .lp-j-step[data-step="0"] .lp-j-step-ic{border-color:var(--accent);color:var(--accent)}
+}
+
+/* Mobile : l'appareil occupe le haut de l'écran (~60 %), le texte prend une bande fixée en bas qui
+   ne le recouvre jamais (sauf chapitre 8 : la bande passe en haut, l'appareil descend — « les 3
+   étapes s'empilent au-dessus de l'appareil »). Chapitres 1-7 : titre + une seule ligne (le reste du
+   paragraphe est tronqué), qui changent en fondu (classe .on posée par le JS, cf. le bloc juste
+   au-dessus). Chaque bande porte son propre fond flouté (pas de calque partagé : un backdrop-filter
+   séparé de la bande de texte produit un flou qui déborde sur le texte dans Chromium). */
 @media (max-width:860px){
-  .lp-j-bg{background:radial-gradient(130% 70% at 50% 30%,rgba(var(--tint),1),rgba(var(--tint),.3) 50%,var(--bg) 85%)}
-  .lp-j-flash{left:50%;top:32%}
-  .lp-ch{align-items:flex-end;min-height:120vh;padding-bottom:6vh}
-  .lp-ch[data-ch="0"]{min-height:100vh;min-height:100svh;padding-bottom:4vh}
+  .lp-j-bg{background:radial-gradient(130% 70% at 50% 24%,rgba(var(--tint),1),rgba(var(--tint),.3) 50%,var(--bg) 85%)}
+  .lp-j-flash{left:50%;top:26%}
+  .lp-ch{align-items:flex-start;min-height:120vh;padding:0}
+  .lp-ch[data-ch="0"]{min-height:100vh;min-height:100svh;align-items:flex-end;padding-bottom:4vh}
   .lp-ch[data-ch="1"]{min-height:170vh}
-  .lp-ch-t{max-width:none;width:100%;padding:22px 20px;margin:0 -6px;border-radius:24px;background:rgba(10,10,12,.78);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid var(--lp-line)}
-  .lp-ch[data-ch="0"] .lp-ch-t{background:linear-gradient(180deg,rgba(10,10,12,.2),rgba(10,10,12,.9) 30%);border:0;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0 4px}
+
+  .lp-ch-t{max-width:none;width:calc(100% - 24px)}
+  .lp-ch[data-ch="0"] .lp-ch-t{width:100%;padding:0 4px;background:linear-gradient(180deg,rgba(10,10,12,.2),rgba(10,10,12,.9) 30%)}
+  .lp-ch:not([data-ch="0"]):not([data-ch="8"]) .lp-ch-t{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;
+    max-height:min(30vh,230px);overflow:hidden;padding:18px 22px;pointer-events:none;border-radius:22px;background:rgba(10,10,12,.82);
+    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--lp-line);opacity:0;transition:opacity .4s}
+  .lp-ch:not([data-ch="0"]):not([data-ch="8"]).on .lp-ch-t{opacity:1;pointer-events:auto}
+  .lp-ch:not([data-ch="0"]) .lp-p,.lp-ch:not([data-ch="0"]) .lp-lead{overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+  .lp-ch:not([data-ch="0"]) .lp-j-plats,.lp-ch:not([data-ch="0"]) .lp-cta-row,.lp-ch:not([data-ch="0"]) .lp-j-link{display:none}
+
   .lp-j-h1{font-size:clamp(2rem,8.6vw,3rem);margin-top:12px}
-  .lp-j-h2{font-size:clamp(1.8rem,8vw,2.6rem)}
+  .lp-j-h2{font-size:clamp(1.5rem,7vw,2.1rem);line-height:1.08}
   .lp-ch .lp-lead{font-size:15.5px;margin-top:12px}
-  .lp-ch .lp-p{font-size:15px;margin-top:12px}
+  .lp-ch .lp-p{font-size:14.5px;margin-top:8px}
   .lp-cta-row{margin-top:18px;gap:10px}
   .lp-cta-row .lp-btn-lg{min-height:50px;padding:0 20px;font-size:15px}
   .lp-ch[data-ch="0"] .lp-eyebrow{font-size:12px}
   .lp-j-hint{display:none}
-  .lp-j-far .lp-fl:nth-child(n+5),.lp-j-near .lp-fl:nth-child(n+4){display:none}
+  .lp-j-far .lp-fl:nth-child(n+4),.lp-j-near .lp-fl:nth-child(n+3){display:none}
+
+  /* Chapitre 8 : bande en haut (steps + extension), le vrai formulaire reste dans l'appareil, qui
+     descend pour lui laisser la place (cy ajusté en JS). */
+  .lp-ch[data-ch="8"]{align-items:flex-start;padding-top:calc(20px + env(safe-area-inset-top))}
+  .lp-ch[data-ch="8"] .lp-ch-t{position:fixed;left:12px;top:calc(14px + env(safe-area-inset-top));z-index:6;
+    max-height:52vh;overflow:auto;padding:18px 20px;border-radius:22px;background:rgba(10,10,12,.86);
+    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--lp-line)}
+  .lp-ch[data-ch="8"]:not(.on) .lp-ch-t{pointer-events:none}
+  .lp-j-h2.lp-j-big{font-size:clamp(1.6rem,7.4vw,2.3rem)}
+  .lp-j-steps{margin:16px 0 4px;gap:14px}
+  .lp-j-step div>p{font-size:12.5px}
 }
 
 /* Sans JS ou mouvement réduit : texte visible, appareil fixe sur une scène par chapitre */
@@ -418,16 +488,11 @@ html:not(.lp-anim) .lp-ex-row .lp-po{opacity:1}
   transition:opacity .24s var(--lp-ease),transform .3s cubic-bezier(.3,1.3,.5,1),filter .24s var(--lp-ease);transition-delay:calc(var(--k,0)*18ms)}
 .lp-ls-grid .lp-g.off{--fo:.22;--fs:.9;--fsat:.1;--fbr:.7}
 /* CTA : formulaire dans l'appareil du visiteur */
-.lp-cta-card{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100%,360px);padding:0 22px;transform:scale(calc(.9 + var(--ct,0)*.1));opacity:clamp(0,var(--ct,0),1)}
-.lp-cta-ic svg{width:72px;height:72px}
-.lp-cta-d{font-size:14px;color:#c3c5ce;text-align:center;margin-bottom:6px}
+.lp-cta-card{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100%,360px);max-height:100%;padding:16px 22px;overflow:hidden;transform:scale(calc(.9 + var(--ct,0)*.1));opacity:clamp(0,var(--ct,0),1)}
+.lp-cta-ic svg{width:44px;height:44px}
+.lp-cta-d{font-size:13px;color:#c3c5ce;text-align:center;margin-bottom:2px}
 .lp-cta-d [data-dev]{display:none}
 .lp-s-cta[data-dev="phone"] [data-dev="phone"],.lp-s-cta[data-dev="tablet"] [data-dev="tablet"],.lp-s-cta[data-dev="pc"] [data-dev="pc"]{display:inline}
-.lp-cta-f{width:100%;display:flex;flex-direction:column;gap:5px;font-size:13px}
-.lp-cta-f b{font:600 11px 'Inter',sans-serif;color:#9a9ba6;letter-spacing:.04em;text-transform:uppercase}
-.lp-cta-f span{padding:12px 14px;border-radius:12px;background:#17181d;border:1px solid rgba(255,255,255,.1);color:#c9cad1}
-.lp-cta-f:first-of-type span{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15)}
-.lp-s-cta .lp-cta-b{margin-top:8px;width:100%;text-align:center}
 .lp-s-cta[data-dev="pc"] .lp-cta-card{width:380px}
 .lp-j-fly,.lp-j-story{z-index:4}.lp-j-prog{z-index:5}
 /* Relief 3D (CSS seul) : tranche en couches, reflet qui suit l'inclinaison, ombre au sol */

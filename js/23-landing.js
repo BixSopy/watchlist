@@ -34,10 +34,18 @@ function lpShowAuth(view){
   var sec=document.getElementById('lp-join');if(!sec)return;
   var reduced=_lpReduced();
   sec.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
-  setTimeout(function(){
-    var i=document.getElementById('authEmail');
-    if(i&&_lpHost().contains(i))try{i.focus({preventScroll:true});}catch(e){i.focus();}
-  },reduced?0:500);
+  /* Le champ email vit dans l'appareil (chapitre 8) : tant que le défilement animé (lerp) n'a pas
+     rattrapé le scroll, sa scène reste invisibility:hidden (comme les autres), et .focus() dessus
+     ne fait rien — sans erreur, sans retenter. On retente donc par intervalles le temps qu'il faille. */
+  var tries=0;
+  (function tryFocus(){
+    var i=document.getElementById('authEmail'),host=_lpHost();
+    if(i&&host&&host.contains(i)&&getComputedStyle(i).visibility!=='hidden'){
+      try{i.focus({preventScroll:true});}catch(e){i.focus();}
+      return;
+    }
+    if(++tries<50)setTimeout(tryFocus,150);
+  })();
 }
 /* Accueil → app (connexion réussie, ou liste locale ouverte sans compte) */
 function lpLeave(){
@@ -113,20 +121,35 @@ function _lpImgs(){
     i.src=base+(i.getAttribute('data-w')||'w185')+i.getAttribute('data-tmdb');
   });
 }
-/* Affiches TMDB : aucune ressource tierce au chargement, seulement au premier geste */
+/* Affiches TMDB : aucune ressource tierce au chargement, seulement au premier geste de défilement.
+   « wheel »/« touchmove » seulement (pas « scroll ») : un scroll peut être déclenché par le
+   navigateur lui-même (ex. focus automatique d'un champ qui scrolle pour le mettre en vue à
+   l'ouverture du panneau d'inscription), ce qui chargeait toutes les affiches à tort sur un simple
+   clic « Créer mon compte ». wheel/touchmove sont, eux, toujours un vrai geste de l'utilisateur. */
 function _lpImgsOnGesture(){
   if(_lp.gest)return;_lp.gest=1;
-  /* scroll gestures only: clicks/typing (feedback form…) must stay third-party-free */
-  var ev=['scroll','wheel','touchmove'];
-  function go(e){if(e&&e.type==='scroll'&&scrollY<24)return;
-    var J=document.querySelector('#landing [data-lp-j]');if(J&&J.getBoundingClientRect().bottom<innerHeight*.5)return;ev.forEach(function(e){removeEventListener(e,go,true);});_lpImgs();}
+  var ev=['wheel','touchmove'];
+  function go(){var J=document.querySelector('#landing [data-lp-j]');if(J&&J.getBoundingClientRect().bottom<innerHeight*.5)return;ev.forEach(function(e){removeEventListener(e,go,true);});_lpImgs();}
   ev.forEach(function(e){addEventListener(e,go,{passive:true,capture:true});});
 }
 function _lpJourney(){
   var S=document.querySelector('#landing [data-lp-j]');if(!S||S._lp)return;S._lp=1;
   var Q=function(s){return S.querySelector(s);},QA=function(s){return [].slice.call(S.querySelectorAll(s));};
   var stick=Q('.lp-j-stick'),dv=Q('.lp-dv'),flash=Q('.lp-j-flash'),fly=Q('.lp-j-fly'),story=Q('.lp-j-story'),prog=Q('.lp-j-prog'),
-      chs=QA('.lp-ch'),words=QA('.lp-j-w'),scr={},time=document.getElementById('lpTime'),detN=document.getElementById('lpDetN');
+      chs=QA('.lp-ch'),words=QA('.lp-j-w'),scr={},time=document.getElementById('lpTime'),detN=document.getElementById('lpDetN'),
+      stepsLine=Q('.lp-j-steps-line i'),stepCount=Q('.lp-j-step-count');
+  /* Étape 2 (« mon historique arrive tout seul ») : compteur qui monte en boucle avec l'icône,
+     sur la même horloge que l'animation CSS (document.timeline, pas de setInterval séparé). */
+  if(stepCount&&!_lpReduced()){
+    stepCount.textContent='0';
+    (function tickCount(){
+      if(!S.isConnected)return;
+      var ph=((document.timeline&&document.timeline.currentTime)||0)%6000,v=0;
+      if(ph>=2000&&ph<4000)v=Math.round(24*((ph-2000)/2000));else if(ph>=4000)v=24;
+      if(stepCount._v!==v){stepCount._v=v;stepCount.textContent=String(v);}
+      requestAnimationFrame(tickCount);
+    })();
+  }
   QA('.lp-s').forEach(function(e){scr[e.getAttribute('data-s')]=e;});
   var fl=QA('.lp-j-far .lp-fl').map(function(e,i,a){return {e:e,far:1,a0:i/a.length*6.283+.4,k:i};})
     .concat(QA('.lp-j-near .lp-fl').map(function(e,i,a){return {e:e,far:0,a0:i/a.length*6.283+1.1,k:i+8};}));
@@ -172,7 +195,10 @@ function _lpJourney(){
     var W=lerp(A.w,B.w,mt),H=lerp(A.h,B.h,mt),R=lerp(A.r,B.r,mt),BZ=lerp(A.bz,B.bz,mt);
     /* Appel final : l'appareil prend la forme de celui du visiteur */
     var mf=ease(seg(g,7.82,8.18)),F=LP_DEV[DV];if(mf>0&&DV!==2){W=lerp(W,F.w,mf);H=lerp(H,F.h,mf);R=lerp(R,F.r,mf);BZ=lerp(BZ,F.bz,mf)}
-    var bw=mob?vw*.86:vw*.46,bh=mob?vh*.44:vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?64+vh*.24:vh*.52;
+    /* Mobile, chapitre 8 : les 3 étapes passent en haut, l'appareil (et son formulaire) descend
+       pour leur laisser la place — « les 3 étapes s'empilent au-dessus de l'appareil ». */
+    var ch8=mob?ease(seg(g,7.55,8.15)):0;
+    var bw=mob?vw*.86:vw*.46,bh=mob?lerp(vh*.42,vh*.32,ch8):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?lerp(60+vh*.23,vh*.76,ch8):vh*.52;
     var s=Math.min(bw/W,bh/H),morphing=(mt>0&&mt<1);
     if(g<1.2&&!mob){s*=lerp(1.06,1,seg(g,.3,1.2));}
     if(g>8.05){s*=1+ease(seg(g,8.05,8.5))*.06;}
@@ -251,10 +277,11 @@ function _lpJourney(){
       story.style.opacity=String(so);
       story.style.transform='translate3d('+(lerp(cx,px,st)-110).toFixed(1)+'px,'+(lerp(cy,py,st)-190).toFixed(1)+'px,0) scale('+lerp(.4,mob?.8:1,st).toFixed(3)+') rotate('+lerp(0,7,st).toFixed(2)+'deg)';
     }else if(story.style.opacity!=='0')story.style.opacity='0';
-    /* 8 · Appel final */
+    /* 8 · Appel final : formulaire réel dans l'appareil, ligne des 3 étapes qui se remplit au scroll */
     set(scr[8],'--ct',back(seg(f[8],0,.3)));
+    if(stepsLine)stepsLine.style.height=(seg(f[8],.04,.5)*100).toFixed(1)+'%';
     /* Affiches en profondeur : orbite lente autour de l'appareil ; au chapitre 2 elles affluent vers la liste */
-    var stream=0,lx=cx,ly=cy,hw=W*s/2+40,hh=H*s/2+40;
+    var stream=0,lx=cx,ly=cy;
     fl.forEach(function(p,i){
       var ang=p.a0+g*(p.far?.35:-.5)+tm*(p.far?.03:.05),rx=(mob?vw*.55:vw*(p.far?.36:.3)),ry=(mob?vh*.3:vh*(p.far?.42:.38)),
           x=cx+Math.cos(ang)*rx,y=cy+Math.sin(ang)*ry,sc=p.far?.9:1,o=p.far?.45:.9,rot=Math.sin(ang*1.3)*10;
@@ -262,14 +289,21 @@ function _lpJourney(){
       if(stream>0){var u=((f[2]*1.5+p.k/14)%1),sx=vw*(.75+((p.k*29)%30)/100),sy=-vh*.12;
         var zx=lerp(sx,lx,ease(u)),zy=lerp(sy,ly,ease(u));x=lerp(x,zx,stream);y=lerp(y,zy,stream);sc=lerp(sc,1.1-u*.8,stream);o=lerp(o,Math.sin(Math.PI*u)*(p.far?.6:1),stream);rot=lerp(rot,(1-u)*-14,stream);}
       if(!mob)o*=seg(x,vw*.5,vw*.6);
-      /* jamais par-dessus l'interface : fondu près de l'appareil */
+      /* jamais par-dessus l'interface : fondu près de l'appareil. La marge inclut la moitié de la
+         plus grande dimension de l'affiche (largeur CSS clamp() + aspect-ratio 2/3, ± rotation) :
+         une marge fixe (40px) ne suffisait pas pour les affiches « near » (jusqu'à 170px de large),
+         qui frôlaient encore le bord de l'appareil à certaines largeurs d'écran (ex. 1280px). */
+      var pw=p.far?Math.min(96,Math.max(56,vw*.06)):Math.min(170,Math.max(90,vw*.1)),half=pw*1.5/2+15,hw=W*s/2+half,hh=H*s/2+half;
       var dx=Math.abs(x-cx)/hw,dy=Math.abs(y-cy)/hh;o*=seg(Math.max(dx,dy),1,1.25);
       if(reduced)o=0;
       set(p.e,'opacity',o);if(o>.01)p.e.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) translate(-50%,-50%) scale('+sc.toFixed(3)+') rotate('+rot.toFixed(2)+'deg)';
     });
     set(prog,'--gp',g/(chs.length));
-    /* Texte du chapitre courant */
-    chs.forEach(function(c,i){var on=g>i-.35&&g<i+1.02;if(c._on!==on){c._on=on;c.classList.toggle('on',on);}});
+    /* Texte du chapitre courant : fenêtres disjointes (pas de recouvrement entre chapitres voisins).
+       Texte désormais sticky/fixe à l'écran (voir landing.css) : deux chapitres « on » en même temps
+       s'afficheraient au même endroit, superposés et illisibles, au lieu de se croiser pendant le
+       défilement comme avant. Le fondu CSS (transition .8-1.1s) fait la bascule visuelle. */
+    chs.forEach(function(c,i){var last=i===chs.length-1,on=g>=i-.5&&(last||g<i+.5);if(c._on!==on){c._on=on;c.classList.toggle('on',on);}});
     if(vis&&!reduced)req();
   }
   function req(){if(!run){run=true;requestAnimationFrame(frame);}}
