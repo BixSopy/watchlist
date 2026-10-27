@@ -68,10 +68,25 @@ test('progression : quand demander le nombre d\'épisodes de la saison, et lectu
   assert.equal(H.seasonCountFrom(null, 2), 0);
 });
 
-test('carrousel : départ au milieu (05-render.js) et barre indéterminée avec repli mouvement réduit', () => {
+test('carrousel : départ sur le plus récent (05-render.js) et barre indéterminée avec repli mouvement réduit', () => {
   const src = fs.readFileSync(path.join(ROOT, 'js/05-render.js'), 'utf8');
   const start = new Function(src.match(/function heroStartIndex\(n\)\{([^}]*)\}/)[1].replace(/^/, 'const n=arguments[0];'));
-  assert.deepEqual([1, 2, 3, 4, 5, 14].map(n => start(n)), [0, 0, 1, 1, 2, 6]);
+  assert.deepEqual([1, 2, 3, 4, 5, 14].map(n => start(n)), [0, 0, 0, 0, 0, 0]);
   assert.match(html, /@keyframes cfUnk/);
   assert.match(html, /prefers-reduced-motion:reduce\)\{\.cf-bar\.unk i,\.cf-card \.cf-pg\.unk i\{animation:none/);
+});
+
+test('carrousel : repère de position (point bleu sans texte, mouvement réduit)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'js/25-home.js'), 'utf8');
+  const pct = new Function('idx', 'n', src.match(/function cfPosPct\(idx,n\)\{([^}]*)\}/)[1]);
+  assert.deepEqual([pct(0, 10), pct(9, 10), pct(0, 1)], [0, 100, 0]);
+  assert.match(html, /id="cfPosDot"/);
+  assert.match(html, /\.cf-pos-t i\{[^}]*#5cc8ff/);
+  assert.doesNotMatch(html, /cf-pos-[lr]|cont\.(newest|oldest)/);
+  assert.match(html, /\.cf-pos\{[^}]*opacity:0/);
+  assert.match(html, /\.cf-pos\.on\{opacity:1\}/);
+  assert.match(html, /prefers-reduced-motion:reduce\)\{\.cf-pos,\.cf-pos-t i\{transition:none/);
+  assert.match(src, /function cfGo\(i\)\{cfPosShow\(\);/);
+  assert.match(src, /classList\.remove\('on'\);\},1200\)/);
+  assert.doesNotMatch(src.match(/function renderContinue[\s\S]*?\n\}/)[0], /cfPosShow/);
 });
