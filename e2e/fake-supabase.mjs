@@ -3,13 +3,22 @@
 const SUPA = 'https://batfulcvvquffgfeppcx.supabase.co';
 
 function b64url(o) { return Buffer.from(JSON.stringify(o)).toString('base64url'); }
-function jwt(user) {
+/* aal2 : uniquement juste après un mfa.verify() réussi (voir /factors/:id/verify plus bas) —
+   jamais après le seul mot de passe, même si un facteur est enrôlé. */
+function jwt(user, aal = 'aal1') {
   const now = Math.floor(Date.now() / 1000);
   return b64url({ alg: 'HS256', typ: 'JWT' }) + '.' + b64url({
     sub: user.id, email: user.email, role: 'authenticated', aud: 'authenticated', exp: now + 3600, iat: now,
-    amr: [{ method: 'password', timestamp: now }], session_id: 's-' + user.id,
+    amr: [{ method: 'password', timestamp: now }], session_id: 's-' + user.id, aal,
   }) + '.c2lnbmF0dXJl';
 }
+/* Petit SVG de substitution (pas un vrai QR TOTP : la vérification se fait avec le code magique
+   123456, comme les autres codes à 6 chiffres de ce fichier) pour vérifier visuellement l'écran. */
+/* data:image/svg+xml,<svg> est embarqué tel quel par supabase-js (pas d'URL-encodage) : un '#'
+   littéral (ex. fill="#fff") couperait l'URI à cette position (identifiant de fragment). */
+const FAKE_QR_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="white"/>' +
+  '<g fill="black">' + Array.from({ length: 9 }, (_, r) => Array.from({ length: 9 }, (_, c) => ((r * 9 + c * 5) % 7 < 3)
+    ? `<rect x="${6 + c * 10}" y="${6 + r * 10}" width="8" height="8"/>` : '').join('')).join('') + '</g></svg>';
 
 export async function installFakeSupabase(page, opts = {}) {
   const db = {
@@ -23,8 +32,10 @@ export async function installFakeSupabase(page, opts = {}) {
     email_confirmed_at: u.confirmed ? '2026-10-01T10:00:00Z' : null, confirmed_at: u.confirmed ? '2026-10-01T10:00:00Z' : null,
     created_at: '2026-10-01T10:00:00Z', updated_at: '2026-10-01T10:00:00Z', last_sign_in_at: '2026-10-08T10:00:00Z',
     app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: { ...(u.metadata || {}) },
+    /* data.user.factors (vérifiés uniquement) : c'est ce que supabase-js lit pour calculer nextLevel */
+    factors: (u.mfaFactors || []).filter(f => f.status === 'verified').map(({ secret, ...f }) => f),
     identities: [{ id: u.id, user_id: u.id, provider: 'email', identity_id: 'i-' + u.id, identity_data: { email: u.email, sub: u.id }, created_at: '2026-10-01T10:00:00Z', updated_at: '2026-10-01T10:00:00Z', last_sign_in_at: '2026-10-01T10:00:00Z' }] });
-  const session = u => ({ access_token: jwt(u), token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+  const session = (u, aal) => ({ access_token: jwt(u, aal), token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     refresh_token: 'refresh-' + u.id, user: userJson(u) });
   const err = (route, status, code, msg, extra = {}) => route.fulfill({ status, contentType: 'application/json',
     headers: { 'access-control-allow-origin': '*', 'access-control-expose-headers': 'x-supabase-api-version', 'x-supabase-api-version': '2024-01-01' },
@@ -78,6 +89,41 @@ export async function installFakeSupabase(page, opts = {}) {
       return ok(route, userJson(usr));
     }
     if (p === '/auth/v1/logout') return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
+    /* Double authentification TOTP (js/37-mfa.js) : facteurs du compte connecté uniquement.
+       Code magique 123456 (comme /auth/v1/verify plus haut) : pas un vrai calcul TOTP. */
+    if (p === '/auth/v1/factors' && req.method() === 'GET') {
+      const usr = current(req); if (!usr) return err(route, 401, 'session_not_found', 'invalid JWT');
+      const all = (usr.mfaFactors || []).map(({ secret, ...f }) => f);
+      return ok(route, { totp: all.filter(f => f.factor_type === 'totp'), phone: [], all });
+    }
+    if (p === '/auth/v1/factors' && req.method() === 'POST') {
+      const usr = current(req); if (!usr) return err(route, 401, 'session_not_found', 'invalid JWT');
+      usr.mfaFactors = usr.mfaFactors || [];
+      const f = { id: 'f-' + (usr.mfaFactors.length + 1) + '-' + usr.id.slice(0, 4), factor_type: 'totp', friendly_name: body.friendly_name || 'authenticator', status: 'unverified', secret: 'JBSWY3DPEHPK3PXP' };
+      usr.mfaFactors.push(f);
+      return ok(route, { id: f.id, type: 'totp', friendly_name: f.friendly_name, totp: { qr_code: FAKE_QR_SVG, secret: f.secret, uri: 'otpauth://totp/Cinepisode:' + usr.email + '?secret=' + f.secret + '&issuer=Cinepisode' } });
+    }
+    const chM = p.match(/^\/auth\/v1\/factors\/([^/]+)\/challenge$/);
+    if (chM && req.method() === 'POST') {
+      const usr = current(req); if (!usr) return err(route, 401, 'session_not_found', 'invalid JWT');
+      if (!(usr.mfaFactors || []).some(f => f.id === chM[1])) return err(route, 404, 'mfa_factor_not_found', 'Factor not found');
+      return ok(route, { id: 'ch-' + Date.now(), type: 'totp', expires_at: Math.floor(Date.now() / 1000) + 300 });
+    }
+    const vM = p.match(/^\/auth\/v1\/factors\/([^/]+)\/verify$/);
+    if (vM && req.method() === 'POST') {
+      const usr = current(req); if (!usr) return err(route, 401, 'session_not_found', 'invalid JWT');
+      const f = (usr.mfaFactors || []).find(x => x.id === vM[1]);
+      if (!f) return err(route, 404, 'mfa_factor_not_found', 'Factor not found');
+      if (body.code !== '123456') return err(route, 401, 'invalid_mfa_code', 'Invalid TOTP code entered');
+      f.status = 'verified';
+      return ok(route, session(usr, 'aal2'));
+    }
+    const dM = p.match(/^\/auth\/v1\/factors\/([^/]+)$/);
+    if (dM && req.method() === 'DELETE') {
+      const usr = current(req); if (!usr) return err(route, 401, 'session_not_found', 'invalid JWT');
+      usr.mfaFactors = (usr.mfaFactors || []).filter(f => f.id !== dM[1]);
+      return ok(route, { id: dM[1] });
+    }
 
     if (p === '/rest/v1/profiles') {
       const usr = current(req);
@@ -144,6 +190,30 @@ export async function installFakeSupabase(page, opts = {}) {
       const sh = usr && db.shares.find(x => x.id === body.p_id && x.account_id === usr.id && !x.revoked_at);
       if (!sh) return ok(route, { status: 'not_found' });
       sh.revoked_at = new Date().toISOString();
+      return ok(route, { status: 'ok' });
+    }
+    /* Codes de secours MFA (js/37-mfa.js) : seule l'empreinte transmise par le client est vue ici,
+       jamais le code en clair — exactement comme la vraie migration (20261027200000). */
+    if (p === '/rest/v1/rpc/mfa_recovery_store') {
+      const usr = current(req); if (!usr) return ok(route, { status: 'not_authenticated' });
+      if (!Array.isArray(body.p_hashes) || body.p_hashes.length !== 10) return ok(route, { status: 'invalid_input' });
+      usr.recoveryHashes = body.p_hashes.map(h => ({ hash: h, used: false }));
+      return ok(route, { status: 'ok', count: 10 });
+    }
+    if (p === '/rest/v1/rpc/mfa_recovery_consume_check') {
+      const usr = current(req); if (!usr) return ok(route, { status: 'not_authenticated' });
+      const row = (usr.recoveryHashes || []).find(r => r.hash === body.p_hash && !r.used);
+      if (!row) return ok(route, { status: 'invalid_or_used' });
+      row.used = true;
+      return ok(route, { status: 'ok' });
+    }
+    if (p === '/rest/v1/rpc/mfa_recovery_count') {
+      const usr = current(req); if (!usr) return ok(route, { status: 'not_authenticated' });
+      return ok(route, { status: 'ok', count: (usr.recoveryHashes || []).filter(r => !r.used).length });
+    }
+    if (p === '/rest/v1/rpc/mfa_recovery_clear') {
+      const usr = current(req); if (!usr) return ok(route, { status: 'not_authenticated' });
+      usr.recoveryHashes = [];
       return ok(route, { status: 'ok' });
     }
     if (p === '/rest/v1/rpc/delete_my_account') {

@@ -250,3 +250,9 @@ uiOn('togglePw',function(el,e,id){togglePwVisibility(id,el);});
 uiOn('exportAccount',function(el){exportAccountData(el);});
 uiOn('syncNow',function(){syncNow();});
 uiOn('signOut',function(){signOutUser();});
+/* Double authentification (js/37-mfa.js) */
+uiOn('mfaRegenerateCodes',function(el){mfaRegenerateCodes(el);});
+uiOn('mfaCopyCodes',function(){mfaCopyCodes();});
+uiOn('mfaDownloadCodes',function(){mfaDownloadCodes();});
+uiOn('mfaCopySecret',function(){mfaCopySecret();});
+uiOn('mfaCodesDone',function(){mfaCodesDone();});

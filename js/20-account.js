@@ -106,7 +106,11 @@ var AUTH_ERRORS={
   otp_disabled:t('autherr.otp_disabled'),
   validation_failed:t('autherr.validation_failed'),
   invite_not_found:t('autherr.invite_not_found'),
-  conflict:t('autherr.conflict')
+  conflict:t('autherr.conflict'),
+  /* Double authentification (js/37-mfa.js) : "invalid_mfa_code" contient "otp" (to-TP) et
+     tomberait sinon dans le message « lien expiré » du repli générique plus bas. */
+  invalid_mfa_code:t('autherr.invalid_mfa_code'),
+  mfa_factor_not_found:t('autherr.mfa_factor_not_found')
 };
 function authErrorMessage(e){
   if(!e)return t('autherr.generic');
@@ -236,7 +240,7 @@ function refreshAuthModalView(){
   var mbk=document.getElementById('authMbk');
   if(!mbk||!mbk.classList.contains('on'))return;
   if(_authView==='account')authGo('account');
-  else if(authUser&&(_authView==='login'||_authView==='signup'))authGo('account');
+  else if(authUser&&(_authView==='login'||_authView==='signup'))_authEnterApp();
 }
 function authGo(view,ctx){
   _authView=view;_authIntentAt=0;if(ctx)_authCtx=Object.assign({},_authCtx,ctx);
@@ -335,7 +339,7 @@ var AUTH_VIEWS={
           if(res.error.code==='email_not_confirmed')return authGo('check',{email:email,kind:'signup',notice:AUTH_ERRORS.email_not_confirmed});
           return showAuthMsg(authErrorMessage(res.error));
         }
-        toast(t('auth.toast.signedIn'),'ok');authGo('account');
+        toast(t('auth.toast.signedIn'),'ok');_authEnterApp();
       }).catch(function(e){captchaReset();_authBusyBtn(btn,false);showAuthMsg(authErrorMessage(e));});
     }
   },
@@ -367,7 +371,7 @@ var AUTH_VIEWS={
       }).then(function(res){
         captchaReset();_authBusyBtn(btn,false);
         if(res.error)return showAuthMsg(authErrorMessage(res.error));
-        if(res.data&&res.data.session){toast(t('auth.toast.created'),'ok');return authGo('account');}
+        if(res.data&&res.data.session){toast(t('auth.toast.created'),'ok');return _authEnterAppAfterSignup();}
         _authResendAt=Date.now();
         authGo('check',{email:email,kind:'signup',notice:''});
       }).catch(function(e){captchaReset();_authBusyBtn(btn,false);showAuthMsg(authErrorMessage(e));});
@@ -385,7 +389,7 @@ var AUTH_VIEWS={
         '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
     after:function(c){if(c.notice)showAuthMsg(c.notice,'nfo');_tickResend();},
-    submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast(t('auth.toast.confirmed'),'ok');authGo('account');});}
+    submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast(t('auth.toast.confirmed'),'ok');_authEnterAppAfterSignup();});}
   },
   forgot:{
     title:function(){return esc(t('auth.forgot.title'));},
@@ -447,7 +451,7 @@ var AUTH_VIEWS={
         '<form novalidate>'+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.signIn'))+'</button></form>'+
         '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
-    submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast(t('auth.toast.signedIn'),'ok');authGo('account');});}
+    submit:function(btn){_verifyCode(btn,'email',_authCtx.email,function(){toast(t('auth.toast.signedIn'),'ok');_authEnterApp();});}
   },
   /* Code à 6 chiffres reçu par email (inscription, lien de connexion, mot de passe oublié),
      saisi plus tard ou sur un autre appareil que celui de la demande */
@@ -527,6 +531,7 @@ var AUTH_VIEWS={
         '<div class="auth-sync-info" id="authSyncInfo">'+esc(pending?tn('auth.account.pending',pending):t('auth.account.allSynced'))+'</div>'+
         '<div class="auth-menu">'+
         (typeof handleAccountRow==='function'?handleAccountRow():'')+
+        (typeof mfaAccountRow==='function'?mfaAccountRow():'')+
         _accBtn('syncNow',esc(t('auth.account.syncNow')),'<path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>')+
         _accBtn(['authGo','changePassword'],esc(t('auth.account.changePw')),'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>')+
         _accBtn(['authGo','changeEmail'],esc(t('auth.account.changeEmail')),'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/>')+
@@ -669,7 +674,7 @@ function _pwSavedState(btn,msg){
   if(btn){
     var next=document.createElement('button');
     next.type='button';next.className='btn btn-primary auth-submit';next.textContent=t('common.continue');
-    next.addEventListener('click',function(){authGo('account');});
+    next.addEventListener('click',function(){_authEnterApp();});
     btn.replaceWith(next);
   }
   var cancel=document.querySelector('#authView .mact');if(cancel)cancel.remove();
@@ -725,8 +730,8 @@ function _afterEmailVerified(action,data){
     if(!hasSession&&!(data&&data.user)){authGo('account');return showAuthMsg(t('auth.emailChange.half'),'nfo');}
     toast(t('auth.toast.emailUpdated'),'ok');return authGo('account');
   }
-  if(action==='signup')toast(t('auth.toast.confirmed'),'ok');else toast(t('auth.toast.signedIn'),'ok');
-  authGo('account');
+  if(action==='signup'){toast(t('auth.toast.confirmed'),'ok');return _authEnterAppAfterSignup();}
+  toast(t('auth.toast.signedIn'),'ok');_authEnterApp();
 }
 
 function signOutUser(){

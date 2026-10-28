@@ -104,10 +104,38 @@ et `20261026210000`), elle aussi absente des tableaux ci-dessus mais bien réell
 Tables : `activity_events` (un évènement par progression regroupée), `activity_reactions` (une ligne
 par personne par évènement). RLS activée, aucun accès direct hors fonctions ci-dessus.
 
+## Double authentification (TOTP) et codes de secours
+
+La double authentification (code à 6 chiffres, compatible Google Authenticator / Authy /
+1Password / Bitwarden...) utilise l'API native `supabase.auth.mfa.*` — **rien à créer côté
+base** : gratuite, activée par défaut sur tous les projets Supabase. Seuls les codes de secours
+(absents de l'offre Supabase) ont une table dédiée :
+
+| Fonction | Sécurité | Rôle | Effet |
+|---|---|---|---|
+| `mfa_recovery_store(p_hashes text[])` | SECURITY DEFINER | authenticated | remplace le lot de 10 codes de secours de l'utilisateur connecté |
+| `mfa_recovery_consume_check(p_hash text)` | SECURITY DEFINER | authenticated | consomme un code (à usage unique) ; ne supprime que celui-ci |
+| `mfa_recovery_count()` | SECURITY DEFINER | authenticated | nombre de codes encore valides |
+| `mfa_recovery_clear()` | SECURITY DEFINER | authenticated | vide le lot (désactivation de la double authentification) |
+
+Table : `mfa_recovery_codes` (une ligne par code, empreinte SHA-256 calculée **dans le
+navigateur** — le code en clair ne traverse jamais le réseau). RLS activée et forcée, aucune
+policy : fermée même pour son propriétaire, tout passe par les fonctions ci-dessus.
+
+Ne touche à aucune table du schéma `auth` : retirer un facteur TOTP perdu reste
+`supabase.auth.mfa.unenroll()` (niveau d'assurance aal2 obligatoire), obtenu en vérifiant un
+nouveau facteur juste après un code de secours valide — voir `js/37-mfa.js`.
+
+**Passkey (WebAuthn)** : repoussé en phase 2 (Pierre, 27/10). Natif chez Supabase
+(`registerPasskey`/`signInWithPasskey`) mais marqué expérimental, et nécessite de fixer
+**définitivement** le Relying Party ID (`cinepisode.com`) dans Authentication → Passkeys du
+Dashboard — irréversible pour les clés déjà enregistrées une fois activé.
+
 ## Réglages du tableau de bord (à faire à la main)
 
 Voir la section « Mise en ligne publique » et « Après l'achat de cinepisode.com » du
 [README](../../README.md) : inscriptions, confirmation d'email, mots de passe, CAPTCHA
 Turnstile, URL de redirection, SMTP Resend, gabarits d'emails (`supabase/templates/`).
 Garder « Allow anonymous sign-ins » désactivé et relancer Advisors › Security après chaque
-migration.
+migration. Double authentification TOTP : rien à faire, déjà active. Passkey : non activée
+(voir ci-dessus, phase 2).
