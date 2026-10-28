@@ -83,6 +83,7 @@ returns jsonb language plpgsql stable security definer set search_path = '' as $
 begin
   if not public._social_owns(p_profile_id) then return jsonb_build_object('status', 'not_authenticated'); end if;
   return jsonb_build_object('status', 'ok',
+    'accept_recos', coalesce((select s.accept_recos from public.social_settings s where s.profile_id = p_profile_id), true),
     'items', coalesce((select jsonb_agg(jsonb_build_object('id', x.id, 'from', public._social_card(x.from_profile),
         'tmdb_id', x.tmdb_id, 'tmdb_type', x.tmdb_type, 'type', x.media_type, 'title', x.title, 'year', x.year,
         'poster_path', x.poster_path, 'message', x.message, 'status', x.status, 'thanked', x.thanked_at is not null,

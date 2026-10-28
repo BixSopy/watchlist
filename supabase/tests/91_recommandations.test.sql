@@ -105,6 +105,7 @@ select pg_temp.check(jsonb_array_length(public.get_my_recommendations('b17b0000-
 
 -- ---------- Refus des recommandations, blocage ----------
 select public.set_reco_pref('b17b0000-0000-0000-0000-00000000000b', false);
+select pg_temp.check((public.get_my_recommendations('b17b0000-0000-0000-0000-00000000000b') ->> 'accept_recos')::boolean = false, 'préférence lue par get_my_recommendations');
 select pg_temp.as_user('b17b0000-1111-1111-1111-111111111111');
 select pg_temp.check(public.send_recommendation('b17b0000-0000-0000-0000-00000000000a', array['b17b0000-0000-0000-0000-00000000000b'::uuid], 3, 'movie', 'film', 'Autre')
   ->> 'status' = 'sent', 'refus des recos : réponse neutre');
