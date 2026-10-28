@@ -84,6 +84,8 @@ function buildPlexActions(){
     rw.querySelector('select').onchange=function(){plexSetItem({myRating:parseInt(this.value,10)||0});};acts.appendChild(rw);
   }
   acts.appendChild(_plexBtn('btn-pill plex-where',esc(t('plex.where')),function(){sfx('click');var x=document.getElementById('plexInfos');if(x&&x.scrollIntoView)x.scrollIntoView({behavior:'smooth',block:'center'});x&&x.classList.add('flash');setTimeout(function(){x&&x.classList.remove('flash');},1200);}));
+  /* Recommander à un ami (js/38-recommend.js, caché sans la migration) */
+  if(typeof recoPlexButton==='function'){var rb=recoPlexButton(d);if(rb)acts.appendChild(rb);}
   /* ⋯ : actions secondaires (inchangées) */
   var mw=document.createElement('div');mw.className='plex-morew';
   var mb=_plexBtn('btn-pill btn-icon plex-more-b',PLEX_ICON_MORE,null);mb.setAttribute('aria-label',t('plex.more'));mb.setAttribute('aria-haspopup','true');mb.setAttribute('aria-expanded','false');mb.title=t('plex.more');

@@ -2266,6 +2266,68 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 .act-skel{display:grid;gap:10px}
 .act-skel i{display:block;height:66px;border-radius:18px;background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.09),rgba(255,255,255,.04));background-size:200% 100%;animation:fvSk 1.2s linear infinite}
 @media (prefers-reduced-motion:reduce){.act-item,.act-react.pop{animation:none!important}.act-item{opacity:1;transform:none}}
+/* Social étape 3 : Recommander à un ami (js/38-recommend.js) */
+.soc-wrap.rc-wrap{width:480px}
+.rc-head{display:flex;gap:14px;align-items:center;margin:0 34px 18px 0}
+.rc-hpost{width:56px;height:84px;border-radius:10px;object-fit:cover;flex:none;background:#16171c;box-shadow:0 10px 24px rgba(0,0,0,.45)}
+.rc-head h2{margin:2px 0 0;font:800 20px/1.2 'Inter',sans-serif;color:#f0f0f0}
+.rc-kick{margin:0;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:#5cc8ff}
+.rc-lbl{display:block;margin:0 0 10px;font:600 12px 'Inter',sans-serif;color:rgba(240,240,240,.62)}
+.rc-chips{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-wrap:wrap;gap:8px;max-height:220px;overflow:auto}
+.rc-chips li{opacity:0;transform:translateY(8px) scale(.96);animation:rcIn .38s calc(var(--i,0)*40ms) var(--p3-spring) forwards}
+@keyframes rcIn{to{opacity:1;transform:none}}
+.rc-chip{position:relative;display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.04);color:#f0f0f0;font:600 14px 'Inter',sans-serif;cursor:pointer;transition:background .2s,border-color .2s,transform .3s var(--p3-spring)}
+.rc-chip .fr-av{width:30px;height:30px;font-size:14px}
+.rc-chip:hover{border-color:rgba(92,200,255,.5);transform:translateY(-1px)}
+.rc-chip.on{background:rgba(92,200,255,.14);border-color:#5cc8ff}
+.rc-tick{position:absolute;left:24px;top:-3px;width:16px;height:16px;border-radius:50%;background:#5cc8ff;display:grid;place-items:center;transform:scale(0);transition:transform .3s var(--p3-spring)}
+.rc-tick svg{width:11px;height:11px;fill:none;stroke:#06070a;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.rc-chip.on .rc-tick{transform:scale(1)}
+.rc-msg{position:relative;display:block}
+.rc-msg textarea{width:100%;box-sizing:border-box;resize:none;padding:12px 14px 22px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.04);color:#f0f0f0;font:500 15px/1.4 'Inter',sans-serif}
+.rc-msg textarea:focus{outline:none;border-color:#5cc8ff;box-shadow:0 0 0 3px rgba(92,200,255,.18)}
+.rc-count{position:absolute;right:12px;bottom:8px;font:500 11px 'IBM Plex Mono',monospace;font-style:normal;color:rgba(240,240,240,.4)}
+.rc-count.low{color:#ffb35c}
+.rc-send svg{width:17px;height:17px}
+.rc-wrap.sending .rc-send{opacity:.7;pointer-events:none}
+.rc-wrap.sent .rc-send{background:#7ad4ff}
+.rc-wrap.sent .rc-send svg{animation:rcFly .8s var(--p3-ease) forwards}
+@keyframes rcFly{40%{transform:translate(-3px,3px)}100%{transform:translate(60px,-40px) scale(.4);opacity:0}}
+.rc-attr{margin:12px 0 0;font:500 10px 'IBM Plex Mono',monospace;color:rgba(240,240,240,.38);text-align:center}
+.rc-plex svg{width:15px;height:15px;margin-right:6px;vertical-align:-2px}
+.rc-empty{margin-top:4px}
+.rc-thanks{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:6px}
+.rc-thanks li{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:rgba(92,200,255,.08);font:500 13px 'Inter',sans-serif;color:#f0f0f0;opacity:0;animation:rcIn .38s calc(var(--i,0)*50ms) var(--p3-ease) forwards}
+.rc-thanks li span{flex:1}
+.rc-inbox{margin:0 0 18px}
+.rc-h{display:flex;align-items:center;gap:8px;margin:0 0 10px;font:700 15px 'Inter',sans-serif;color:#f0f0f0}
+.rc-h em{font:600 11px 'IBM Plex Mono',monospace;font-style:normal;padding:2px 8px;border-radius:999px;background:rgba(92,200,255,.15);color:#5cc8ff}
+.rc-rail{list-style:none;margin:0 -4px;padding:4px 4px 8px;display:grid;grid-auto-flow:column;grid-auto-columns:150px;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory}
+.rc-card{scroll-snap-align:start;display:flex;flex-direction:column;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);overflow:hidden;opacity:0;transform:translateY(10px);animation:rcIn .42s calc(var(--i,0)*55ms) var(--p3-spring) forwards;transition:transform .3s var(--p3-ease),opacity .3s}
+.rc-card.new{border-color:rgba(92,200,255,.45)}
+.rc-card.out-ok{animation:none;opacity:0;transform:translateY(-14px) scale(.94)}
+.rc-card.out-no{animation:none;opacity:0;transform:translateX(-30px) scale(.94)}
+.rc-post{position:relative;aspect-ratio:2/3;background:#16171c}
+.rc-post img{width:100%;height:100%;object-fit:cover;display:block}
+.rc-noimg{display:grid;place-items:center;width:100%;height:100%;font:800 36px 'Inter',sans-serif;color:rgba(240,240,240,.25)}
+.rc-from{position:absolute;left:6px;right:6px;bottom:6px;display:flex;align-items:center;gap:6px;padding:4px 8px 4px 4px;border-radius:999px;background:rgba(10,10,12,.78);backdrop-filter:blur(6px);font:600 11px 'Inter',sans-serif;color:#f0f0f0}
+.rc-from b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-from .fr-av{width:20px;height:20px;font-size:10px;flex:none}
+.rc-new{position:absolute;top:6px;left:6px;padding:2px 8px;border-radius:999px;background:#5cc8ff;color:#06070a;font:800 10px 'Inter',sans-serif;font-style:normal;text-transform:uppercase;letter-spacing:.06em}
+.rc-body{display:flex;flex-direction:column;gap:4px;padding:10px;flex:1}
+.rc-t{font:700 13px/1.25 'Inter',sans-serif;color:#f0f0f0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc-y{font:500 11px 'IBM Plex Mono',monospace;color:rgba(240,240,240,.5)}
+.rc-bubble{margin:4px 0 0;padding:7px 9px;border-radius:4px 12px 12px 12px;background:rgba(92,200,255,.1);font:500 12px/1.35 'Inter',sans-serif;color:#f0f0f0;word-break:break-word}
+.rc-acts{display:flex;gap:6px;margin-top:auto;padding-top:8px}
+.rc-add,.rc-in{flex:1;padding:7px 8px;border:0;border-radius:999px;background:#5cc8ff;color:#06070a;font:800 12px 'Inter',sans-serif;cursor:pointer;transition:background .2s;text-align:center}
+.rc-add:hover{background:#7ad4ff}
+.rc-in{background:rgba(255,255,255,.08);color:rgba(240,240,240,.7);cursor:default}
+.rc-ty,.rc-no{width:30px;height:30px;flex:none;border:1px solid rgba(255,255,255,.1);border-radius:50%;background:transparent;color:#f0f0f0;font-size:14px;cursor:pointer;transition:background .2s,border-color .2s}
+.rc-ty:hover,.rc-no:hover{background:rgba(255,255,255,.08)}
+.rc-ty.on{background:rgba(92,200,255,.18);border-color:#5cc8ff}
+.rc-ty.pop{animation:actPop .4s var(--p3-spring)}
+@media (max-width:560px){.rc-rail{grid-auto-columns:136px}.soc-wrap.rc-wrap{width:auto}}
+@media (prefers-reduced-motion:reduce){.rc-chips li,.rc-thanks li,.rc-card{animation:none!important;opacity:1;transform:none}.rc-chip,.rc-tick,.rc-card{transition:none!important}.rc-wrap.sent .rc-send svg,.rc-ty.pop{animation:none!important}}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
@@ -2782,5 +2844,6 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 <script src="js/35-social-privacy.js"></script>
 <script src="js/36-activity-feed.js"></script>
 <script src="js/37-mfa.js"></script>
+<script src="js/38-recommend.js"></script>
 </body>
 </html>
