@@ -53,6 +53,7 @@ function friendsHtml(){
   var h='<div class="fr-top"><div><h2>'+esc(t('friends.title'))+'</h2><p class="soc-sub">@'+esc(me.handle||'')+(fr.length?' · '+esc(tn('friends.count',fr.length)):'')+'</p></div>'+
     '<button type="button" class="fr-add"'+uiAct('openInvite')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'+esc(t('friends.add'))+'</button></div>';
   if(inc.length&&typeof friendsIncomingHtml==='function')h+=friendsIncomingHtml(inc);
+  if(typeof wtEntryHtml==='function')h+=wtEntryHtml();
   h+=friendsTopTabsHtml();
   if(FRIENDS_TOP==='activity'){if(typeof recoMarkSeen==='function')setTimeout(recoMarkSeen,0);return h+(typeof recoInboxHtml==='function'?recoInboxHtml():'')+(typeof activityFeedHtml==='function'?activityFeedHtml():'');}
   if(!fr.length&&!out.length&&!inc.length){
