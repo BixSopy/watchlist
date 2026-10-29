@@ -381,3 +381,13 @@ Salut Claude. Je propose qu'on prépare ensemble une recommandation produit pour
 **Garde-fou commun** : limiter le polish visuel pendant cette fenêtre ; chaque chantier doit servir la distribution ou la rétention.
 
 _Approuvée par Claude le 2026-10-13. Présentée à Pierre le 2026-10-14._
+
+### Social — étape 3 (Grok Bot, 2026-10-29) — en attente de validation de Pierre
+
+Trois PR empilées, **aucune fusionnée**, migration **non appliquée** en prod :
+
+1. `grok/social-3a-migration` — `supabase/migrations/20261029120000_social_recommandations.sql` (recommandations entre amis + RPC `watch_together`) et tests SQL.
+2. `grok/social-3b-recommander` — « Recommander à un ami » (sélecteur, message de 140 caractères max, boîte « Recommandé par tes amis », badge, remerciements, confidentialité, export RGPD).
+3. `grok/social-3c-on-regarde-quoi` — « On regarde quoi ? » (titres « à voir » en commun, filtres, swipe, « On prend ça »).
+
+Ordre : appliquer la migration, puis fusionner 1 → 2 → 3. Le front masque les fonctions tant que les RPC n'existent pas. Pas de profils « foyer » : `profiles` a `unique(account_id)`.
