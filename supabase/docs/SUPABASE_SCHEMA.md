@@ -119,6 +119,23 @@ Table `detected_blocklist` (user_id, media_type, normalized_title) : RLS activé
 policy, tout passe par la fonction ci-dessus. `extension_push_detections()` la consulte (et plus un
 état `ignored` préexistant) pour décider si une détection arrive directement `ignored`.
 
+## Social étape 3 : recommandations et « On regarde quoi ? »
+
+Migration `20261029120000_social_recommandations.sql`.
+
+| Fonction | Sécurité | Rôle | Effet |
+|---|---|---|---|
+| `send_recommendation(p_profile_id, p_to uuid[], p_tmdb_id, p_tmdb_type, p_media_type, p_title, p_year, p_poster_path, p_message)` | SECURITY DEFINER | authenticated | recommande un titre à 1–10 amis, message ≤ 140 caractères, 30 destinataires / 24 h ; non-amis, blocages et refus des recos ignorés en silence (réponse neutre) |
+| `get_my_recommendations(p_profile_id)` | SECURITY DEFINER | authenticated | boîte de réception (50 max, 90 jours, amis actuels seulement), nombre de non lues, mercis reçus (30 jours) |
+| `respond_recommendation(p_profile_id, p_id, p_action)` | SECURITY DEFINER | authenticated | `seen`, `added`, `dismissed` ou `thanks`, uniquement par le destinataire |
+| `mark_recommendations_seen(p_profile_id)` | SECURITY DEFINER | authenticated | marque toutes les recos comme vues (pastille) |
+| `set_reco_pref(p_profile_id, p_accept)` | SECURITY DEFINER | authenticated | accepter ou non les recommandations (`social_settings.accept_recos`) |
+| `export_my_recommendations(p_profile_id)` | SECURITY DEFINER | authenticated | export RGPD : envoyées + reçues |
+| `watch_together(p_profile_id, p_friends uuid[], p_kind)` | SECURITY DEFINER | authenticated | titres « à voir » chez au moins deux participants et vus par aucun ; amis non visibles (`show_list`), bloqués ou non-amis écartés (`hidden`) ; 60 titres max, jamais une liste complète |
+
+Table : `recommendations` (une ligne par expéditeur, destinataire et titre). RLS activée, aucun
+accès direct. Index sur les deux clés étrangères. Suppression de compte : cascade.
+
 ## Double authentification (TOTP) et codes de secours
 
 La double authentification (code à 6 chiffres, compatible Google Authenticator / Authy /
