@@ -207,10 +207,15 @@ test('Détectés : ajouter la sélection (ajouts identiques au formulaire, mises
   await page.waitForFunction(() => !syncInProgress);
   const pushed = db.calls.filter(c => c.path === '/rest/v1/watchlist_items' && c.method === 'POST').flatMap(c => c.body || []);
   assert.ok(pushed.some(r => r.tmdb_id === 94605 && r.status === 'encours' && r.saison === 1 && r.episode === 9));
-  // Ignorer
+  // Ignorer : une fenêtre de confirmation s'ouvre d'abord (option « ne plus jamais »)
   await row(page, 'Titre Introuvable').locator('.det-ign').click();
+  await page.locator('#detIgnoreMbk.on').waitFor();
+  assert.match(await page.locator('#detIgnoreTitle').textContent(), /Ignorer ce titre/);
+  assert.equal(await page.locator('#detIgnoreNever').isChecked(), false, 'décochée par défaut');
+  await page.click('#detIgnoreMbk .btn-primary');
   await page.waitForFunction(() => document.querySelectorAll('.det-row').length === 1);
   assert.deepEqual(st('Titre Introuvable'), ['ignored']);
+  assert.deepEqual(db.blocklist || [], [], 'pas coché : pas de blocage');
   // Tout effacer : seulement les détections en attente (les ignorées restent ignorées)
   await page.click('button:has-text("Tout effacer")');
   await page.locator('.det-empty').filter({ hasText: 'Aucun titre en attente' }).waitFor();
@@ -223,6 +228,29 @@ test('Détectés : ajouter la sélection (ajouts identiques au formulaire, mises
   await page.click('button[data-v="tonight"]:visible');
   assert.equal(new URL(page.url()).hash, '');
   assert.equal(await page.locator('#detectedSection').isHidden(), true);
+  assert.deepEqual(problems, []);
+});
+
+test('Détectés : fenêtre « Ignorer » — Annuler ne change rien, « ne plus jamais » bloque le titre', async t => {
+  const { page, db, problems } = await newPage(t);
+  await page.goto(server.url + '/#detectes');
+  await login(page);
+  await page.waitForFunction(() => document.querySelectorAll('.det-row').length === 6);
+  // Annuler : rien n'est modifié
+  await row(page, 'Glass Onion').locator('.det-ign').click();
+  await page.locator('#detIgnoreMbk.on').waitFor();
+  await page.click('#detIgnoreMbk .btn-ghost');
+  await page.locator('#detIgnoreMbk.on').waitFor({ state: 'hidden' });
+  assert.equal(db.detected.find(r => r.raw_title === 'Glass Onion').state, 'pending', 'Annuler : état inchangé');
+  // « Ne plus jamais » cochée : la case + son sous-texte sont bien dans la fenêtre
+  await row(page, 'Glass Onion').locator('.det-ign').click();
+  await page.locator('#detIgnoreMbk.on').waitFor();
+  assert.match(await page.locator('.det-never-check').textContent(), /Ne plus jamais me proposer ce titre.*restera masqué/s);
+  await page.check('#detIgnoreNever');
+  await page.click('#detIgnoreMbk .btn-primary');
+  await page.waitForFunction(() => document.querySelectorAll('.det-row').length === 5);
+  assert.equal(db.detected.find(r => r.raw_title === 'Glass Onion').state, 'ignored');
+  assert.ok((db.blocklist || []).some(k => k.endsWith('\u0000movie\u0000glass onion')), 'titre ajouté à la liste de blocage');
   assert.deepEqual(problems, []);
 });
 
