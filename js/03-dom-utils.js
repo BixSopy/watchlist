@@ -1,15 +1,17 @@
 /* MODULE: Toast, IndexedDB (ouverture/lecture/écriture) et utilitaires d'échappement/formatage. */
 /* TOAST */
 /* Carillon du toast, sauf si un son d'action vient d'être joué (pas de sons empilés) */
+/* act (facultatif) : {label,fn} ajoute un bouton d'action (ex. « Annuler ») et garde le toast plus longtemps */
 function toast(msg,kind){
-  if(!(typeof sfxRecent==='function'&&sfxRecent(300)))sfx('toast');var w=document.getElementById('toastWrap');
+  if(!(typeof sfxRecent==='function'&&sfxRecent(300)))sfx('toast');var act=arguments[2];var w=document.getElementById('toastWrap');
   var tt=document.createElement('div');tt.className='toast '+(kind||'ok');
   var ic=kind=='err'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>':kind=='nfo'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
   /* Icône statique en HTML, message en texte brut : un titre TMDB ne peut plus injecter de HTML */
-  tt.innerHTML=ic;var sp=document.createElement('span');sp.textContent=String(msg==null?'':msg);tt.appendChild(sp);w.appendChild(tt);
+  tt.innerHTML=ic;var sp=document.createElement('span');sp.textContent=String(msg==null?'':msg);tt.appendChild(sp);if(act&&act.label&&typeof act.fn==='function'){var ab=document.createElement('button');ab.type='button';ab.className='toast-act';ab.textContent=act.label;ab.addEventListener('click',function(ev){ev.stopPropagation();if(ab._done)return;ab._done=1;tt.remove();act.fn();});tt.appendChild(ab);tt.style.pointerEvents='auto';}
+  w.appendChild(tt);
   /* Téléphone : 2 toasts au plus (le plus ancien part), pour ne pas masquer le bas de la liste */
   try{if(window.matchMedia('(max-width:768px)').matches){while(w.children.length>2)w.removeChild(w.firstChild);}}catch(_){}
-  setTimeout(function(){tt.style.transition='opacity .3s,transform .3s';tt.style.opacity='0';tt.style.transform='translateX(40px)';setTimeout(function(){tt.remove();},300);},2800);
+  setTimeout(function(){tt.style.transition='opacity .3s,transform .3s';tt.style.opacity='0';tt.style.transform='translateX(40px)';setTimeout(function(){tt.remove();},300);},act?6000:2800);
 }
 
 /* DB */

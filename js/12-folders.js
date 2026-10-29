@@ -148,13 +148,15 @@ function recoAddDirect(d){
   document.getElementById('mtitle').textContent=t('add.title');document.getElementById('sbtn').textContent=t('common.add');
   document.getElementById('sptitle').textContent=d.title;
   document.getElementById('spmeta').textContent=(d.type=='movie'?t('type.film'):t('type.serieAnime'))+(d.year?' - '+d.year:'');
-  var im=document.getElementById('spimg');if(d.poster){im.src=IB+'w92'+d.poster;im.style.display='block';}else{im.style.display='none';}
+  var im=document.getElementById('spimg');if(d.poster){im.src=IB+'w185'+d.poster;im.style.display='block';}else{im.style.display='none';}
   document.getElementById('sprev').classList.add('on');document.getElementById('swrap').style.display='none';
   document.getElementById('ftmdb').value=d.score||'';document.getElementById('fyear').value=d.year||'';
   setSelVal('ftype',d.type=='movie'?'film':'serie');setSelVal('fstat','avoir');
   document.getElementById('fsai').value=1;document.getElementById('fepi').value=1;document.getElementById('ftotep').value=0;
-  document.getElementById('ept').classList.remove('on');document.getElementById('agField').style.display='none';
+  document.getElementById('ept').classList.remove('on');document.getElementById('agField').classList.remove('on');
   buildStars(0);buildTags([]);
+  setSelVal('fanimegenre','');document.getElementById('fsaga').value='';_buildSagaSuggest();
+  if(typeof _ficheMode==='function'){_ficheMode(false);_ficheHero();}
   if(d.type!='movie'&&d.tmdbId)fetchTotEp(d.tmdbId);
   document.getElementById('addMbk').classList.add('on');
 }
