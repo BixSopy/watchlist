@@ -2376,6 +2376,103 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 .wt-ct{display:block;margin:6px 0 2px;font:800 20px/1.2 'Inter',sans-serif;color:#f0f0f0}
 @media (max-width:560px){.soc-wrap.wt-wrap{width:auto}.wt-stage{height:380px}.wt-card{width:236px;height:354px}.wt-under{width:226px;height:340px}}
 @media (prefers-reduced-motion:reduce){.wt-card,.wt-empty-ic,.wt-chosen{animation:none!important;transition:none!important}.wt-entry,.wt-entry-ic i,.wt-ic{transition:none!important}}
+/* ===== Fenêtre Ajouter / Modifier : fiche « A » ===== */
+#addMbk .modal-add.fiche{--fx-e:cubic-bezier(.2,.8,.2,1);max-width:540px;padding:0;position:relative;display:flex;flex-direction:column;overflow:hidden;background:#121216;border-radius:24px;border:1px solid rgba(255,255,255,.08)}
+#addMbk .fiche>.fx-scroll{flex:1}
+#addMbk .fiche .modal-x-wrap{display:flex;justify-content:flex-end;position:absolute;top:0;right:0;height:auto;z-index:8}
+#addMbk .fiche .modal-x{display:flex;margin:14px 14px 0 0;width:38px;height:38px;border-radius:50%;border:0;background:rgba(0,0,0,.5)}
+#addMbk .fiche .modal-x:hover{background:rgba(0,0,0,.75)}
+.fiche .fx-search{padding:26px 26px 6px}
+.fiche .fx-search .mtitle{font-family:Inter,sans-serif;font-weight:900;letter-spacing:-.02em;padding-right:44px}
+.fiche.has-sel .fx-search{display:none}
+.fiche .fx-main{overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0}
+.fiche .fx-col{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .3s var(--fx-e),opacity .22s}
+.fiche .fx-col.on,.fiche .fx-col.open,.fiche.has-sel .fx-col.fx-main{grid-template-rows:1fr;opacity:1}
+.fiche .fx-col>div{overflow:hidden;min-height:0}
+.fiche .fx-col.fx-main{display:grid}
+.fiche:not(.has-sel) .fx-main{pointer-events:none}
+#addMbk .modal-add.fiche:not(.has-sel){overflow:visible}
+.fiche:not(.has-sel) .fx-foot{border-radius:0 0 24px 24px}
+.fiche .fx-hero{display:block!important;position:relative;height:196px;margin:0;padding:0;border:0;border-radius:0;background:#0a0a0c;overflow:hidden}
+.fiche .fx-bd{position:absolute;inset:-20px;background-size:cover;background-position:center 30%;filter:blur(18px) brightness(.6);transform:scale(1.1);transition:filter .5s,opacity .5s}
+.fiche .fx-bd.sharp{filter:none;inset:0;transform:none}
+.fiche .fx-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,18,22,0) 15%,#121216 98%)}
+.fiche .fx-hero-in{position:absolute;left:22px;right:22px;bottom:4px;z-index:2;display:flex;gap:14px;align-items:flex-end}
+.fiche .fx-hero-in img{width:76px;height:114px;border-radius:10px;object-fit:cover;box-shadow:0 10px 30px rgba(0,0,0,.6);flex:none}
+.fiche .sptitle{font:900 21px/1.12 Inter,sans-serif;letter-spacing:-.02em;color:#f0f0f0;padding-right:40px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fiche .spmeta{color:#a2a2ad;font-size:13px;margin-top:6px;padding-bottom:6px}
+.fiche .fx-badge{display:inline-block;padding:1px 7px;border-radius:6px;background:rgba(255,255,255,.08);font-family:"IBM Plex Mono",monospace;font-size:12px;margin-left:4px}
+.fiche .fx-sec{padding:0 22px;margin-top:18px}
+.fiche .fx-lbl{font:600 11px/1 "IBM Plex Sans",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#9a9aa6;margin:0 0 10px}
+.fiche .fx-pills{position:relative;display:grid;grid-template-columns:repeat(3,1fr);background:#1a1a20;border-radius:16px;padding:4px}
+.fiche .fx-pills button{position:relative;z-index:1;height:46px;border:0;background:none;border-radius:12px;font:600 14px "IBM Plex Sans",sans-serif;color:#9a9aa6;display:flex;gap:7px;align-items:center;justify-content:center;cursor:pointer;transition:color .22s}
+.fiche .fx-pills button svg{width:16px;height:16px}
+.fiche .fx-pills button.on{color:#06070a}.fiche .fx-pills button:not(.on):hover{color:#f0f0f0}
+.fiche .fx-th{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:12px;background:#5cc8ff;box-shadow:0 6px 20px rgba(92,200,255,.3);transition:transform .3s var(--fx-e)}
+.fiche .ept{display:grid;background:none;border:0;padding:0;margin:0;border-radius:0}
+.fiche .fx-ept-in{padding-top:16px}
+.fiche .fx-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fiche .fx-mini{font-size:11px;color:#9a9aa6;margin:0 0 5px 2px}
+.fiche .fx-step{display:flex;align-items:center;background:#1a1a20;border-radius:12px;height:44px}
+.fiche .fx-step button{width:34px;height:100%;border:0;background:none;color:#9a9aa6;font-size:18px;cursor:pointer;flex:none}.fiche .fx-step button:hover{color:#5cc8ff}
+.fiche .fx-step input{flex:1;min-width:0;width:100%;text-align:center;background:none;border:0;outline:0;color:#f0f0f0;font:900 16px Inter,sans-serif;-moz-appearance:textfield;padding:0}
+.fiche .fx-step input::-webkit-inner-spin-button,.fiche .fx-step input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.fiche .fx-rate{display:flex;align-items:center;gap:8px}
+.fiche .stars{display:flex;gap:2px;flex:1;min-width:0;margin:0}
+.fiche .stars.locked::after{display:none}.fiche .stars.locked .star{opacity:1;pointer-events:auto;cursor:pointer}
+.fiche .star{flex:1;min-width:0;max-width:40px;height:auto;aspect-ratio:1;background:none!important;border-radius:10px;color:#4a4a55;transition:transform .15s var(--fx-e)}
+.fiche .star svg{width:min(24px,100%);height:auto;transition:transform .25s var(--fx-e)}
+.fiche .star.on{color:#5cc8ff}.fiche .star:hover{color:#7ad4ff}.fiche .star:active{transform:scale(.85)}
+.fiche .star.bump svg{transform:scale(1.28)}
+.fiche .fx-rv{min-width:50px;text-align:right;font:900 21px Inter,sans-serif;color:#f0f0f0}.fiche .fx-rv small{font-size:12px;color:#9a9aa6;font-weight:600}
+.fiche .fx-hint{font-size:12.5px;color:#9a9aa6;margin-top:6px;min-height:18px;transition:color .2s}.fiche .fx-hint.hl{color:#7ad4ff}
+.fiche .tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin:0;background:#1a1a20;border:1px solid transparent;border-radius:14px;padding:7px;transition:border-color .2s}
+.fiche .tags-wrap:focus-within{border-color:rgba(92,200,255,.5)}
+.fiche .tag{display:inline-flex;align-items:center;gap:4px;padding:5px 6px 5px 11px;border-radius:999px;background:rgba(92,200,255,.12);color:#7ad4ff;font-size:13px;border:0;animation:fxTag .2s var(--fx-e)}
+@keyframes fxTag{from{opacity:0;transform:scale(.7)}}
+.fiche .tag-rm{width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;color:inherit;opacity:.7}.fiche .tag-rm:hover{opacity:1;background:rgba(92,200,255,.2);color:inherit}
+.fiche .tag-inp{flex:1;min-width:110px;background:none;border:0;outline:0;padding:5px;color:#f0f0f0}
+.fiche .fx-sugg{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.fiche .fx-sugg:empty{display:none}
+.fiche .fx-sugg button{font-size:12.5px;padding:4px 10px;border-radius:999px;border:1px dashed #2c2c35;background:none;color:#9a9aa6;cursor:pointer;transition:color .15s,border-color .15s}.fiche .fx-sugg button:hover{color:#f0f0f0;border-color:#9a9aa6}
+.fiche .fx-more{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 0;border:0;border-top:1px solid rgba(255,255,255,.08);background:none;color:#9a9aa6;font:600 14px "IBM Plex Sans",sans-serif;cursor:pointer}
+.fiche .fx-more small{font-weight:400;opacity:.7}.fiche .fx-more:hover{color:#f0f0f0}
+.fiche .fx-more svg{width:18px;transition:transform .3s var(--fx-e)}.fiche .fx-more[aria-expanded=true] svg{transform:rotate(180deg)}
+.fiche .fx-more-in{padding:4px 0 6px}
+.fiche .fx-chips{display:flex;gap:6px;flex-wrap:wrap}
+.fiche .fx-chips button{padding:8px 14px;border-radius:999px;border:0;background:#1a1a20;color:#9a9aa6;font:500 13.5px "IBM Plex Sans",sans-serif;cursor:pointer;transition:background .2s,color .2s}
+.fiche .fx-chips button.on{background:#f0f0f0;color:#06070a}.fiche .fx-chips button:not(.on):hover{color:#f0f0f0}
+.fiche .fx-ro{margin:16px 0 14px}.fiche .fx-ro input{background:#1a1a20;color:#c9c9d2;cursor:default}.fiche .fx-ro label small{text-transform:none;letter-spacing:0;opacity:.7}
+.fiche .field label{font-size:11px;letter-spacing:.09em}
+.fiche .fx-opt{color:var(--text3);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0}
+.fiche .fx-links{display:flex;justify-content:space-between;gap:12px;margin-top:16px}
+.fiche .fx-link{border:0;background:none;color:#5cc8ff;font:600 13px "IBM Plex Sans",sans-serif;cursor:pointer;padding:6px 0}.fiche .fx-link:hover{color:#7ad4ff}
+.fiche .fx-del{color:#ff7a7a}.fiche .fx-del:hover{color:#ff9a9a}
+.fiche:not(.is-edit) .fx-del{display:none}
+.fiche .fx-tmdb{display:flex;gap:8px;align-items:center;padding:16px 22px 14px;font-size:10.5px;color:rgba(255,255,255,.42)}.fiche .fx-tmdb img{opacity:.7;flex:none}
+.fiche .fx-foot{margin:0;padding:14px 22px 18px;border-top:1px solid rgba(255,255,255,.08);align-items:center;flex-wrap:nowrap;background:#121216}
+.fiche .fx-saved{margin-right:auto;display:none;align-items:center;gap:7px;font-size:12.5px;color:#9a9aa6}
+.fiche.is-edit .fx-saved{display:flex}.fiche.is-edit #fxCancel{display:none}
+.fiche .fx-saved i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;transition:background .2s,box-shadow .2s}
+.fiche .fx-saved.busy i{background:#5cc8ff;box-shadow:0 0 8px #5cc8ff}
+.fiche:not(.has-sel) #sbtn{opacity:.45}
+.fiche .fx-foot .btn{height:46px;padding:0 24px;border-radius:14px}
+.toast .toast-act{margin-left:10px;border:0;background:rgba(255,255,255,.14);color:inherit;font:600 13px "IBM Plex Sans",sans-serif;padding:6px 12px;border-radius:9px;cursor:pointer;pointer-events:auto}.toast .toast-act:hover{background:rgba(255,255,255,.24)}
+@media (max-width:640px){
+  #addMbk.mbk{align-items:flex-end;padding:0}
+  #addMbk .modal-add.fiche{max-width:100%;width:100%;max-height:92vh;border-radius:24px 24px 0 0;padding:0;border-bottom:0;animation:fxSheet .36s cubic-bezier(.2,.8,.2,1)}
+  @supports (height:100dvh){#addMbk .modal-add.fiche{max-height:92dvh}}
+  #addMbk .fiche:before{content:"";position:absolute;top:8px;left:50%;width:40px;height:5px;margin-left:-20px;border-radius:9px;background:rgba(255,255,255,.28);z-index:9}
+  #addMbk .fiche .modal-x{margin:12px 12px 0 0}
+  #addMbk .modal-add.fiche:not(.has-sel){min-height:72vh}
+  .fiche .fx-hero{height:170px}
+  .fiche .fx-hero-in img{width:66px;height:99px}
+  .fiche .sptitle{font-size:19px}
+  .fiche .fx-sec{padding:0 18px}
+  .fiche .fx-foot{padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px))}
+  .fiche .frow.fx-ro{grid-template-columns:1fr 1fr}
+}
+@keyframes fxSheet{from{transform:translateY(100%)}}
+@media (prefers-reduced-motion:reduce){.fiche *,.fiche{transition-duration:.01ms!important;animation:none!important}}
 </style>
 <!-- Titre, icônes, couleurs et balises de partage : bloc brand:head plus haut (brand.config.json) -->
 </head><body>
@@ -2631,39 +2728,78 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
 </div>
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- ADD MODAL -->
+<!-- ADD MODAL : fiche « A » (recherche TMDB en ajout, puis fiche avec image, statut, note, tags ; options repliées) -->
 <div class="mbk" id="addMbk">
-  <div class="modal-add">
+  <div class="modal-add fiche" id="ficheModal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
     <div class="modal-x-wrap"><button type="button" class="modal-x" data-click="closeAddTop" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-    <div class="mtitle" id="mtitle" data-i18n="add.title">Ajouter un titre</div>
-    <div class="swrap" id="swrap">
-      <input type="text" id="tinput" placeholder="Rechercher un film, série, anime..." autocomplete="off" data-i18n-attr="placeholder:hdr.searchPh">
-      <div class="spin" id="spin"></div>
-      <div class="dd" id="tdd"></div>
+    <div class="fx-search">
+      <div class="mtitle" id="mtitle" data-i18n="add.title">Ajouter un titre</div>
+      <div class="swrap" id="swrap">
+        <input type="text" id="tinput" placeholder="Rechercher un film, série, anime..." autocomplete="off" data-i18n-attr="placeholder:hdr.searchPh">
+        <div class="spin" id="spin"></div>
+        <div class="dd" id="tdd"></div>
+      </div>
     </div>
-    <div class="sprev" id="sprev">
-      <img id="spimg" src="" alt="" style="display:none">
-      <div style="flex:1;min-width:0"><div class="sptitle" id="sptitle"></div><div class="spmeta" id="spmeta"></div></div>
-      <button class="spclear" data-click="clearSel" data-i18n-attr="aria-label:add.clear">x</button>
-    </div>
-    <div class="frow">
-      <div class="field"><label data-i18n="add.type">Type</label><select id="ftype"><option value="film" data-i18n="type.film">Film</option><option value="serie" data-i18n="type.serie">Série</option><option value="anime" data-i18n="type.anime">Anime</option></select></div>
-      <div class="field"><label data-i18n="add.status">Statut</label><select id="fstat"><option value="avoir" data-i18n="status.avoir">À voir</option><option value="encours" data-i18n="status.encours">En cours</option><option value="termine" data-i18n="status.termine">Terminé</option></select></div>
-    </div>
-    <div class="field" id="agField" style="display:none"><label data-i18n="add.animeGenre">Genre Anime</label><select id="fanimegenre"><option value="shonen">Shonen</option><option value="seinen">Seinen</option><option value="shojo">Shojo</option><option value="slice">Slice of Life</option><option value="isekai">Isekai</option><option value="autre" data-i18n="add.otherGenre">Autre</option></select></div>
-    <div class="ept" id="ept">
-      <div class="ept-title" data-i18n="add.progress">Progression</div>
-      <div class="ep-row"><label data-i18n="add.season">Saison</label><input type="number" id="fsai" min="1" value="1"><label data-i18n="add.episode">Episode</label><input type="number" id="fepi" min="1" value="1"><label>/ Total</label><input type="number" id="ftotep" min="0" value="0"></div>
-    </div>
-    <div class="field"><label data-i18n="plex.myRating">Ma note</label><div class="stars" id="stars"></div></div>
-    <div class="frow">
-      <div class="field"><label data-i18n="plex.tmdbScore">Note TMDB</label><input type="text" id="ftmdb" placeholder="--" readonly style="color:var(--accent);background:var(--bg4)"></div>
-      <div class="field"><label data-i18n="add.year">Annee</label><input type="text" id="fyear" placeholder="--" readonly style="background:var(--bg4)"></div>
-    </div>
-    <div class="field"><label data-i18n="add.tags">Tags</label><div class="tags-wrap" id="tagsWrap"></div></div>
-    <div class="field field-saga"><label><span data-i18n="add.saga">Saga / Collection</span> <span style="color:var(--text3);font-weight:400;font-size:11px" data-i18n="add.optional">(optionnel)</span></label><input type="text" id="fsaga" placeholder="ex: Star Wars, Harry Potter..." data-i18n-attr="placeholder:add.sagaPh" autocomplete="off" list="sagaSuggest"><datalist id="sagaSuggest"></datalist></div>
-    <div class="mact">
-      <button class="btn btn-ghost" data-click="closeAdd" data-i18n="common.cancel">Annuler</button>
+    <div class="fx-col fx-main" id="fxMain"><div>
+      <div class="sprev fx-hero" id="sprev">
+        <div class="fx-bd" id="fxBd"></div>
+        <div class="fx-hero-in">
+          <img id="spimg" src="" alt="" style="display:none">
+          <div style="flex:1;min-width:0"><div class="sptitle" id="sptitle"></div><div class="spmeta" id="spmeta"></div></div>
+        </div>
+      </div>
+      <input type="hidden" id="ftype" value="film"><input type="hidden" id="fstat" value="avoir"><input type="hidden" id="fanimegenre" value="">
+      <div class="fx-sec">
+        <div class="fx-lbl" data-i18n="add.status">Statut</div>
+        <div class="fx-pills" id="fxPills" role="radiogroup">
+          <div class="fx-th" aria-hidden="true"></div>
+          <button type="button" role="radio" data-st="avoir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span data-i18n="status.avoir">À voir</span></button>
+          <button type="button" role="radio" data-st="encours"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg><span data-i18n="status.encours">En cours</span></button>
+          <button type="button" role="radio" data-st="termine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg><span data-i18n="status.termine">Terminé</span></button>
+        </div>
+        <div class="fx-col ept" id="ept"><div><div class="fx-ept-in">
+          <div class="fx-lbl" data-i18n="add.progress">Progression</div>
+          <div class="fx-steps">
+            <div><div class="fx-mini" data-i18n="add.season">Saison</div><div class="fx-step"><button type="button" data-click="ficheStep" data-args='["fsai",-1]' aria-label="-">−</button><input type="number" id="fsai" min="1" value="1" inputmode="numeric"><button type="button" data-click="ficheStep" data-args='["fsai",1]' aria-label="+">+</button></div></div>
+            <div><div class="fx-mini" data-i18n="add.episode">Épisode</div><div class="fx-step"><button type="button" data-click="ficheStep" data-args='["fepi",-1]' aria-label="-">−</button><input type="number" id="fepi" min="1" value="1" inputmode="numeric"><button type="button" data-click="ficheStep" data-args='["fepi",1]' aria-label="+">+</button></div></div>
+            <div><div class="fx-mini" data-i18n="add.total">Total</div><div class="fx-step"><button type="button" data-click="ficheStep" data-args='["ftotep",-1]' aria-label="-">−</button><input type="number" id="ftotep" min="0" value="0" inputmode="numeric"><button type="button" data-click="ficheStep" data-args='["ftotep",1]' aria-label="+">+</button></div></div>
+          </div>
+        </div></div></div>
+      </div>
+      <div class="fx-sec">
+        <div class="fx-lbl" data-i18n="plex.myRating">Ma note</div>
+        <div class="fx-rate"><div class="stars" id="stars"></div><div class="fx-rv" id="fxRv">–</div></div>
+        <div class="fx-hint" id="fxHint"></div>
+      </div>
+      <div class="fx-sec">
+        <div class="fx-lbl" data-i18n="add.tags">Tags</div>
+        <div class="tags-wrap" id="tagsWrap"></div>
+        <div class="fx-sugg" id="tagSugg"></div>
+      </div>
+      <div class="fx-sec">
+        <button type="button" class="fx-more" id="fxMoreBtn" data-click="ficheMore" aria-expanded="false" aria-controls="fxMore"><span><span id="fxMoreLbl" data-i18n="add.moreOpts">Plus d'options</span> <small data-i18n="add.moreHint">Type, saga, année</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="fx-col" id="fxMore"><div><div class="fx-more-in">
+          <div class="fx-lbl" data-i18n="add.type">Type</div>
+          <div class="fx-chips" id="fxType">
+            <button type="button" data-type="film" data-i18n="type.film">Film</button><button type="button" data-type="serie" data-i18n="type.serie">Série</button><button type="button" data-type="anime" data-i18n="type.anime">Anime</button>
+          </div>
+          <div class="fx-col" id="agField"><div><div style="padding-top:16px">
+            <div class="fx-lbl" data-i18n="add.animeGenre">Genre anime</div>
+            <div class="fx-chips" id="fxGenre"><button type="button" data-genre="shonen">Shonen</button><button type="button" data-genre="seinen">Seinen</button><button type="button" data-genre="shojo">Shojo</button><button type="button" data-genre="slice">Slice of Life</button><button type="button" data-genre="isekai">Isekai</button><button type="button" data-genre="autre" data-i18n="add.otherGenre">Autre</button></div>
+          </div></div></div>
+          <div class="frow fx-ro">
+            <div class="field"><label data-i18n="add.year">Année</label><input type="text" id="fyear" placeholder="--" readonly tabindex="-1"></div>
+            <div class="field"><label><span data-i18n="plex.tmdbScore">Note TMDB</span> <small data-i18n="add.auto">auto</small></label><input type="text" id="ftmdb" placeholder="--" readonly tabindex="-1"></div>
+          </div>
+          <div class="field field-saga"><label><span data-i18n="add.saga">Saga / Collection</span> <span class="fx-opt" data-i18n="add.optional">(optionnel)</span></label><input type="text" id="fsaga" placeholder="ex: Star Wars, Harry Potter..." data-i18n-attr="placeholder:add.sagaPh" autocomplete="off" list="sagaSuggest"><datalist id="sagaSuggest"></datalist></div>
+          <div class="fx-links"><button type="button" class="fx-link" data-click="clearSel" data-i18n="add.changeTitle">Changer de titre</button><button type="button" class="fx-link fx-del" id="fxDel" data-click="ficheRemove" data-i18n="add.remove">Retirer de ma liste</button></div>
+        </div></div></div>
+      </div>
+      <div class="fx-tmdb"><img src="/icons/tmdb-logo.svg" alt="TMDB" width="74" height="10" loading="lazy"><span data-i18n="add.tmdbAttr">Images et données : TMDB. Ce produit utilise l'API TMDB sans être approuvé ni certifié par TMDB.</span></div>
+    </div></div>
+    <div class="mact fx-foot">
+      <div class="fx-saved" id="fxSaved" aria-live="polite"><i></i><span id="fxSavedTxt" data-i18n="add.saved">Enregistré</span></div>
+      <button class="btn btn-ghost" id="fxCancel" data-click="closeAdd" data-i18n="common.cancel">Annuler</button>
       <button class="btn btn-primary" id="sbtn" data-click="saveEntry" data-i18n="common.add">Ajouter</button>
     </div>
   </div>
