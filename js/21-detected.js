@@ -541,7 +541,7 @@ function _detRowHtml(g,c){
     +img+'<div class="det-body"><div class="det-name">'+esc(g.title)+'</div>'
     +'<div class="det-meta"><span class="det-tag '+tagCls+'">'+esc(tagTxt)+'</span>'+badges+'<span>'+esc(meta.join(' · '))+'</span></div>'
     +'<div class="det-detail">'+detail+'</div></div>'
-    +'<button type="button" class="btn btn-ghost det-ign"'+uiAct('detIgnore',[g.key])+'>'+esc(t('det.ignore'))+'</button></div>';
+    +'<button type="button" class="btn btn-ghost det-ign"'+uiAct('detIgnoreOpen',[g.key])+'>'+esc(t('det.ignore'))+'</button></div>';
 }
 function _detSearchHtml(g,s){
   return '<span class="det-search"><input type="search" class="det-q" maxlength="120" value="'+esc(s.q!=null?s.q:DET_CORE.searchQueries(g.title)[0]||g.title)+'"'
@@ -640,17 +640,81 @@ function _detRemoveGroups(keys){
   keys.forEach(function(k){delete DET.sel[k];});
   updateDetectedBadge();renderDetected();
 }
-function detIgnore(keys){
+/* « Ignorer » ne retire que les titres sélectionnés (ids) de l'attente ; une détection
+   ultérieure du même titre revient normalement en « pending ». never=true (case cochée dans
+   la fenêtre de confirmation, voir detIgnoreOpen) ajoute en plus le(s) titre(s) à la liste de
+   blocage (detected_block_title) : une nouvelle détection de ce titre arrivera alors direct
+   « ignored », et les autres groupes déjà affichés du même titre disparaissent aussitôt. */
+function detIgnore(keys,never){
   if(!Array.isArray(keys))keys=[keys];
   var gs=DET.groups.filter(function(g){return keys.indexOf(g.key)>-1;});
   if(!gs.length)return;
   var ids=[].concat.apply([],gs.map(function(g){return g.ids;}));
   _detSetState(ids,'ignored').then(function(){
-    _detRemoveGroups(gs.map(function(g){return g.key;}));
-    sfx('del');toast(tn('det.ignored',gs.length),'nfo');
+    return never?supa.rpc('detected_block_title',{p_ids:ids}):null;
+  }).then(function(){
+    var removeKeys=keys;
+    if(never){
+      var blocked=gs.map(function(g){return g.kind+':'+g.norm;});
+      removeKeys=DET.groups.filter(function(g){return blocked.indexOf(g.kind+':'+g.norm)>-1;}).map(function(g){return g.key;});
+    }
+    _detRemoveGroups(removeKeys);
+    sfx('del');toast(tn(never?'det.ignoredNever':'det.ignored',gs.length),'nfo');
   }).catch(function(){toast(t('det.saveError'),'err');});
 }
-function detIgnoreSel(){detIgnore(_detSelected().map(function(g){return g.key;}));}
+function detIgnoreSel(){detIgnoreOpen(_detSelected().map(function(g){return g.key;}));}
+
+/* ---------- Fenêtre de confirmation « Ignorer » (#detIgnoreMbk) ---------- */
+var DET_IGN={keys:[]};
+function detIgnoreOpen(keys){
+  if(!Array.isArray(keys))keys=[keys];
+  if(!keys.length)return;
+  DET_IGN.keys=keys;
+  var m=document.getElementById('detIgnoreMbk');if(!m)return;
+  if(typeof sfx==='function')sfx('open');
+  m.classList.add('on');
+  renderDetIgnoreModal();
+  var tt=document.getElementById('detIgnoreTitle');if(tt)try{tt.focus({preventScroll:true});}catch(e){}
+}
+function detIgnoreClose(){
+  var m=document.getElementById('detIgnoreMbk');if(!m||!m.classList.contains('on'))return;
+  m.classList.remove('on');
+}
+function detIgnoreConfirm(){
+  var never=!!(document.getElementById('detIgnoreNever')||{}).checked;
+  var keys=DET_IGN.keys;
+  detIgnoreClose();
+  detIgnore(keys,never);
+}
+function renderDetIgnoreModal(){
+  var view=document.getElementById('detIgnoreView');if(!view)return;
+  var gs=DET.groups.filter(function(g){return DET_IGN.keys.indexOf(g.key)>-1;});
+  if(!gs.length){detIgnoreClose();return;}
+  var n=gs.length;
+  var rows=gs.map(function(g){
+    var c=_detClass(g);
+    var cand=c.cand||null,poster=cand&&cand.poster?cand.poster:(c.item&&c.item.poster)||null;
+    var typ=g.kind==='movie'?'film':(cand&&DET_CORE.isAnime(cand))||(c.item&&c.item.type==='anime')?'anime':'serie';
+    var img=poster?'<img class="det-poster" src="'+IB+'w92'+esc(poster)+'" alt="" loading="lazy" data-hide-broken>':'<div class="det-poster det-poster-ph">'+icon(typ)+'</div>';
+    return '<div class="det-ign-item">'+img+'<div class="det-ign-tx"><b>'+esc(g.title)+'</b><span>'+esc(g.sources.map(function(x){return t(DET_SOURCE_KEY[x]||'det.src.netflix');}).join(' · '))+'</span></div></div>';
+  }).join('');
+  view.innerHTML='<div class="mtitle" id="detIgnoreTitle" tabindex="-1">'+esc(tn('det.ignoreModal.title',n))+'</div>'
+    +'<div class="det-ign-list">'+rows+'</div>'
+    +'<p class="det-ign-p">'+esc(tn('det.ignoreModal.body',n))+'</p>'
+    +'<label class="det-never-check"><input type="checkbox" id="detIgnoreNever"><span><b>'+esc(tn('det.ignoreModal.neverLabel',n))+'</b><span class="dn-sub">'+esc(tn('det.ignoreModal.neverSub',n))+'</span></span></label>'
+    +'<div class="mact"><button type="button" class="btn btn-ghost" data-click="detIgnoreClose">'+esc(t('common.cancel'))+'</button>'
+    +'<button type="button" class="btn btn-primary" data-click="detIgnoreConfirm">'+esc(t('det.ignore'))+'</button></div>';
+}
+if(typeof document!=='undefined'){
+  document.addEventListener('keydown',function(e){
+    var m=document.getElementById('detIgnoreMbk');
+    if(e.key==='Escape'&&m&&m.classList.contains('on'))detIgnoreClose();
+  });
+  document.addEventListener('click',function(e){
+    var m=document.getElementById('detIgnoreMbk');
+    if(m&&e.target===m)detIgnoreClose();
+  });
+}
 function detClearAll(){
   if(!DET.groups.length||!confirm(t('det.clearConfirm')))return;
   supa.from('detected_media').delete().eq('state','pending').then(function(res){

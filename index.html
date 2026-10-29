@@ -1175,6 +1175,20 @@ body.view-calendar .nav-right .stabs,body.view-calendar .nav-right .sort-sel,bod
 .det-empty{padding:28px 12px;text-align:center;color:var(--text2)}
 @media(max-width:768px){.det-head{flex-direction:column}.det-row{align-items:flex-start}.det-ign{padding:6px 10px}}
 
+/* Fenêtre de confirmation « Ignorer » (#detIgnoreMbk, js/21-detected.js) */
+.det-ign-modal{max-width:420px}
+.det-ign-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;margin-bottom:16px}
+.det-ign-item{display:flex;align-items:center;gap:12px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg2)}
+.det-ign-tx{min-width:0}
+.det-ign-tx b{display:block;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.det-ign-tx span{display:block;font-size:12px;color:var(--text2);margin-top:2px}
+.det-ign-p{font-size:13.5px;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.det-never-check{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text);line-height:1.5;cursor:pointer;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 13px;transition:var(--tr-fast)}
+.det-never-check:hover{border-color:var(--border2)}
+.det-never-check input{margin-top:2px;width:16px;height:16px;accent-color:var(--accent);flex:none}
+.det-never-check b{font-weight:600}
+.det-never-check .dn-sub{display:block;font-size:12px;color:var(--text2);margin-top:3px;font-weight:400}
+
 /* ===== Session 18 : selects personnalises (Liquid Glass + ressort) =====
    Le popup d'un <select> natif est dessine par l'OS, impossible a styler (menu plat,
    surbrillance bleue systeme). Le JS (enhanceSelect) masque le <select> — qui reste
@@ -2682,6 +2696,14 @@ button.fr-row:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
   <div class="modal-add gd-modal">
     <button type="button" class="auth-close" data-click="closeGdpr" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div id="gdprView"></div>
+  </div>
+</div>
+
+<!-- DÉTECTÉS : confirmation « Ignorer » (+ option « ne plus jamais »), rendu par js/21-detected.js -->
+<div class="mbk" id="detIgnoreMbk" role="dialog" aria-modal="true" aria-labelledby="detIgnoreTitle">
+  <div class="modal-add det-ign-modal">
+    <button type="button" class="auth-close" data-click="detIgnoreClose" aria-label="Fermer" data-i18n-attr="aria-label:common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div id="detIgnoreView"></div>
   </div>
 </div>
 
