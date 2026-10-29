@@ -153,6 +153,16 @@ uiOn('recoMsg',function(el){recoMsg(el);});
 uiOn('recoSend',function(){recoSend();});
 uiOn('recoRespond',function(el,e,id,action){recoRespond(el,e,id,action);});
 uiOn('recoPrivToggle',function(el){recoPrivToggle(el);});
+/* Social : « On regarde quoi ? » (js/39-watch-together.js) */
+uiOn('openWatchTogether',function(){openWatchTogether();});
+uiOn('wtToggle',function(el,e,id){wtToggle(el,e,id);});
+uiOn('wtFilter',function(el,e,n,v){wtFilter(el,e,n,v);});
+uiOn('wtGo',function(){wtGo();});
+uiOn('wtNext',function(){wtNext();});
+uiOn('wtShuffle',function(){wtShuffle();});
+uiOn('wtTake',function(){wtTake();});
+uiOn('wtTellGroup',function(){wtTellGroup();});
+uiOn('wtBack',function(){wtBack();});
 uiOn('shareClose',function(){closeShare();});
 uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
 uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});
