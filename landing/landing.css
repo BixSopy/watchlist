@@ -460,11 +460,11 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
      descend pour lui laisser la place (cy ajusté en JS). */
   .lp-ch[data-ch="8"]{align-items:flex-start;padding-top:calc(20px + env(safe-area-inset-top))}
   .lp-ch[data-ch="8"] .lp-ch-t{position:fixed;left:12px;top:calc(14px + env(safe-area-inset-top));z-index:6;
-    max-height:52vh;overflow:auto;padding:18px 20px;border-radius:22px;background:linear-gradient(180deg,#121318,#0a0a0c);
+    max-height:52vh;overflow:auto;padding:14px 18px;border-radius:22px;background:linear-gradient(180deg,#121318,#0a0a0c);
     border:1px solid var(--lp-line)}
   .lp-ch[data-ch="8"]:not(.on) .lp-ch-t{pointer-events:none}
   .lp-j-h2.lp-j-big{font-size:clamp(1.6rem,7.4vw,2.3rem)}
-  .lp-j-steps{margin:16px 0 4px;gap:14px}
+  .lp-j-steps{margin:12px 0 2px;gap:10px}
   .lp-j-step div>p{font-size:12.5px}
 }
 

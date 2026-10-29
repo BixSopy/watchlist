@@ -138,6 +138,11 @@ function _lpImgsOnGesture(){
 }
 function _lpJourney(){
   var S=document.querySelector('#landing [data-lp-j]');if(!S||S._lp)return;S._lp=1;
+  /* Clavier mobile : on demande au navigateur de le poser par-dessus la page (sans la redimensionner)
+     tant que la landing est affichée ; réglage d'origine remis dès qu'on n'est plus visiteur. */
+  (function(){var mv=document.querySelector('meta[name="viewport"]');if(!mv)return;var base=mv.getAttribute('content');
+    function sync(){mv.setAttribute('content',lpIsGuest()?base+', interactive-widget=resizes-visual':base);}
+    sync();if(typeof MutationObserver!=='undefined')new MutationObserver(sync).observe(document.documentElement,{attributes:true,attributeFilter:['class']});})();
   var Q=function(s){return S.querySelector(s);},QA=function(s){return [].slice.call(S.querySelectorAll(s));};
   var stick=Q('.lp-j-stick'),dv=Q('.lp-dv'),flash=Q('.lp-j-flash'),fly=Q('.lp-j-fly'),story=Q('.lp-j-story'),prog=Q('.lp-j-prog'),
       chs=QA('.lp-ch'),words=QA('.lp-j-w'),scr={},time=document.getElementById('lpTime'),detN=document.getElementById('lpDetN'),
@@ -166,7 +171,7 @@ function _lpJourney(){
   var reduced=_lpReduced(),anim=document.documentElement.classList.contains('lp-anim');
   var shadow=Q('.lp-j-shadow'),mx=0,my=0,tmx=0,tmy=0,fine=false;try{fine=matchMedia('(pointer:fine)').matches;}catch(e){}
   if(fine&&!reduced)addEventListener('mousemove',function(e){tmx=e.clientX/innerWidth*2-1;tmy=e.clientY/innerHeight*2-1;if(vis)req();},{passive:true});
-  var tops=[],hs=[],vw=0,vh=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
+  var tops=[],hs=[],vw=0,vh=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
   function clamp(x){return x<0?0:x>1?1:x;}
   function seg(x,a,b){return clamp((x-a)/(b-a));}
   function ease(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;}
@@ -175,7 +180,10 @@ function _lpJourney(){
   function lerp(a,b,k){return a+(b-a)*k;}
   function set(el,k,v){var key=k;if(!el)return;var s=typeof v==='number'?v.toFixed(4):v;if(el['_'+key]===s)return;el['_'+key]=s;el.style.setProperty(k,s);}
   function measure(){
-    vw=innerWidth;vh=innerHeight;var y=scrollY||0;
+    /* Mobile : clavier ouvert = seule la hauteur baisse, à largeur égale. On garde alors la hauteur
+       d'avant pour que l'appareil ne rapetisse pas et ne saute pas (cf. capture de Pierre). */
+    var nh=innerHeight;if(!(innerWidth<=860&&innerWidth===vw&&nh<vh))vh=nh;vw=innerWidth;var y=scrollY||0;
+    if(vw<=860){stick.style.height=vh+'px';var bt=Q('.lp-ch[data-ch="8"] .lp-ch-t');band8=bt?bt.offsetHeight+14+12:vh*.5;}else stick.style.height='';
     chs.forEach(function(c,i){var b=c.getBoundingClientRect();tops[i]=b.top+y;hs[i]=b.height;});
     target();
   }
@@ -203,7 +211,8 @@ function _lpJourney(){
     /* Mobile, chapitre 8 : les 3 étapes passent en haut, l'appareil (et son formulaire) descend
        pour leur laisser la place — « les 3 étapes s'empilent au-dessus de l'appareil ». */
     var ch8=mob?ease(seg(g,7.55,8.15)):0;
-    var bw=mob?vw*.86:vw*.46,bh=mob?lerp(vh*.42,vh*.32,ch8):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?lerp(60+vh*.23,vh*.76,ch8):vh*.52;
+    /* Ch. 8 : le téléphone prend toute la place libre sous la bande (au lieu d'un 32 % fixe, trop petit). */
+    var h8=Math.max(vh*.36,vh-band8-28),bw=mob?lerp(vw*.86,vw*.94,ch8):vw*.46,bh=mob?lerp(vh*.42,h8,ch8):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?lerp(60+vh*.23,band8+8+h8/2,ch8):vh*.52;
     var big=mob?ease(seg(g,8.42,8.8)):0;/* fin du ch. 8 sur mobile : le téléphone d'inscription prend l'écran */
     if(big>0){bw=lerp(bw,Math.min(vw*.94,420),big);bh=lerp(bh,vh-112,big);cy=lerp(cy,28+vh*.5,big);}
     var s=Math.min(bw/W,bh/H),morphing=(mt>0&&mt<1);
