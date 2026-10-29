@@ -459,12 +459,23 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
   /* Chapitre 8 : bande en haut (steps + extension), le vrai formulaire reste dans l'appareil, qui
      descend pour lui laisser la place (cy ajusté en JS). */
   .lp-ch[data-ch="8"]{align-items:flex-start;padding-top:calc(20px + env(safe-area-inset-top))}
-  .lp-ch[data-ch="8"] .lp-ch-t{position:fixed;left:12px;top:calc(14px + env(safe-area-inset-top));z-index:6;
-    max-height:52vh;overflow:auto;padding:14px 18px;border-radius:22px;background:linear-gradient(180deg,#121318,#0a0a0c);
+  .lp-ch[data-ch="8"] .lp-ch-t{position:fixed;left:12px;top:calc(64px + env(safe-area-inset-top));z-index:6;
+    max-height:52vh;overflow:auto;padding:12px 16px;right:12px;border-radius:22px;background:linear-gradient(180deg,#121318,#0a0a0c);
     border:1px solid var(--lp-line)}
   .lp-ch[data-ch="8"]:not(.on) .lp-ch-t{pointer-events:none}
-  .lp-j-h2.lp-j-big{font-size:clamp(1.6rem,7.4vw,2.3rem)}
-  .lp-j-steps{margin:12px 0 2px;gap:10px}
+  .lp-j-h2.lp-j-big{font-size:clamp(1.25rem,5.8vw,1.7rem)}
+  .lp-j-steps{margin:6px 0 0;gap:2px}
+  .lp-j-step{gap:12px;align-items:center}
+  .lp-j-steps-line{left:14px}
+  .lp-j-step-ic{width:28px;height:28px}
+  .lp-j-step-ic svg{width:14px;height:14px}
+  .lp-j-step div>b{font-size:13.5px;margin:0}
+  .lp-j-step div>p{display:none}
+  .lp-ch[data-ch="8"] .lp-kicker{display:none}
+  /* Sur téléphone, l'extension Chrome ne s'installe pas : le vrai appel est le formulaire du téléphone. */
+  .lp-ch[data-ch="8"] .lp-cta-row,.lp-ch[data-ch="8"] .lp-j-ext-link{display:none}
+  .lp-j-stick::after{content:"";position:absolute;left:0;right:0;bottom:0;height:28px;z-index:5;pointer-events:none;
+    background:linear-gradient(180deg,rgba(10,10,12,0),#0a0a0c);opacity:var(--f8,0)}
   .lp-j-step div>p{font-size:12.5px}
 }
 

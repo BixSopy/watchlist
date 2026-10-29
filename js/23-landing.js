@@ -172,6 +172,7 @@ function _lpJourney(){
   var shadow=Q('.lp-j-shadow'),mx=0,my=0,tmx=0,tmy=0,fine=false;try{fine=matchMedia('(pointer:fine)').matches;}catch(e){}
   if(fine&&!reduced)addEventListener('mousemove',function(e){tmx=e.clientX/innerWidth*2-1;tmy=e.clientY/innerHeight*2-1;if(vis)req();},{passive:true});
   var tops=[],hs=[],vw=0,vh=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
+  function big0(g){return ease(seg(g,8.42,8.8));}
   function clamp(x){return x<0?0:x>1?1:x;}
   function seg(x,a,b){return clamp((x-a)/(b-a));}
   function ease(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;}
@@ -183,7 +184,7 @@ function _lpJourney(){
     /* Mobile : clavier ouvert = seule la hauteur baisse, à largeur égale. On garde alors la hauteur
        d'avant pour que l'appareil ne rapetisse pas et ne saute pas (cf. capture de Pierre). */
     var nh=innerHeight;if(!(innerWidth<=860&&innerWidth===vw&&nh<vh))vh=nh;vw=innerWidth;var y=scrollY||0;
-    if(vw<=860){stick.style.height=vh+'px';var bt=Q('.lp-ch[data-ch="8"] .lp-ch-t');band8=bt?bt.offsetHeight+14+12:vh*.5;}else stick.style.height='';
+    if(vw<=860){stick.style.height=vh+'px';var bt=Q('.lp-ch[data-ch="8"] .lp-ch-t');band8=bt?bt.getBoundingClientRect().bottom:vh*.4;}else stick.style.height='';
     chs.forEach(function(c,i){var b=c.getBoundingClientRect();tops[i]=b.top+y;hs[i]=b.height;});
     target();
   }
@@ -212,7 +213,10 @@ function _lpJourney(){
        pour leur laisser la place — « les 3 étapes s'empilent au-dessus de l'appareil ». */
     var ch8=mob?ease(seg(g,7.55,8.15)):0;
     /* Ch. 8 : le téléphone prend toute la place libre sous la bande (au lieu d'un 32 % fixe, trop petit). */
-    var h8=Math.max(vh*.36,vh-band8-28),bw=mob?lerp(vw*.86,vw*.94,ch8):vw*.46,bh=mob?lerp(vh*.42,h8,ch8):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?lerp(60+vh*.23,band8+8+h8/2,ch8):vh*.52;
+    /* Ch. 8 : téléphone pleine largeur (92 vw), posé juste sous la bande ; il peut dépasser en bas
+       (fondu), le formulaire reste à l'écran. */
+    var w8=Math.max(vw*.86,Math.min(vw*.92,(vh-band8-14)/.87*W/H)),h8=w8*H/W,bw=mob?lerp(vw*.86,w8,ch8):vw*.46,bh=mob?lerp(vh*.42,h8,ch8):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?lerp(60+vh*.23,band8+14+h8/2,ch8):vh*.52;
+    if(mob)set(stick,'--f8',ch8*(1-big0(g)));
     var big=mob?ease(seg(g,8.42,8.8)):0;/* fin du ch. 8 sur mobile : le téléphone d'inscription prend l'écran */
     if(big>0){bw=lerp(bw,Math.min(vw*.94,420),big);bh=lerp(bh,vh-112,big);cy=lerp(cy,28+vh*.5,big);}
     var s=Math.min(bw/W,bh/H),morphing=(mt>0&&mt<1);
