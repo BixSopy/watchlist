@@ -35,7 +35,7 @@ function friendsHeaderBtn(){
     b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2A5 5 0 0 1 21.5 19"/></svg><i class="fr-badge" id="frBadge" hidden></i>';
     var bell=document.getElementById('p3Bell');tools.insertBefore(b,bell||null);
   }
-  var n=(SOCIAL.me&&SOCIAL.me.incoming||[]).length,bd=document.getElementById('frBadge');
+  var n=(SOCIAL.me&&SOCIAL.me.incoming||[]).length+(typeof recoUnread==='function'?recoUnread():0),bd=document.getElementById('frBadge');
   if(bd){var was=bd.textContent;bd.hidden=!n;bd.textContent=n>9?'9+':String(n||'');if(n&&was!==bd.textContent){bd.classList.remove('pop');void bd.offsetWidth;bd.classList.add('pop');}}
   b.setAttribute('aria-label',n?tn('friends.badge',n):t('friends.title'));
 }
@@ -54,7 +54,7 @@ function friendsHtml(){
     '<button type="button" class="fr-add"'+uiAct('openInvite')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'+esc(t('friends.add'))+'</button></div>';
   if(inc.length&&typeof friendsIncomingHtml==='function')h+=friendsIncomingHtml(inc);
   h+=friendsTopTabsHtml();
-  if(FRIENDS_TOP==='activity')return h+(typeof activityFeedHtml==='function'?activityFeedHtml():'');
+  if(FRIENDS_TOP==='activity'){if(typeof recoMarkSeen==='function')setTimeout(recoMarkSeen,0);return h+(typeof recoInboxHtml==='function'?recoInboxHtml():'')+(typeof activityFeedHtml==='function'?activityFeedHtml():'');}
   if(!fr.length&&!out.length&&!inc.length){
     h+='<div class="fr-empty"><div class="fr-ghosts" aria-hidden="true"><i></i><i></i><i></i></div><h3>'+esc(t('friends.empty'))+'</h3><p class="soc-sub">'+esc(t('friends.emptySub'))+'</p>'+
       '<button type="button" class="soc-cta"'+uiAct('openInvite')+'>'+esc(t('friends.invite'))+'</button></div>';

@@ -147,6 +147,12 @@ uiOn('socialPrivToggle',function(el,e,k){socialPrivToggle(el,k);});
 /* Social : onglet Activité/Amis (js/33-friends.js) et réactions (js/36-activity-feed.js) */
 uiOn('friendsTopTab',function(el,e,tab){friendsTopTab(el,e,tab);});
 uiOn('reactTap',function(el,e,eventId,emoji){reactTap(el,e,eventId,emoji);});
+/* Social : recommandations (js/38-recommend.js) */
+uiOn('recoToggle',function(el,e,id){recoToggle(el,e,id);});
+uiOn('recoMsg',function(el){recoMsg(el);});
+uiOn('recoSend',function(){recoSend();});
+uiOn('recoRespond',function(el,e,id,action){recoRespond(el,e,id,action);});
+uiOn('recoPrivToggle',function(el){recoPrivToggle(el);});
 uiOn('shareClose',function(){closeShare();});
 uiOn('shareKind',function(el,e,k){shareSet('kind',k);});
 uiOn('shareChip',function(el,e,dim,v){shareToggleIn(dim,v);});

@@ -8,7 +8,7 @@ function socialPrivacyHtml(){
     '<p class="soc-sub">'+esc(t('privacy.sub'))+'</p><div class="sp-rows">'+SOC_PRIV.map(function(k){
       var on=!!s[k],dis=k!=='show_list'&&!s.show_list;
       return '<button type="button" class="sp-row" role="switch" aria-checked="'+on+'"'+(dis?' disabled':'')+uiAct('socialPrivToggle',[k])+'><span><b>'+esc(t('privacy.'+k.replace('show_','')))+'</b><em>'+esc(t('privacy.'+k.replace('show_','')+'Sub'))+'</em></span><span class="p3-sw" aria-hidden="true"></span></button>';
-    }).join('')+'</div><p class="soc-note">'+esc(t('privacy.notes'))+'</p></details>';
+    }).join('')+(typeof recoPrivRowHtml==='function'?recoPrivRowHtml():'')+'</div><p class="soc-note">'+esc(t('privacy.notes'))+'</p></details>';
 }
 function socialPrivToggle(el,key){
   if(SOC_PRIV.indexOf(key)<0||!SOCIAL.me)return;
@@ -26,7 +26,9 @@ function socialExportData(ids){
   return Promise.all(ids.map(function(id){
     return supa.rpc('get_my_social',{p_profile_id:id}).then(function(r){
       if(r.error||!r.data||r.data.status!=='ok')return null;
-      var d=Object.assign({profile_id:id},r.data);delete d.status;return d;
+      var d=Object.assign({profile_id:id},r.data);delete d.status;
+      if(typeof recoExportData!=='function')return d;
+      return recoExportData(id).then(function(rc){if(rc)d.recommendations=rc;return d;});
     },function(){return null;});
   })).then(function(all){all=all.filter(Boolean);return all.length?all:null;});
 }
