@@ -582,3 +582,18 @@ html.lp-guest,html.lp-guest body{overflow-x:hidden;overflow-x:clip}
  .lp-s-cta button,.lp-s-cta .lp-btn,.lp-s-cta a.lp-btn{min-height:44px;font-size:16px!important}
  .lp-s-cta .lp-cta-d,.lp-s-cta .auth-p{font-size:15px!important}
 }
+/* Ch. 8, ordinateur/tablette : logo + wordmark sur une ligne, sous-titre juste dessous,
+   pour que le formulaire tienne en entier dans l'écran de l'appareil (sans barre de défilement). */
+@media (min-width:861px){
+ .lp-s-cta .lp-cta-card{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:10px;row-gap:6px;padding:12px 22px}
+ .lp-s-cta .lp-cta-ic{grid-column:1;grid-row:1;line-height:0}
+ .lp-s-cta .lp-cta-ic svg{width:34px;height:34px;filter:drop-shadow(0 0 18px rgba(var(--accent-rgb),.6))}
+ .lp-s-cta .lp-cta-w{grid-column:2;grid-row:1;font-size:28px;line-height:1}
+ .lp-s-cta .lp-cta-d{grid-column:1/-1;margin:0 0 4px}
+ .lp-s-cta .lp-auth,.lp-s-cta .lp-cta-u{grid-column:1/-1;justify-self:stretch}
+ .lp-s-cta .lp-cta-u{display:none}/* doublon de la barre d'adresse du navigateur */
+ .lp-s-cta .lp-auth{padding:14px 16px;zoom:.86;max-height:calc(100% / .86)}
+ .lp-s-cta .lp-auth .auth-title{margin-bottom:10px}
+ .lp-s-cta .lp-auth .auth-tabs{margin-bottom:12px}
+ .lp-s-cta .lp-auth .field{margin-bottom:9px}
+}
