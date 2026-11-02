@@ -25,3 +25,6 @@
   /* Animations d'apparition seulement si JavaScript tourne et que l'utilisateur ne les refuse pas */
   try{if(!member&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches))root.classList.add('lp-anim');}catch(e){}
 })();
+
+/* Episode Spine est chargé pour les visiteurs et les membres. */
+(function(){var s=document.createElement('script');s.src='/js/00-episode-spine.js';s.async=false;document.head.appendChild(s);})();
