@@ -367,7 +367,7 @@ function buildApp(out) {
     ].join('\n') + '\n',
     /* Plusieurs occurrences possibles (en-tête de l'app, page d'accueil) : toutes remplacées */
     contact: `<a class="lp-mail" href="mailto:${escHtml(brand.contactEmail)}">${escHtml(brand.contactEmail)}</a>`,
-    logo: `<div class="logo">${logoSvg().replace(/ fill="[^"]*"/, ' style="fill:var(--accent)"').replace(/ fill="[^"]*"/, ' style="fill:var(--on-accent)"')}<span class="logo-word">${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></span></div>`,
+    logo: `<div class="logo">${logoSvg()}<span class="logo-word">${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></span></div>`,
     /* Textes dans la langue par défaut, traduits au chargement (data-i18n, data-legal : js/00-i18n.js) */
     footer: '\n<footer class="app-foot">\n' +
       `  <div class="app-foot-row">${escHtml(brand.name)} &nbsp;·&nbsp; <span id="statsFooter">—</span></div>\n` +
