@@ -1,1 +1,1 @@
-<svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" fill="[[colors.accent]]"/><path d="M9 7.3 17 12 9 16.7z" fill="[[colors.onAccent]]"/></svg>
+<svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="12" width="4" height="7" rx="2" fill="[[colors.textFaint]]"/><rect x="10" y="8.5" width="4" height="10.5" rx="2" fill="[[colors.textMuted]]"/><rect x="16.5" y="4" width="4" height="14" rx="2" fill="[[colors.accent]]"/></svg>
