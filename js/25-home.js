@@ -73,7 +73,7 @@ var _cfIdx=0;
 function cfPosPct(idx,n){return n>1?Math.round(idx/(n-1)*1000)/10:0;}
 function _cfPosSet(idx,n){
   var dot=document.getElementById('cfPosDot');if(!dot)return;
-  dot.style.left=cfPosPct(idx,n)+'%';
+  dot.style.setProperty('--p',cfPosPct(idx,n)+'%');
 }
 function renderContinue(items,idx){
   var band=document.getElementById('heroBand'),ring=document.getElementById('cfRing');
@@ -120,10 +120,8 @@ function renderContinue(items,idx){
   _cfInit(document.getElementById('cfStage'));
 }
 /* Va au titre i (borné), arrête le balayage automatique */
-/* Repère visible seulement pendant la navigation manuelle, masqué ~1,2 s après */
-var _cfPosT=null;
-function cfPosShow(){var p=document.getElementById('cfPos');if(!p)return;p.classList.add('on');clearTimeout(_cfPosT);_cfPosT=setTimeout(function(){p.classList.remove('on');},1200);}
-function cfGo(i){cfPosShow();
+/* Repère toujours affiché : le faire apparaître/disparaître à chaque pas de molette donnait un clignotement saccadé */
+function cfGo(i){
   if(!_heroItems.length)return;
   i=Math.max(0,Math.min(_heroItems.length-1,i));
   _heroManual=true;

@@ -1426,10 +1426,11 @@ svg.ntab-ic{width:17px;height:17px;flex-shrink:0;opacity:.8}
 .cf-ctr{font:500 12px 'IBM Plex Mono',monospace;color:var(--text2)}
 .cf-head .cont-all{margin-left:auto}
 .cf-stage{position:relative;height:calc(var(--cf-h) + 80px);perspective:1100px;perspective-origin:50% 40%;outline:none;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;margin-top:6px}
-.cf-pos{display:flex;align-items:center;justify-content:center;margin:-4px auto 14px;width:min(260px,62vw);opacity:0;transition:opacity .25s}
-.cf-pos.on{opacity:1}
+.cf-pos{display:flex;align-items:center;justify-content:center;margin:-4px auto 14px;width:min(260px,62vw)}
 .cf-pos-t{position:relative;flex:1;height:2px;border-radius:2px;background:rgba(240,240,240,.12)}
-.cf-pos-t i{position:absolute;top:50%;left:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#5cc8ff;box-shadow:0 0 8px rgba(92,200,255,.55);transition:left .35s cubic-bezier(.22,.8,.25,1)}
+/* repère toujours visible (plus de fondu à chaque pas de molette) ; le point glisse en transform, sans recalcul de mise en page */
+.cf-pos-t i{position:absolute;top:50%;left:0;width:100%;height:8px;margin-top:-4px;transform:translateX(var(--p,0%));transition:transform .35s cubic-bezier(.22,.8,.25,1);will-change:transform;pointer-events:none}
+.cf-pos-t i:before{content:"";position:absolute;left:-4px;top:0;width:8px;height:8px;border-radius:50%;background:#5cc8ff;box-shadow:0 0 8px rgba(92,200,255,.55)}
 #heroBand.single .cf-pos{display:none}
 @media (max-width:768px){.cf-pos{width:min(220px,70vw);margin:-8px auto 12px}}
 @media (prefers-reduced-motion:reduce){.cf-pos,.cf-pos-t i{transition:none!important}}
@@ -2087,8 +2088,10 @@ body:not(.p3-enter) :is(.p3-ph h1,.p3-ph p,.det-ext,.det-imp,.p3-feat,.p3-pc,.pe
 #heroBand.cf{background:transparent}
 #heroBand.cf .hero-band-fade{display:none}
 #heroBand.cf .hero-band-img{inset:-4% 0 0;-webkit-mask-image:radial-gradient(ellipse 50% 60% at 50% 38%,#000 35%,transparent 100%);mask-image:radial-gradient(ellipse 50% 60% at 50% 38%,#000 35%,transparent 100%)}
-/* Reflets persistants : un élément par affiche, plus de box-reflect */
-#heroBand .cf-card{-webkit-box-reflect:none!important}
+/* Reflets persistants : un élément par affiche, plus de box-reflect.  « none » n'est pas une valeur valide de
+   -webkit-box-reflect (Chrome ignorait la règle) : le reflet natif restait actif en plus de .cf-refl et était
+   recalculé à chaque image des transitions, d'où la barre de progression qui « se rechargeait » dans le miroir. */
+#heroBand .cf-card{-webkit-box-reflect:unset!important}
 #heroBand .cf-card:after{display:none}
 .cf-refl{position:absolute;left:0;right:0;top:calc(100% + 10px);height:100%;border-radius:16px;overflow:hidden;pointer-events:none;transform:scaleY(-1);opacity:.2;
   -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 32%);mask-image:linear-gradient(to top,#000 0%,transparent 32%)}

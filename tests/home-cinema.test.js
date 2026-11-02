@@ -81,12 +81,20 @@ test('carrousel : repère de position (point bleu sans texte, mouvement réduit)
   const pct = new Function('idx', 'n', src.match(/function cfPosPct\(idx,n\)\{([^}]*)\}/)[1]);
   assert.deepEqual([pct(0, 10), pct(9, 10), pct(0, 1)], [0, 100, 0]);
   assert.match(html, /id="cfPosDot"/);
-  assert.match(html, /\.cf-pos-t i\{[^}]*#5cc8ff/);
+  assert.match(html, /\.cf-pos-t i:before\{[^}]*#5cc8ff/);
   assert.doesNotMatch(html, /cf-pos-[lr]|cont\.(newest|oldest)/);
-  assert.match(html, /\.cf-pos\{[^}]*opacity:0/);
-  assert.match(html, /\.cf-pos\.on\{opacity:1\}/);
+  /* toujours visible : pas de fondu rejoué à chaque pas de molette (effet saccadé) */
+  assert.doesNotMatch(html, /\.cf-pos\{[^}]*opacity:0/);
+  assert.doesNotMatch(html, /\.cf-pos\.on\{/);
+  /* le point glisse en transform (pas de left animé) */
+  assert.match(html, /\.cf-pos-t i\{[^}]*transition:transform/);
+  assert.doesNotMatch(html, /\.cf-pos-t i\{[^}]*transition:left/);
+  assert.match(src, /setProperty\('--p',cfPosPct/);
   assert.match(html, /prefers-reduced-motion:reduce\)\{\.cf-pos,\.cf-pos-t i\{transition:none/);
-  assert.match(src, /function cfGo\(i\)\{cfPosShow\(\);/);
-  assert.match(src, /classList\.remove\('on'\);\},1200\)/);
-  assert.doesNotMatch(src.match(/function renderContinue[\s\S]*?\n\}/)[0], /cfPosShow/);
+  assert.doesNotMatch(src, /cfPosShow/);
+});
+
+test('carrousel : le reflet natif est vraiment désactivé (valeur valide, pas « none »)', () => {
+  assert.match(html, /#heroBand \.cf-card\{-webkit-box-reflect:unset!important\}/);
+  assert.doesNotMatch(html, /-webkit-box-reflect:none/);
 });
