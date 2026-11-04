@@ -43,7 +43,10 @@ const h = (type, props, ...children) => ({ type, props: Object.assign({}, props,
 
 function logo() {
   return h('div', { style: { display: 'flex', alignItems: 'center', fontSize: 28, fontWeight: 800, color: '#fff' } },
-    h('div', { style: { width: 36, height: 36, borderRadius: 10, marginRight: 12, background: 'linear-gradient(135deg,#5cc8ff,#3a7bff)' } }),
+    h('div', { style: { display: 'flex', alignItems: 'flex-end', gap: 6, marginRight: 14, height: 36 } },
+      h('div', { style: { width: 10, height: 18, borderRadius: 5, background: '#7c7c87' } }),
+      h('div', { style: { width: 10, height: 26, borderRadius: 5, background: '#888' } }),
+      h('div', { style: { width: 10, height: 36, borderRadius: 5, background: '#5cc8ff' } })),
     h('span', {}, 'cin'), h('span', { style: { color: '#5cc8ff' } }, 'episode'));
 }
 export function cardTree(d) {

@@ -135,7 +135,7 @@ function logoSvg() { return fill(read('branding/logo-mark.svg').trim()); }
    correspond à une variable CSS déjà déclarée dans :root (sinon le hex littéral est laissé tel quel) —
    le mark reste donc réactif au thème sans supposer un nombre ou un ordre fixe de couleurs. */
 function logoSvgCss() {
-  const map = [[C.accent, '--accent'], [C.onAccent, '--on-accent'], [C.textMuted, '--text2'], [C.textFaint, '--text3']];
+  const map = [[C.accent, '--accent'], [C.logoMid, '--text2'], [C.logoDim, '--text3']];
   let svg = logoSvg();
   for (const [hex, cssVar] of map) svg = svg.split(`fill="${hex}"`).join(`style="fill:var(${cssVar})"`);
   return svg;
