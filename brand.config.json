@@ -39,9 +39,12 @@
     "text": "#f0f0f0",
     "textMuted": "#9a9aa3",
     "textFaint": "#5c5c66",
+    "logoDim": "#7c7c87",
+    "logoMid": "#888888",
     "danger": "#ff7070",
     "themeColor": "#06070a"
   },
+  "$comment_colors_logo": "logoDim/logoMid (dans colors) sont les deux tons non-accent du mark (branding/logo-mark.svg) — distincts de textFaint/textMuted (texte des pages légales et des emails) pour ne pas changer ces derniers si la charte du logo évolue. Valeurs alignées sur --text3/--text2 déjà codées en dur dans index.html.",
   "logo": {
     "icon192": "/icons/icon-192.png",
     "icon512": "/icons/icon-512.png",

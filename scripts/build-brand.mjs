@@ -131,6 +131,15 @@ function validate() {
 
 /* ---------- morceaux réutilisés ---------- */
 function logoSvg() { return fill(read('branding/logo-mark.svg').trim()); }
+/* Logo pour index.html : chaque fill="#hex" du mark devient style="fill:var(--…)" quand sa couleur
+   correspond à une variable CSS déjà déclarée dans :root (sinon le hex littéral est laissé tel quel) —
+   le mark reste donc réactif au thème sans supposer un nombre ou un ordre fixe de couleurs. */
+function logoSvgCss() {
+  const map = [[C.accent, '--accent'], [C.logoMid, '--text2'], [C.logoDim, '--text3']];
+  let svg = logoSvg();
+  for (const [hex, cssVar] of map) svg = svg.split(`fill="${hex}"`).join(`style="fill:var(${cssVar})"`);
+  return svg;
+}
 function editorLine(lang = DEFAULT_LANG) {
   const n = brand.editor && brand.editor.name;
   return n ? escHtml(n) + '.' : escHtml(T(lang, 'legal.page.editor'));
@@ -367,7 +376,7 @@ function buildApp(out) {
     ].join('\n') + '\n',
     /* Plusieurs occurrences possibles (en-tête de l'app, page d'accueil) : toutes remplacées */
     contact: `<a class="lp-mail" href="mailto:${escHtml(brand.contactEmail)}">${escHtml(brand.contactEmail)}</a>`,
-    logo: `<div class="logo">${logoSvg().replace(/ fill="[^"]*"/, ' style="fill:var(--accent)"').replace(/ fill="[^"]*"/, ' style="fill:var(--on-accent)"')}<span class="logo-word">${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></span></div>`,
+    logo: `<div class="logo">${logoSvgCss()}<span class="logo-word">${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></span></div>`,
     /* Textes dans la langue par défaut, traduits au chargement (data-i18n, data-legal : js/00-i18n.js) */
     footer: '\n<footer class="app-foot">\n' +
       `  <div class="app-foot-row">${escHtml(brand.name)} &nbsp;·&nbsp; <span id="statsFooter">—</span></div>\n` +
