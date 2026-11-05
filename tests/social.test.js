@@ -58,6 +58,30 @@ test('avatar : couleur et texte échappés', () => {
   const h = F.friendAvatar({ name: '<b>', avatar_color: 'red;x:y' });
   assert.ok(!h.includes('<b>') && h.includes('#5cc8ff'));
 });
+
+test('friendQrSvg : H2 Spine Halo scannable (EC H, couronne, prefers-reduced-motion ready)', () => {
+  const vm = require('node:vm');
+  const qr = read('vendor/qrcode-generator-1.4.4.js');
+  const src = read('js/33-friends.js');
+  const ctx = {
+    module: { exports: {} }, exports: {}, console,
+    location: { origin: 'https://cinepisode.com', search: '', pathname: '/', hash: '' },
+    sessionStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
+    history: { replaceState() {} }, setTimeout() {},
+    esc: global.esc, t: (k) => k, SOCIAL: {}, FRIENDS: {}, navigator: {}, authUser: null, authProfileId: null
+  };
+  vm.runInNewContext(qr + '\n' + src, ctx);
+  const url = 'https://cinepisode.com/u/camille.ecrans?i=Ab12Cd34Ef56';
+  const svg = ctx.module.exports.friendQrSvg(url);
+  assert.match(svg, /class="qr-svg qr-h2"/);
+  assert.match(svg, /qr-crown/);
+  assert.match(svg, /qr-disc/);
+  assert.match(svg, /qr-halo/);
+  assert.match(svg, /qr-bar-stem/);
+  assert.match(svg, /aria-label="/);
+  assert.ok(!svg.includes('<script'));
+});
+
 test('page /u/ : aucune requête sans code valide', async () => {
   let called = 0; const f = async () => { called++; return { ok: true, json: async () => null }; };
   assert.strictEqual(await invite._fetchInvite('pierre', '', f), null);
