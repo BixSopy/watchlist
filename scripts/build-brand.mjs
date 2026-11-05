@@ -365,10 +365,16 @@ function buildApp(out) {
       `<meta property="og:title" content="${escHtml(brand.name + ' · ' + brand.tagline)}">`,
       `<meta property="og:description" content="${escHtml(brand.description)}">`,
       `<meta property="og:url" content="${escHtml(brand.baseUrl)}/">`,
-      `<meta property="og:image" content="${escHtml(brand.baseUrl + brand.logo.icon512)}">`,
+      `<meta property="og:image" content="${escHtml(brand.baseUrl + brand.ogImage[DEFAULT_LANG])}">`,
+      `<meta property="og:image:type" content="${escHtml(brand.ogImage.type)}">`,
+      `<meta property="og:image:width" content="${brand.ogImage.width}">`,
+      `<meta property="og:image:height" content="${brand.ogImage.height}">`,
+      `<meta property="og:image:alt" content="${escHtml(brand.ogImage.alt[DEFAULT_LANG])}">`,
       `<meta property="og:locale" content="${escHtml(langMeta(DEFAULT_LANG).og || DEFAULT_LANG)}">`,
       ...LANGS.filter(l => l !== DEFAULT_LANG).map(l => `<meta property="og:locale:alternate" content="${escHtml(langMeta(l).og || l)}">`),
-      `<meta name="twitter:card" content="summary">`,
+      `<meta name="twitter:card" content="summary_large_image">`,
+      `<meta name="twitter:image" content="${escHtml(brand.baseUrl + brand.ogImage[DEFAULT_LANG])}">`,
+      `<meta name="twitter:image:alt" content="${escHtml(brand.ogImage.alt[DEFAULT_LANG])}">`,
       /* Accueil : /fr, /en (réécrits vers / dans vercel.json, langue forcée par js/00-i18n.js) ;
          « / » choisit la langue du visiteur (x-default) */
       ...(brand.indexable ? [`<link rel="canonical" href="${escHtml(brand.baseUrl)}/">`,
