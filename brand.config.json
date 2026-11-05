@@ -51,6 +51,18 @@
     "maskable512": "/icons/icon-maskable-512.png",
     "appleTouch": "/icons/apple-touch-icon.png"
   },
+  "$comment_ogImage": "Image d'aperçu des liens (1200×630). Changer le nom du fichier à chaque nouvelle version : X et les navigateurs gardent l'ancienne en cache sous la même adresse.",
+  "ogImage": {
+    "fr": "/og/og-share-v2-fr.jpg",
+    "en": "/og/og-share-v2-en.jpg",
+    "width": 1200,
+    "height": 630,
+    "type": "image/jpeg",
+    "alt": {
+      "fr": "Cinepisode : une rangée d'affiches de séries avec leur barre de progression et le texte « Reprends pile là où tu t'es arrêté. »",
+      "en": "Cinepisode: a row of show posters with their progress bars and the text “Pick up right where you left off.”"
+    }
+  },
   "fonts": {
     "display": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     "body": "'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",

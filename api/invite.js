@@ -56,10 +56,21 @@ h1{font:900 30px/1.1 Inter,sans-serif;letter-spacing:-.02em;margin:0 0 6px}.h{co
 @media(max-width:700px){.top{padding:12px 16px}.top .btn{padding:8px 14px;font-size:12.5px}.card{padding:32px 20px 24px}}
 @media(prefers-reduced-motion:reduce){.amb,.card{animation:none}.btn{transition:none}}`;
 
+/* Aperçu du lien (X, WhatsApp, Discord…) : même grande image que l'accueil, nom versionné (brand.config.json → ogImage) */
+const OG = {
+  fr: { img: '/og/og-share-v2-fr.jpg', alt: 'Cinepisode : une rangée d’affiches de séries avec leur barre de progression et le texte « Reprends pile là où tu t’es arrêté. »' },
+  en: { img: '/og/og-share-v2-en.jpg', alt: 'Cinepisode: a row of show posters with their progress bars and the text “Pick up right where you left off.”' },
+};
+function ogMeta(L, title) {
+  const o = OG[L] || OG.fr, img = 'https://cinepisode.com' + o.img;
+  return '<meta property="og:type" content="website"><meta property="og:site_name" content="Cinepisode"><meta property="og:title" content="' + esc(title) + '">' +
+    '<meta property="og:image" content="' + img + '"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' +
+    '<meta property="og:image:alt" content="' + esc(o.alt) + '"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="' + img + '"><meta name="twitter:image:alt" content="' + esc(o.alt) + '">';
+}
 function page(L, title, body) {
   return '<!doctype html><html lang="' + L + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
     '<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#0a0a0c"><title>' + esc(title) + '</title>' +
-    '<link rel="icon" href="/icons/icon-192.png"><link rel="stylesheet" href="/fonts/fonts.css"><style>' + CSS + '</style></head><body><div class="amb"></div>' +
+    ogMeta(L, title) + '<link rel="icon" href="/icons/icon-192.png"><link rel="stylesheet" href="/fonts/fonts.css"><style>' + CSS + '</style></head><body><div class="amb"></div>' +
     '<header class="top"><a class="logo" href="/">cin<em>episode</em></a><a class="btn g" href="/">' + esc(TXT[L].create) + '</a></header>' + body +
     '<footer class="made">Cinepisode · ' + esc(TXT[L].foot) + '</footer></body></html>';
 }
