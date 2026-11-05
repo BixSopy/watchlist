@@ -14,7 +14,8 @@ create table auth.users (
   id uuid primary key default gen_random_uuid(),
   email text,
   email_confirmed_at timestamptz,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  raw_user_meta_data jsonb not null default '{}'::jsonb
 );
 create table auth.identities (
   id uuid primary key default gen_random_uuid(),
