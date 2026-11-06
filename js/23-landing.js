@@ -32,20 +32,13 @@ function lpShowAuth(view){
   if(!lpIsGuest()){if(typeof openAuthModal==='function')openAuthModal(view==='signup'&&typeof authUser!=='undefined'&&authUser?'account':view);return;}
   lpMountAuth(view||'signup');
   var sec=document.getElementById('lp-join');if(!sec)return;
-  var reduced=_lpReduced();
-  sec.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
-  /* Le champ email vit dans l'appareil (chapitre 8) : tant que le défilement animé (lerp) n'a pas
-     rattrapé le scroll, sa scène reste invisibility:hidden (comme les autres), et .focus() dessus
-     ne fait rien — sans erreur, sans retenter. On retente donc par intervalles le temps qu'il faille. */
-  var tries=0;
-  (function tryFocus(){
-    var i=document.getElementById('authEmail'),host=_lpHost();
-    if(i&&host&&host.contains(i)&&getComputedStyle(i).visibility!=='hidden'){
-      try{i.focus({preventScroll:true});}catch(e){i.focus();}
-      return;
-    }
-    if(++tries<50)setTimeout(tryFocus,150);
-  })();
+  /* A long scroll-driven journey should never delay a visitor who chose to sign up. */
+  sec.scrollIntoView({behavior:'instant',block:'start'});
+  /* The form is now in the normal document flow, not in an animated device. */
+  var email=document.getElementById('authEmail');
+  if(email&&_lpHost()&&_lpHost().contains(email)){
+    requestAnimationFrame(function(){try{email.focus({preventScroll:true});}catch(e){email.focus();}});
+  }
 }
 /* Accueil → app (connexion réussie, ou liste locale ouverte sans compte) */
 function lpLeave(){
@@ -170,7 +163,14 @@ function _lpJourney(){
   if(scr[8])scr[8].setAttribute('data-dev',['pc','tablet','phone'][DV]);
   var reduced=_lpReduced(),anim=document.documentElement.classList.contains('lp-anim');
   var shadow=Q('.lp-j-shadow'),mx=0,my=0,tmx=0,tmy=0,fine=false;try{fine=matchMedia('(pointer:fine)').matches;}catch(e){}
-  if(fine&&!reduced)addEventListener('mousemove',function(e){tmx=e.clientX/innerWidth*2-1;tmy=e.clientY/innerHeight*2-1;if(vis)req();},{passive:true});
+  /* Inclinaison souris : l'appareil part à plat (0,0) et ne suit le curseur qu'après le premier vrai
+     mouvement ; mx/my rejoignent la cible en douceur (lerp dans frame), et reviennent à plat quand
+     la souris quitte la fenêtre. Pas sur écran tactile ni en mouvement réduit. */
+  if(fine&&!reduced){
+    addEventListener('pointermove',function(e){if(e.pointerType&&e.pointerType!=='mouse')return;tmx=e.clientX/innerWidth*2-1;tmy=e.clientY/innerHeight*2-1;if(vis)req();},{passive:true});
+    var _lpRest=function(){tmx=0;tmy=0;if(vis)req();};
+    document.documentElement.addEventListener('mouseleave',_lpRest);addEventListener('blur',_lpRest);
+  }
   var tops=[],hs=[],vw=0,vh=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
   function big0(g){return ease(seg(g,8.42,8.8));}
   function clamp(x){return x<0?0:x>1?1:x;}
@@ -227,7 +227,7 @@ function _lpJourney(){
     if(dv._w!==W||dv._h!==H){dv._w=W;dv._h=H;dv.style.width=W.toFixed(1)+'px';dv.style.height=H.toFixed(1)+'px';dv.style.margin='0';}
     dv.style.left='0';dv.style.top='0';
     /* Relief 3D en CSS : inclinaison (défilement + souris sur ordinateur), tranche, reflet, ombre au sol */
-    mx+=(tmx-mx)*.08;my+=(tmy-my)*.08;var mm=Math.abs(tmx-mx)+Math.abs(tmy-my)>.002;
+    mx+=(tmx-mx)*.06;my+=(tmy-my)*.06;var mm=Math.abs(tmx-mx)+Math.abs(tmy-my)>.002;
     var rx=tilt+(reduced?0:(fine?-my*7:Math.sin(g*1.7)*2.5)),ry=spin-(mob?0:tilt*.6)+(reduced?0:(fine?mx*9:Math.cos(g*1.3)*3.5));
     if(mob){/* v6 : l'appareil est mis en page à sa taille affichée (zoom) au lieu d'être peint en 880 px puis réduit
    par scale() -> calque ~6x plus petit, net, et plus de re-peinture géante pendant les mues */
@@ -301,7 +301,7 @@ function _lpJourney(){
       story.style.opacity=String(so);
       story.style.transform='translate3d('+(lerp(cx,px,st)-110).toFixed(1)+'px,'+(lerp(cy,py,st)-190).toFixed(1)+'px,0) scale('+lerp(.4,mob?.8:1,st).toFixed(3)+') rotate('+lerp(0,7,st).toFixed(2)+'deg)';
     }else if(story.style.opacity!=='0')story.style.opacity='0';
-    /* 8 · Appel final : formulaire réel dans l'appareil, ligne des 3 étapes qui se remplit au scroll */
+    /* 8 · Appel final : démonstration des 3 étapes dans l'appareil (formulaire dans la section suivante). */
     set(scr[8],'--ct',back(seg(f[8],0,.3)));
     if(stepsLine)stepsLine.style.height=(seg(f[8],.04,.5)*100).toFixed(1)+'%';
     /* Affiches en profondeur : orbite lente autour de l'appareil ; au chapitre 2 elles affluent vers la liste */

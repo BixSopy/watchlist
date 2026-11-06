@@ -19,7 +19,7 @@
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:#0a0a0c;color:#f0f0f0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:1.65}
+body{margin:0;background:#000000;color:#f0f0f0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:1.65}
 .wrap{max-width:760px;margin:0 auto;padding:28px 22px 60px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px}
 .logo{display:flex;align-items:center;gap:9px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-weight:900;font-size:21px;letter-spacing:-.5px;color:#fff;text-decoration:none}
@@ -54,11 +54,11 @@ footer a{color:#9a9aa3}
 <body>
 <div class="wrap">
   <div class="top">
-    <a class="logo" href="/"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" fill="#5cc8ff"/><path d="M9 7.3 17 12 9 16.7z" fill="#06070a"/></svg><span class="logo-word">cin<em>episode</em></span></a>
+    <a class="logo" href="/"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" fill="#7c7c87"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" fill="#888888"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" fill="#5cc8ff"/></svg><span class="logo-word">cin<em>episode</em></span></a>
     <div class="nav"><a class="lang" href="/confidentialite" hreflang="fr" lang="fr">Français</a><a class="back" href="/">Back to the app</a></div>
   </div>
   <h1>Privacy policy</h1>
-  <p class="updated">Last updated: October 13, 2026</p>
+  <p class="updated">Last updated: November 5, 2026</p>
 <p>Cinepisode is a free service with no ads, no trackers and no data reselling. This page explains exactly what is collected, where it is stored and how to delete all of it.</p>
 
 <h2>Data controller</h2>
@@ -73,6 +73,7 @@ footer a{color:#9a9aa3}
   <tr><td>Email address, password (stored only in irreversibly hashed form), account creation and last sign-in dates</td><td>Create and secure your account, send you confirmation and password reset emails</td><td>Supabase (Auth), region <strong>eu-central-1, Frankfurt (EU)</strong></td></tr>
   <tr><td>Your list: titles, type, status, progress (season/episode), ratings, tags, collections, TMDB identifiers</td><td>Sync your list across your devices</td><td>Supabase (database), Frankfurt (EU)</td></tr>
   <tr><td>Your interface language</td><td>Send you account emails in your language</td><td>Supabase (Auth), Frankfurt (EU)</td></tr>
+  <tr><td>Short attribution code (if you arrive via a <code>?r=…</code> link)</td><td>Know which link (social reply, invite) brought your sign-up; no cookies, no third-party service</td><td>Your browser (localStorage, 30&nbsp;days max) then, at sign-up, Supabase with your account, Frankfurt (EU)</td></tr>
   <tr><td>Auto-tracking token (if you generate one) and paired extension devices (only a SHA-256 hash of each device token, device name, browser, system, extension version, dates)</td><td>Let the browser extension update your progress</td><td>Supabase, Frankfurt (EU)</td></tr>
   <tr><td>Titles detected by the browser extension (if you use it): title, movie or series, season, episode, date and percentage watched, source</td><td>Show them in your private “Detected” tab so you can add them to your list</td><td>Supabase, Frankfurt (EU)</td></tr>
   <tr><td>Catalog usage counters (number of requests per day)</td><td>Enforce daily quotas and prevent abuse</td><td>Supabase, Frankfurt (EU); deleted automatically after a few days</td></tr>
@@ -108,7 +109,7 @@ footer a{color:#9a9aa3}
 </ul>
 
 <h2>Storage in your browser</h2>
-<p>Cinepisode uses <strong>no advertising or audience-measurement cookies</strong>. Your browser keeps your list (IndexedDB), your settings, your language and your sign-in session (localStorage). These are strictly necessary for the service to work and therefore don't require consent. You can delete them from your browser settings or when you delete your account.</p>
+<p>Cinepisode uses <strong>no advertising or audience-measurement cookies</strong>. Your browser keeps your list (IndexedDB), your settings, your language, your sign-in session (localStorage) and, when present, a short sign-up attribution code (<code>?r=…</code>, 30&nbsp;days max). These are strictly necessary for the service to work and therefore don't require consent. You can delete them from your browser settings or when you delete your account.</p>
 
 <h2>Hosting and subprocessors</h2>
 <ul>
