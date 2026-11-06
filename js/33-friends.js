@@ -105,7 +105,10 @@ function friendQrSvg(text){
   var G1='#7c7c87',G2='#888888',ACC='#5cc8ff',HOV='#7ad4ff';
   var alt=esc(typeof t==='function'?t('friends.qrAlt'):'QR');
   function isFinder(r,cc){return (r<7&&cc<7)||(r<7&&cc>=N-7)||(r>=N-7&&cc<7);}
-  function centerClear(r,cc){var m=N>>1;return Math.abs(r-m)<=4&&Math.abs(cc-m)<=4;}
+  /* Centre en coordonnées continues (N/2), pas l'index de module arrondi : sinon le logo
+     était décalé d'un demi-module à chaque fois que N (qui dépend de la longueur de l'URL)
+     tombait pair (signalé par Pierre le 06/11 — logo visiblement pas centré dans le QR). */
+  function centerClear(r,cc){var h=N/2;return Math.abs(r+0.5-h)<=4.5&&Math.abs(cc+0.5-h)<=4.5;}
   function lerpHex(a,b,k){
     function p(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
     var A=p(a),B=p(b),i,out='#';
@@ -162,13 +165,15 @@ function friendQrSvg(text){
       finders+='<rect x="'+(fx+(2+b)*u+u*0.06).toFixed(2)+'" y="'+(fy+2*u).toFixed(2)+'" width="'+(u-u*0.12).toFixed(2)+'" height="'+(3*u).toFixed(2)+'" rx="'+(u*0.45).toFixed(2)+'" fill="'+cl+'"/>';
     }
   });
-  /* logo central Episode Spine */
-  var m=N>>1,lx=o+(m-4)*u+u*0.3,ly=o+(m-4)*u+u*0.3,ls=(9*u-u*0.6),k=ls/24,logo=
+  /* logo central Episode Spine : centré en coordonnées continues (voir centerClear), pas sur
+     l'index de module arrondi — même correction, même raison. Barres animées comme au
+     démarrage (.brand-startup .logo-bar/@keyframes sbBounce, css/app.css), rebond décalé. */
+  var h=N/2,lx=o+(h-4.5)*u+u*0.3,ly=lx,ls=(9*u-u*0.6),k=ls/24,logo=
     '<rect x="'+lx.toFixed(2)+'" y="'+ly.toFixed(2)+'" width="'+ls.toFixed(2)+'" height="'+ls.toFixed(2)+'" rx="'+(u*1.8).toFixed(2)+'" fill="'+BG+'"/>'+
     '<g transform="translate('+(lx+u*1.4).toFixed(2)+' '+(ly+u*1.4).toFixed(2)+')">'+
-    '<rect x="'+(3.5*k).toFixed(2)+'" y="'+(12*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(7*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+G1+'"/>'+
-    '<rect x="'+(10*k).toFixed(2)+'" y="'+(8.5*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(10.5*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+G2+'"/>'+
-    '<rect x="'+(16.5*k).toFixed(2)+'" y="'+(4*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(14*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+ACC+'"/>'+
+    '<rect class="qr-logo-bar qr-logo-bar-1" x="'+(3.5*k).toFixed(2)+'" y="'+(12*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(7*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+G1+'"/>'+
+    '<rect class="qr-logo-bar qr-logo-bar-2" x="'+(10*k).toFixed(2)+'" y="'+(8.5*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(10.5*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+G2+'"/>'+
+    '<rect class="qr-logo-bar qr-logo-bar-3" x="'+(16.5*k).toFixed(2)+'" y="'+(4*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(14*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+ACC+'"/>'+
     '</g>';
   return '<svg class="qr-svg qr-h2" viewBox="0 0 '+VB+' '+VB+'" role="img" aria-label="'+alt+'">'+
     '<defs><radialGradient id="qrHalo" cx="50%" cy="50%" r="50%"><stop offset="55%" stop-color="'+ACC+'" stop-opacity="0"/><stop offset="100%" stop-color="'+ACC+'" stop-opacity=".55"/></radialGradient></defs>'+
