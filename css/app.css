@@ -53,6 +53,25 @@
   --p3-glass:rgba(255,255,255,.72);
   --surface-rgb:255,255,255;
 }
+/* Page d'accueil (visiteurs, #landing) : jamais touchée par le mode clair — décision du 06/11
+   (PR #110) déjà actée « pas de changement sur les sélecteurs lp- / le flux d'inscription ».
+   Sans ce verrou, un visiteur dont l'OS est en clair recevait data-theme="light" sur <html>
+   (js/00-theme.js suit le système par défaut) : le fond de la page (body{background:var(--bg)})
+   et le texte hérité passaient en clair, mais landing.css (jamais mis à jour pour le mode clair)
+   reste truffé de littéraux blancs/gris clairs pensés pour un fond sombre — texte illisible
+   signalé en prod. On réépingle ici les mêmes tokens que ci-dessus à leurs valeurs sombres,
+   pour que #landing rende à l'identique quel que soit le thème choisi ailleurs dans l'app. */
+#landing{
+  --bg:#000000;--bg2:#101013;--bg3:#17171b;--bg4:#1e1e23;--bg5:#27272e;
+  --ink-rgb:255,255,255;
+  --text:#f0f0f0;--text2:#888;--text3:#7c7c87;
+  --accent-flat:#b9aeff;
+  --accent:#5cc8ff;--accent-rgb:92,200,255;--accent-hover:#7ad4ff;--on-accent:#06070a;
+  --red:#e84b4b;--green:#4be87a;
+  --glass-panel-bg:rgba(16,16,19,.78);--glass-backdrop-bg:rgba(8,9,11,.69);
+  --p3-glass:rgba(28,28,32,.55);
+  --surface-rgb:0,0,0;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 /* <html> sans fond = blanc par défaut du navigateur dans la zone de rebond élastique au-dessus
    de la page (trackpad macOS/iOS, scroll au-delà du haut) : un flash blanc qui semble « couper »

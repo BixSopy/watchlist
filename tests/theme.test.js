@@ -10,6 +10,30 @@ const fs = require('node:fs');
 const path = require('node:path');
 const read = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
 
+test('css/app.css : aucun commentaire refermé trop tôt par un "*/" littéral dans le texte', () => {
+  /* Bug réel trouvé en testant le site en prod le 06/11 : un commentaire contenait une citation
+     de COORDINATION.md où un nom de classe se terminant par une étoile était suivi d'un slash
+     (barre oblique) sans espace. Cette paire d'étoile-slash referme le commentaire en plein
+     milieu de la phrase. Le reste du texte du commentaire devient alors du CSS invalide, et le
+     navigateur abandonne purement et simplement la règle #landing qui suit (confirmé via
+     document.styleSheets : la règle disparaît entièrement du CSSOM, sans aucune erreur visible)
+     — la page d'accueil repassait en clair pour tout visiteur dont l'OS est en thème clair.
+     Après avoir retiré chaque commentaire bien formé, il ne doit plus rester la moindre paire
+     d'ouverture ou de fermeture de commentaire isolée. */
+  const css = read('css/app.css');
+  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(stripped, /\/\*/, 'commentaire jamais refermé (/* orphelin)');
+  assert.doesNotMatch(stripped, /\*\//, '"*/" orphelin : un commentaire contenait "*/" dans son propre texte et s\'est refermé trop tôt');
+});
+
+test('css/app.css : #landing reste épinglé au thème sombre, quel que soit data-theme sur <html>', () => {
+  const css = read('css/app.css');
+  const m = css.match(/#landing\{([^}]*)\}/);
+  assert.ok(m, 'règle #landing introuvable (voir aussi le test sur les commentaires mal fermés)');
+  assert.match(m[1], /--bg:#000000/, 'fond sombre figé, peu importe :root[data-theme="light"]');
+  assert.match(m[1], /--text:#f0f0f0/);
+});
+
 test('index.html charge js/00-theme.js de façon synchrone, tôt, avant 00-landing-gate.js', () => {
   const html = read('index.html');
   const m = html.match(/<script src="\/js\/00-theme\.js"([^>]*)><\/script>/);
