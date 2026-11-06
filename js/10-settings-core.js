@@ -2,6 +2,7 @@
 /* ===== SESSION 11B : SYSTÈME DE RÉGLAGES (100% local, jamais synchronisé) ===== */
 var wlSettings={};
 var WL_SETTINGS_DEFAULTS={
+  wl_theme:'system',
   wl_grid_cols:'auto',
   wl_card_ratings:'both',
   wl_card_badges:'full',
@@ -56,13 +57,18 @@ function applySettings(){
   document.body.classList.toggle('glow-off',wlSettings.wl_glow_border==='0');
 }
 /* 0% = panneaux pleins (pas de flou) ; 100% = très translucide. Les 4 variables sont
-   lues par le CSS des pop-up (modales, menu, fiche détail, recherche, dossiers). */
+   lues par le CSS des pop-up (modales, menu, fiche détail, recherche, dossiers).
+   Base RGB du verre selon le thème (mode clair : demande de Pierre le 06/11) —
+   sombre par défaut, clair si <html data-theme="light"> (voir js/00-theme.js). */
 function applyGlass(pct){
   var tt=Math.max(0,Math.min(100,pct||0))/100;
   var root=document.documentElement.style;
-  root.setProperty('--glass-panel-bg','rgba(16,16,19,'+(1-tt*0.55).toFixed(2)+')');
+  var light=document.documentElement.getAttribute('data-theme')==='light';
+  var panelBase=light?'255,255,255':'16,16,19';
+  var backdropBase=light?'255,255,255':'8,9,11';
+  root.setProperty('--glass-panel-bg','rgba('+panelBase+','+(1-tt*0.55).toFixed(2)+')');
   root.setProperty('--glass-panel-blur',Math.round(tt*44)+'px');
-  root.setProperty('--glass-backdrop-bg','rgba(8,9,11,'+(0.90-tt*0.52).toFixed(2)+')');
+  root.setProperty('--glass-backdrop-bg','rgba('+backdropBase+','+(0.90-tt*0.52).toFixed(2)+')');
   root.setProperty('--glass-backdrop-blur',Math.round(tt*18)+'px');
 }
 /* 0% = pas de grain ; 100% = grain marque (deux fois l'intensite par defaut).
