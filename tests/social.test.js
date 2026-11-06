@@ -110,7 +110,7 @@ test('réécriture /u/:handle et QR code local (pas de service tiers)', () => {
   assert.match(read('vercel.json'), /"\/u\/:handle"/);
   const html = read('index.html');
   assert.ok(html.indexOf('src="/vendor/qrcode-generator-1.4.4.js" integrity="sha384-') > 0);
-  assert.ok(html.indexOf('/vendor/qrcode-generator-1.4.4.js') < html.indexOf('<script src="js/33-friends.js"'));
+  assert.ok(html.indexOf('/vendor/qrcode-generator-1.4.4.js') < html.indexOf('<script defer src="js/33-friends.js"'));
   assert.match(read('vendor/qrcode-generator-1.4.4.js'), /MIT license/);
 });
 

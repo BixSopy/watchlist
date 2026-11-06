@@ -71,7 +71,7 @@ test('actions de l’accueil déclarées dans js/00-actions.js et sans gestionna
   const acts = read('js/00-actions.js');
   for (const a of ['lpAuth', 'lpOpenApp']) assert.match(acts, new RegExp("uiOn\\('" + a + "'"), a);
   assert.doesNotMatch(LANDING, /\son[a-z]+\s*=/i);
-  assert.match(HTML, /<script src="js\/23-landing\.js"><\/script>/);
+  assert.match(HTML, /<script defer src="js\/23-landing\.js"><\/script>/);
 });
 
 test('textes de l’accueil en français et en anglais, sans adresse codée en dur', () => {

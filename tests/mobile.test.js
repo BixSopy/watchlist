@@ -12,7 +12,9 @@ const vm = require('node:vm');
 
 const read = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
 const html = read('index.html');
-const css = html.slice(html.indexOf('<style'), html.indexOf('</style>'));
+/* La majeure partie du CSS est dans css/app.css (feuille externe, cf. index.html <link>) : seules
+   les règles critiques anti-flash restent inline, dans un <style> au tout début du <head>. */
+const css = html.slice(html.indexOf('<style'), html.indexOf('</style>')) + read('css/app.css');
 function lum(h) {
   return [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
     .map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
@@ -54,7 +56,7 @@ test('G3 : le clic en dehors du menu se fie au chemin de l\'événement (panneau
 });
 
 test('G5 : module « retour » chargé après les fenêtres qu\'il suit', () => {
-  const at = f => html.indexOf('<script src="' + f + '"></script>');
+  const at = f => html.indexOf('<script defer src="' + f + '"></script>');
   assert.ok(at('js/22-modal-history.js') > at('js/21-detected.js') && at('js/21-detected.js') > 0);
   const src = read('js/22-modal-history.js');
   for (const id of ['searchModal', 'plexMbk', 'addMbk', 'authMbk', 'statsMbk', 'folderMbk', 'optMenu']) assert.ok(src.includes("'" + id + "'"), id);

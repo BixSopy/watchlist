@@ -3,6 +3,7 @@
 # workflow GitHub.) Tout le reste (supabase/, .github/, tests/, *.md…) est exclu.
 /*
 !api
+!css
 !vendor
 !fonts
 !landing

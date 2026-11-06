@@ -99,9 +99,9 @@ test('liens officiels, câblage et confidentialité (aucun envoi du fichier)', (
   assert.strictEqual(G.PLATFORMS.apple.url, 'https://privacy.apple.com/');
   assert.match(G.PLATFORMS.disney.url, /^https:\/\/privacy\.thewaltdisneycompany\.com\//);
   const html = read('index.html');
-  assert.match(html, /<script src="js\/27-gdpr-import\.js"><\/script>/);
+  assert.match(html, /<script defer src="js\/27-gdpr-import\.js"><\/script>/);
   assert.match(html, /id="gdprMbk"/);
-  assert.match(html, /prefers-reduced-motion:reduce\)\{\.gd-card/);
+  assert.match(read('css/app.css'), /prefers-reduced-motion:reduce\)\{\.gd-card/);
   const src = read('js/27-gdpr-import.js');
   assert.doesNotMatch(src, /fetch\(|XMLHttpRequest|sendBeacon|supa\./, 'le fichier n\'est jamais envoyé');
 });

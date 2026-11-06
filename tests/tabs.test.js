@@ -12,7 +12,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-const css = html.slice(html.indexOf('<style'), html.indexOf('</style>'));
+/* La majeure partie du CSS est dans css/app.css (feuille externe, cf. index.html <link>) : seules
+   les règles critiques anti-flash restent inline, dans un <style> au tout début du <head>. */
+const css = html.slice(html.indexOf('<style'), html.indexOf('</style>')) + fs.readFileSync(path.join(__dirname, '..', 'css/app.css'), 'utf8');
 const full = h => (h && h.length === 4 ? '#' + h.slice(1).split('').map(c => c + c).join('') : h);
 const v = name => full((css.match(new RegExp('--' + name + ':(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\\b')) || [])[1]);
 function lum(h) {

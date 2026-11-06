@@ -54,7 +54,7 @@ test('statistiques : période vide, une seule note -> pas de moyenne affichée, 
 
 test('intégration : script chargé, bouton dans les statistiques, aucune requête réseau ajoutée', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-  assert.match(html, /<script src="js\/31-recap\.js"><\/script>/);
+  assert.match(html, /<script defer src="js\/31-recap\.js"><\/script>/);
   assert.match(html, /data-click="openRecap"/);
   const src = fs.readFileSync(path.join(__dirname, '..', 'js', '31-recap.js'), 'utf8');
   assert.doesNotMatch(src, /fetch\(|XMLHttpRequest|supa\./);

@@ -99,11 +99,11 @@ test('index.html charge les dictionnaires puis js/00-i18n.js, après tout le bal
   const html = read('index.html');
   const pos = s => { const i = html.indexOf(s); assert.ok(i >= 0, s); return i; };
   const foot = pos('<!--/brand:footer-->');
-  const brand = pos('<script src="js/00-brand.js">');
-  const i18n = pos('<script src="js/00-i18n.js">');
+  const brand = pos('<script defer src="js/00-brand.js">');
+  const i18n = pos('<script defer src="js/00-i18n.js">');
   assert.ok(foot < brand && brand < i18n, 'scripts après le pied de page');
-  for (const l of LANGS) { const p = pos('<script src="js/i18n/' + l + '.js">'); assert.ok(brand < p && p < i18n, l); }
-  assert.ok(i18n < pos('<script src="js/01-config.js">'));
+  for (const l of LANGS) { const p = pos('<script defer src="js/i18n/' + l + '.js">'); assert.ok(brand < p && p < i18n, l); }
+  assert.ok(i18n < pos('<script defer src="js/01-config.js">'));
   assert.ok(html.lastIndexOf('data-i18n') < i18n, 'aucun élément traduit après les scripts');
 });
 

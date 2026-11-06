@@ -14,9 +14,11 @@ const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 /* app.js a été découpé en modules (js/01-*.js … js/19-*.js, Session 19) : on reconstitue
    le même script global en concaténant les fichiers dans l'ordre où index.html les charge,
    pour que les tests restent indépendants du découpage en fichiers. */
-const app = Array.from(html.matchAll(/<script src="(js\/[^"]+\.js)">/g))
+const app = Array.from(html.matchAll(/<script(?: defer)? src="(js\/[^"]+\.js)">/g))
   .map(function(m) { return fs.readFileSync(path.join(__dirname, '..', m[1]), 'utf8'); })
   .join('\n');
+/* La majeure partie du CSS est dans css/app.css (feuille externe, cf. index.html <link>). */
+const css = fs.readFileSync(path.join(__dirname, '..', 'css/app.css'), 'utf8');
 
 function fnBody(src, name) {
   const start = src.indexOf('function ' + name + '(');
@@ -30,7 +32,7 @@ function fnBody(src, name) {
 }
 
 test('la loupe du header est bien non cliquable en elle-même (le clic tombe sur la barre)', () => {
-  assert.match(html, /\.search-bar>svg\{[^}]*pointer-events:none/);
+  assert.match(css, /\.search-bar>svg\{[^}]*pointer-events:none/);
   assert.match(html, /<div class="search-bar[^"]*"[^>]*>\s*<svg[\s\S]*?<input[^>]*id="tmdbSearchInput"/);
 });
 

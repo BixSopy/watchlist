@@ -13,7 +13,10 @@ const ctx = { module: { exports: {} }, window: { addEventListener: noop }, pad: 
   document: { getElementById: () => null, querySelector: () => null, addEventListener: noop } };
 vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'js/25-home.js'), 'utf8'), ctx);
 const H = ctx.module.exports;
-const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+/* La majeure partie du CSS est dans css/app.css (feuille externe, cf. index.html <link>) : ce
+   fichier ne vérifie aucun ordre relatif entre balises <script> et règles CSS, donc la simple
+   concaténation suffit pour les motifs cherchés ci-dessous. */
+const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8') + fs.readFileSync(path.join(ROOT, 'css/app.css'), 'utf8');
 
 test('couleur d\'ambiance : moyenne pondérée vers les pixels saturés, noir / blanc / transparent ignorés', () => {
   const px = (...rgba) => Uint8ClampedArray.from(rgba);

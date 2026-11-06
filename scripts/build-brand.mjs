@@ -10,7 +10,8 @@
  * Fichiers produits :
  *   js/00-brand.js                        constantes BRAND lues par l'app
  *   manifest.json                         manifeste PWA
- *   index.html                            blocs <!--brand:…-->, <!--i18n:scripts--> et /*brand:css*\/ uniquement
+ *   index.html                            blocs <!--brand:…--> et <!--i18n:scripts--> uniquement
+ *   css/app.css                           bloc /*brand:css*\/ uniquement (feuille externe, cf. <link> dans index.html)
  *   vercel.json                           en-tête X-Robots-Tag et réécritures /fr, /en uniquement
  *   robots.txt, sitemap.xml               (avec les variantes de langue hreflang)
  *   pages légales                         une par langue (sources : branding/legal/<langue>/),
@@ -408,11 +409,16 @@ function buildApp(out) {
   /* Dictionnaires chargés avant js/00-i18n.js (ordre : langue par défaut, puis alphabétique) */
   const i18nRe = /<!--i18n:scripts-->[\s\S]*?<!--\/i18n:scripts-->/;
   if (!i18nRe.test(html)) throw new Error('index.html : bloc <!--i18n:scripts--> introuvable');
-  html = html.replace(i18nRe, () => '<!--i18n:scripts-->\n' + LANGS.map(l => `<script src="js/i18n/${l}.js"></script>`).join('\n') + '\n<!--/i18n:scripts-->');
-  const cssRe = /\/\*brand:css\*\/[\s\S]*?\/\*\/brand:css\*\//;
-  if (!cssRe.test(html)) throw new Error('index.html : bloc /*brand:css*/ introuvable');
-  html = html.replace(cssRe, () => '/*brand:css*/' + cssVars + '/*/brand:css*/');
+  html = html.replace(i18nRe, () => '<!--i18n:scripts-->\n' + LANGS.map(l => `<script defer src="js/i18n/${l}.js"></script>`).join('\n') + '\n<!--/i18n:scripts-->');
   out['index.html'] = html;
+
+  /* Variables de marque : feuille externe css/app.css (cf. <link> dans index.html), pas inline
+     dans la page — mise en cache séparément du HTML, qui change beaucoup plus souvent. */
+  let appCss = read('css/app.css');
+  const cssRe = /\/\*brand:css\*\/[\s\S]*?\/\*\/brand:css\*\//;
+  if (!cssRe.test(appCss)) throw new Error('css/app.css : bloc /*brand:css*/ introuvable');
+  appCss = appCss.replace(cssRe, () => '/*brand:css*/' + cssVars + '/*/brand:css*/');
+  out['css/app.css'] = appCss;
 
   /* Indexation : X-Robots-Tag noindex partout si indexable=false ; sinon seulement hors du
      domaine de production (previews, *.vercel.app) et sur /api/. Les balises meta robots

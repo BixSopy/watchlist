@@ -102,6 +102,6 @@ test('surface : get_activity_feed / react_to_activity réservées à authenticat
 
 test('index.html : script chargé après les autres modules sociaux, CSS réduit les animations', () => {
   const html = read('index.html');
-  assert.ok(html.indexOf('<script src="js/35-social-privacy.js">') < html.indexOf('<script src="js/36-activity-feed.js">'));
-  assert.match(html, /@media \(prefers-reduced-motion:reduce\)\{\.act-item,\.act-react\.pop\{animation:none!important\}/);
+  assert.ok(html.indexOf('<script defer src="js/35-social-privacy.js">') < html.indexOf('<script defer src="js/36-activity-feed.js">'));
+  assert.match(read('css/app.css'), /@media \(prefers-reduced-motion:reduce\)\{\.act-item,\.act-react\.pop\{animation:none!important\}/);
 });

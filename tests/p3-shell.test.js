@@ -37,7 +37,7 @@ test('navigation : cinq vues, pilule en haut et barre du téléphone, script cha
   assert.match(s, /P3_VIEWS=\['tonight','list','calendar','discover','detectes'\]/);
   assert.match(s, /p3-pill/); assert.match(s, /p3-tabbar/);
   assert.ok(html.indexOf('js/29-shell.js') > html.indexOf('js/28-pairing.js'));
-  assert.match(html, /#alertWrap\{display:none!important\}/, 'bandeau remplacé par la cloche');
+  assert.match(read('css/app.css'), /#alertWrap\{display:none!important\}/, 'bandeau remplacé par la cloche');
 });
 
 test('Compact : la classe posée sur <body> ne réutilise pas celle du bouton (.p3-cpt)', () => {

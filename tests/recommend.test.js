@@ -103,7 +103,7 @@ test('export RGPD : null sans la migration', async () => {
 });
 
 test('câblage : script, actions, fiche, badge, onglet Activité, i18n FR/EN, mouvement réduit', () => {
-  assert.match(read('index.html'), /<script src="js\/38-recommend\.js"><\/script>/);
+  assert.match(read('index.html'), /<script defer src="js\/38-recommend\.js"><\/script>/);
   const a = read('js/00-actions.js');
   ['recoToggle', 'recoMsg', 'recoSend', 'recoRespond', 'recoPrivToggle'].forEach(n => assert.match(a, new RegExp("uiOn\\('" + n + "'")));
   assert.match(read('js/08-plex.js'), /recoPlexButton/);
@@ -111,5 +111,5 @@ test('câblage : script, actions, fiche, badge, onglet Activité, i18n FR/EN, mo
   assert.match(read('js/35-social-privacy.js'), /recoExportData/);
   const keys = (read('js/38-recommend.js').match(/t\('(reco\.[a-zA-Z.]*[a-zA-Z]|privacy\.recos(?:Sub)?)'/g) || []).map(s => s.slice(3, -1));
   ['fr', 'en'].forEach(l => { const d = read('js/i18n/' + l + '.js'); keys.forEach(k => assert.ok(d.includes('"' + k + '"') || d.includes('"' + k + '.one"'), l + ' ' + k)); });
-  assert.match(read('index.html'), /prefers-reduced-motion:reduce\)\{\.rc-chips li/);
+  assert.match(read('css/app.css'), /prefers-reduced-motion:reduce\)\{\.rc-chips li/);
 });
