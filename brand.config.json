@@ -32,7 +32,7 @@
     "accent": "#5cc8ff",
     "accentHover": "#7ad4ff",
     "onAccent": "#06070a",
-    "bg": "#0a0a0c",
+    "bg": "#000000",
     "surface": "#101013",
     "surface2": "#17171b",
     "border": "#26262c",
@@ -42,9 +42,14 @@
     "logoDim": "#7c7c87",
     "logoMid": "#888888",
     "danger": "#ff7070",
-    "themeColor": "#06070a"
+    "themeColor": "#06070a",
+    "accentFlat": "#b9aeff",
+    "accentGradStart": "#5b4fe0",
+    "accentGradMid": "#2f8fd1",
+    "accentGradEnd": "#1fb8a3"
   },
   "$comment_colors_logo": "logoDim/logoMid (dans colors) sont les deux tons non-accent du mark (branding/logo-mark.svg) — distincts de textFaint/textMuted (texte des pages légales et des emails) pour ne pas changer ces derniers si la charte du logo évolue. Valeurs alignées sur --text3/--text2 déjà codées en dur dans index.html.",
+  "$comment_accentGrad": "Dégradé cinématographique (choisi par Pierre le 06/11, mode sombre d'abord) : accentGradStart/Mid/End forment --p3-grad (CTA, barre de progression), réservé à ces deux usages — jamais en fond. accentFlat remplace --accent pour le mot « episode » du logo (teinte plus claire : --accent, #5cc8ff, serait illisible comme texte sur de l'OLED pur avec ce violet). Ces 4 valeurs sont documentées ici mais codées à la main dans index.html (--p3-grad, --accent-flat, .logo em) : pas dans le bloc /*brand:css*/ généré, qui ne couvre que bg/accent/accent-hover/on-accent.",
   "logo": {
     "icon192": "/icons/icon-192.png",
     "icon512": "/icons/icon-512.png",
