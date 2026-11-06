@@ -73,6 +73,8 @@
  "empty.clearFilter": "Show all statuses",
  "disc.trending": "Trending",
  "disc.because": "Because you liked",
+ "disc.forYouEmpty": "Nothing new to suggest right now",
+ "disc.forYouEmptyHint": "You've already added or dismissed everything we had in mind — check back later, or take a look at Trending.",
  "disc.popMovies": "Popular movies",
  "disc.popSeries": "Popular series",
  "disc.topMovies": "Top rated movies",

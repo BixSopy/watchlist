@@ -69,6 +69,8 @@
  "empty.clearFilter": "Afficher tous les statuts",
  "disc.trending": "Tendances",
  "disc.because": "Parce que tu as aimé",
+ "disc.forYouEmpty": "Rien de nouveau à te proposer pour l'instant",
+ "disc.forYouEmptyHint": "Tu as déjà ajouté ou écarté tout ce qu'on avait en tête — reviens plus tard, ou jette un œil à Tendances.",
  "disc.popMovies": "Films populaires",
  "disc.popSeries": "Séries populaires",
  "disc.topMovies": "Films les mieux notés",
