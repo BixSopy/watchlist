@@ -48,8 +48,12 @@
   --bg2:#101013;--bg3:#17171b;--bg4:#1e1e23;--bg5:#27272e;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
   --text:#f0f0f0;--text2:#888;--text3:#7c7c87;
+  /* Dégradé cinématographique (choisi le 06/11, mode sombre OLED d'abord) : réservé au CTA
+     (--p3-grad) et au mot « episode » du logo (--accent-flat, teinte claire de la même famille —
+     les arrêts foncés du dégradé tomberaient sous 4.5:1 comme texte plat sur de l'OLED pur) */
+  --accent-flat:#b9aeff;
   /* Couleurs de marque : générées depuis brand.config.json (node scripts/build-brand.mjs) */
-  /*brand:css*/--bg:#0a0a0c;--accent:#5cc8ff;--accent-rgb:92,200,255;--accent-hover:#7ad4ff;--accent-dim:rgba(var(--accent-rgb),0.12);--accent-dim2:rgba(var(--accent-rgb),0.35);--on-accent:#06070a;/*/brand:css*/
+  /*brand:css*/--bg:#000000;--accent:#5cc8ff;--accent-rgb:92,200,255;--accent-hover:#7ad4ff;--accent-dim:rgba(var(--accent-rgb),0.12);--accent-dim2:rgba(var(--accent-rgb),0.35);--on-accent:#06070a;/*/brand:css*/
   --red:#e84b4b;--green:#4be87a;
   /* TRANSITIONS variées (#5) */
   --tr:0.16s ease;--tr-fast:0.08s ease;--tr-slow:0.28s cubic-bezier(.4,0,.2,1);--spring:cubic-bezier(.34,1.56,.64,1);
@@ -83,7 +87,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .hdr-left{display:flex;align-items:center;gap:20px;justify-self:start;min-width:0}
 .hdr-right{display:flex;align-items:center;justify-self:end}
 .logo{font-family:'Inter',sans-serif;font-size:22px;font-weight:900;letter-spacing:-.5px;color:#fff;white-space:nowrap;display:flex;align-items:center;gap:8px}
-.logo em{color:var(--accent);font-style:normal}
+.logo em{color:var(--accent-flat);font-style:normal;animation:logoHueDrift 18s ease-in-out infinite alternate}
+@keyframes logoHueDrift{0%{color:#b9aeff}50%{color:#8fc4ff}100%{color:#7fe0cf}}
+@media (prefers-reduced-motion:reduce){.logo em{animation:none}}
 .logo-mark{width:22px;height:22px;flex:none}
 .hstats{display:flex;margin-left:auto;align-items:center}
 .pill{font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:20px}
@@ -938,16 +944,21 @@ body::after{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 /* Aurora : taches de couleur floues et tres lentes, derriere le contenu (z-index
-   negatif = sous .content/.sidebar qui n'ont pas de fond opaque propre, mais sous
-   .hdr/.sidebar qui eux sont opaques donc les blobs ne les traversent jamais) */
+   negatif = sous .content/.sidebar qui n'ont pas de fond opaque propre ; .hdr est
+   maintenant un panneau de verre (voir .hdr plus bas) et les laisse transparaitre,
+   .sidebar reste opaque et les bloque toujours) */
 .aurora-bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .aurora-blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:var(--aurora-opacity);transition:opacity .4s}
 .aurora-blob.b1{width:560px;height:560px;background:radial-gradient(circle,rgba(var(--accent-rgb),.28),transparent 70%);top:-180px;left:-120px;animation:auroraDrift1 19s ease-in-out infinite alternate}
-.aurora-blob.b2{width:460px;height:460px;background:radial-gradient(circle,rgba(139,92,246,.22),transparent 70%);top:28%;right:-140px;animation:auroraDrift2 23s ease-in-out infinite alternate}
-.aurora-blob.b3{width:420px;height:420px;background:radial-gradient(circle,rgba(75,232,122,.14),transparent 70%);bottom:-160px;left:32%;animation:auroraDrift3 21s ease-in-out infinite alternate}
+/* b2/b3 : repris des arrêts du dégradé cinématographique (violet / sarcelle) plutôt que des
+   teintes génériques — même famille que --p3-grad et --accent-flat. blobHue fait tourner la
+   teinte très lentement (26-30s) en plus de la dérive de position déjà en place. */
+.aurora-blob.b2{width:460px;height:460px;background:radial-gradient(circle,rgba(91,79,224,.22),transparent 70%);top:28%;right:-140px;animation:auroraDrift2 23s ease-in-out infinite alternate,blobHue 26s ease-in-out infinite alternate}
+.aurora-blob.b3{width:420px;height:420px;background:radial-gradient(circle,rgba(31,184,163,.16),transparent 70%);bottom:-160px;left:32%;animation:auroraDrift3 21s ease-in-out infinite alternate,blobHue 30s ease-in-out infinite alternate reverse}
 @keyframes auroraDrift1{from{transform:translate(0,0) scale(1)}to{transform:translate(60px,40px) scale(1.1)}}
 @keyframes auroraDrift2{from{transform:translate(0,0) scale(1)}to{transform:translate(-50px,30px) scale(1.08)}}
 @keyframes auroraDrift3{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,-40px) scale(1.12)}}
+@keyframes blobHue{0%{filter:hue-rotate(0deg)}50%{filter:hue-rotate(40deg)}100%{filter:hue-rotate(0deg)}}
 @media (prefers-reduced-motion: reduce){.aurora-blob{animation:none}}
 
 /* Bordure degradee animee au survol — cartes grille + bande En cours + rangees Discover.
@@ -1794,7 +1805,7 @@ html.pair-open #toastWrap{display:none}
 @media (prefers-reduced-motion:reduce){.cf-bar.unk i,.cf-card .cf-pg.unk i{animation:none;width:100%!important;opacity:.25}}
 
 /* ===== Navigation et pages « Cinéma » (maquettes P3 validées, js/29-shell.js) ===== */
-:root{--p3-ease:cubic-bezier(.2,.8,.2,1);--p3-spring:cubic-bezier(.34,1.4,.5,1);--p3-glass:rgba(28,28,32,.55);--p3-grad:linear-gradient(135deg,#5cc8ff,#3a7bff)}
+:root{--p3-ease:cubic-bezier(.2,.8,.2,1);--p3-spring:cubic-bezier(.34,1.4,.5,1);--p3-glass:rgba(28,28,32,.55);--p3-grad:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3)}
 .hdr{background:linear-gradient(180deg,rgba(10,10,12,.92),rgba(10,10,12,.72));border-bottom:1px solid rgba(255,255,255,.05);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
 .hdr .search-bar,.hdr .sb-toggle,.hdr .hstats{display:none!important}
 .p3-nav{position:relative;display:inline-flex;justify-self:center;padding:4px;gap:2px;border-radius:999px;background:var(--p3-glass);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6)}
@@ -1856,7 +1867,7 @@ body:is(.p3-v-list,.p3-v-tonight) .nav.floating .seg .ntab.on{color:var(--text)}
 body:is(.p3-v-list,.p3-v-tonight) .seg-hl{background:rgba(255,255,255,.12)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 6px 20px rgba(0,0,0,.35)!important}
 body:is(.p3-v-list,.p3-v-tonight) .stabs{order:1;padding:4px;border-radius:999px;background:var(--p3-glass);border:1px solid rgba(255,255,255,.09)}
 body:is(.p3-v-list,.p3-v-tonight) .stabs .stab{border-radius:999px;padding:8px 16px;font-size:13.5px}
-body:is(.p3-v-list,.p3-v-tonight) .add-btn{order:9;margin-left:auto;border-radius:999px!important;background:var(--p3-grad);height:42px!important;box-shadow:0 8px 24px rgba(58,123,255,.35)}
+body:is(.p3-v-list,.p3-v-tonight) .add-btn{order:9;margin-left:auto;border-radius:999px!important;background:var(--p3-grad);height:42px!important;box-shadow:0 8px 24px rgba(47,143,209,.35)}
 body:is(.p3-v-list,.p3-v-tonight) .srch,body:is(.p3-v-list,.p3-v-tonight) .sort-sel{border-radius:999px}
 .content{padding:20px 40px 110px}
 /* Ce soir : P3 */
@@ -1872,7 +1883,7 @@ body.p3-v-tonight #heroBand .hero-title{font-size:46px}
 body.p3-v-tonight #heroBand .cf-bar{width:280px;margin:16px auto 20px}
 body.p3-v-tonight #heroBand .hero-actions{justify-content:center;margin-top:0}
 body.p3-v-tonight #heroBand .hero-btn{border-radius:999px;padding:11px 20px;font:650 14px 'Inter',sans-serif;transition:transform .3s var(--p3-ease),box-shadow .3s}
-body.p3-v-tonight #heroBand .hero-btn.primary{background:var(--p3-grad);color:#fff;box-shadow:0 8px 24px rgba(58,123,255,.35)}
+body.p3-v-tonight #heroBand .hero-btn.primary{background:var(--p3-grad);color:#fff;box-shadow:0 8px 24px rgba(47,143,209,.35)}
 body.p3-v-tonight #heroBand .hero-btn:hover{transform:translateY(-2px) scale(1.02)}
 body.p3-v-tonight .home-next{margin-top:40px}
 /* Fiche */
@@ -1942,7 +1953,7 @@ body.p3-v-tonight .home-next{margin-top:40px}
 @media (prefers-reduced-motion:reduce){.p3-hl,.p3-sw:after,.p3-tb,.p3-ib{transition:none}.p3-pop,.p3-ph h1,.p3-ph p,.pe-row,.ps-c{animation:none}}
 
 /* ===== P3 — pages détaillées (Calendrier semaine, fiche, Découvrir, Détectés, Ma liste) ===== */
-.btn-p3{background:var(--p3-grad)!important;color:#fff!important;border:0!important;box-shadow:0 8px 24px rgba(58,123,255,.35)}
+.btn-p3{background:var(--p3-grad)!important;color:#fff!important;border:0!important;box-shadow:0 8px 24px rgba(47,143,209,.35)}
 .btn-p3:hover{transform:translateY(-2px) scale(1.02)}
 .btn-pill{background:rgba(255,255,255,.1)!important;border:1px solid rgba(255,255,255,.12)!important;color:var(--text)!important;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .btn-pill:hover{background:rgba(255,255,255,.16)!important}
@@ -1956,7 +1967,7 @@ body.p3-v-list .stabs .stab[data-s="all"]{display:none}
 .p3-ph{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}.p3-ph-t{flex:1;min-width:0}
 .p3-ph-act{display:flex;align-items:center;margin-left:auto}.p3-ph-act:empty{display:none}
 .p3-ph-act .srch{width:280px;height:42px;padding:0 16px;border-radius:999px;background:var(--p3-glass);border:1px solid rgba(255,255,255,.09)}
-.p3-ph-act .add-btn{height:42px!important;border-radius:999px!important;background:var(--p3-grad);box-shadow:0 8px 24px rgba(58,123,255,.35);margin:0}
+.p3-ph-act .add-btn{height:42px!important;border-radius:999px!important;background:var(--p3-grad);box-shadow:0 8px 24px rgba(47,143,209,.35);margin:0}
 @media (max-width:768px){.p3-ph-act{width:100%;margin-left:0}.p3-ph-act .srch{flex:1;width:auto}}
 .plex-acts label.btn select{font-size:14px}
 }
