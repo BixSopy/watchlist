@@ -121,18 +121,20 @@ with u as (update public.detected_media set state = 'ignored' where normalized_t
 with u as (update public.detected_media set state = 'added' where normalized_title = 'arcane' returning 1) select pg_temp.check(count(*) = 1, 'propriétaire : « Ajouter » (state = added)') from u;
 reset role;
 
--- ---------- Titre ignoré : le reste ----------
+-- ---------- Titre juste « ignoré » (pas bloqué) : une détection ultérieure revient en attente ----------
+-- Depuis la migration 20261029100000 (« ne plus jamais détecter ce titre »), un état 'ignored'
+-- seul ne bloque plus rien : seule la table detected_blocklist le fait (voir 91_detected_block).
 set role anon;
 select pg_temp.check(public.extension_push_detections(repeat('a7', 24), '[
   {"source":"netflix","title":"Lupin","type":"show","season":2,"episode":1,"watched_at":1790000000000}
 ]') ->> 'inserted' = '1', 'envoi : nouvel épisode d''un titre ignoré inséré');
 reset role;
-select pg_temp.check((select state = 'ignored' from public.detected_media where normalized_title = 'lupin' and season = 2), 'titre ignoré : la nouvelle détection arrive « ignored »');
+select pg_temp.check((select state = 'pending' from public.detected_media where normalized_title = 'lupin' and season = 2), 'titre ignoré (pas bloqué) : la nouvelle détection revient « pending »');
 
 -- ---------- Effacement par le propriétaire ----------
 set role authenticated;
 select set_config('request.jwt.claims', '{"sub":"77777777-7777-7777-7777-777777777777","role":"authenticated"}', false);
-with d as (delete from public.detected_media where state = 'pending' returning 1) select pg_temp.check(count(*) = 4, 'propriétaire : « Tout effacer » (lignes en attente)') from d;
+with d as (delete from public.detected_media where state = 'pending' returning 1) select pg_temp.check(count(*) = 5, 'propriétaire : « Tout effacer » (lignes en attente)') from d;
 reset role;
 
 -- ---------- Plafond par compte ----------

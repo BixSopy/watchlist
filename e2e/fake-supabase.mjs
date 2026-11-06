@@ -166,6 +166,20 @@ export async function installFakeSupabase(page, opts = {}) {
       }
       return err(route, 403, '42501', 'permission denied for table detected_media');
     }
+    /* « Ne plus jamais me proposer ce(s) titre(s) » (js/21-detected.js) : même règle que la
+       migration 20261029100000 — classe aussi 'ignored' les autres lignes en attente du même titre. */
+    if (p === '/rest/v1/rpc/detected_block_title') {
+      const usr = current(req);
+      if (!usr) return ok(route, { status: 'not_authenticated' });
+      const ids = body.p_ids || [];
+      const blocked = db.detected.filter(r => ids.includes(r.id) && r.user_id === usr.id)
+        .map(r => r.media_type + '\u0000' + r.normalized_title);
+      db.detected.filter(r => r.user_id === usr.id && r.state === 'pending' && blocked.includes(r.media_type + '\u0000' + r.normalized_title))
+        .forEach(r => { r.state = 'ignored'; });
+      db.blocklist = db.blocklist || [];
+      blocked.forEach(k => { if (!db.blocklist.includes(usr.id + '\u0000' + k)) db.blocklist.push(usr.id + '\u0000' + k); });
+      return ok(route, { status: 'ok' });
+    }
     /* Partage en lecture seule : mêmes règles que la migration 20261013150000 (RLS, RPC) */
     if (p === '/rest/v1/shares') {
       const usr = current(req);

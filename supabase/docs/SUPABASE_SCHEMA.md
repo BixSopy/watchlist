@@ -104,6 +104,21 @@ et `20261026210000`), elle aussi absente des tableaux ci-dessus mais bien réell
 Tables : `activity_events` (un évènement par progression regroupée), `activity_reactions` (une ligne
 par personne par évènement). RLS activée, aucun accès direct hors fonctions ci-dessus.
 
+## Détectés : titres bloqués (« ne plus jamais me proposer ce titre »)
+
+`detected_media` garde l'historique des détections (état `pending`/`added`/`ignored`) ; « Ignorer »
+depuis le site ne fait que retirer les lignes sélectionnées de l'attente (`update ... set state`
+direct, RLS colonne `state` déjà ouverte au propriétaire — inchangé). Une nouvelle détection du
+même titre revient normalement en `pending`, **sauf** si le titre est dans la liste de blocage :
+
+| Fonction | Sécurité | Rôle | Effet |
+|---|---|---|---|
+| `detected_block_title(p_ids uuid[])` | SECURITY DEFINER | authenticated | ajoute le(s) titre(s) des lignes données à `detected_blocklist`, et classe aussitôt `ignored` toutes les autres lignes en attente du même titre |
+
+Table `detected_blocklist` (user_id, media_type, normalized_title) : RLS activée et forcée, aucune
+policy, tout passe par la fonction ci-dessus. `extension_push_detections()` la consulte (et plus un
+état `ignored` préexistant) pour décider si une détection arrive directement `ignored`.
+
 ## Social étape 3 : recommandations et « On regarde quoi ? »
 
 Migration `20261029120000_social_recommandations.sql`.
