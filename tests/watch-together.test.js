@@ -91,11 +91,11 @@ test('« On prend ça » : ajoute à MA liste seulement, puis reco facultative a
 });
 
 test('câblage : script, actions, entrée Amis, i18n FR/EN, mouvement réduit', () => {
-  assert.match(read('index.html'), /<script src="js\/39-watch-together\.js"><\/script>/);
+  assert.match(read('index.html'), /<script defer src="js\/39-watch-together\.js"><\/script>/);
   const a = read('js/00-actions.js');
   ['openWatchTogether', 'wtToggle', 'wtFilter', 'wtGo', 'wtNext', 'wtShuffle', 'wtTake', 'wtTellGroup', 'wtBack'].forEach(n => assert.match(a, new RegExp("uiOn\\('" + n + "'")));
   assert.match(read('js/33-friends.js'), /wtEntryHtml/);
   const keys = (read('js/39-watch-together.js').match(/t\('(wt\.[a-zA-Z.]*[a-zA-Z])'/g) || []).map(s => s.slice(3, -1));
   ['fr', 'en'].forEach(l => { const d = read('js/i18n/' + l + '.js'); keys.forEach(k => assert.ok(d.includes('"' + k + '"') || d.includes('"' + k + '.one"'), l + ' ' + k)); });
-  assert.match(read('index.html'), /prefers-reduced-motion:reduce\)\{\.wt-card/);
+  assert.match(read('css/app.css'), /prefers-reduced-motion:reduce\)\{\.wt-card/);
 });

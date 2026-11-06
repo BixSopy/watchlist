@@ -68,8 +68,8 @@ test('chaque action utilisée dans le HTML existe dans la liste fermée de js/00
   for (const a of used) assert.ok(known.has(a), 'action inconnue : ' + a);
   /* js/00-actions.js est chargé avant tous les autres modules de l'app */
   const html = read('index.html');
-  assert.ok(html.indexOf('<script src="js/00-actions.js">') < html.indexOf('<script src="js/00-i18n.js">'));
-  assert.ok(html.indexOf('<script src="js/00-actions.js">') > 0);
+  assert.ok(html.indexOf('<script defer src="js/00-actions.js">') < html.indexOf('<script defer src="js/00-i18n.js">'));
+  assert.ok(html.indexOf('<script defer src="js/00-actions.js">') > 0);
 });
 
 test('uiAct : nom et arguments échappés, relus à l\'identique', () => {

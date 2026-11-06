@@ -43,7 +43,7 @@ test('toast : bouton d\'action facultatif, affiché plus longtemps', () => {
 });
 
 test('mobile : la fiche est une feuille ancrée en bas', () => {
-  const html = read('index.html');
-  assert.match(html, /#addMbk\.mbk\{align-items:flex-end;padding:0\}/);
-  assert.match(html, /border-radius:24px 24px 0 0/);
+  const css = read('css/app.css');
+  assert.match(css, /#addMbk\.mbk\{align-items:flex-end;padding:0\}/);
+  assert.match(css, /border-radius:24px 24px 0 0/);
 });

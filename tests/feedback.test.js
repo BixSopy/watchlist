@@ -250,8 +250,8 @@ test('fenêtre : hors de la page d\'accueil, dialogue accessible, formulaire ren
   assert.ok(at > HTML.indexOf('<!-- /PAGE D\'ACCUEIL -->'), 'fenêtre au niveau du document (accueil et app)');
   assert.match(HTML, /<div class="mbk" id="fbMbk" role="dialog" aria-modal="true" aria-labelledby="fbTitle">/);
   assert.match(HTML, /data-click="closeFeedback" aria-label="Fermer"/);
-  const at24 = HTML.indexOf('<script src="js/24-feedback.js"></script>');
-  assert.ok(at24 > HTML.indexOf('<script src="js/23-landing.js"></script>') && at24 > HTML.indexOf('<script src="js/22-modal-history.js"></script>'));
+  const at24 = HTML.indexOf('<script defer src="js/24-feedback.js"></script>');
+  assert.ok(at24 > HTML.indexOf('<script defer src="js/23-landing.js"></script>') && at24 > HTML.indexOf('<script defer src="js/22-modal-history.js"></script>'));
   const js = read('js/24-feedback.js');
   assert.match(js, /<form novalidate/);
   assert.match(js, /id="fbWebsite" name="website" tabindex="-1"/, 'champ piège hors du parcours clavier');

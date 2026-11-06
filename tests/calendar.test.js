@@ -75,7 +75,7 @@ test('intégration : onglet, section, script, clés fr/en, aucune migration ni a
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assert.match(html, /data-tab="calendar"[^>]*data-click="switchTab"/);
   assert.match(html, /id="calendarSection"/);
-  assert.match(html, /<script src="js\/26-calendar\.js"><\/script>/);
+  assert.match(html, /<script defer src="js\/26-calendar\.js"><\/script>/);
   const src = fs.readFileSync(path.join(ROOT, 'js/26-calendar.js'), 'utf8');
   assert.doesNotMatch(src, /https?:\/\/(?!image\.tmdb)/, 'aucun domaine tiers : TMDB uniquement via TB (/api/tmdb)');
   assert.doesNotMatch(src, /api_key/);

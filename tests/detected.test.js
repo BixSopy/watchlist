@@ -192,7 +192,7 @@ test('site : nouvel onglet branché sans gestionnaire en ligne, ajout par le mê
   const html = read('index.html');
   assert.match(html, /<button class="ntab sp" id="detTab" data-tab="detectes" data-sfx-hover data-click="switchTab" hidden>/);
   assert.match(html, /<div id="detectedSection"/);
-  assert.ok(html.indexOf('<script src="js/20-account.js">') < html.indexOf('<script src="js/21-detected.js">'));
+  assert.ok(html.indexOf('<script defer src="js/20-account.js">') < html.indexOf('<script defer src="js/21-detected.js">'));
   const actions = read('js/00-actions.js');
   const src = read('js/21-detected.js');
   for (const m of src.matchAll(/uiAct\('(\w+)'/g)) assert.match(actions, new RegExp("uiOn\\('" + m[1] + "'"), m[1]);
@@ -232,7 +232,7 @@ test('Crunchyroll / Prime Video : sources gardées par groupe ; saison Crunchyro
 test('onglet « Détectés » : pastille par plateforme, textes dans les deux langues', () => {
   const src = read('js/21-detected.js');
   assert.match(src, /class="det-src det-src-'\+/);
-  for (const k of ['netflix', 'crunchyroll', 'prime', 'live']) assert.match(read('index.html'), new RegExp('\\.det-src-' + k + '\\b'));
+  for (const k of ['netflix', 'crunchyroll', 'prime', 'live']) assert.match(read('css/app.css'), new RegExp('\\.det-src-' + k + '\\b'));
   for (const l of ['fr', 'en']) {
     const txt = read('js/i18n/' + l + '.js');
     for (const k of ['det.src.netflix', 'det.src.crunchyroll', 'det.src.prime', 'det.crNumbering']) assert.ok(txt.includes('"' + k + '"'), l + ' ' + k);

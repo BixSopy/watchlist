@@ -154,7 +154,7 @@ test('l\'ancienne interface de connexion a disparu de js/15-sync.js', () => {
     assert.ok(!sync.includes(fn), fn);
   }
   const html = read('index.html');
-  const at = f => html.indexOf('<script src="' + f + '"></script>');
+  const at = f => html.indexOf('<script defer src="' + f + '"></script>');
   assert.ok(at('js/00-brand.js') >= 0 && at('js/00-brand.js') < at('js/01-config.js'));
   assert.ok(at('js/19-search-modal.js') >= 0 && at('js/19-search-modal.js') < at('js/20-account.js'));
   assert.match(html, /<div id="authView"><\/div>/);
