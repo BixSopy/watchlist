@@ -1,6 +1,6 @@
 [package]
 name = "watchlist"
-version = "1.0.0"
+version = "1.0.1"
 description = "Cinepisode - desktop app"
 edition = "2021"
 
