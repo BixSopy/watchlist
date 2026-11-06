@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)COORDINATION.md'",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)COORDINATION.md' ':(exclude)desktop/**' ':(exclude)extension/**'",
   "regions": [
     "fra1"
   ],
