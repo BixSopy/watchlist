@@ -41,6 +41,30 @@ test('QR : le logo central reste exactement centré (VB/2), que N soit pair ou i
   assert.ok(sawEven && sawOdd);
 });
 
+test('QR : les 3 barres sont centrées dans la plaque noire (pas décalées comme avant le 06/11)', () => {
+  const svg = buildQrSvg('https://cinepisode.com/u/testuser?i=ABCDEFGHIJKL');
+  const plate = svg.match(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" rx="[\d.]+" fill="#0a0a0c"\/>/);
+  assert.ok(plate, 'plaque du logo introuvable');
+  const lx = parseFloat(plate[1]), ly = parseFloat(plate[2]), ls = parseFloat(plate[3]);
+  const g = svg.match(/<g transform="translate\(([\d.-]+) ([\d.-]+)\)">((?:<rect class="qr-logo-bar[^>]*\/>){3})<\/g>/);
+  assert.ok(g, 'groupe des barres introuvable');
+  const gx = parseFloat(g[1]), gy = parseFloat(g[2]);
+  const bars = [...g[3].matchAll(/x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)]
+    .map(m => m.slice(1).map(Number));
+  assert.equal(bars.length, 3, '3 barres attendues');
+  const left = Math.min(...bars.map(b => gx + b[0]));
+  const right = Math.max(...bars.map(b => gx + b[0] + b[2]));
+  const top = Math.min(...bars.map(b => gy + b[1]));
+  const bottom = Math.max(...bars.map(b => gy + b[1] + b[3]));
+  const marginL = left - lx, marginR = (lx + ls) - right, marginT = top - ly, marginB = (ly + ls) - bottom;
+  assert.ok(marginL > 0 && marginR > 0 && marginT > 0 && marginB > 0, 'aucune barre ne dépasse de la plaque (gauche=' + marginL + ' droite=' + marginR + ' haut=' + marginT + ' bas=' + marginB + ')');
+  /* Tolérance un peu plus large que pour le centrage de la plaque : chaque coordonnée a déjà
+     été arrondie à 2 décimales par le générateur (toFixed), et cette marge combine plusieurs
+     valeurs arrondies indépendamment. */
+  assert.ok(Math.abs(marginL - marginR) < 0.03, 'marges gauche/droite égales (gauche=' + marginL + ' droite=' + marginR + ')');
+  assert.ok(Math.abs(marginT - marginB) < 0.03, 'marges haut/bas égales (haut=' + marginT + ' bas=' + marginB + ')');
+});
+
 test('QR : les 3 barres du logo central portent les classes d\'animation (rebond au démarrage)', () => {
   const svg = buildQrSvg('https://cinepisode.com/u/testuser?i=ABCDEFGHIJKL');
   assert.match(svg, /class="qr-logo-bar qr-logo-bar-1"/);
