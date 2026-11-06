@@ -165,12 +165,19 @@ function friendQrSvg(text){
       finders+='<rect x="'+(fx+(2+b)*u+u*0.06).toFixed(2)+'" y="'+(fy+2*u).toFixed(2)+'" width="'+(u-u*0.12).toFixed(2)+'" height="'+(3*u).toFixed(2)+'" rx="'+(u*0.45).toFixed(2)+'" fill="'+cl+'"/>';
     }
   });
-  /* logo central Episode Spine : centré en coordonnées continues (voir centerClear), pas sur
-     l'index de module arrondi — même correction, même raison. Barres animées comme au
-     démarrage (.brand-startup .logo-bar/@keyframes sbBounce, css/app.css), rebond décalé. */
-  var h=N/2,lx=o+(h-4.5)*u+u*0.3,ly=lx,ls=(9*u-u*0.6),k=ls/24,logo=
+  /* logo central Episode Spine : plaque centrée en coordonnées continues (voir centerClear),
+     pas sur l'index de module arrondi — même correction, même raison. À l'intérieur, les 3
+     barres (coordonnées 0-24 du tracé d'origine) ont leur propre boîte englobante — x:3.5→20.5,
+     y:4→19, pas 0→24 — donc un simple décalage arbitraire (l'ancien +1.4u sur x et y) les
+     désaxait dans la plaque (jusqu'à 8× plus de marge en haut qu'en bas, et la 3e barre
+     dépassait même le bord droit). Signalé par Pierre le 06/11 (« je veux que les barres
+     dans le cadre noir soient centrées ») : translation recalculée pour centrer cette boîte
+     englobante, pas le repère 0-24. Barres animées comme au démarrage (.brand-startup
+     .logo-bar/@keyframes sbBounce, css/app.css), rebond décalé. */
+  var h=N/2,lx=o+(h-4.5)*u+u*0.3,ly=lx,ls=(9*u-u*0.6),k=ls/24,
+    barTx=lx+(ls/2-12*k),barTy=ly+(ls/2-11.5*k),logo=
     '<rect x="'+lx.toFixed(2)+'" y="'+ly.toFixed(2)+'" width="'+ls.toFixed(2)+'" height="'+ls.toFixed(2)+'" rx="'+(u*1.8).toFixed(2)+'" fill="'+BG+'"/>'+
-    '<g transform="translate('+(lx+u*1.4).toFixed(2)+' '+(ly+u*1.4).toFixed(2)+')">'+
+    '<g transform="translate('+barTx.toFixed(2)+' '+barTy.toFixed(2)+')">'+
     '<rect class="qr-logo-bar qr-logo-bar-1" x="'+(3.5*k).toFixed(2)+'" y="'+(12*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(7*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+G1+'"/>'+
     '<rect class="qr-logo-bar qr-logo-bar-2" x="'+(10*k).toFixed(2)+'" y="'+(8.5*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(10.5*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+G2+'"/>'+
     '<rect class="qr-logo-bar qr-logo-bar-3" x="'+(16.5*k).toFixed(2)+'" y="'+(4*k).toFixed(2)+'" width="'+(4*k).toFixed(2)+'" height="'+(14*k).toFixed(2)+'" rx="'+(2*k).toFixed(2)+'" fill="'+ACC+'"/>'+
