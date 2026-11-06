@@ -1,5 +1,5 @@
 title: Politique de confidentialité
-updated: 13 octobre 2026
+updated: 5 novembre 2026
 ---
 <p>[[name]] est un service gratuit, sans publicité, sans traceur et sans revente de données. Cette page décrit exactement ce qui est collecté, où c'est stocké et comment tout supprimer.</p>
 
@@ -15,6 +15,7 @@ updated: 13 octobre 2026
   <tr><td>Adresse email, mot de passe (stocké uniquement sous forme chiffrée irréversible), dates de création et de dernière connexion</td><td>Créer et sécuriser ton compte, t'envoyer les emails de confirmation et de réinitialisation</td><td>Supabase (Auth), région <strong>eu-central-1, Francfort (UE)</strong></td></tr>
   <tr><td>Ta liste&nbsp;: titres, type, statut, progression (saison/épisode), notes, tags, sagas, identifiants TMDB</td><td>Synchroniser ta liste entre tes appareils</td><td>Supabase (base de données), Francfort (UE)</td></tr>
   <tr><td>Langue de l'interface</td><td>T'envoyer les emails de compte dans ta langue</td><td>Supabase (Auth), Francfort (UE)</td></tr>
+  <tr><td>Code court d'attribution (si tu arrives via un lien du type <code>?r=…</code>)</td><td>Savoir quel lien (réseau social, invitation) a amené ton inscription&nbsp;; aucun cookie, aucun service tiers</td><td>Ton navigateur (localStorage, 30&nbsp;jours max) puis, à l'inscription, Supabase avec ton compte, Francfort (UE)</td></tr>
   <tr><td>Jeton de suivi automatique (si tu en génères un) et appareils reliés à l'extension (seulement une empreinte SHA-256 du jeton de chaque appareil, nom de l'appareil, navigateur, système, version de l'extension, dates)</td><td>Permettre à l'extension navigateur de mettre à jour ta progression</td><td>Supabase, Francfort (UE)</td></tr>
   <tr><td>Titres détectés par l'extension navigateur (si tu l'utilises)&nbsp;: titre, film ou série, saison, épisode, date et pourcentage regardé, origine</td><td>Les afficher dans ton onglet privé « Détectés » pour que tu les ajoutes à ta liste</td><td>Supabase, Francfort (UE)</td></tr>
   <tr><td>Compteurs d'utilisation du catalogue (nombre de requêtes par jour)</td><td>Appliquer les quotas quotidiens et empêcher les abus</td><td>Supabase, Francfort (UE)&nbsp;; effacés automatiquement après quelques jours</td></tr>
@@ -50,7 +51,7 @@ updated: 13 octobre 2026
 </ul>
 
 <h2>Stockage dans ton navigateur</h2>
-<p>[[name]] n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages, ta langue et ta session de connexion (localStorage). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
+<p>[[name]] n'utilise <strong>aucun cookie publicitaire ni de mesure d'audience</strong>. Ton navigateur conserve ta liste (IndexedDB), tes réglages, ta langue, ta session de connexion (localStorage) et, le cas échéant, un code court d'attribution d'inscription (<code>?r=…</code>, 30&nbsp;jours max). Ces éléments sont strictement nécessaires au fonctionnement et ne demandent donc pas de consentement. Tu peux les effacer depuis les réglages de ton navigateur ou lors de la suppression de ton compte.</p>
 
 <h2>Hébergement et sous-traitants</h2>
 <ul>

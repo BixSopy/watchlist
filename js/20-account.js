@@ -367,10 +367,12 @@ var AUTH_VIEWS={
       _authCtx.email=email;
       _authBusyBtn(btn,true,t('auth.busy.creating'));
       captchaToken().then(function(captcha){
-        return supa.auth.signUp({email:email,password:pass,options:{captchaToken:captcha,emailRedirectTo:_authRedirect(),data:{lang:LANG}}});
+        var meta={lang:LANG};try{var _ref=typeof getSignupRef==='function'?getSignupRef():null;if(_ref)meta.ref=_ref;}catch(e){}
+        return supa.auth.signUp({email:email,password:pass,options:{captchaToken:captcha,emailRedirectTo:_authRedirect(),data:meta}});
       }).then(function(res){
         captchaReset();_authBusyBtn(btn,false);
         if(res.error)return showAuthMsg(authErrorMessage(res.error));
+        try{if(typeof clearSignupRef==='function')clearSignupRef();}catch(e){}
         if(res.data&&res.data.session){toast(t('auth.toast.created'),'ok');return _authEnterAppAfterSignup();}
         _authResendAt=Date.now();
         authGo('check',{email:email,kind:'signup',notice:''});

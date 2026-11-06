@@ -32,20 +32,13 @@ function lpShowAuth(view){
   if(!lpIsGuest()){if(typeof openAuthModal==='function')openAuthModal(view==='signup'&&typeof authUser!=='undefined'&&authUser?'account':view);return;}
   lpMountAuth(view||'signup');
   var sec=document.getElementById('lp-join');if(!sec)return;
-  var reduced=_lpReduced();
-  sec.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
-  /* Le champ email vit dans l'appareil (chapitre 8) : tant que le défilement animé (lerp) n'a pas
-     rattrapé le scroll, sa scène reste invisibility:hidden (comme les autres), et .focus() dessus
-     ne fait rien — sans erreur, sans retenter. On retente donc par intervalles le temps qu'il faille. */
-  var tries=0;
-  (function tryFocus(){
-    var i=document.getElementById('authEmail'),host=_lpHost();
-    if(i&&host&&host.contains(i)&&getComputedStyle(i).visibility!=='hidden'){
-      try{i.focus({preventScroll:true});}catch(e){i.focus();}
-      return;
-    }
-    if(++tries<50)setTimeout(tryFocus,150);
-  })();
+  /* A long scroll-driven journey should never delay a visitor who chose to sign up. */
+  sec.scrollIntoView({behavior:'instant',block:'start'});
+  /* The form is now in the normal document flow, not in an animated device. */
+  var email=document.getElementById('authEmail');
+  if(email&&_lpHost()&&_lpHost().contains(email)){
+    requestAnimationFrame(function(){try{email.focus({preventScroll:true});}catch(e){email.focus();}});
+  }
 }
 /* Accueil → app (connexion réussie, ou liste locale ouverte sans compte) */
 function lpLeave(){
@@ -308,7 +301,7 @@ function _lpJourney(){
       story.style.opacity=String(so);
       story.style.transform='translate3d('+(lerp(cx,px,st)-110).toFixed(1)+'px,'+(lerp(cy,py,st)-190).toFixed(1)+'px,0) scale('+lerp(.4,mob?.8:1,st).toFixed(3)+') rotate('+lerp(0,7,st).toFixed(2)+'deg)';
     }else if(story.style.opacity!=='0')story.style.opacity='0';
-    /* 8 · Appel final : formulaire réel dans l'appareil, ligne des 3 étapes qui se remplit au scroll */
+    /* 8 · Appel final : démonstration des 3 étapes dans l'appareil (formulaire dans la section suivante). */
     set(scr[8],'--ct',back(seg(f[8],0,.3)));
     if(stepsLine)stepsLine.style.height=(seg(f[8],.04,.5)*100).toFixed(1)+'%';
     /* Affiches en profondeur : orbite lente autour de l'appareil ; au chapitre 2 elles affluent vers la liste */

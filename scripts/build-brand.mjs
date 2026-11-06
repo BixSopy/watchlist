@@ -131,6 +131,15 @@ function validate() {
 
 /* ---------- morceaux réutilisés ---------- */
 function logoSvg() { return fill(read('branding/logo-mark.svg').trim()); }
+/* Logo pour index.html : chaque fill="#hex" du mark devient style="fill:var(--…)" quand sa couleur
+   correspond à une variable CSS déjà déclarée dans :root (sinon le hex littéral est laissé tel quel) —
+   le mark reste donc réactif au thème sans supposer un nombre ou un ordre fixe de couleurs. */
+function logoSvgCss() {
+  const map = [[C.accent, '--accent'], [C.logoMid, '--text2'], [C.logoDim, '--text3']];
+  let svg = logoSvg();
+  for (const [hex, cssVar] of map) svg = svg.split(`fill="${hex}"`).join(`style="fill:var(${cssVar})"`);
+  return svg;
+}
 function editorLine(lang = DEFAULT_LANG) {
   const n = brand.editor && brand.editor.name;
   return n ? escHtml(n) + '.' : escHtml(T(lang, 'legal.page.editor'));
@@ -356,10 +365,16 @@ function buildApp(out) {
       `<meta property="og:title" content="${escHtml(brand.name + ' · ' + brand.tagline)}">`,
       `<meta property="og:description" content="${escHtml(brand.description)}">`,
       `<meta property="og:url" content="${escHtml(brand.baseUrl)}/">`,
-      `<meta property="og:image" content="${escHtml(brand.baseUrl + brand.logo.icon512)}">`,
+      `<meta property="og:image" content="${escHtml(brand.baseUrl + brand.ogImage[DEFAULT_LANG])}">`,
+      `<meta property="og:image:type" content="${escHtml(brand.ogImage.type)}">`,
+      `<meta property="og:image:width" content="${brand.ogImage.width}">`,
+      `<meta property="og:image:height" content="${brand.ogImage.height}">`,
+      `<meta property="og:image:alt" content="${escHtml(brand.ogImage.alt[DEFAULT_LANG])}">`,
       `<meta property="og:locale" content="${escHtml(langMeta(DEFAULT_LANG).og || DEFAULT_LANG)}">`,
       ...LANGS.filter(l => l !== DEFAULT_LANG).map(l => `<meta property="og:locale:alternate" content="${escHtml(langMeta(l).og || l)}">`),
-      `<meta name="twitter:card" content="summary">`,
+      `<meta name="twitter:card" content="summary_large_image">`,
+      `<meta name="twitter:image" content="${escHtml(brand.baseUrl + brand.ogImage[DEFAULT_LANG])}">`,
+      `<meta name="twitter:image:alt" content="${escHtml(brand.ogImage.alt[DEFAULT_LANG])}">`,
       /* Accueil : /fr, /en (réécrits vers / dans vercel.json, langue forcée par js/00-i18n.js) ;
          « / » choisit la langue du visiteur (x-default) */
       ...(brand.indexable ? [`<link rel="canonical" href="${escHtml(brand.baseUrl)}/">`,
@@ -367,7 +382,7 @@ function buildApp(out) {
     ].join('\n') + '\n',
     /* Plusieurs occurrences possibles (en-tête de l'app, page d'accueil) : toutes remplacées */
     contact: `<a class="lp-mail" href="mailto:${escHtml(brand.contactEmail)}">${escHtml(brand.contactEmail)}</a>`,
-    logo: `<div class="logo">${logoSvg().replace(/ fill="[^"]*"/, ' style="fill:var(--accent)"').replace(/ fill="[^"]*"/, ' style="fill:var(--on-accent)"')}<span class="logo-word">${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></span></div>`,
+    logo: `<div class="logo">${logoSvgCss()}<span class="logo-word">${escHtml(brand.wordmark.main)}<em>${escHtml(brand.wordmark.accent)}</em></span></div>`,
     /* Textes dans la langue par défaut, traduits au chargement (data-i18n, data-legal : js/00-i18n.js) */
     footer: '\n<footer class="app-foot">\n' +
       `  <div class="app-foot-row">${escHtml(brand.name)} &nbsp;·&nbsp; <span id="statsFooter">—</span></div>\n` +
