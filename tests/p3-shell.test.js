@@ -67,6 +67,22 @@ test('Découvrir « Pour toi » : le bandeau passe tout de suite à la propositi
   assert.doesNotMatch(box.innerHTML, /Premier/);
   assert.match(read('js/07-add-edit.js'), /dbPut\(entry,null\);\n\s*render\(\);loadRecos\(\);if\(!wasEdit\)_removeFromDiscoverUI\(entry\.tmdbId\);if\(!wasEdit&&typeof p3ForYou==='function'\)p3ForYou\(\);/, 'interface mise à jour sans attendre IndexedDB');
 });
+test('Découvrir « Pour toi » : message explicite (pas un bandeau vide) quand tout a déjà été ajouté ou écarté', () => {
+  const card = (id, title) => ({ style: {}, attributes: [{ name: 'data-tmdbid', value: String(id) }, { name: 'data-title', value: title }], getAttribute(n) { const a = this.attributes.find(x => x.name === n); return a ? a.value : null; } });
+  const cards = [card(1, 'Premier'), card(2, 'Second')];
+  const sec = { querySelectorAll: () => cards, querySelector: () => null };
+  const src = { querySelectorAll: () => [sec], querySelector: () => null /* pas en cours de chargement */ };
+  const box = { innerHTML: '' };
+  const ctx = { memDB: [{ tmdbId: 1 }], dismissed: [2], IB: '', esc: s => String(s), t: k => k, document: { getElementById: id => id === 'p3ForYou' ? box : src } };
+  vm.createContext(ctx);
+  const s = read('js/29-shell.js');
+  vm.runInContext('var _p3FySecs=null;' + fn(s, '_p3Attrs') + fn(s, 'p3ForYou'), ctx);
+  ctx.p3ForYou();
+  assert.notStrictEqual(box.innerHTML, '', 'jamais de bandeau totalement vide');
+  assert.match(box.innerHTML, /empty-state/);
+  assert.match(box.innerHTML, /disc\.forYouEmpty/);
+  assert.doesNotMatch(box.innerHTML, /Premier|Second/);
+});
 test('Découvrir « Pour toi » : « Pas pour moi » sur le bandeau retire aussi la carte source et reconstruit tout de suite', () => {
   const s = read('js/12-folders.js');
   assert.match(s, /card\.classList\.contains\('p3-feat'\)&&typeof p3ForYou==='function'\)\{\s*if\(id\)document\.querySelectorAll\('#sbContent \.reco-card\[data-tmdbid="'\+id\+'"\]'\)\.forEach\(function\(c\)\{c\.remove\(\);\}\);\s*p3ForYou\(\);return;/);
