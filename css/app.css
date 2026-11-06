@@ -2215,11 +2215,26 @@ button.fr-row:hover{background:rgba(var(--ink-rgb),.08);transform:translateX(2px
 .fr-h{margin:20px 4px 8px;color:rgba(var(--ink-rgb),.5);font:700 12px 'Inter',sans-serif;text-transform:uppercase;letter-spacing:.08em}
 .fr-empty{text-align:center;padding:8px 6px 4px}.fr-empty h3{font:900 21px/1.2 'Inter',sans-serif;margin:0 0 8px;letter-spacing:-.01em}
 .fr-ghosts{position:relative;height:120px;margin-bottom:10px}
-.fr-ghosts i{position:absolute;top:30px;left:50%;width:62px;height:62px;border-radius:50%;filter:blur(1.5px);opacity:.75;animation:frFloat 4.5s ease-in-out infinite}
-.fr-ghosts i:nth-child(1){margin-left:-104px;background:linear-gradient(135deg,#ff9f7a,#ff5e8a);animation-delay:-1.4s;transform:scale(.85)}
-.fr-ghosts i:nth-child(2){margin-left:-31px;top:12px;width:72px;height:72px;background:linear-gradient(135deg,#5cc8ff,#3a7bff);filter:blur(.5px);opacity:.95}
-.fr-ghosts i:nth-child(3){margin-left:48px;background:linear-gradient(135deg,#9d7bff,#5cc8ff);animation-delay:-2.8s}
-@keyframes frFloat{50%{translate:0 -9px}}
+/* Halo d'ambiance derriere le trio, meme technique que .aurora-blob (radial-gradient + blur,
+   derive lente) pour rester dans la meme famille visuelle que le fond. */
+.fr-ghosts::before{content:'';position:absolute;top:-16px;left:50%;width:240px;height:150px;margin-left:-120px;border-radius:50%;background:radial-gradient(circle,rgba(var(--accent-rgb),.14),transparent 70%);filter:blur(28px);animation:frGlow 6.5s ease-in-out infinite}
+.fr-ghosts i{position:absolute;top:30px;left:50%;width:62px;height:62px;border-radius:50%;filter:blur(1.5px);opacity:.75}
+.fr-ghosts i:nth-child(1){margin-left:-104px;background:linear-gradient(135deg,#ff9f7a,#ff5e8a);transform:scale(.85);animation:frOrbit1 5.6s ease-in-out infinite,frBreathe1 4.1s ease-in-out infinite}
+.fr-ghosts i:nth-child(2){margin-left:-31px;top:12px;width:72px;height:72px;background:linear-gradient(135deg,#5cc8ff,#3a7bff);filter:blur(.5px);opacity:.95;animation:frOrbit2 6.8s ease-in-out infinite,frBreathe2 4.8s ease-in-out infinite}
+.fr-ghosts i:nth-child(3){margin-left:48px;background:linear-gradient(135deg,#9d7bff,#5cc8ff);animation:frOrbit3 6.1s ease-in-out infinite,frBreathe3 5.3s ease-in-out infinite}
+/* Etincelle qui relie les 3 "amis a venir" en boucle (connexion qui se forme), meme esprit que
+   le halo : discrete, continue, jamais clignotante. Coordonnees calquees sur le centre reel des
+   3 cercles ci-dessus (demi-largeur/hauteur + marge). */
+.fr-ghosts .fr-spark{top:0;left:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;filter:none;opacity:.85;box-shadow:0 0 10px 2px rgba(var(--accent-rgb),.85),0 0 22px 7px rgba(var(--accent-rgb),.35);animation:frSparkPath 7.4s ease-in-out infinite,frSparkPulse 2.3s ease-in-out infinite}
+@keyframes frGlow{50%{opacity:.6;scale:1.08}}
+@keyframes frOrbit1{0%,100%{translate:0 0}50%{translate:-5px -11px}}
+@keyframes frOrbit2{0%,100%{translate:0 0}50%{translate:6px -14px}}
+@keyframes frOrbit3{0%,100%{translate:0 0}50%{translate:-4px -10px}}
+@keyframes frBreathe1{0%,100%{scale:1}50%{scale:1.07}}
+@keyframes frBreathe2{0%,100%{scale:1}50%{scale:1.05}}
+@keyframes frBreathe3{0%,100%{scale:1}50%{scale:1.08}}
+@keyframes frSparkPath{0%{translate:-73px 61px}16%{translate:-34px 18px}32%{translate:5px 48px}48%{translate:42px 14px}64%{translate:79px 61px}82%{translate:3px 96px}100%{translate:-73px 61px}}
+@keyframes frSparkPulse{0%,100%{opacity:.55;scale:.85}50%{opacity:1;scale:1.15}}
 .soc-wrap.iv-wrap{width:420px;text-align:center}.iv-head{margin-bottom:18px}
 /* H2 Spine Halo v2 : disque + couronne de barres + halo (js/33-friends.js) */
 .qr-box{position:relative;width:280px;height:280px;margin:0 auto;border-radius:50%;padding:0;background:transparent}
@@ -2240,7 +2255,7 @@ button.fr-row:hover{background:rgba(var(--ink-rgb),.08);transform:translateX(2px
 .iv-link span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font:500 13.5px 'IBM Plex Mono','IBM Plex Sans',monospace;color:rgba(var(--ink-rgb),.8)}
 .iv-copy{flex:none;padding:8px 14px;border:0;border-radius:999px;background:rgba(92,200,255,.14);color:var(--accent);font:800 13px 'Inter',sans-serif;cursor:pointer;transition:background .2s,color .2s}.iv-copy:hover{background:rgba(92,200,255,.24)}.iv-copy.ok{background:#5cc8ff;color:#06070a}
 .iv-acts{display:flex;margin-top:12px}.iv-acts .soc-cta{flex:1;margin:0;width:auto}
-@media (prefers-reduced-motion:reduce){.fr-badge.pop,.fr-list li,.fr-live,.fr-ghosts i,.qr-h2 .qr-halo,.qr-h2 .qr-bar-stem,.qr-h2 .qr-mod,.qr-logo-bar{animation:none!important}.fr-list li,.qr-h2 .qr-mod{opacity:1;transform:none}.qr-h2 .qr-bar-stem{transform:none}.qr-h2 .qr-halo{opacity:.75;transform:none}}
+@media (prefers-reduced-motion:reduce){.fr-badge.pop,.fr-list li,.fr-live,.fr-ghosts i,.fr-ghosts::before,.qr-h2 .qr-halo,.qr-h2 .qr-bar-stem,.qr-h2 .qr-mod,.qr-logo-bar{animation:none!important}.fr-list li,.qr-h2 .qr-mod{opacity:1;transform:none}.qr-h2 .qr-bar-stem{transform:none}.qr-h2 .qr-halo{opacity:.75;transform:none}.fr-ghosts .fr-spark{opacity:.6}}
 /* ===== Social : demandes reçues et fiche d'un ami (js/34-friend-requests.js) ===== */
 .rq-list{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:8px}
 .rq{position:relative;display:flex;align-items:center;gap:12px;padding:12px;border-radius:20px;background:linear-gradient(135deg,rgba(92,200,255,.12),rgba(58,123,255,.06));border:1px solid rgba(92,200,255,.25);overflow:hidden;animation:rqIn .5s calc(var(--i,0)*80ms) var(--p3-spring) both}
