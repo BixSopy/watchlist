@@ -34,7 +34,7 @@ test('onglet actif de la barre flottante : fond d\'accent rétabli après la rè
 });
 
 test('mobile : les onglets inactifs gardent leur fond de carte dans la barre flottante', () => {
-  assert.match(css, /\.nav\.floating \.ntab:not\(\.on\)\{background:rgba\(255,255,255,\.055\)\}/);
+  assert.match(css, /\.nav\.floating \.ntab:not\(\.on\)\{background:rgba\(var\(--ink-rgb\),\.055\)\}/);
 });
 
 test('focus clavier visible sur tous les onglets', () => {

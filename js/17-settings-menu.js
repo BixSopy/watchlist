@@ -139,6 +139,9 @@ function _onSettingRange(key,val){
 }
 var _sndVolPreviewAt=0;
 function _onSettingChanged(key,val){
+  if(key==='wl_theme'&&typeof applyThemePref==='function'){
+    applyThemePref(val);
+  }
   if(key==='wl_grid_cols'||key==='wl_card_ratings'||key==='wl_card_badges'||key==='wl_suivi_providers'||key==='wl_glow_border'){
     applySettings();
   }
@@ -163,6 +166,7 @@ function renderSettingsMenu(){
   var idx=0;
   html+=_secOpen(idx++)+_secTitle('lang',esc(t('lang.label')))+langSwitcherHtml('lang-switch-settings',{reopen:'settings'})+'</div>';
   html+=_secOpen(idx++)+_secTitle('appearance',esc(t('set.appearance')));
+  html+=_selectRow(esc(t('set.theme')),'wl_theme',[{v:'system',l:esc(t('set.themeSystem'))},{v:'dark',l:esc(t('set.themeDark'))},{v:'light',l:esc(t('set.themeLight'))}],wlSettings.wl_theme);
   html+=_delegatedToggleRow(esc(t('set.compact')),'','toggleCompact',compactOn);
   html+=_delegatedToggleRow(esc(t('set.sounds')),'','toggleSound',soundOn);
   html+=_rangeRow(esc(t('set.soundVolume')),'','wl_snd_vol',wlSettings.wl_snd_vol);
