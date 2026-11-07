@@ -57,7 +57,7 @@ function friendsHtml(){
   h+=friendsTopTabsHtml();
   if(FRIENDS_TOP==='activity'){if(typeof recoMarkSeen==='function')setTimeout(recoMarkSeen,0);return h+(typeof recoInboxHtml==='function'?recoInboxHtml():'')+(typeof activityFeedHtml==='function'?activityFeedHtml():'');}
   if(!fr.length&&!out.length&&!inc.length){
-    h+='<div class="fr-empty"><div class="fr-ghosts" aria-hidden="true"><i></i><i></i><i></i></div><h3>'+esc(t('friends.empty'))+'</h3><p class="soc-sub">'+esc(t('friends.emptySub'))+'</p>'+
+    h+='<div class="fr-empty"><div class="fr-ghosts" aria-hidden="true"><i></i><i></i><i></i><i class="fr-spark"></i></div><h3>'+esc(t('friends.empty'))+'</h3><p class="soc-sub">'+esc(t('friends.emptySub'))+'</p>'+
       '<button type="button" class="soc-cta"'+uiAct('openInvite')+'>'+esc(t('friends.invite'))+'</button></div>';
     return h;
   }
