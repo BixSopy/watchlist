@@ -51,6 +51,26 @@ function _authEnterAppAfterSignup(){
     else authGo('mfaOnboardOffer');
   }).catch(function(){authGo('mfaOnboardOffer');});
 }
+/* Après l'établissement d'une session de récupération de mot de passe (lien ou code reçu par
+   email) : si la double authentification est active sur ce compte, Supabase refuse de changer le
+   mot de passe tant que la session reste en aal1 (401 « AAL2 session is required… », signalé par
+   Pierre le 07/11 — le mot de passe oublié était bloqué sans message exploitable). Il faut
+   d'abord vérifier le facteur TOTP (écran mfaChallenge, déjà utilisé à la connexion), puis
+   seulement arriver sur l'écran de choix du nouveau mot de passe. */
+function _authGoReset(mode){
+  if(!supa||!supa.auth.mfa||!supa.auth.mfa.getAuthenticatorAssuranceLevel){authGo('reset',{mode:mode});return;}
+  supa.auth.mfa.getAuthenticatorAssuranceLevel().then(function(res){
+    var d=res&&res.data;
+    if(d&&d.nextLevel==='aal2'&&d.nextLevel!==d.currentLevel)authGo('mfaChallenge',{mfaFactorId:null,mfaNextView:'reset',mfaNextArgs:{mode:mode}});
+    else authGo('reset',{mode:mode});
+  }).catch(function(){authGo('reset',{mode:mode});});
+}
+function _authOpenReset(mode){
+  if(typeof sfx==='function')sfx('open');
+  _authViewHome();
+  document.getElementById('authMbk').classList.add('on');
+  _authGoReset(mode);
+}
 
 /* ---------- Codes de secours : génération, empreinte, copie/téléchargement ---------- */
 function _mfaRandomCode(){
@@ -153,7 +173,8 @@ Object.assign(AUTH_VIEWS,{
       }).then(function(res){
         _authBusyBtn(btn,false);
         if(res.error)return showAuthMsg(authErrorMessage(res.error));
-        toast(t('auth.toast.signedIn'),'ok');authGo('account');
+        toast(t('auth.toast.signedIn'),'ok');
+        authGo(_authCtx.mfaNextView||'account',_authCtx.mfaNextArgs||{});
       }).catch(function(e){_authBusyBtn(btn,false);showAuthMsg(authErrorMessage(e));});
     }
   },

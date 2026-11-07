@@ -314,6 +314,7 @@
  "autherr.session_not_found": "Your session has expired. Sign in again.",
  "autherr.session_expired": "Your session has expired. Sign in again.",
  "autherr.refresh_token_not_found": "Your session has expired. Sign in again.",
+ "autherr.insufficient_aal": "Verify your two-factor code first.",
  "autherr.user_banned": "This account is suspended.",
  "autherr.user_not_found": "No account is linked to this address.",
  "autherr.otp_disabled": "No account is linked to this address.",
