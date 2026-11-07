@@ -94,7 +94,7 @@ test('aperçu /api/og : Node, cache court (pas « immutable »), carte génériq
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   assert.deepStrictEqual(Object.keys(pkg.dependencies), ['@vercel/og']);
   assert.ok(!pkg.scripts || !pkg.scripts.build, 'pas de build : l\'app reste servie telle quelle');
-  assert.match(fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8'), /^!package\.json$/m);
+  assert.doesNotMatch(fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8'), /^package\.json$/m);
   assert.ok(fs.existsSync(path.join(ROOT, 'api', '_fonts', 'Inter-ExtraBold.ttf')));
 });
 

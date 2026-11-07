@@ -99,7 +99,7 @@ test('CSP : Turnstile autorisé, rien d\'autre d\'ouvert ; redirections de domai
   assert.strictEqual(vercel.cleanUrls, true);
   if (!(brand.domains && brand.domains.redirects)) assert.strictEqual(vercel.redirects, undefined);
   const ignore = read('.vercelignore');
-  for (const f of LEGAL) assert.match(ignore, new RegExp('^!' + f.replace('.', '\\.') + '$', 'm'));
+  for (const f of LEGAL) assert.doesNotMatch(ignore, new RegExp('^' + f.replace('.', '\\.') + '$', 'm'));
   /* /fr et /en servent l'app (langue imposée par l'adresse) */
   assert.deepStrictEqual(vercel.rewrites, [{ source: '/:lang(fr|en)', destination: '/' }, { source: '/s/:token', destination: '/api/share?t=:token' }, { source: '/u/:handle', destination: '/api/invite?h=:handle' }]);
 });
@@ -162,5 +162,5 @@ test('indexation : pages publiques indexables sur le domaine de production seule
   assert.match(sm, /xmlns:xhtml="http:\/\/www\.w3\.org\/1999\/xhtml"/);
   assert.ok(sm.includes('<xhtml:link rel="alternate" hreflang="en" href="' + brand.baseUrl + '/privacy"/>'));
   const ignore = read('.vercelignore');
-  for (const f of ['robots.txt', 'sitemap.xml']) assert.match(ignore, new RegExp('^!' + f.replace('.', '\\.') + '$', 'm'));
+  for (const f of ['robots.txt', 'sitemap.xml']) assert.doesNotMatch(ignore, new RegExp('^' + f.replace('.', '\\.') + '$', 'm'));
 });
