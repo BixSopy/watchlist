@@ -110,6 +110,15 @@ Tout ce qui identifie l'app est dans [`brand.config.json`](brand.config.json) : 
 (`contactEmail`, `senderEmail`, `senderName`), couleurs, chemins du logo et des icônes,
 polices, indexation (`indexable`), redirections de domaine (`domains`).
 
+**Règle DA (validée le 07/11)** : trois niveaux de couleur, tous dans `brand.config.json › colors`.
+1. `accent` `#b9aeff` : couleur d'identité plate (logo « episode », liens, états actifs, focus).
+2. Dégradé `accentGradStart/Mid/End` (`--p3-grad`) : CTA, barres de progression, interrupteurs actifs.
+3. `secondary` `#5cc8ff` (`--accent2`) : troisième couleur (3ᵉ barre du logo, accents d'info).
+Tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Le thème clair se règle dans
+`colorsLight`. **Ne jamais recopier un hex de marque à la main** : utiliser `var(--accent)`,
+`var(--accent2)`, `var(--p3-grad)` (app, landing, extension) ou `api/_lib/brand-tokens.json`
+(fonctions serveur). `tests/brand.test.js` échoue si une ancienne teinte réapparaît en dur.
+
 Pour renommer l'app, changer de domaine, de couleurs ou de logo :
 
 1. Modifier `brand.config.json` (et, pour un nouveau logo, remplacer `branding/logo-mark.svg`

@@ -29,8 +29,8 @@
     "$comment_name": "Laisser vide pour un éditeur particulier non professionnel (LCEN art. 6-III-2 : identité communiquée à l'hébergeur). Sinon : nom ou raison sociale."
   },
   "colors": {
-    "accent": "#5cc8ff",
-    "accentHover": "#7ad4ff",
+    "accent": "#b9aeff",
+    "accentHover": "#cdc5ff",
     "onAccent": "#06070a",
     "bg": "#000000",
     "surface": "#101013",
@@ -43,13 +43,14 @@
     "logoMid": "#888888",
     "danger": "#ff7070",
     "themeColor": "#06070a",
-    "accentFlat": "#b9aeff",
     "accentGradStart": "#5b4fe0",
     "accentGradMid": "#2f8fd1",
-    "accentGradEnd": "#1fb8a3"
+    "accentGradEnd": "#1fb8a3",
+    "secondary": "#5cc8ff",
+    "secondaryHover": "#7ad4ff"
   },
   "$comment_colors_logo": "logoDim/logoMid (dans colors) sont les deux tons non-accent du mark (branding/logo-mark.svg) — distincts de textFaint/textMuted (texte des pages légales et des emails) pour ne pas changer ces derniers si la charte du logo évolue. Valeurs alignées sur --text3/--text2 déjà codées en dur dans index.html.",
-  "$comment_accentGrad": "Dégradé cinématographique (choisi par Pierre le 06/11, mode sombre d'abord) : accentGradStart/Mid/End forment --p3-grad (CTA, barre de progression), réservé à ces deux usages — jamais en fond. accentFlat remplace --accent pour le mot « episode » du logo (teinte plus claire : --accent, #5cc8ff, serait illisible comme texte sur de l'OLED pur avec ce violet). Ces 4 valeurs sont documentées ici mais codées à la main dans index.html (--p3-grad, --accent-flat, .logo em) : pas dans le bloc /*brand:css*/ généré, qui ne couvre que bg/accent/accent-hover/on-accent.",
+  "$comment_accentGrad": "Hiérarchie de la DA (validée par Pierre le 07/11) : 1) « accent » #b9aeff = couleur d'identité plate (logo « episode », liens, états actifs, focus, boutons pleins) ; 2) dégradé accentGradStart/Mid/End = --p3-grad (CTA, barre de progression, interrupteurs actifs), jamais en fond de page ; 3) « secondary » #5cc8ff = troisième couleur (3ᵉ barre du logo, accents d'information) ; tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Ces valeurs sont générées par scripts/build-brand.mjs vers le bloc /*brand:css*/ de css/app.css, l'extension, le site d'accueil, les pages légales, les emails et api/_lib/brand-tokens.json : ne jamais recopier un hex à la main.",
   "logo": {
     "icon192": "/icons/icon-192.png",
     "icon512": "/icons/icon-512.png",
@@ -58,8 +59,8 @@
   },
   "$comment_ogImage": "Image d'aperçu des liens (1200×630). Changer le nom du fichier à chaque nouvelle version : X et les navigateurs gardent l'ancienne en cache sous la même adresse.",
   "ogImage": {
-    "fr": "/og/og-share-v2-fr.jpg",
-    "en": "/og/og-share-v2-en.jpg",
+    "fr": "/og/og-share-v3-fr.jpg",
+    "en": "/og/og-share-v3-en.jpg",
     "width": 1200,
     "height": 630,
     "type": "image/jpeg",
@@ -72,5 +73,14 @@
     "display": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     "body": "'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     "mono": "'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace"
+  },
+  "colorsLight": {
+    "accent": "#4a3fd1",
+    "accentHover": "#3b31b5",
+    "onAccent": "#ffffff",
+    "secondary": "#1d79c9",
+    "secondaryHover": "#1868ad",
+    "bg": "#f5f6f8",
+    "danger": "#d32f2f"
   }
 }

@@ -8,6 +8,10 @@
  */
 import { ImageResponse } from '@vercel/og';
 import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+
+/* Palette générée par scripts/build-brand.mjs (brand.config.json) */
+const BT = createRequire(import.meta.url)('./_lib/brand-tokens.json');
 
 /* Runtime Node : l'Edge de Vercel refusait de compiler le wasm de @vercel/og (500). */
 export const config = { runtime: 'nodejs' };
@@ -46,13 +50,13 @@ function logo() {
     h('div', { style: { display: 'flex', alignItems: 'flex-end', gap: 6, marginRight: 14, height: 36 } },
       h('div', { style: { width: 10, height: 18, borderRadius: 5, background: '#7c7c87' } }),
       h('div', { style: { width: 10, height: 26, borderRadius: 5, background: '#888' } }),
-      h('div', { style: { width: 10, height: 36, borderRadius: 5, background: '#5cc8ff' } })),
-    h('span', {}, 'cin'), h('span', { style: { color: '#5cc8ff' } }, 'episode'));
+      h('div', { style: { width: 10, height: 36, borderRadius: 5, background: BT.secondary } })),
+    h('span', {}, 'cin'), h('span', { style: { color: BT.accent } }, 'episode'));
 }
 export function cardTree(d) {
   const W = 1200, H = 630;
   if (!d) {
-    return h('div', { style: { width: W, height: H, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 80, fontFamily: 'Inter', fontWeight: 500, background: 'linear-gradient(135deg,#0a0a0c,#14213a)', color: '#fff' } },
+    return h('div', { style: { width: W, height: H, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 80, fontFamily: 'Inter', fontWeight: 500, background: 'linear-gradient(135deg,#0a0a0c,#1a1530)', color: '#fff' } },
       logo(), h('div', { style: { fontSize: 60, fontWeight: 800, marginTop: 30, letterSpacing: -2 } }, 'Suis tes séries sans effort'),
       h('div', { style: { fontSize: 26, color: '#a1a1aa', marginTop: 12 } }, 'Films, séries et anime · aucun traceur'));
   }
@@ -64,7 +68,7 @@ export function cardTree(d) {
     posters[0] ? h('img', { src: posters[0], width: 1400, height: 2100, style: { position: 'absolute', left: -100, top: -700, opacity: 0.28, filter: 'blur(40px)' } }) : null,
     h('div', { style: { position: 'absolute', inset: 0, display: 'flex', background: 'linear-gradient(90deg,rgba(10,10,12,.92) 30%,rgba(10,10,12,.35))' } }),
     h('div', { style: { position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', width: 680, padding: '0 0 0 64px' } },
-      h('div', { style: { fontSize: 18, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#5cc8ff' } }, kicker(d)),
+      h('div', { style: { fontSize: 18, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: BT.accent } }, kicker(d)),
       h('div', { style: { display: 'flex', flexDirection: 'column', fontSize: 62, fontWeight: 800, letterSpacing: -2, lineHeight: 1.05, margin: '12px 0 16px' } }, h('span', {}, l1.slice(0, 40)), h('span', {}, l2.slice(0, 40))),
       h('div', { style: { fontSize: 24, color: '#a1a1aa', display: 'flex' } }, names.slice(0, 80))),
     h('div', { style: { position: 'absolute', right: 40, top: 100, width: 470, height: 420, display: 'flex' } },

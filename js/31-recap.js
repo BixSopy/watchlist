@@ -56,7 +56,7 @@ function _rcFit(c,txt,max){var s=String(txt||'');if(c.measureText(s).width<=max)
 function recapDraw(stats,range){
   var cv=document.createElement('canvas');cv.width=RECAP_W;cv.height=RECAP_H;
   var c=cv.getContext('2d');
-  var accent=_rcColor('--accent','#5cc8ff'),bg='#0a0a0c',text='#f0f0f0',muted='#9a9aa3';
+  var accent=_rcColor('--accent','#b9aeff'),bg='#0a0a0c',text='#f0f0f0',muted='#9a9aa3';
   var F="'Inter', system-ui, sans-serif";
   var fonts=(document.fonts&&document.fonts.load)?Promise.all([document.fonts.load('800 80px Inter'),document.fonts.load('600 40px Inter')]).catch(function(){}):Promise.resolve();
   return fonts.then(function(){return Promise.all(stats.posters.map(function(p){return _rcImg(IB+'w342'+p.poster);}));}).then(function(imgs){

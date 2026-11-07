@@ -1,0 +1,22 @@
+{
+  "$comment": "Fichier généré par scripts/build-brand.mjs depuis brand.config.json — ne pas modifier à la main.",
+  "accent": "#b9aeff",
+  "accentHover": "#cdc5ff",
+  "onAccent": "#06070a",
+  "secondary": "#5cc8ff",
+  "secondaryHover": "#7ad4ff",
+  "gradStart": "#5b4fe0",
+  "gradMid": "#2f8fd1",
+  "gradEnd": "#1fb8a3",
+  "grad": "linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3)",
+  "bg": "#000000",
+  "surface": "#101013",
+  "text": "#f0f0f0",
+  "textMuted": "#9a9aa3",
+  "textFaint": "#5c5c66",
+  "border": "#26262c",
+  "danger": "#ff7070",
+  "accentRgb": "185,174,255",
+  "secondaryRgb": "92,200,255",
+  "gradRgb": "47,143,209"
+}
