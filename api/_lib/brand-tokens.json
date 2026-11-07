@@ -1,6 +1,9 @@
 {
   "$comment": "Fichier généré par scripts/build-brand.mjs depuis brand.config.json — ne pas modifier à la main.",
   "accent": "#b9aeff",
+  "accentMid": "#8fc4ff",
+  "accentEnd": "#7fe0cf",
+  "accentGrad": "linear-gradient(100deg,#b9aeff,#8fc4ff 55%,#7fe0cf)",
   "accentHover": "#cdc5ff",
   "onAccent": "#06070a",
   "secondary": "#5cc8ff",

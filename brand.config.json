@@ -47,10 +47,12 @@
     "accentGradMid": "#2f8fd1",
     "accentGradEnd": "#1fb8a3",
     "secondary": "#5cc8ff",
-    "secondaryHover": "#7ad4ff"
+    "secondaryHover": "#7ad4ff",
+    "accentMid": "#8fc4ff",
+    "accentEnd": "#7fe0cf"
   },
   "$comment_colors_logo": "logoDim/logoMid (dans colors) sont les deux tons non-accent du mark (branding/logo-mark.svg) — distincts de textFaint/textMuted (texte des pages légales et des emails) pour ne pas changer ces derniers si la charte du logo évolue. Valeurs alignées sur --text3/--text2 déjà codées en dur dans index.html.",
-  "$comment_accentGrad": "Hiérarchie de la DA (validée par Pierre le 07/11) : 1) « accent » #b9aeff = couleur d'identité plate (logo « episode », liens, états actifs, focus, boutons pleins) ; 2) dégradé accentGradStart/Mid/End = --p3-grad (CTA, barre de progression, interrupteurs actifs), jamais en fond de page ; 3) « secondary » #5cc8ff = troisième couleur (3ᵉ barre du logo, accents d'information) ; tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Ces valeurs sont générées par scripts/build-brand.mjs vers le bloc /*brand:css*/ de css/app.css, l'extension, le site d'accueil, les pages légales, les emails et api/_lib/brand-tokens.json : ne jamais recopier un hex à la main.",
+  "$comment_accentGrad": "Hiérarchie de la DA (revue par Pierre le 07/11) : 1) COULEUR PRINCIPALE = dégradé P3 accentGradStart/Mid/End (--p3-grad) : boutons principaux, barres de progression, interrupteurs, onglets et segments actifs, jamais en fond de page ; 2) ACCENT TRÈS PRÉSENT = accent-flat en trois teintes accent #b9aeff → accentMid #8fc4ff → accentEnd #7fe0cf (--accent plat pour liens/focus/états doux, --accent-grad pour le logo « episode » et les mots mis en avant) ; 3) « secondary » #5cc8ff = troisième couleur (3ᵉ barre du logo) ; tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Ces valeurs sont générées par scripts/build-brand.mjs vers css/app.css, l'extension, les pages légales, les emails et api/_lib/brand-tokens.json : ne jamais recopier un hex à la main.",
   "logo": {
     "icon192": "/icons/icon-192.png",
     "icon512": "/icons/icon-512.png",
@@ -81,6 +83,8 @@
     "secondary": "#1d79c9",
     "secondaryHover": "#1868ad",
     "bg": "#f5f6f8",
-    "danger": "#d32f2f"
+    "danger": "#d32f2f",
+    "accentMid": "#1d79c9",
+    "accentEnd": "#0e8f80"
   }
 }
