@@ -17,7 +17,7 @@ function friendPendingParse(search){
 /* Avatar : emoji ou initiale sur la couleur du profil */
 function friendAvatar(p,cls){
   p=p||{};var name=(p.name&&p.name!=='Moi')?p.name:(p.handle||'?');
-  var col=/^#[0-9a-fA-F]{6}$/.test(p.avatar_color||'')?p.avatar_color:'#b9aeff';
+  var col=/^#[0-9a-fA-F]{6}$/.test(p.avatar_color||'')?p.avatar_color:'#2f8fd1';
   var em=p.avatar&&String(p.avatar).length<=8?p.avatar:'';
   return '<span class="fr-av'+(cls?' '+cls:'')+'" style="background:'+col+'" aria-hidden="true">'+esc(em||name.charAt(0).toUpperCase())+'</span>';
 }

@@ -155,10 +155,10 @@ const GRAD = `linear-gradient(135deg,${C.accentGradStart},${C.accentGradMid} 55%
 /* Famille d'accent d'un thème. dark=true : inclut aussi fond, dérivés translucides et dégradé P3 */
 function brandVars(c, dark, grad = dark) {
   const v = [
-    `--accent:${c.accent}`, `--accent-rgb:${hexToRgb(c.accent)}`, `--accent-hover:${c.accentHover}`, '--accent-flat:var(--accent)',
+    `--accent:${c.accent}`, `--accent-rgb:${hexToRgb(c.accent)}`, `--accent-hover:${c.accentHover}`,
     `--on-accent:${c.onAccent}`,
-    `--accent-mid:${c.accentMid}`, `--accent-end:${c.accentEnd}`,
-    `--accent-grad:linear-gradient(100deg,${c.accent},${c.accentMid} 55%,${c.accentEnd})`,
+    `--violet:${c.violet}`, `--violet-mid:${c.violetMid}`, `--violet-end:${c.violetEnd}`,
+    `--violet-grad:linear-gradient(100deg,${c.violet},${c.violetMid} 55%,${c.violetEnd})`,
     `--accent2:${c.secondary}`, `--accent2-rgb:${hexToRgb(c.secondary)}`, `--accent2-hover:${c.secondaryHover}`,
   ];
   if (grad) v.push(`--grad-rgb:${hexToRgb(c.accentGradMid)}`, `--p3-grad:${GRAD}`);
@@ -461,7 +461,7 @@ function buildApp(out) {
 
   /* Couleurs pour les fonctions serveur (page de partage, invitation, OG, digest) */
   out['api/_lib/brand-tokens.json'] = JSON.stringify({ $comment: GENERATED,
-    accent: C.accent, accentMid: C.accentMid, accentEnd: C.accentEnd, accentGrad: `linear-gradient(100deg,${C.accent},${C.accentMid} 55%,${C.accentEnd})`, accentHover: C.accentHover, onAccent: C.onAccent, secondary: C.secondary, secondaryHover: C.secondaryHover,
+    accent: C.accent, violet: C.violet, violetMid: C.violetMid, violetEnd: C.violetEnd, violetGrad: `linear-gradient(100deg,${C.violet},${C.violetMid} 55%,${C.violetEnd})`, accentHover: C.accentHover, onAccent: C.onAccent, secondary: C.secondary, secondaryHover: C.secondaryHover,
     gradStart: C.accentGradStart, gradMid: C.accentGradMid, gradEnd: C.accentGradEnd, grad: GRAD,
     bg: C.bg, surface: C.surface, text: C.text, textMuted: C.textMuted, textFaint: C.textFaint, border: C.border, danger: C.danger,
     accentRgb: hexToRgb(C.accent), secondaryRgb: hexToRgb(C.secondary), gradRgb: hexToRgb(C.accentGradMid) }, null, 2) + '\n';

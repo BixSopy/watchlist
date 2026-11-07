@@ -32,7 +32,7 @@ test('css/app.css : tokens clairs complets sous :root[data-theme="light"], valeu
   const css = read('css/app.css');
   const lightBlock = css.match(/:root\[data-theme="light"\]\{([^}]*)\}/);
   assert.ok(lightBlock, 'bloc :root[data-theme="light"] présent');
-  for (const tok of ['--bg:', '--bg2:', '--text:', '--text2:', '--text3:', '--ink-rgb:', '--accent:', '--accent-rgb:', '--accent-hover:', '--on-accent:', '--red:', '--green:', '--glass-panel-bg:', '--glass-backdrop-bg:', '--p3-glass:', '--accent-flat:']) {
+  for (const tok of ['--bg:', '--bg2:', '--text:', '--text2:', '--text3:', '--ink-rgb:', '--accent:', '--accent-rgb:', '--accent-hover:', '--on-accent:', '--red:', '--green:', '--glass-panel-bg:', '--glass-backdrop-bg:', '--p3-glass:', '--violet:']) {
     assert.ok(lightBlock[1].includes(tok), 'token clair manquant : ' + tok);
   }
   /* Le mode sombre reste la valeur par défaut de :root (OLED pur, décision du 06/11, PR #110) */

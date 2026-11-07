@@ -45,7 +45,7 @@ async function fetchInvite(handle, code, fetchImpl) {
 const CSS = `:root{--bg:${BT.bg};--t:#f0f0f0;--t2:#a1a1aa;--a:${BT.accent}}*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--t);font-family:'IBM Plex Sans',Inter,system-ui,sans-serif;min-height:100%}
 .amb{position:fixed;inset:-20%;z-index:-1;background:radial-gradient(40% 35% at 30% 30%,rgba(${BT.accentRgb},.22),transparent 70%),radial-gradient(35% 30% at 75% 70%,rgba(${BT.gradRgb},.18),transparent 70%);filter:blur(40px);animation:amb 18s ease-in-out infinite alternate}
 @keyframes amb{to{transform:translate(3%,-2%) rotate(6deg)}}
-.top{display:flex;align-items:center;justify-content:space-between;padding:18px 28px}.logo{color:var(--t);text-decoration:none;font:900 19px Inter,sans-serif;letter-spacing:-.02em}.logo em{font-style:normal;color:var(--a);background:${BT.accentGrad};-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 28px}.logo{color:var(--t);text-decoration:none;font:900 19px Inter,sans-serif;letter-spacing:-.02em}.logo em{font-style:normal;color:${BT.violet};background:${BT.violetGrad};-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;background:var(--a);color:${BT.onAccent};font:800 15px Inter,sans-serif;text-decoration:none;transition:background .2s,transform .3s cubic-bezier(.34,1.4,.5,1)}.btn:hover{background:${BT.accentHover};transform:translateY(-2px)}
 .btn.g{background:rgba(255,255,255,.07);color:var(--t);border:1px solid rgba(255,255,255,.12)}
 main{min-height:calc(100vh - 140px);display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:20px}
@@ -59,8 +59,8 @@ h1{font:900 30px/1.1 Inter,sans-serif;letter-spacing:-.02em;margin:0 0 6px}.h{co
 
 /* Aperçu du lien (X, WhatsApp, Discord…) : même grande image que l'accueil, nom versionné (brand.config.json → ogImage) */
 const OG = {
-  fr: { img: '/og/og-share-v4-fr.jpg', alt: 'Cinepisode : une rangée d’affiches de séries avec leur barre de progression et le texte « Reprends pile là où tu t’es arrêté. »' },
-  en: { img: '/og/og-share-v4-en.jpg', alt: 'Cinepisode: a row of show posters with their progress bars and the text “Pick up right where you left off.”' },
+  fr: { img: '/og/og-share-v5-fr.jpg', alt: 'Cinepisode : une rangée d’affiches de séries avec leur barre de progression et le texte « Reprends pile là où tu t’es arrêté. »' },
+  en: { img: '/og/og-share-v5-en.jpg', alt: 'Cinepisode: a row of show posters with their progress bars and the text “Pick up right where you left off.”' },
 };
 function ogMeta(L, title) {
   const o = OG[L] || OG.fr, img = 'https://cinepisode.com' + o.img;

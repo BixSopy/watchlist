@@ -56,7 +56,7 @@ test('paramètres ?ami=&i= : validés avant tout envoi', () => {
 });
 test('avatar : couleur et texte échappés', () => {
   const h = F.friendAvatar({ name: '<b>', avatar_color: 'red;x:y' });
-  assert.ok(!h.includes('<b>') && h.includes('#b9aeff'));
+  assert.ok(!h.includes('<b>') && h.includes('#2f8fd1'));
 });
 
 test('friendQrSvg : H2 Spine Halo scannable (EC H, couronne, prefers-reduced-motion ready)', () => {
