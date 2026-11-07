@@ -47,33 +47,56 @@ async function adminUser(id) {
 
 function posterImg(path) {
   if (!path || !/^\/[A-Za-z0-9_.-]{1,80}$/.test(path)) return '';
-  return '<img src="https://image.tmdb.org/t/p/w92' + path + '" width="46" height="69" alt="" ' +
-    'style="display:block;border-radius:8px;width:46px;height:69px;object-fit:cover;">';
+  return '<img src="https://image.tmdb.org/t/p/w92' + path + '" width="52" height="78" alt="" ' +
+    'style="display:block;border-radius:8px;width:52px;height:78px;object-fit:cover;">';
 }
-function itemMeta(it) {
-  return (it.saison && it.episode ? 'S' + it.saison + 'E' + it.episode + ' · ' : '') + it.next_air;
+/* Date lisible (« ven. 7 nov. » / « Fri, Nov 7 »), même famille que le calendrier in-app (js/26-calendar.js) */
+function formatAirDate(iso, lang) {
+  try {
+    const locale = lang === 'en' ? 'en-US' : 'fr-FR';
+    const d = new Date(iso + 'T00:00:00Z');
+    const s = new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(d);
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  } catch (e) { return iso; }
 }
-function itemsHtml(items) {
-  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 10px;">' +
-    items.map((it) =>
-      '<tr><td style="padding:0 0 12px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>' +
-      '<td width="46" valign="top">' + posterImg(it.poster_path) + '</td>' +
-      '<td style="padding-left:12px;font-family:\'IBM Plex Sans\',-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;' +
-      'color:#f0f0f0;font-size:14px;line-height:20px;" valign="top">' +
-      '<strong style="color:#ffffff;">' + escHtml(it.title) + '</strong><br>' +
-      '<span style="color:#9a9aa3;font-size:13px;">' + escHtml(itemMeta(it)) + '</span>' +
-      '</td></tr></table></td></tr>'
-    ).join('') +
-    '</table>';
+function episodeBadge(it) {
+  if (!it.saison || !it.episode) return '';
+  return '<span style="display:inline-block;background-color:rgba(92,200,255,0.16);color:#5cc8ff;font-weight:700;' +
+    'font-size:12px;line-height:18px;padding:1px 9px;border-radius:999px;margin-right:8px;white-space:nowrap;">' +
+    'S' + it.saison + ' E' + it.episode + '</span>';
+}
+function itemsHtml(items, lang) {
+  const count = items.length;
+  const label = lang === 'en'
+    ? (count === 1 ? '1 release this week' : count + ' releases this week')
+    : (count === 1 ? '1 sortie cette semaine' : count + ' sorties cette semaine');
+  const rows = items.map((it, i) =>
+    '<tr><td style="padding:14px 0;' + (i > 0 ? 'border-top:1px solid #26262c;' : 'padding-top:2px;') + '">' +
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>' +
+    '<td width="52" valign="top">' + posterImg(it.poster_path) + '</td>' +
+    '<td style="padding-left:14px;font-family:\'IBM Plex Sans\',-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;' +
+    'color:#f0f0f0;font-size:14px;line-height:21px;" valign="top">' +
+    '<div style="margin:0 0 4px;">' + episodeBadge(it) + '</div>' +
+    '<strong style="color:#ffffff;font-size:15px;">' + escHtml(it.title) + '</strong><br>' +
+    '<span style="color:#9a9aa3;font-size:13px;">' + escHtml(formatAirDate(it.next_air, lang)) + '</span>' +
+    '</td></tr></table></td></tr>'
+  ).join('');
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 6px;">' +
+    '<tr><td style="padding:0 0 12px;font-family:\'IBM Plex Sans\',-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;' +
+    'font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#5cc8ff;">' + escHtml(label) + '</td></tr>' +
+    rows + '</table>';
+}
+function itemMetaText(it, lang) {
+  return (it.saison && it.episode ? 'S' + it.saison + ' E' + it.episode + ' · ' : '') + formatAirDate(it.next_air, lang);
 }
 function itemsText(items) {
-  return items.map((it) => '- ' + it.title + ' (' + itemMeta(it) + ')').join('\n');
+  return items.map((it) => '- ' + it.title + ' (' + itemMetaText(it) + ')').join('\n');
 }
 
 function render(lang, items) {
   const t = EMAILS.digest;
   const e = t[lang] || t[EMAILS.defaultLanguage];
-  const subHtml = (s) => s.split('{{APP_URL}}').join(APP_URL).split('{{SETTINGS_URL}}').join(SETTINGS_URL).split('{{ITEMS}}').join(itemsHtml(items));
+  const subHtml = (s) => s.split('{{APP_URL}}').join(APP_URL).split('{{SETTINGS_URL}}').join(SETTINGS_URL).split('{{ITEMS}}').join(itemsHtml(items, lang));
   const subText = (s) => s.split('{{APP_URL}}').join(APP_URL).split('{{SETTINGS_URL}}').join(SETTINGS_URL).split('{{ITEMS}}').join(itemsText(items));
   return { subject: e.subject, html: subHtml(e.html), text: subText(e.text) };
 }

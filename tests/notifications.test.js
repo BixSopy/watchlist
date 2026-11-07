@@ -109,7 +109,9 @@ test('notifications-digest : un email par profil concerné, titre + affiche + li
   assert.match(mail.subject, /sorties/);
   assert.match(mail.html, /Severance/);
   assert.match(mail.html, /image\.tmdb\.org\/t\/p\/w92\/sev\.jpg/);
-  assert.match(mail.html, /S2E3/);
+  assert.match(mail.html, /S2 E3/);
+  assert.match(mail.html, /1 sortie cette semaine/);
+  assert.match(mail.html, /mar\. 10 nov\./i);
   assert.match(mail.html, /cinepisode\.com\/#notifications/);
   assert.doesNotMatch(mail.html + mail.text, /\{\{|\[\[/);
 });

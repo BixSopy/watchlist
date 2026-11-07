@@ -148,6 +148,11 @@ function editorLine(lang = DEFAULT_LANG) {
 const robots = brand.indexable ? 'index,follow' : 'noindex,nofollow';
 
 /* ---------- emails ---------- */
+/* Logo en data: URI (jamais une image distante) : les gabarits d'authentification Supabase
+   n'ont pas le droit de dépendre du réseau pour s'afficher correctement (règle vérifiée par
+   tests/brand.test.js, « pas de script ni d'image distante »), et une image intégrée évite aussi
+   le placeholder « images bloquées » de certains clients mail pour les emails envoyés par l'app. */
+const LOGO_DATA_URI = 'data:image/png;base64,' + fs.readFileSync(rel('icons/icon-192.png')).toString('base64');
 const C = brand.colors, F = brand.fonts;
 const EMAIL_STYLES = {
   h1: `margin:0 0 14px;font-family:${F.display};font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;`,
@@ -226,6 +231,7 @@ function buildEmails(out) {
         footerReason: escHtml(T(lang, 'mail.footer.reason', { name: brand.name })),
         footerQuestion: escHtml(T(lang, 'mail.footer.question')),
         content: emailBody(body.trim(), lang),
+        logoDataUri: LOGO_DATA_URI,
       });
     }
     out['supabase/templates/' + t.file + '.html'] = emailLangSwitch(docs);
@@ -273,6 +279,7 @@ function buildAppEmails(out) {
         footerReason: escHtml(T(lang, 'mail.footer.reason', { name: brand.name })),
         footerQuestion: escHtml(T(lang, 'mail.footer.question')),
         content,
+        logoDataUri: LOGO_DATA_URI,
       });
       res[t][lang] = { subject, html, text: htmlToText(content) };
     }
