@@ -70,7 +70,8 @@ uiOn('menuAccount',function(){openAuthModal();toggleMenu();});
 uiOn('menuExportAccount',function(){exportAccountData();toggleMenu();});
 uiOn('menuFeedback',function(){toggleMenu();openFeedback('app');});
 uiOn('settingToggle',function(el,e,key){_onSettingToggle(key,el);});
-var _UI_SETTING_FNS={toggleCompact:function(){toggleCompact();},toggleSound:function(){toggleSound();},toggleSuiviSection:function(){toggleSuiviSection();}};
+var _UI_SETTING_FNS={toggleCompact:function(){toggleCompact();},toggleSound:function(){toggleSound();},toggleSuiviSection:function(){toggleSuiviSection();},
+  toggleNotifReleases:function(){toggleNotifReleases();},toggleNotifNewsletter:function(){toggleNotifNewsletter();}};
 uiOn('settingFn',function(el,e,name){var f=_UI_SETTING_FNS[name];if(!f)return;f();renderSettingsMenu();});
 uiOn('settingSelect',function(el,e,key){_onSettingSelect(key,el.value);});
 uiOn('settingRange',function(el,e,key){_onSettingRange(key,el.value);});

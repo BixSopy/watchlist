@@ -157,5 +157,11 @@
     "api/og.mjs": {
       "includeFiles": "api/_fonts/**"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/notifications-digest",
+      "schedule": "0 9 * * 1"
+    }
+  ]
 }

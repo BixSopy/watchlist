@@ -2178,3 +2178,47 @@ $$;
 
 revoke all on function public.extension_push_detections(text, jsonb) from public;
 grant execute on function public.extension_push_detections(text, jsonb) to anon, authenticated;
+
+-- -----------------------------------------------------------------------------
+-- NOTIFICATIONS : rappels de sorties (digest hebdo) + newsletter — préférences opt-in
+-- (migration 20261107100000_notification_prefs.sql, demande de Pierre le 07/11)
+-- -----------------------------------------------------------------------------
+create table if not exists public.notification_prefs (
+  profile_id uuid primary key references public.profiles(id) on delete cascade,
+  releases   boolean not null default false,
+  newsletter boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.notification_prefs enable row level security;
+revoke all on table public.notification_prefs from anon, authenticated;
+grant select on table public.notification_prefs to authenticated;
+
+create policy notification_prefs_select_mine on public.notification_prefs for select to authenticated using (
+  exists (select 1 from public.profiles p where p.account_id = (select auth.uid()) and p.id = profile_id));
+
+create or replace function public.set_notification_prefs(p_profile_id uuid, p_releases boolean default null,
+  p_newsletter boolean default null)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare v public.notification_prefs;
+begin
+  if not public._social_owns(p_profile_id) then return jsonb_build_object('status', 'not_authenticated'); end if;
+  insert into public.notification_prefs(profile_id) values (p_profile_id) on conflict do nothing;
+  update public.notification_prefs set releases = coalesce(p_releases, releases), newsletter = coalesce(p_newsletter, newsletter),
+         updated_at = now()
+   where profile_id = p_profile_id returning * into v;
+  return jsonb_build_object('status', 'ok', 'prefs', jsonb_build_object('releases', v.releases, 'newsletter', v.newsletter));
+end $$;
+
+create or replace function public.get_my_notification_prefs(p_profile_id uuid)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare v public.notification_prefs;
+begin
+  if not public._social_owns(p_profile_id) then return jsonb_build_object('status', 'not_authenticated'); end if;
+  select * into v from public.notification_prefs where profile_id = p_profile_id;
+  return jsonb_build_object('status', 'ok',
+    'prefs', jsonb_build_object('releases', coalesce(v.releases, false), 'newsletter', coalesce(v.newsletter, false)));
+end $$;
+
+revoke all on function public.set_notification_prefs(uuid, boolean, boolean), public.get_my_notification_prefs(uuid) from public, anon;
+grant execute on function public.set_notification_prefs(uuid, boolean, boolean), public.get_my_notification_prefs(uuid) to authenticated;

@@ -247,7 +247,7 @@ function buildEmails(out) {
    Sources : branding/app-emails/<langue>/<modèle>.html, même syntaxe que les emails
    d'authentification ; {{EXT_URL}} et {{APP_URL}} sont remplacés par la fonction. Sortie :
    api/_lib/app-emails.json { <modèle>: { <langue>: { subject, html, text } } }. */
-const APP_EMAIL_TEMPLATES = ['welcome'];
+const APP_EMAIL_TEMPLATES = ['welcome', 'digest'];
 function htmlToText(html) {
   return html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (m, href, label) => {
     const l = label.replace(/<[^>]+>/g, '').trim();
