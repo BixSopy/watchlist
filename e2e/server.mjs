@@ -1,4 +1,4 @@
-/* Mini serveur de test : sert les fichiers du site comme Vercel (liste blanche .vercelignore,
+/* Mini serveur de test : sert les fichiers du site comme Vercel (liste noire .vercelignore,
    en-têtes de vercel.json dont la CSP, cleanUrls, rewrites) et simule les fonctions /api.
    La CSP est appliquée telle quelle (sauf upgrade-insecure-requests, inutile en http local). */
 import http from 'node:http';
@@ -10,8 +10,8 @@ const require = createRequire(import.meta.url);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
-const ALLOWED = fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8').split('\n')
-  .map(l => l.trim()).filter(l => l.startsWith('!')).map(l => l.slice(1));
+const BLOCKED = fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8').split('\n')
+  .map(l => l.trim()).filter(l => l && !l.startsWith('#'));
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json',
   '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml', '.webmanifest': 'application/manifest+json' };
 
@@ -59,7 +59,7 @@ export function startServer({ config = { turnstileSiteKey: '', signupsOpen: true
     if (p === '/') p = '/index.html';
     if (vercel.cleanUrls && !path.extname(p)) p += '.html';
     const top = p.split('/')[1];
-    if (!ALLOWED.includes(top)) return send(404, 'Not found', 'text/plain');
+    if (BLOCKED.includes(top)) return send(404, 'Not found', 'text/plain');
     const file = path.join(ROOT, p);
     if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return send(404, 'Not found', 'text/plain');
     send(200, fs.readFileSync(file), TYPES[path.extname(file)] || 'application/octet-stream');
