@@ -148,12 +148,19 @@ function editorLine(lang = DEFAULT_LANG) {
 const robots = brand.indexable ? 'index,follow' : 'noindex,nofollow';
 
 /* ---------- emails ---------- */
-/* Logo en data: URI (jamais une image distante) : les gabarits d'authentification Supabase
-   n'ont pas le droit de dépendre du réseau pour s'afficher correctement (règle vérifiée par
-   tests/brand.test.js, « pas de script ni d'image distante »), et une image intégrée évite aussi
-   le placeholder « images bloquées » de certains clients mail pour les emails envoyés par l'app. */
-const LOGO_DATA_URI = 'data:image/png;base64,' + fs.readFileSync(rel('icons/icon-192.png')).toString('base64');
 const C = brand.colors, F = brand.fonts;
+/* Logo du bandeau d'email : deux gabarits différents, pas la même contrainte.
+   - Gabarits d'authentification Supabase : jamais d'image distante (tests/brand.test.js,
+     « pas de script ni d'image distante »), et un data: URI s'est révélé tout aussi fragile en
+     pratique (Gmail n'affiche pas les images intégrées en base64 dans un email reçu, testé en
+     conditions réelles sur le digest le 07/11) — carré de couleur + initiale en texte, sans image.
+   - Emails envoyés par l'app (Resend) : image distante normale (même CDN que les affiches TMDB,
+     déjà utilisées sans souci dans ces emails) — c'est la vraie icône Episode Spine. */
+const LOGO_CELL_AUTH = `<div style="width:30px;height:30px;background-color:${C.accent};border-radius:9px;` +
+  `color:${C.onAccent};font-family:${F.display};font-size:16px;font-weight:900;line-height:30px;` +
+  `text-align:center;mso-line-height-rule:exactly;">${escHtml(brand.wordmark.main.charAt(0).toUpperCase())}</div>`;
+const LOGO_CELL_APP = `<img src="${brand.baseUrl}${brand.logo.icon192}" width="30" height="30" alt="" ` +
+  `style="display:block;width:30px;height:30px;border-radius:8px;">`;
 const EMAIL_STYLES = {
   h1: `margin:0 0 14px;font-family:${F.display};font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;`,
   p: `margin:0 0 16px;font-family:${F.body};font-size:15px;line-height:24px;color:${C.text};`,
@@ -231,7 +238,7 @@ function buildEmails(out) {
         footerReason: escHtml(T(lang, 'mail.footer.reason', { name: brand.name })),
         footerQuestion: escHtml(T(lang, 'mail.footer.question')),
         content: emailBody(body.trim(), lang),
-        logoDataUri: LOGO_DATA_URI,
+        logoCell: LOGO_CELL_AUTH,
       });
     }
     out['supabase/templates/' + t.file + '.html'] = emailLangSwitch(docs);
@@ -279,7 +286,7 @@ function buildAppEmails(out) {
         footerReason: escHtml(T(lang, 'mail.footer.reason', { name: brand.name })),
         footerQuestion: escHtml(T(lang, 'mail.footer.question')),
         content,
-        logoDataUri: LOGO_DATA_URI,
+        logoCell: LOGO_CELL_APP,
       });
       res[t][lang] = { subject, html, text: htmlToText(content) };
     }
