@@ -3,6 +3,9 @@
   "private": true,
   "description": "Dépendance unique côté serveur : @vercel/og pour l'aperçu des liens de partage (api/og.mjs). L'app reste sans build.",
   "dependencies": {
-    "@vercel/og": "0.8.5"
+    "@vercel/og": "1.0.3"
+  },
+  "overrides": {
+    "fflate": "0.7.5"
   }
 }
