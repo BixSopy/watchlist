@@ -8,6 +8,7 @@
  */
 const { queryParams, supabaseUrl, timeoutSignal } = require('./_lib/common');
 const S = require('./_lib/share');
+const BT = require('./_lib/brand-tokens.json'); /* palette générée (scripts/build-brand.mjs) */
 
 const limited = S.makeLimiter(60);
 const HANDLE_RE = /^[a-z0-9._]{3,20}$/;
@@ -41,16 +42,16 @@ async function fetchInvite(handle, code, fetchImpl) {
   return d && typeof d === 'object' && d.handle ? d : null;
 }
 
-const CSS = `:root{--bg:#0a0a0c;--t:#f0f0f0;--t2:#a1a1aa;--a:#5cc8ff}*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--t);font-family:'IBM Plex Sans',Inter,system-ui,sans-serif;min-height:100%}
-.amb{position:fixed;inset:-20%;z-index:-1;background:radial-gradient(40% 35% at 30% 30%,rgba(92,200,255,.22),transparent 70%),radial-gradient(35% 30% at 75% 70%,rgba(58,123,255,.18),transparent 70%);filter:blur(40px);animation:amb 18s ease-in-out infinite alternate}
+const CSS = `:root{--bg:#0a0a0c;--t:#f0f0f0;--t2:#a1a1aa;--a:${BT.accent}}*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--t);font-family:'IBM Plex Sans',Inter,system-ui,sans-serif;min-height:100%}
+.amb{position:fixed;inset:-20%;z-index:-1;background:radial-gradient(40% 35% at 30% 30%,rgba(${BT.accentRgb},.22),transparent 70%),radial-gradient(35% 30% at 75% 70%,rgba(${BT.gradRgb},.18),transparent 70%);filter:blur(40px);animation:amb 18s ease-in-out infinite alternate}
 @keyframes amb{to{transform:translate(3%,-2%) rotate(6deg)}}
-.top{display:flex;align-items:center;justify-content:space-between;padding:18px 28px}.logo{color:var(--t);text-decoration:none;font:900 19px Inter,sans-serif;letter-spacing:-.02em}.logo em{font-style:normal;color:var(--a)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;background:var(--a);color:#06070a;font:800 15px Inter,sans-serif;text-decoration:none;transition:background .2s,transform .3s cubic-bezier(.34,1.4,.5,1)}.btn:hover{background:#7ad4ff;transform:translateY(-2px)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 28px}.logo{color:var(--t);text-decoration:none;font:900 19px Inter,sans-serif;letter-spacing:-.02em}.logo em{font-style:normal;color:var(--a);background:${BT.accentGrad};-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;background:var(--a);color:${BT.onAccent};font:800 15px Inter,sans-serif;text-decoration:none;transition:background .2s,transform .3s cubic-bezier(.34,1.4,.5,1)}.btn:hover{background:${BT.accentHover};transform:translateY(-2px)}
 .btn.g{background:rgba(255,255,255,.07);color:var(--t);border:1px solid rgba(255,255,255,.12)}
 main{min-height:calc(100vh - 140px);display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:20px}
 .card{width:420px;max-width:100%;text-align:center;padding:40px 28px 32px;border-radius:32px;background:rgba(22,22,26,.72);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);box-shadow:0 40px 100px rgba(0,0,0,.6);animation:in .5s cubic-bezier(.34,1.4,.5,1)}
 @keyframes in{from{opacity:0;transform:translateY(16px) scale(.97)}}
-.av{width:104px;height:104px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;font:900 44px Inter,sans-serif;color:#06070a;box-shadow:0 0 0 4px rgba(10,10,12,1),0 0 0 6px rgba(92,200,255,.55),0 18px 50px rgba(92,200,255,.25)}
+.av{width:104px;height:104px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;font:900 44px Inter,sans-serif;color:#06070a;box-shadow:0 0 0 4px rgba(10,10,12,1),0 0 0 6px rgba(${BT.accentRgb},.55),0 18px 50px rgba(${BT.accentRgb},.25)}
 h1{font:900 30px/1.1 Inter,sans-serif;letter-spacing:-.02em;margin:0 0 6px}.h{color:var(--a);font:700 15px Inter,sans-serif;margin:0 0 16px}p{color:var(--t2);line-height:1.5;margin:0 0 6px}
 .card .btn{width:100%;margin-top:22px;padding:15px}.made{text-align:center;color:#6b6b75;font-size:12px;padding:0 20px 28px}
 @media(max-width:700px){.top{padding:12px 16px}.top .btn{padding:8px 14px;font-size:12.5px}.card{padding:32px 20px 24px}}
@@ -58,8 +59,8 @@ h1{font:900 30px/1.1 Inter,sans-serif;letter-spacing:-.02em;margin:0 0 6px}.h{co
 
 /* Aperçu du lien (X, WhatsApp, Discord…) : même grande image que l'accueil, nom versionné (brand.config.json → ogImage) */
 const OG = {
-  fr: { img: '/og/og-share-v2-fr.jpg', alt: 'Cinepisode : une rangée d’affiches de séries avec leur barre de progression et le texte « Reprends pile là où tu t’es arrêté. »' },
-  en: { img: '/og/og-share-v2-en.jpg', alt: 'Cinepisode: a row of show posters with their progress bars and the text “Pick up right where you left off.”' },
+  fr: { img: '/og/og-share-v3-fr.jpg', alt: 'Cinepisode : une rangée d’affiches de séries avec leur barre de progression et le texte « Reprends pile là où tu t’es arrêté. »' },
+  en: { img: '/og/og-share-v3-en.jpg', alt: 'Cinepisode: a row of show posters with their progress bars and the text “Pick up right where you left off.”' },
 };
 function ogMeta(L, title) {
   const o = OG[L] || OG.fr, img = 'https://cinepisode.com' + o.img;
@@ -77,7 +78,7 @@ function page(L, title, body) {
 function avatar(d) {
   const name = d.name || d.handle || '';
   const emoji = d.avatar && String(d.avatar).length <= 8 && !/[<>&"']/.test(d.avatar) ? d.avatar : '';
-  const bg = COLOR_RE.test(d.avatar_color || '') ? d.avatar_color : '#5cc8ff';
+  const bg = COLOR_RE.test(d.avatar_color || '') ? d.avatar_color : BT.accent;
   return '<div class="av" aria-hidden="true" style="background:' + bg + '">' + esc(emoji || (name[0] || 'C').toUpperCase()) + '</div>';
 }
 function render(d, code, L) {
@@ -88,7 +89,7 @@ function render(d, code, L) {
 }
 function neutral(L) {
   const T = TXT[L];
-  return page(L, T.noTitle, '<main><section class="card"><div class="av" aria-hidden="true" style="background:linear-gradient(135deg,#5cc8ff,#3a7bff)">@</div><h1>' + esc(T.noH) + '</h1><p>' + esc(T.noP) + '</p><a class="btn" href="/">' + esc(T.cta) + '</a></section></main>');
+  return page(L, T.noTitle, '<main><section class="card"><div class="av" aria-hidden="true" style="background:' + BT.grad + '">@</div><h1>' + esc(T.noH) + '</h1><p>' + esc(T.noP) + '</p><a class="btn" href="/">' + esc(T.cta) + '</a></section></main>');
 }
 function headers(res, status) {
   res.statusCode = status;

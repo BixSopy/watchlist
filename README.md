@@ -110,6 +110,19 @@ Tout ce qui identifie l'app est dans [`brand.config.json`](brand.config.json) : 
 (`contactEmail`, `senderEmail`, `senderName`), couleurs, chemins du logo et des icônes,
 polices, indexation (`indexable`), redirections de domaine (`domains`).
 
+**Règle DA (revue le 07/11)** : trois niveaux de couleur, tous dans `brand.config.json › colors`.
+1. **Couleur principale = dégradé P3** `accentGradStart/Mid/End` (`--p3-grad`, `#5b4fe0 → #2f8fd1 → #1fb8a3`) :
+   boutons principaux, barres de progression, interrupteurs, onglets et segments actifs.
+2. **Accent très présent = accent-flat** en trois teintes `accent` `#b9aeff` → `accentMid` `#8fc4ff` →
+   `accentEnd` `#7fe0cf` : `--accent` (plat : liens, focus, états doux) et `--accent-grad` (logo
+   « episode », mots mis en avant, surtitres).
+3. `secondary` `#5cc8ff` (`--accent2`) : troisième couleur (3ᵉ barre du logo).
+Tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Le thème clair se règle dans
+`colorsLight`. **Ne jamais recopier un hex de marque à la main** : utiliser `var(--p3-grad)`,
+`var(--accent)`, `var(--accent-grad)`, `var(--accent2)` (app, landing, extension) ou
+`api/_lib/brand-tokens.json` (fonctions serveur). `tests/brand.test.js` échoue si une ancienne
+teinte réapparaît en dur.
+
 Pour renommer l'app, changer de domaine, de couleurs ou de logo :
 
 1. Modifier `brand.config.json` (et, pour un nouveau logo, remplacer `branding/logo-mark.svg`

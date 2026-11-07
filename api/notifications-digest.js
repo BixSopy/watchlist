@@ -18,6 +18,7 @@
  */
 const { send, fail, serviceKey, serviceHeaders, supabaseUrl, timeoutSignal } = require('./_lib/common');
 const EMAILS = require('./_lib/app-emails.json');
+const BT = require('./_lib/brand-tokens.json'); /* palette générée (scripts/build-brand.mjs) */
 
 const RESEND_BATCH_URL = 'https://api.resend.com/emails/batch';
 const DEFAULT_FROM = 'Cinepisode <noreply@cinepisode.com>';
@@ -61,7 +62,7 @@ function formatAirDate(iso, lang) {
 }
 function episodeBadge(it) {
   if (!it.saison || !it.episode) return '';
-  return '<span style="display:inline-block;background-color:rgba(92,200,255,0.16);color:#5cc8ff;font-weight:700;' +
+  return '<span style="display:inline-block;background-color:rgba(' + BT.accentRgb + ',0.16);color:' + BT.accent + ';font-weight:700;' +
     'font-size:12px;line-height:18px;padding:1px 9px;border-radius:999px;margin-right:8px;white-space:nowrap;">' +
     'S' + it.saison + ' E' + it.episode + '</span>';
 }
@@ -83,7 +84,7 @@ function itemsHtml(items, lang) {
   ).join('');
   return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 6px;">' +
     '<tr><td style="padding:0 0 12px;font-family:\'IBM Plex Sans\',-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;' +
-    'font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#5cc8ff;">' + escHtml(label) + '</td></tr>' +
+    'font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:' + BT.accent + ';">' + escHtml(label) + '</td></tr>' +
     rows + '</table>';
 }
 function itemMetaText(it, lang) {
