@@ -310,6 +310,7 @@
  "autherr.session_not_found": "Ta session a expiré. Reconnecte-toi.",
  "autherr.session_expired": "Ta session a expiré. Reconnecte-toi.",
  "autherr.refresh_token_not_found": "Ta session a expiré. Reconnecte-toi.",
+ "autherr.insufficient_aal": "Vérifie d'abord ton code de double authentification.",
  "autherr.user_banned": "Ce compte est suspendu.",
  "autherr.user_not_found": "Aucun compte n'est associé à cette adresse.",
  "autherr.otp_disabled": "Aucun compte n'est associé à cette adresse.",
