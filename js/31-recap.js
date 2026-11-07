@@ -56,12 +56,12 @@ function _rcFit(c,txt,max){var s=String(txt||'');if(c.measureText(s).width<=max)
 function recapDraw(stats,range){
   var cv=document.createElement('canvas');cv.width=RECAP_W;cv.height=RECAP_H;
   var c=cv.getContext('2d');
-  var accent=_rcColor('--accent','#b9aeff'),bg='#0a0a0c',text='#f0f0f0',muted='#9a9aa3';
+  var accent=_rcColor('--accent','#b9aeff'),bg='#000000',text='#f0f0f0',muted='#9a9aa3';
   var F="'Inter', system-ui, sans-serif";
   var fonts=(document.fonts&&document.fonts.load)?Promise.all([document.fonts.load('800 80px Inter'),document.fonts.load('600 40px Inter')]).catch(function(){}):Promise.resolve();
   return fonts.then(function(){return Promise.all(stats.posters.map(function(p){return _rcImg(IB+'w342'+p.poster);}));}).then(function(imgs){
     c.fillStyle=bg;c.fillRect(0,0,RECAP_W,RECAP_H);
-    var g=c.createRadialGradient(RECAP_W*.5,-200,50,RECAP_W*.5,-200,1300);g.addColorStop(0,accent+'55');g.addColorStop(1,'rgba(10,10,12,0)');
+    var g=c.createRadialGradient(RECAP_W*.5,-200,50,RECAP_W*.5,-200,1300);g.addColorStop(0,accent+'55');g.addColorStop(1,'rgba(0,0,0,0)');
     c.fillStyle=g;c.fillRect(0,0,RECAP_W,RECAP_H);
     c.textBaseline='alphabetic';c.textAlign='center';
     /* Logo : « cin » + « episode » en couleur d'accent */

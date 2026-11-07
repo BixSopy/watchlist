@@ -136,7 +136,6 @@ function p3Go(v,silent){
     if(silent&&typeof sfx==='function'){var s=sfx;sfx=function(){};try{switchTab(btn);}finally{sfx=s;}}else switchTab(btn);
   }
   p3Header();p3Hl();
-  try{localStorage.setItem('wl_p3_view',v);}catch(e){}
   if(!silent)window.scrollTo({top:0,behavior:'smooth'});
 }
 function _p3Live(){return (typeof memDB!=='undefined'?memDB:[]).filter(function(i){return !i.deleted;});}
@@ -226,5 +225,6 @@ function p3NewReadAll(){
   };
 })();
 p3Build();
-(function(){var v='tonight';try{v=localStorage.getItem('wl_p3_view')||'tonight';}catch(e){}p3Go(v,true);})();
+/* Toujours ouvrir sur « Ce soir » (la dernière vue n'est plus mémorisée ; ancienne clé purgée) */
+(function(){try{localStorage.removeItem('wl_p3_view');}catch(e){}p3Go('tonight',true);})();
 if(typeof module!=='undefined')module.exports={P3_VIEWS:P3_VIEWS};

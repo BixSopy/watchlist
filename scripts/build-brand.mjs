@@ -453,7 +453,7 @@ function buildApp(out) {
   appCss = appCss.replace(lightRe, () => '/*brand:css-light*/' + brandVars(CL, false) + '/*/brand:css-light*/');
   out['css/app.css'] = appCss;
 
-  /* Extension : feuille propre (fond #0a0a0c historique), même famille d'accent que l'app (sombre uniquement) */
+  /* Extension : feuille propre (fond #000 comme l'app), même famille d'accent que l'app (sombre uniquement) */
   let popCss = read('extension/popup.css');
   const popRe = /\/\*brand:css\*\/[\s\S]*?\/\*\/brand:css\*\//;
   if (!popRe.test(popCss)) throw new Error('extension/popup.css : bloc /*brand:css*/ introuvable');

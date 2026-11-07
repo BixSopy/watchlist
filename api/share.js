@@ -37,11 +37,11 @@ function card(it, d) {
     (it.rating ? ' · <span class="r">★ ' + esc(Number(it.rating).toFixed(Number(it.rating) % 1 ? 1 : 0)) + '</span>' : '') + '</p></li>';
 }
 
-const CSS = `:root{--bg:#0a0a0c;--t:#f5f5f7;--t2:#a1a1aa;--t3:#6b6b75;--a:${BT.accent};--grad:${BT.grad};--glass:rgba(28,28,32,.55)}
+const CSS = `:root{--bg:${BT.bg};--t:#f5f5f7;--t2:#a1a1aa;--t3:#6b6b75;--a:${BT.accent};--grad:${BT.grad};--glass:rgba(28,28,32,.55)}
 *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:var(--bg);color:var(--t);font:14px/1.4 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 .amb{position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 500px at 15% -10%,rgba(${BT.accentRgb},.16),transparent 60%),radial-gradient(800px 600px at 100% 30%,rgba(120,80,255,.10),transparent 60%)}
-.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:14px 40px;background:rgba(10,10,12,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.05)}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:14px 40px;background:rgba(0,0,0,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.05)}
 .logo{display:flex;align-items:center;font:800 19px Inter,sans-serif;letter-spacing:-.02em}.logo i{width:24px;height:24px;margin-right:9px;border-radius:7px;background:var(--grad);box-shadow:0 4px 14px rgba(${BT.accentRgb},.35)}.logo em{font-style:normal;color:var(--a);background:${BT.accentGrad};-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:999px;font-weight:650;font-size:13.5px;background:var(--grad);color:#fff;box-shadow:0 8px 24px rgba(${BT.gradRgb},.35)}
 main{position:relative;max-width:1240px;margin:0 auto;padding:40px 40px 20px}
@@ -53,7 +53,7 @@ h1{font:850 40px Inter,sans-serif;letter-spacing:-.04em;margin:0;line-height:1.0
 .pc{min-width:0}.pc .im{position:relative;aspect-ratio:2/3;border-radius:16px;overflow:hidden;background:#17171b;box-shadow:0 18px 40px rgba(0,0,0,.5);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
 .pc:hover .im{transform:translateY(-4px)}.pc img{width:100%;height:100%;object-fit:cover;display:block}.pc .ph{display:grid;place-items:center;height:100%;color:var(--t3)}
 .pc .ep{position:absolute;left:8px;bottom:8px;font:600 10.5px 'IBM Plex Mono',monospace;background:rgba(0,0,0,.62);padding:2px 6px;border-radius:6px}
-.pc .add{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(10,10,12,.7);backdrop-filter:blur(8px);display:grid;place-items:center;font-size:17px;border:1px solid rgba(255,255,255,.15);transition:background .2s}.pc .add:hover{background:${BT.gradMid}}
+.pc .add{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:grid;place-items:center;font-size:17px;border:1px solid rgba(255,255,255,.15);transition:background .2s}.pc .add:hover{background:${BT.gradMid}}
 .pc h3{font-size:14px;font-weight:650;margin:10px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc p{margin:0;color:var(--t2);font-size:12px;display:flex;gap:6px;align-items:center}.r{color:#ffc861}
 .bdg{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.08)}.bdg.f{background:rgba(${BT.accentRgb},.14);color:${BT.accentHover}}.bdg.s{background:rgba(75,232,122,.12);color:#6de89a}.bdg.an{background:rgba(255,165,80,.15);color:#ffb060}
 .empty{padding:60px 0;text-align:center;color:var(--t2)}
@@ -67,7 +67,7 @@ h1{font:850 40px Inter,sans-serif;letter-spacing:-.04em;margin:0;line-height:1.0
 
 function page(o) {
   return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
-    '<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#0a0a0c">' +
+    '<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="' + BT.bg + '">' +
     '<title>' + esc(o.title) + '</title><meta name="description" content="' + esc(o.desc) + '">' +
     '<meta property="og:type" content="website"><meta property="og:site_name" content="Cinepisode"><meta property="og:title" content="' + esc(o.title) + '"><meta property="og:description" content="' + esc(o.desc) + '">' +
     (o.image ? '<meta property="og:image" content="' + esc(o.image) + '"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="' + esc(o.image) + '">' : '') +
