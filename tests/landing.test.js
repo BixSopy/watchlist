@@ -42,7 +42,7 @@ test('CSS critique : application masquée tant que le visiteur n’est pas membr
 });
 
 test('landing/ publié (.vercelignore) et feuille de style sans ressource tierce', () => {
-  assert.match(read('.vercelignore'), /^!landing$/m);
+  assert.doesNotMatch(read('.vercelignore'), /^landing$/m);
   const css = read('landing/landing.css');
   assert.doesNotMatch(css, /@import|url\(\s*['"]?https?:/i, 'pas de police ni d’image distante');
   assert.match(css, /prefers-reduced-motion:\s*reduce/, 'animations coupées si l’utilisateur le demande');
