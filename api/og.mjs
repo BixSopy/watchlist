@@ -51,7 +51,7 @@ function logo() {
       h('div', { style: { width: 10, height: 18, borderRadius: 5, background: '#7c7c87' } }),
       h('div', { style: { width: 10, height: 26, borderRadius: 5, background: '#888' } }),
       h('div', { style: { width: 10, height: 36, borderRadius: 5, background: BT.secondary } })),
-    h('span', {}, 'cin'), h('span', { style: { color: BT.accent } }, 'episode'));
+    h('span', {}, 'cin'), h('span', { style: { color: BT.violet } }, 'episode'));
 }
 export function cardTree(d) {
   const W = 1200, H = 630;

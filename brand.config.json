@@ -29,8 +29,8 @@
     "$comment_name": "Laisser vide pour un éditeur particulier non professionnel (LCEN art. 6-III-2 : identité communiquée à l'hébergeur). Sinon : nom ou raison sociale."
   },
   "colors": {
-    "accent": "#b9aeff",
-    "accentHover": "#cdc5ff",
+    "accent": "#2f8fd1",
+    "accentHover": "#5aa9e0",
     "onAccent": "#06070a",
     "bg": "#000000",
     "surface": "#101013",
@@ -48,11 +48,12 @@
     "accentGradEnd": "#1fb8a3",
     "secondary": "#5cc8ff",
     "secondaryHover": "#7ad4ff",
-    "accentMid": "#8fc4ff",
-    "accentEnd": "#7fe0cf"
+    "violet": "#b9aeff",
+    "violetMid": "#8fc4ff",
+    "violetEnd": "#7fe0cf"
   },
   "$comment_colors_logo": "logoDim/logoMid (dans colors) sont les deux tons non-accent du mark (branding/logo-mark.svg) — distincts de textFaint/textMuted (texte des pages légales et des emails) pour ne pas changer ces derniers si la charte du logo évolue. Valeurs alignées sur --text3/--text2 déjà codées en dur dans index.html.",
-  "$comment_accentGrad": "Hiérarchie de la DA (revue par Pierre le 07/11) : 1) COULEUR PRINCIPALE = dégradé P3 accentGradStart/Mid/End (--p3-grad) : boutons principaux, barres de progression, interrupteurs, onglets et segments actifs, jamais en fond de page ; 2) ACCENT TRÈS PRÉSENT = accent-flat en trois teintes accent #b9aeff → accentMid #8fc4ff → accentEnd #7fe0cf (--accent plat pour liens/focus/états doux, --accent-grad pour le logo « episode » et les mots mis en avant) ; 3) « secondary » #5cc8ff = troisième couleur (3ᵉ barre du logo) ; tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Ces valeurs sont générées par scripts/build-brand.mjs vers css/app.css, l'extension, les pages légales, les emails et api/_lib/brand-tokens.json : ne jamais recopier un hex à la main.",
+  "$comment_accentGrad": "Hiérarchie de la DA (revue par Pierre le 07/11, 2ᵉ passe) : 1) COULEUR DOMINANTE (~80 %) = dégradé P3 accentGradStart/Mid/End (--p3-grad) : boutons, progression, interrupteurs, onglets actifs, mots d'accent des titres, halos ; « accent » #2f8fd1 (= arrêt central du dégradé) en couleur unie pour les liens, le focus, les petites icônes et textes d'accent ; 2) VIOLET = TOUCHE SUBTILE : violet #b9aeff → violetMid #8fc4ff → violetEnd #7fe0cf (--violet, --violet-grad), réservé au mot « episode » du logo et à de rares détails ; 3) « secondary » #5cc8ff = troisième couleur (3ᵉ barre du logo) ; tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Générées par scripts/build-brand.mjs vers css/app.css, l'extension, les pages légales, les emails et api/_lib/brand-tokens.json : ne jamais recopier un hex à la main.",
   "logo": {
     "icon192": "/icons/icon-192.png",
     "icon512": "/icons/icon-512.png",
@@ -61,8 +62,8 @@
   },
   "$comment_ogImage": "Image d'aperçu des liens (1200×630). Changer le nom du fichier à chaque nouvelle version : X et les navigateurs gardent l'ancienne en cache sous la même adresse.",
   "ogImage": {
-    "fr": "/og/og-share-v4-fr.jpg",
-    "en": "/og/og-share-v4-en.jpg",
+    "fr": "/og/og-share-v5-fr.jpg",
+    "en": "/og/og-share-v5-en.jpg",
     "width": 1200,
     "height": 630,
     "type": "image/jpeg",
@@ -77,14 +78,15 @@
     "mono": "'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace"
   },
   "colorsLight": {
-    "accent": "#4a3fd1",
-    "accentHover": "#3b31b5",
+    "accent": "#1b6fb8",
+    "accentHover": "#155a96",
     "onAccent": "#ffffff",
     "secondary": "#1d79c9",
     "secondaryHover": "#1868ad",
     "bg": "#f5f6f8",
     "danger": "#d32f2f",
-    "accentMid": "#1d79c9",
-    "accentEnd": "#0e8f80"
+    "violet": "#4a3fd1",
+    "violetMid": "#1d79c9",
+    "violetEnd": "#0e8f80"
   }
 }
