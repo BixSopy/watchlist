@@ -163,6 +163,31 @@ nouveau facteur juste après un code de secours valide — voir `js/37-mfa.js`.
 **définitivement** le Relying Party ID (`cinepisode.com`) dans Authentication → Passkeys du
 Dashboard — irréversible pour les clés déjà enregistrées une fois activé.
 
+## Notifications : rappels de sorties (digest hebdo) + newsletter
+
+Migration `20261107100000_notification_prefs.sql`. Demande de Pierre le 07/11 : deux bascules
+indépendantes, **désactivées par défaut** (opt-in). Même patron que `social_settings` :
+écriture uniquement via fonction `SECURITY DEFINER`, réutilise `_social_owns`.
+
+| Fonction | Sécurité | Rôle | Effet |
+|---|---|---|---|
+| `set_notification_prefs(p_profile_id, p_releases, p_newsletter)` | SECURITY DEFINER | authenticated | bascule l'une ou l'autre préférence (`null` = inchangée) |
+| `get_my_notification_prefs(p_profile_id)` | SECURITY DEFINER | authenticated | lit mes préférences (écran Réglages) |
+
+Table : `notification_prefs` (une ligne par profil, créée au premier appel de
+`set_notification_prefs`). RLS activée, lecture seule de sa propre ligne, aucune écriture
+directe. Suppression de compte : cascade.
+
+- `releases` pilote le digest hebdomadaire envoyé par le job cron `api/notifications-digest.js`
+  (Vercel Cron, voir `vercel.json`), qui lit directement `watchlist_items.next_air` (déjà calculé
+  et synchronisé côté client, `js/14-suivi.js`) pour les items au statut `encours` — **aucun appel
+  TMDB côté serveur**. Email envoyé via Resend (`send-batch-emails`), un seul par utilisateur
+  concerné, jamais si sa liste de sorties de la semaine est vide.
+- `newsletter` pilote l'abonnement au Topic Resend `newsletter` (contenu rédigé et envoyé par
+  Pierre depuis le dashboard Resend, pas par le code) ; la bascule appelle
+  `api/newsletter-sync.js` qui crée/met à jour le Contact Resend correspondant côté serveur
+  (jamais de clé Resend exposée côté client).
+
 ## Réglages du tableau de bord (à faire à la main)
 
 Voir la section « Mise en ligne publique » et « Après l'achat de cinepisode.com » du
