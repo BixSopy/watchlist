@@ -2518,3 +2518,48 @@ button.fr-row:hover{background:rgba(var(--ink-rgb),.08);transform:translateX(2px
 }
 @keyframes fxSheet{from{transform:translateY(100%)}}
 @media (prefers-reduced-motion:reduce){.fiche *,.fiche{transition-duration:.01ms!important;animation:none!important}}
+
+/* ===== CONTRÔLES : gabarit unique (hauteur, arrondi, écart, police) =====
+   Demande de Pierre (07/11) : boutons de l'en-tête et de la barre de filtres tous de la même
+   taille, mêmes écarts, même style. Les règles d'origine ci-dessus (empilées sur plusieurs
+   refontes) donnaient 23 à 46 px de haut : ce bloc, placé en dernier, les uniformise.
+   --ctl-h = hauteur extérieure de tout bouton ; un segment (statuts, types) = padding 4 + bord 1
+   de chaque côté, donc ses boutons internes font --ctl-h - 10px. 44 px sur mobile (cible tactile). */
+:root{--ctl-h:42px;--ctl-gap:8px;--ctl-bg:var(--p3-glass);--ctl-bd:rgba(var(--ink-rgb),.09)}
+@media (max-width:768px){:root{--ctl-h:44px;--ctl-gap:8px}}
+/* en-tête : cloche, recherche, menu, compte, compact */
+.hdr-right,.p3-tools{gap:var(--ctl-gap)}
+.hdr .p3-ib,.hdr .hbtn{box-sizing:border-box;width:var(--ctl-h);height:var(--ctl-h);min-height:0;padding:0;flex:none;border-radius:50%;background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+.hdr .hbtn svg{width:18px;height:18px}
+.hdr .p3-cpt{box-sizing:border-box;height:var(--ctl-h);padding:0 14px 0 10px}
+.hdr .sync-pill{white-space:nowrap;box-sizing:border-box;height:var(--ctl-h);min-height:var(--ctl-h);padding:0 14px;border-radius:999px;font:600 12.5px 'Inter',sans-serif;background:var(--ctl-bg);border:1px solid var(--ctl-bd);color:var(--text2)}
+@media (max-width:768px){
+  /* en-tête mobile : 40 px (le logo et 5 boutons doivent tenir en 390 px), barre de filtres : 44 px */
+  .hdr{--ctl-h:40px;--ctl-gap:6px}
+  .hdr .p3-cpt,.hdr .sync-pill{width:var(--ctl-h);padding:0;justify-content:center;border-radius:50%}
+}
+/* barre de filtres : statuts, types, tri, recherche, Ajouter */
+.tabs-row,.nav-right,.p3-ph-act{gap:var(--ctl-gap)}
+.stabs,.nav.floating .ntabs-scroll.seg{box-sizing:border-box;height:var(--ctl-h);padding:4px;gap:2px;align-items:center;border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+.seg-hl{top:4px;bottom:4px}
+body .stabs .stab,body .nav.floating .ntabs-scroll.seg .ntab{box-sizing:border-box;height:calc(var(--ctl-h) - 10px);min-height:0;min-width:0;padding:0 16px;border-radius:999px;font:600 13.5px 'Inter',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:6px;line-height:1}
+/* statut actif = même dégradé que le type actif (avant : teinte bleue pour l'un, dégradé pour l'autre) */
+.stabs .stab.on,.stabs .stab.on:hover{background:var(--p3-grad);color:#fff;box-shadow:0 4px 14px rgba(var(--grad-rgb),.3)}
+.nav-right .csel-btn{box-sizing:border-box;height:var(--ctl-h);min-height:0;padding:0 16px;border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd);font:600 13.5px 'Inter',sans-serif;color:var(--text)}
+.p3-ph-act .srch{box-sizing:border-box;height:var(--ctl-h)}
+.p3-ph-act .srch input,.p3-ph-act .srch input:focus{height:100%;font-size:13.5px}
+body .nav.floating .add-btn,body .p3-ph-act .add-btn{box-sizing:border-box;height:var(--ctl-h)!important;min-height:0;padding:0 20px;border-radius:999px!important;font:700 13.5px 'Inter',sans-serif;gap:8px}
+.add-btn svg{width:14px;height:14px}
+/* vue « Ce soir » : le champ de recherche reste dans la barre (en « Ma liste » il passe dans l'en-tête de page) */
+body .nav-right .srch{height:var(--ctl-h)}
+@media (min-width:769px){body .nav-right .srch{width:190px}}
+body .nav-right .srch input,body .nav-right .srch input:focus{box-sizing:border-box;width:100%;height:100%;padding:0 16px 0 40px;border-radius:999px;font:500 13.5px 'Inter',sans-serif;background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+body .nav-right .srch svg{left:16px;width:15px;height:15px}
+/* Calendrier : flèches, « Aujourd'hui », segments (vue, type) et export */
+body .cal-ar{width:var(--ctl-h);height:var(--ctl-h);background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+body .cal-td{box-sizing:border-box;height:var(--ctl-h);padding:0 18px;border-radius:999px;font:600 13.5px 'Inter',sans-serif}
+body .cal-seg{box-sizing:border-box;height:var(--ctl-h);padding:4px;gap:2px;align-items:center;border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+body .cal-seg button{height:calc(var(--ctl-h) - 10px);padding:0 16px;border-radius:999px;font:600 13.5px 'Inter',sans-serif;gap:7px}
+body .cal-seg button.on,body .cal-seg button.on:hover{color:#fff;background:var(--p3-grad);box-shadow:0 4px 14px rgba(var(--grad-rgb),.3)}
+body .cal-ics{box-sizing:border-box;height:var(--ctl-h);padding:0 20px;border-radius:999px;font:700 13.5px 'Inter',sans-serif}
+body .cal-bar,body .cal-nv{gap:var(--ctl-gap)}

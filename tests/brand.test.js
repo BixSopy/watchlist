@@ -185,3 +185,17 @@ test('DA : aucune couleur de marque ni ancien fond (#0a0a0c) recopiés à la mai
   }
   assert.deepStrictEqual(bad, [], 'Couleur de marque en dur : utiliser var(--accent / --accent2 / --p3-grad) ou brand-tokens.json\n' + bad.join('\n'));
 });
+
+/* Contrôles : un seul gabarit de taille (--ctl-h) pour l'en-tête et la barre de filtres, défini en
+   dernier dans css/app.css pour l'emporter sur les anciennes règles empilées (demande de Pierre, 07/11). */
+test('contrôles : gabarit unique --ctl-h placé en fin de feuille', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'css', 'app.css'), 'utf8');
+  const at = css.indexOf('CONTRÔLES : gabarit unique');
+  assert.ok(at > 0, 'bloc de gabarit présent');
+  assert.ok(css.length - at < 6000, 'le bloc reste en toute fin de feuille (il doit battre les règles précédentes)');
+  const block = css.slice(at);
+  assert.match(block, /--ctl-h:42px/);
+  assert.match(block, /max-width:768px\)\{:root\{--ctl-h:44px/);
+  for (const sel of ['.hdr .p3-ib', '.hdr .sync-pill', '.stabs .stab', '.ntabs-scroll.seg .ntab', '.nav-right .csel-btn', '.p3-ph-act .srch', '.add-btn', '.cal-seg', '.cal-ics'])
+    assert.ok(block.includes(sel), sel + ' suit le gabarit');
+});
