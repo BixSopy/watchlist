@@ -9,6 +9,8 @@
   "tagline": "Ton suivi de films, séries et anime",
   "description": "Suis tes films, séries et anime au même endroit : où tu en es, les nouveaux épisodes, ta liste synchronisée partout. Gratuit, sans pub, sans pistage, hébergé dans l'UE.",
   "baseUrl": "https://cinepisode.com",
+  "$comment_previewHosts": "Prévisualisations Vercel de l'équipe de Pierre (expression régulière sur le nom d'hôte). Seules ces origines reçoivent une session de production via js/00-preview-handoff.js ; build-brand.mjs échoue si ce motif correspond au domaine de production ou à un ancien domaine (domains.legacyHosts).",
+  "previewHostPattern": "^watchlist-[a-z0-9-]+-pierre-unbekand-s-projects\\.vercel\\.app$",
   "$comment_baseUrl": "Domaine de production (origine https, sans « / » final). Utilisé dans les textes, les balises Open Graph et les instructions ; l'app elle-même fonctionne sur n'importe quel domaine (tout est en chemins relatifs).",
   "domains": {
     "$comment": "Redirections générées dans vercel.json UNIQUEMENT si redirects=true. www → domaine principal est déjà fait par Vercel (Domains). À n'activer que pour rediriger aussi les anciens domaines (legacyHosts).",
