@@ -2563,3 +2563,37 @@ body .cal-seg button{height:calc(var(--ctl-h) - 10px);padding:0 16px;border-radi
 body .cal-seg button.on,body .cal-seg button.on:hover{color:#fff;background:var(--p3-grad);box-shadow:0 4px 14px rgba(var(--grad-rgb),.3)}
 body .cal-ics{box-sizing:border-box;height:var(--ctl-h);padding:0 20px;border-radius:999px;font:700 13.5px 'Inter',sans-serif}
 body .cal-bar,body .cal-nv{gap:var(--ctl-gap)}
+
+/* ===== CONTRÔLES (suite) : alignement sur une colonne unique, Détectés, icône Amis =====
+   Retours de Pierre (08/11, captures) : boutons « volants » (Partager seul hors de la grille, tri collé aux types,
+   export du calendrier à côté du filtre), styles différents d'une vue à l'autre (Détectés), icône Amis sans taille. */
+/* icônes d'en-tête : même glyphe partout (le SVG de l'icône Amis n'avait pas de taille et débordait de sa pastille) */
+.hdr .p3-ib svg{width:20px;height:20px}
+/* une seule colonne : le calendrier et Détectés prennent la largeur de l'en-tête de page, donc le titre, le contenu et
+   « Partager » / « Ajouter » partagent les mêmes bords gauche et droit */
+@media (min-width:769px){
+  body.p3-v-calendar .calendar-section{padding-left:0;padding-right:0}
+  body .det-wrap{max-width:none;margin-left:0;margin-right:0}
+  /* le tri se cale à droite, sur le bord de « Ajouter » (au lieu de suivre les types) */
+  body .nav.floating .csel.sort-sel{margin-left:auto}
+}
+/* calendrier : navigation et vue à gauche / à droite, filtre à gauche, export calé à droite */
+body .cal-bar .cal-ics{margin-left:auto}
+/* Détectés : mêmes boutons que le reste de l'app */
+body .detected-section .btn,body .detected-section .btn-pill{box-sizing:border-box;height:var(--ctl-h);min-height:0;padding:0 18px;border-radius:999px;font:600 13.5px 'Inter',sans-serif;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;text-decoration:none}
+body .detected-section .btn-ghost,body .detected-section .btn-pill{background:var(--ctl-bg);border:1px solid var(--ctl-bd);color:var(--text)}
+body .detected-section .btn-primary{background:var(--p3-grad);border:0;color:#fff;box-shadow:0 6px 18px rgba(var(--grad-rgb),.3)}
+body .detected-section .btn:disabled{opacity:.45;box-shadow:none;cursor:default}
+body .det-ext,body .det-actions{gap:var(--ctl-gap)}
+body .det-head,body .det-toolbar{align-items:center}
+body .det-filters{box-sizing:border-box;height:var(--ctl-h);padding:4px;gap:2px;align-items:center;border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd);width:fit-content}
+body .det-filters .stab{box-sizing:border-box;height:calc(var(--ctl-h) - 10px);min-height:0;padding:0 16px;border-radius:999px;font:600 13.5px 'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;line-height:1}
+body .det-filters .stab.on,body .det-filters .stab.on:hover{background:var(--p3-grad);color:#fff;box-shadow:0 4px 14px rgba(var(--grad-rgb),.3)}
+/* actions à l'intérieur d'une ligne : même famille (pastille), un cran plus petit */
+body .det-row .btn{box-sizing:border-box;height:34px;min-height:0;padding:0 14px;border-radius:999px;font:600 12.5px 'Inter',sans-serif}
+/* petits téléphones : l'en-tête ne peut pas porter 6 boutons (logo chevauché) ; « Mode compact » reste dans le menu ☰ */
+@media (max-width:430px){.hdr .p3-cpt{display:none}}
+/* onglets de Détectés : jamais plus larges que l'écran, défilement horizontal au besoin */
+body .det-filters{max-width:100%;overflow-x:auto;scrollbar-width:none}
+body .det-filters::-webkit-scrollbar{display:none}
+body .det-filters .stab{flex:none}
