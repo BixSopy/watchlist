@@ -122,7 +122,7 @@
  "plex.myRating": "मेरी रेटिंग",
  "plex.episodes": "एपिसोड",
  "plex.addedOn": "जोड़ने की तारीख",
- "plex.availableOn": "यहाँ उपलब्ध",
+ "plex.availableOn": "इन पर उपलब्ध",
  "plex.provCredit": "प्लेटफ़ॉर्म की उपलब्धता की जानकारी JustWatch से",
  "plex.overview": "सारांश",
  "plex.nextEp": "अगला एपि.:",

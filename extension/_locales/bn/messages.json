@@ -1,12 +1,12 @@
 {
   "extName": {
-    "message": "Cinepisode — অটো ট্র্যাকিং"
+    "message": "Cinepisode — অটো-ট্র্যাকিং"
   },
   "extDescription": {
     "message": "Netflix, Prime Video, Crunchyroll, Disney+ ও Apple TV-তে দেখা পর্বে নিজে থেকেই টিক দেয়। হিস্ট্রিও ইমপোর্ট করে।"
   },
   "optionsTitle": {
-    "message": "Cinepisode — অটো ট্র্যাকিং"
+    "message": "Cinepisode — অটো-ট্র্যাকিং"
   },
   "tokenLabel": {
     "message": "টোকেন"
@@ -42,7 +42,7 @@
     }
   },
   "lastAlready": {
-    "message": "আগে থেকেই হালনাগাদ: $LABEL$",
+    "message": "আগে থেকেই আপ-টু-ডেট: $LABEL$",
     "placeholders": {
       "label": {
         "content": "$1",
@@ -120,7 +120,7 @@
     }
   },
   "lastLegacyNoChange": {
-    "message": "$LABEL$-এ কোনো পরিবর্তন হয়নি (লিস্টে নেই বা আগে থেকেই হালনাগাদ)।",
+    "message": "$LABEL$-এ কোনো পরিবর্তন হয়নি (লিস্টে নেই বা আগে থেকেই আপ-টু-ডেট)।",
     "placeholders": {
       "label": {
         "content": "$1",
@@ -169,7 +169,7 @@
     "message": "Cinepisode-এ পাঠানো হচ্ছে…"
   },
   "importDone": {
-    "message": "$N$টি টাইটেল পাঠানো হয়েছে ($NEW$টি নতুন, $UPD$টি সাম্প্রতিক)। Cinepisode-এর “শনাক্ত” ট্যাবে কী যোগ করবেন বেছে নিন।",
+    "message": "$N$টি টাইটেল পাঠানো হয়েছে ($NEW$টি নতুন, $UPD$টি আরও সাম্প্রতিক)। Cinepisode-এর “শনাক্ত” ট্যাবে কী যোগ করবেন বেছে নিন।",
     "placeholders": {
       "n": {
         "content": "$1"
@@ -257,7 +257,7 @@
     "message": " হিস্ট্রি অনেক লম্বা: শুধু সাম্প্রতিক অংশটুকু পড়া হয়েছে।"
   },
   "importPartial": {
-    "message": " আপনার হিস্ট্রির সবচেয়ে পুরোনো অংশ পড়া যায়নি (Crunchyroll বাকিটা দেয়নি): তার আগের সবকিছু পাঠানো হয়েছে। আবার চেষ্টা করতে পরে আবার ইমপোর্ট চালান।"
+    "message": " আপনার হিস্ট্রির সবচেয়ে পুরোনো অংশ পড়া যায়নি (Crunchyroll বাকিটা দেয়নি): এর আগে যা পড়া গেছে, তার সবই পাঠানো হয়েছে। আবার চেষ্টা করতে পরে আবার ইমপোর্ট চালান।"
   },
   "importErrPermission": {
     "message": "আগে প্ল্যাটফর্মটি চালু করুন (গ্রিডে তার টাইল)।"

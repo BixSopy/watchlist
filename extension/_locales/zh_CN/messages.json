@@ -3,7 +3,7 @@
     "message": "Cinepisode — 自动记录"
   },
   "extDescription": {
-    "message": "自动为你在 Netflix、Prime Video、Crunchyroll、Disney+ 和 Apple TV 上看过的剧集打勾，并可导入观看记录。"
+    "message": "自动为你在 Netflix、Prime Video、Crunchyroll、Disney+ 和 Apple TV 上看过的每一集打勾，并可导入观看记录。"
   },
   "optionsTitle": {
     "message": "Cinepisode — 自动记录"
@@ -21,7 +21,7 @@
     "message": "打开 Cinepisode"
   },
   "lastNone": {
-    "message": "尚未识别到任何内容。剧集播放到 80% 或片尾字幕出现时计为已看，电影为 90%。"
+    "message": "尚未识别到任何内容。一集播放到 80% 或出现片尾字幕时计为已看，电影为 90%。"
   },
   "lastAt": {
     "message": "$WHEN$",
@@ -243,7 +243,7 @@
     "message": "正在连接 Prime Video…"
   },
   "importStepPrimeMeta": {
-    "message": "剧集和电影详情：$D$ / $T$…",
+    "message": "单集和电影详情：$D$ / $T$…",
     "placeholders": {
       "d": {
         "content": "$1"
@@ -354,7 +354,7 @@
     "message": "为什么无法导入观看记录？"
   },
   "liveOnlyInfo": {
-    "message": "Disney+ 和 Apple TV 不开放观看记录：只能识别你从现在起观看的剧集。如需找回过去的记录，请申请获取你的数据副本（Disney：账号设置 / Apple：privacy.apple.com）。"
+    "message": "Disney+ 和 Apple TV 不开放观看记录：只能识别你从现在起观看的每一集。如需找回过去的记录，请申请获取你的数据副本（Disney：账号设置 / Apple：privacy.apple.com）。"
   },
   "notConnected": {
     "message": "未连接"
@@ -369,7 +369,7 @@
     "message": "将扩展关联到你的账号"
   },
   "offHeroSub": {
-    "message": "边看边自动为剧集打勾。"
+    "message": "边看边自动为每一集打勾。"
   },
   "offStep1": {
     "message": "打开 Cinepisode › 设置 › 自动记录"
@@ -411,7 +411,7 @@
     "message": "正在播放"
   },
   "liveBadge": {
-    "message": "直播中"
+    "message": "实时"
   },
   "idleTitle": {
     "message": "未在播放"
@@ -454,7 +454,7 @@
     }
   },
   "nowCounted": {
-    "message": "✓ 已计入"
+    "message": "✓ 已计为已看"
   },
   "platformsCap": {
     "message": "平台"
@@ -497,10 +497,10 @@
     "message": "“已识别”中暂无新内容"
   },
   "pendingOne": {
-    "message": "部新作品待查看"
+    "message": "部新作品在“已识别”中待查看"
   },
   "pendingMany": {
-    "message": "部新作品待查看"
+    "message": "部新作品在“已识别”中待查看"
   },
   "seeDetected": {
     "message": "查看 →"
@@ -527,7 +527,7 @@
     "message": "何时计为已看"
   },
   "rulesText": {
-    "message": "剧集播放到 80% 或片尾字幕一出现，电影播放到 90%，且至少连续播放 20 秒。片单中已有的作品会自动更新，其余的会进入“已识别”标签页。"
+    "message": "一集播放到 80% 或片尾字幕一出现，电影播放到 90%，且至少连续播放 20 秒。片单中已有的作品会自动更新，其余的会进入“已识别”标签页。"
   },
   "diagCopyHint": {
     "message": "识别状态，不含你的令牌"

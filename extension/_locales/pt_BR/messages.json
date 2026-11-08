@@ -21,7 +21,7 @@
     "message": "Abrir o Cinepisode"
   },
   "lastNone": {
-    "message": "Nada detectado ainda. Um episódio conta como visto com 80% ou nos créditos finais; um filme, com 90%."
+    "message": "Nada detectado ainda. Um episódio conta como visto aos 80% ou nos créditos finais; um filme, aos 90%."
   },
   "lastAt": {
     "message": "Em $WHEN$",
@@ -281,7 +281,7 @@
     "message": "A Crunchyroll está limitando as solicitações agora. Tente de novo em alguns minutos."
   },
   "importErrCrunchyrollTab": {
-    "message": "Não foi possível abrir www.crunchyroll.com em uma aba. Abra o site você mesmo e tente de novo."
+    "message": "Não foi possível abrir www.crunchyroll.com em uma aba. Abra o site manualmente e tente de novo."
   },
   "importErrStep": {
     "message": "Etapa $STEP$: $STATUS$",
@@ -372,7 +372,7 @@
     "message": "Seus episódios são marcados sozinhos enquanto você assiste."
   },
   "offStep1": {
-    "message": "Abra Cinepisode › Configurações › Acompanhamento automático"
+    "message": "Abra o Cinepisode › Configurações › Acompanhamento automático"
   },
   "offStep2": {
     "message": "Clique em “Gerar meu token”"
@@ -445,7 +445,7 @@
     }
   },
   "nowRule": {
-    "message": "conta com $P$%",
+    "message": "conta como visto aos $P$%",
     "placeholders": {
       "p": {
         "content": "$1",
@@ -527,7 +527,7 @@
     "message": "Quando um título conta como visto"
   },
   "rulesText": {
-    "message": "Um episódio com 80% ou assim que aparecem os créditos finais; um filme com 90%, após pelo menos 20 segundos de reprodução contínua. Os títulos encontrados na sua lista são atualizados; os outros vão para a aba “Detectados”."
+    "message": "Um episódio aos 80% ou assim que aparecem os créditos finais; um filme aos 90%, após pelo menos 20 segundos de reprodução contínua. Os títulos encontrados na sua lista são atualizados; os outros vão para a aba “Detectados”."
   },
   "diagCopyHint": {
     "message": "Status da detecção, sem seu token"
