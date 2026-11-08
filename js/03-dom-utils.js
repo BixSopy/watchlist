@@ -34,3 +34,50 @@ function starsvg(f){if(f)return '<svg viewBox="0 0 24 24"><polygon points="12,2 
 /* Journalisation minimale : code et message seulement (jamais d'objet complet, de jeton ni de donnée perso) */
 function _logErr(tag,e){try{console.error(tag,(e&&e.code)||'',(e&&e.message)||String(e||''));}catch(_){}}
 
+
+/* ===== Sens de lecture (arabe, ourdou : js/00-i18n.js pose IS_RTL et <html dir="rtl">) =====
+   En LTR, chaque utilitaire rend exactement la valeur d'avant (signe 1, flèches →/›, texte inchangé). */
+function isRtl(){return typeof IS_RTL!=='undefined'&&!!IS_RTL;}
+/* +1 en LTR, −1 en RTL : « vers la fin du sens de lecture » en x physique (gestes, translateX, flèches du clavier) */
+function hScrollSign(){return isRtl()?-1:1;}
+/* Défilement horizontal d'un élément : en RTL (navigateurs actuels) scrollLeft va de 0 (début, à droite)
+   à −max (fin, à gauche). Bornes physiques de scrollLeft selon le sens réel de l'élément. */
+function hScrollRtlEl(el){try{return getComputedStyle(el).direction==='rtl';}catch(_){return isRtl();}}
+function hScrollBounds(el){var max=Math.max(0,el.scrollWidth-el.clientWidth);return hScrollRtlEl(el)?[-max,0]:[0,max];}
+/* Position logique (0 = début du sens de lecture), utile pour savoir si l'on est au bout */
+function hScrollPos(el){return Math.abs(el.scrollLeft||0);}
+/* Flèches de navigation écrites dans les gabarits : inversées en RTL */
+function arrowFwd(){return isRtl()?'←':'→';}
+function arrowBack(){return isRtl()?'→':'←';}
+function chevFwd(){return isRtl()?'‹':'›';}
+function chevBack(){return isRtl()?'›':'‹';}
+/* Titre, pseudo, nom d'appareil… inséré dans une interface RTL : isolé (FSI…PDI) pour que la
+   ponctuation finale (« What If...? ») et les mots voisins (« · S1 E4 ») gardent leur place. Inchangé en LTR. */
+function bidiIso(s){s=s==null?'':String(s);return isRtl()&&s?'⁨'+s+'⁩':s;}
+/* Coupe un texte affiché à n caractères visibles sans casser un emoji ni une syllabe (devanagari, bengali…) */
+function strCut(s,n){
+  s=String(s==null?'':s);if(s.length<=n)return s;
+  try{if(typeof Intl!=='undefined'&&Intl.Segmenter){var out='',k=0,it=new Intl.Segmenter(typeof LOCALE!=='undefined'?LOCALE:undefined,{granularity:'grapheme'}).segment(s)[Symbol.iterator](),r;while(k<n&&!(r=it.next()).done){out+=r.value.segment;k++;}return out;}}catch(_){}
+  return Array.from(s).slice(0,n).join('');
+}
+/* Tri alphabétique des titres/noms affichés selon la langue de l'interface (pas celle du navigateur) */
+var _wlCollator=null;
+function textCompare(a,b){
+  a=a==null?'':String(a);b=b==null?'':String(b);
+  if(!_wlCollator){try{_wlCollator=new Intl.Collator(typeof LOCALE!=='undefined'?LOCALE:undefined);}catch(_){_wlCollator={compare:function(x,y){return x.localeCompare(y);}};}}
+  return _wlCollator.compare(a,b);
+}
+/* Identifiant de saga/dossier : même résultat qu'avant pour les écritures latines ([a-z0-9], accents
+   retirés sans translittération : « Astérix » → « ast-rix »), mais les lettres et chiffres des autres
+   écritures (cyrillique, arabe, CJK, devanagari…) sont gardés : sinon « Гарри Поттер » donnait une clé vide. */
+var _slugKeep=null;
+/* lettre/chiffre d'une autre écriture ; « ー » (katakana, écriture commune) gardé, symboles latins communs (², ʹ) non */
+function _slugOther(ch){var k=_slugKeep;return k.ok.test(ch)&&!k.lat.test(ch)&&!(k.com.test(ch)&&(ch.codePointAt(0)<0x3000||!k.L.test(ch)));}
+function slugKey(s){
+  s=String(s==null?'':s).toLowerCase();
+  if(_slugKeep===null){try{_slugKeep={ok:new RegExp('[\\p{L}\\p{M}\\p{Nd}]','u'),lat:new RegExp('[\\p{Script=Latin}\\p{Script=Inherited}]','u'),com:new RegExp('\\p{Script=Common}','u'),L:new RegExp('\\p{L}','u')};}catch(_){_slugKeep=false;}}
+  var out='';
+  if(_slugKeep){for(var it=s[Symbol.iterator](),r;!(r=it.next()).done;){var ch=r.value;out+=(/[a-z0-9]/.test(ch)||_slugOther(ch))?ch:' ';}}
+  else out=s.replace(/[^a-z0-9]/g,' ');
+  return out.replace(/ +/g,'-').replace(/^-|-$/g,'');
+}

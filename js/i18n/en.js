@@ -14,6 +14,8 @@
   "region": "US",
   "justwatch": "https://www.justwatch.com/us/search?q=",
   "og": "en_US",
+  "dir": "ltr",
+  "rank": 1,
   "tagline": "Your movie, series and anime tracker",
   "description": "Track your movies, series and anime in one place: where you left off, new episodes, your list synced everywhere. Free, no ads, no tracking, hosted in the EU.",
   "legal": {

@@ -133,7 +133,9 @@ function visible(){
 function weekTitle(w){var e=C.addDays(w,6),a=C.parse(w),b=C.parse(e);try{var f=new Intl.DateTimeFormat(LOCALE,{day:'numeric',month:'long'});return t('cal.weekOf',{from:(a.getMonth()===b.getMonth()&&!/^en/.test(LOCALE))?String(a.getDate()):f.format(a),to:f.format(b)});}catch(x){return w;}}
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 function monthTitle(){return cap(new Intl.DateTimeFormat(LOCALE,{month:'long',year:'numeric'}).format(new Date(st.y,st.m,1)));}
-function wd(date,len){return new Intl.DateTimeFormat(LOCALE,{weekday:len||'short'}).format(C.parse(date)).replace('.','');}
+/* Jour abrégé : point final d'abréviation retiré (« lun. » → « lun ») ; raw = libellé Intl tel quel
+   (« lun. » en français, « Mon » en anglais, « الاثنين », « 周一 »… : pas de point ajouté à la main) */
+function wd(date,len,raw){var s=new Intl.DateTimeFormat(LOCALE,{weekday:len||'short'}).format(C.parse(date));return raw?s:s.replace(/\.$/,'');}
 function poster(e,cls){return '<span class="'+cls+'"'+(e.poster?' style="background-image:url(\''+IB+'w154'+esc(e.poster)+'\')"':'')+'></span>';}
 function sub(e){return e.kind==='film'?esc(e.label):esc(C.code(e));}
 function typeLbl(k){return t(k==='film'?'cal.kind.film':k==='anime'?'type.anime':'cal.kind.serie');}
@@ -145,7 +147,7 @@ function agendaHtml(evs,from,days){
   if(!keys.length)return '<div class="cal-empty">'+esc(st.loading?t('common.loading'):t('cal.empty'))+'</div>';
   return keys.map(function(d){
     var now=d===td;
-    return '<div class="cal-ag'+(now?' now':'')+'"><div class="cal-agd"><b>'+C.parse(d).getDate()+'</b><span>'+esc(wd(d))+(LANG==='fr'?'.':'')+'</span>'+(now?'<em>'+esc(t('cal.today'))+'</em>':'')+'</div><div class="cal-agl">'+
+    return '<div class="cal-ag'+(now?' now':'')+'"><div class="cal-agd"><b>'+C.parse(d).getDate()+'</b><span>'+esc(wd(d,'short',true))+'</span>'+(now?'<em>'+esc(t('cal.today'))+'</em>':'')+'</div><div class="cal-agl">'+
       g[d].map(function(e){return '<div class="cal-ai" style="--c:'+COL[e.kind]+'"'+uiAct('openPlexQuiet',[e.itemId])+'>'+poster(e,'cal-ap')+'<span class="cal-at"><b>'+esc(e.title)+'</b><i><em class="cal-ty">'+esc(typeLbl(e.kind))+'</em> '+sub(e)+'</i></span><span class="cal-ah">'+esc(hour(e,td))+'</span></div>';}).join('')+'</div></div>';
   }).join('');
 }

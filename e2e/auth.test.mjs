@@ -299,7 +299,7 @@ test('changement de langue : réglages et modale de connexion, choix mémorisé 
   // Depuis la modale de connexion : la page se recharge en anglais et la modale se rouvre
   await page.click('#syncStatusPill');
   await title(page).filter({ hasText: 'Connexion' }).waitFor();
-  await Promise.all([page.waitForEvent('load'), page.click('.lang-switch-auth .lang-btn[lang="en"]')]);
+  await Promise.all([page.waitForEvent('load'), page.selectOption('.lang-switch-auth .lang-select', 'en')]);
   await title(page).filter({ hasText: 'Sign in' }).waitFor();
   assert.equal(await page.getAttribute('html', 'lang'), 'en');
   assert.equal(await page.evaluate(() => localStorage.getItem('wl_lang')), 'en');
@@ -317,9 +317,9 @@ test('changement de langue : réglages et modale de connexion, choix mémorisé 
   await page.click('#optMenuMain button[data-click="openSettings"]');
   await page.locator('.lang-switch-settings').waitFor();
   if (SHOTS) { await page.waitForTimeout(500); await pageShot(page, 'en-06-reglages', '#optMenu'); }
-  await Promise.all([page.waitForEvent('load'), page.click('.lang-switch-settings .lang-btn[lang="fr"]')]);
+  await Promise.all([page.waitForEvent('load'), page.selectOption('.lang-switch-settings .lang-select', 'fr')]);
   await page.waitForFunction(() => document.documentElement.lang === 'fr');
-  await page.locator('.lang-switch-settings .lang-btn.on[lang="fr"]').waitFor();
+  assert.equal(await page.inputValue('.lang-switch-settings .lang-select'), 'fr');
   assert.equal(await page.evaluate(() => localStorage.getItem('wl_lang')), 'fr');
   assert.equal(db.users[0].metadata?.lang, 'fr');
   assert.deepEqual(problems, []);

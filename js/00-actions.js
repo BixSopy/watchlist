@@ -80,6 +80,7 @@ uiOn('genTrackToken',function(){generateTrackToken();});
 uiOn('resetDismissed',function(){resetDismissedRecos();});
 uiOn('clearDiscoveryCache',function(){clearDiscoveryCache();});
 uiOn('setLang',function(el,e,code,opts){setLang(code,opts);});
+uiOn('setLangSelect',function(el,e,opts){setLang(el.value,opts);});
 /* Liste, onglets, cartes */
 uiOn('sfxClick',function(){sfx('click');});
 uiOn('switchTab',function(el){switchTab(el);});

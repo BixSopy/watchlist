@@ -10,6 +10,8 @@
   "region": "FR",
   "justwatch": "https://www.justwatch.com/fr/recherche?q=",
   "og": "fr_FR",
+  "dir": "ltr",
+  "rank": 6,
   "tagline": "Ton suivi de films, séries et anime",
   "description": "Suis tes films, séries et anime au même endroit : où tu en es, les nouveaux épisodes, ta liste synchronisée partout. Gratuit, sans pub, sans pistage, hébergé dans l'UE.",
   "legal": {

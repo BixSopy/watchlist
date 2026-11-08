@@ -5,7 +5,13 @@
    navigateur (première langue disponible) > anglais. */
 var I18N_DICTS=window.I18N_DICTS||{};
 var I18N_STORAGE_KEY='wl_lang',I18N_FALLBACK='en';
-function i18nLanguages(){return Object.keys(I18N_DICTS);}
+/* Langues disponibles, dans l'ordre de $meta.rank (les plus parlées d'abord) */
+function i18nLanguages(){
+  return Object.keys(I18N_DICTS).sort(function(a,b){
+    var ra=(I18N_DICTS[a].$meta||{}).rank||99,rb=(I18N_DICTS[b].$meta||{}).rank||99;
+    return ra-rb||(a<b?-1:1);
+  });
+}
 function i18nNormalize(code){
   var base=String(code||'').toLowerCase().split(/[-_]/)[0];
   return I18N_DICTS[base]?base:'';
@@ -90,12 +96,15 @@ function setLang(code,opts){
   var p=(typeof saveLangToAccount==='function')?saveLangToAccount(code):null;
   if(p&&p.then)p.then(done,done);else done();
 }
-/* Sélecteur de langue réutilisable (réglages, écran de connexion) */
+/* Sélecteur de langue réutilisable (réglages, écran de connexion, pied de page) : liste déroulante
+   native (accessible, adaptée au clavier mobile et au sens de lecture), chaque langue dans son
+   écriture et avec son attribut lang. */
 function langSwitcherHtml(cls,opts){
-  return '<div class="lang-switch '+(cls||'')+'" role="group" aria-label="'+esc(t('lang.label'))+'">'+i18nLanguages().map(function(c){
+  var args=opts?JSON.stringify([opts]):'';
+  return '<div class="lang-switch '+(cls||'')+'"><select class="lang-select" aria-label="'+esc(t('lang.label'))+'" data-change="setLangSelect"'+(args?' data-args="'+esc(args)+'"':'')+'>'+i18nLanguages().map(function(c){
     var m=I18N_DICTS[c].$meta||{};
-    return '<button type="button" class="lang-btn'+(c===LANG?' on':'')+'" lang="'+c+'" aria-pressed="'+(c===LANG)+'" data-click="setLang" data-args="'+esc(JSON.stringify(opts?[c,opts]:[c]))+'">'+esc(m.name||c)+'</button>';
-  }).join('')+'</div>';
+    return '<option value="'+c+'" lang="'+c+'" dir="'+(m.dir==='rtl'?'rtl':'ltr')+'"'+(c===LANG?' selected':'')+'>'+esc(m.name||c)+'</option>';
+  }).join('')+'</select></div>';
 }
 /* Balises de la page dans la langue active (description, Open Graph, adresse canonique de /fr, /en) */
 function applyI18nHead(){

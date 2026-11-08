@@ -140,8 +140,9 @@ function _calcDrCardSize(){
 }
 function _animHScroll(el,to,dur){
   var from=el.scrollLeft,start=performance.now();
-  var max=el.scrollWidth-el.clientWidth;
-  to=Math.max(0,Math.min(to,max));
+  /* bornes physiques : [0,max] en LTR, [−max,0] en RTL (scrollLeft négatif vers la fin) */
+  var b=hScrollBounds(el);
+  to=Math.max(b[0],Math.min(to,b[1]));
   function frame(now){
     var p=Math.min(1,(now-start)/dur);
     el.scrollLeft=from+(to-from)*easeInOutCubic(p);
@@ -149,6 +150,8 @@ function _animHScroll(el,to,dur){
   }
   requestAnimationFrame(frame);
 }
+/* dir est physique : −1 = flèche de gauche (précédent en LTR, suivant en RTL), +1 = flèche de droite.
+   scrollLeft diminue vers la gauche dans les deux sens de lecture : le calcul reste le même. */
 function drScrollRow(innerId,dir){
   var el=document.getElementById(innerId);if(!el)return;
   var cw=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--dr-card-w'))||126;
@@ -161,17 +164,17 @@ function _renderDrRow(cfg,data,tab){
   var row=document.getElementById(rowId);if(!row)return;
   var items=data.items||[];
   if(!items.length){row.style.display='none';return;}
-  var label=esc(cfg.title)+(cfg.type==='because'&&data.title?' <em>'+esc(data.title.slice(0,20))+'</em>':'');
+  var label=esc(cfg.title)+(cfg.type==='because'&&data.title?' <em>'+esc(strCut(data.title,20))+'</em>':'');
   row.innerHTML=
     '<div class="dr-row-head">'+
       '<div class="dr-row-title">'+label+'</div>'+
     '</div>'+
     '<div class="dr-row-wrap">'+
-      '<button class="dr-arrow left" '+uiAct('drScrollRow',[innerId,-1])+' aria-label="'+esc(t('common.prev'))+'">'+
+      '<button class="dr-arrow left" '+uiAct('drScrollRow',[innerId,-1])+' aria-label="'+esc(t(isRtl()?'common.next':'common.prev'))+'">'+
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>'+
       '</button>'+
       '<div class="dr-row-inner" id="'+innerId+'">'+items.map(_drCardHtml).join('')+'</div>'+
-      '<button class="dr-arrow right" '+uiAct('drScrollRow',[innerId,1])+' aria-label="'+esc(t('common.next'))+'">'+
+      '<button class="dr-arrow right" '+uiAct('drScrollRow',[innerId,1])+' aria-label="'+esc(t(isRtl()?'common.prev':'common.next'))+'">'+
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</button>'+
     '</div>';
