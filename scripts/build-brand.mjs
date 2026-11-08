@@ -75,6 +75,8 @@ function langMeta(lang) {
   const m = DICTS[lang].$meta;
   return { ...m, tagline: m.tagline || brand.tagline, description: m.description || brand.description };
 }
+/* Sens de lecture de la langue ($meta.dir), pour <html dir> des emails et pages légales */
+function langDir(lang) { return DICTS[lang].$meta.dir === 'rtl' ? 'rtl' : 'ltr'; }
 const LEGAL_KINDS = ['privacy', 'terms'];
 const hasLegal = (lang) => LEGAL_KINDS.every(k => fs.existsSync(rel('branding/legal/' + lang + '/' + k + '.html')));
 const LEGAL_LANGS = LANGS.filter(hasLegal);
@@ -257,7 +259,7 @@ function buildEmails(out) {
       const subject = fill(meta.subject).replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
       bylang[lang] = subject;
       docs[lang] = fill(layout, {
-        lang,
+        lang, dir: langDir(lang),
         title: escHtml(subject.replace(/\{\{[^}]*\}\}/g, '').replace(/^\s*[·-]\s*/, '').trim()),
         preheader: fill(meta.preheader || ''),
         tagline: escHtml(langMeta(lang).tagline),
@@ -307,7 +309,7 @@ function buildAppEmails(out) {
       const subject = fill(meta.subject).replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
       const content = emailBody(fill(body.trim()), lang);
       const html = fill(layout, {
-        lang, title: escHtml(subject), preheader: fill(meta.preheader || ''),
+        lang, dir: langDir(lang), title: escHtml(subject), preheader: fill(meta.preheader || ''),
         tagline: escHtml(langMeta(lang).tagline),
         footerReason: escHtml(T(lang, 'mail.footer.reason', { name: brand.name })),
         footerQuestion: escHtml(T(lang, 'mail.footer.question')),
@@ -341,7 +343,7 @@ function buildLegal(out) {
       const otherLangs = LEGAL_LANGS.filter(l => l !== lang).map(l =>
         `<a class="lang" href="${escHtml(legalPaths(l)[kind])}" hreflang="${l}" lang="${l}">${escHtml(langMeta(l).name)}</a>`).join('');
       out[paths[kind].slice(1) + '.html'] = '<!-- ' + GENERATED + ' -->\n' + fill(layout, {
-        lang, title: escHtml(meta.title), updated: escHtml(meta.updated), robots,
+        lang, dir: langDir(lang), title: escHtml(meta.title), updated: escHtml(meta.updated), robots,
         description: escHtml(T(lang, 'legal.page.description', { title: meta.title, name: brand.name })),
         canonical: brand.indexable ? `\n<link rel="canonical" href="${escHtml(urls[lang])}">` + hreflangLinks(urls, urls[FALLBACK_LANG] || urls[DEFAULT_LANG]) : '',
         ogLocale: escHtml(langMeta(lang).og || lang),

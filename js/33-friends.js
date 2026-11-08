@@ -63,7 +63,7 @@ function friendsHtml(){
   }
   if(fr.length){
     h+='<ul class="fr-list">'+fr.map(function(f,i){
-      var c=f.current,sub=c?(c.title+(c.season&&c.episode?' · S'+c.season+' E'+c.episode:'')):'@'+f.handle;
+      var c=f.current,sub=c?((typeof bidiIso==='function'?bidiIso:String)(c.title)+(c.season&&c.episode?' · S'+c.season+' E'+c.episode:'')):(typeof bidiIso==='function'?bidiIso:String)('@'+f.handle);
       return '<li style="--i:'+i+'"><button type="button" class="fr-row"'+uiAct('openFriend',[f.profile_id])+'>'+friendAvatar(f)+
         '<span class="fr-meta"><b>'+esc((typeof bidiIso==='function'?bidiIso:String)(friendName(f)))+'</b><span>'+(c?'<i class="fr-live" aria-hidden="true"></i>':'')+esc(sub)+'</span></span>'+
         (c&&c.poster_path&&/^\/[A-Za-z0-9_.-]{1,80}$/.test(c.poster_path)?'<img class="fr-post" alt="" loading="lazy" src="'+IMG_W92+esc(c.poster_path)+'">':'')+'</button></li>';

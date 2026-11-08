@@ -71,13 +71,19 @@ function textCompare(a,b){
    retirés sans translittération : « Astérix » → « ast-rix »), mais les lettres et chiffres des autres
    écritures (cyrillique, arabe, CJK, devanagari…) sont gardés : sinon « Гарри Поттер » donnait une clé vide. */
 var _slugKeep=null;
-/* lettre/chiffre d'une autre écriture ; « ー » (katakana, écriture commune) gardé, symboles latins communs (², ʹ) non */
-function _slugOther(ch){var k=_slugKeep;return k.ok.test(ch)&&!k.lat.test(ch)&&!(k.com.test(ch)&&(ch.codePointAt(0)<0x3000||!k.L.test(ch)));}
-function slugKey(s){
-  s=String(s==null?'':s).toLowerCase();
+/* Lettre/chiffre d'une écriture non latine (cyrillique, arabe, CJK, devanagari…) ; « ー » (katakana,
+   écriture « commune ») gardé ; symboles communs (², ʹ), accents combinants et lettres latines non. */
+function isOtherScriptChar(ch){
   if(_slugKeep===null){try{_slugKeep={ok:new RegExp('[\\p{L}\\p{M}\\p{Nd}]','u'),lat:new RegExp('[\\p{Script=Latin}\\p{Script=Inherited}]','u'),com:new RegExp('\\p{Script=Common}','u'),L:new RegExp('\\p{L}','u')};}catch(_){_slugKeep=false;}}
-  var out='';
-  if(_slugKeep){for(var it=s[Symbol.iterator](),r;!(r=it.next()).done;){var ch=r.value;out+=(/[a-z0-9]/.test(ch)||_slugOther(ch))?ch:' ';}}
-  else out=s.replace(/[^a-z0-9]/g,' ');
-  return out.replace(/ +/g,'-').replace(/^-|-$/g,'');
+  var k=_slugKeep;if(!k||!ch)return false;
+  return k.ok.test(ch)&&!k.lat.test(ch)&&!(k.com.test(ch)&&(ch.codePointAt(0)<0x3000||!k.L.test(ch)));
+}
+/* Garde [a-z0-9] (+ extra, ex. « +> ») et les caractères des autres écritures ; le reste devient rep */
+function keepScriptChars(s,rep,extra){
+  var out='',re=extra?new RegExp('[a-z0-9'+extra+']'):/[a-z0-9]/;
+  for(var it=String(s)[Symbol.iterator](),r;!(r=it.next()).done;){var ch=r.value;out+=(re.test(ch)||isOtherScriptChar(ch))?ch:rep;}
+  return out;
+}
+function slugKey(s){
+  return keepScriptChars(String(s==null?'':s).toLowerCase(),' ').replace(/ +/g,'-').replace(/^-|-$/g,'');
 }

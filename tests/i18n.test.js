@@ -23,34 +23,50 @@ const DICTS = (() => {
   return ctx.window.I18N_DICTS;
 })();
 const keys = l => Object.keys(DICTS[l]).filter(k => k !== '$meta').sort();
+/* clés sans catégorie plurielle : fr/en ont .one/.other, ru .one/.few/.many/.other, ar 6 catégories, zh seulement .other */
+const PLURAL_RE = /\.(zero|one|two|few|many|other)$/;
+const baseKeys = l => [...new Set(keys(l).map(k => k.replace(PLURAL_RE, '')))].sort();
+const CATS = l => new Intl.PluralRules(DICTS[l].$meta.locale).resolvedOptions().pluralCategories;
 const vars = s => [...String(s).matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort();
+/* formes plurielles : {n} peut figurer (ru/ar/hi : « {n} … » exigé dans toutes les formes) même si la source française n'en a pas */
+const varsPl = (k, s) => PLURAL_RE.test(k) ? vars(s).filter(v => v !== 'n') : vars(s);
 const APP_JS = fs.readdirSync(path.join(ROOT, 'js')).filter(f => f.endsWith('.js')).map(f => 'js/' + f);
 
-test('français et anglais uniquement, chacun déclaré dans son propre fichier', () => {
-  assert.deepStrictEqual(LANGS, ['en', 'fr']);
+test('10 langues (les plus parlées), chacune déclarée dans son propre fichier', () => {
+  assert.deepStrictEqual(LANGS, ['ar', 'bn', 'en', 'es', 'fr', 'hi', 'pt', 'ru', 'ur', 'zh']);
   for (const l of LANGS) assert.ok(DICTS[l], l);
 });
 
 test('mêmes clés, mêmes variables et mêmes métadonnées dans chaque langue', () => {
   const ref = keys('fr');
   assert.ok(ref.length > 300, 'dictionnaire complet');
+  const refBase = baseKeys('fr');
   for (const l of LANGS) {
-    assert.deepStrictEqual(keys(l), ref, l + ' : clés différentes du français');
+    assert.deepStrictEqual(baseKeys(l), refBase, l + ' : clés différentes du français');
     assert.deepStrictEqual(Object.keys(DICTS[l].$meta).sort(), Object.keys(DICTS.fr.$meta).sort(), l + ' : $meta');
-    for (const k of ref) {
+    for (const k of keys(l)) {
       assert.strictEqual(typeof DICTS[l][k], 'string', l + ' ' + k);
       assert.ok(DICTS[l][k].trim(), l + ' ' + k + ' : vide');
-      assert.deepStrictEqual(vars(DICTS[l][k]), vars(DICTS.fr[k]), l + ' ' + k + ' : variables {…}');
+      const frKey = PLURAL_RE.test(k) && !(k in DICTS.fr) ? k.replace(PLURAL_RE, '.other') : k;
+      assert.deepStrictEqual(varsPl(k, DICTS[l][k]), varsPl(k, DICTS.fr[frKey]), l + ' ' + k + ' : variables {…}');
     }
     const m = DICTS[l].$meta;
     assert.doesNotThrow(() => new Intl.NumberFormat(m.locale), l + ' : locale Intl');
     assert.match(m.tmdb, /^[a-z]{2}-[A-Z]{2}$/);
     assert.match(m.region, /^[A-Z]{2}$/);
+    assert.match(m.dir, /^(ltr|rtl)$/);
+    assert.ok(Number.isInteger(m.rank), l + ' : rank');
+    assert.match(m.justwatch, /^https:\/\/www\.justwatch\.com\/[a-z]{2}\/[^/]+\?q=$/, l + ' : justwatch');
   }
-  /* pluriels : .one et .other vont toujours ensemble */
-  for (const k of ref.filter(k => /\.(one|other)$/.test(k))) {
-    const base = k.replace(/\.(one|other)$/, '');
-    assert.ok(DICTS.fr[base + '.one'] && DICTS.fr[base + '.other'], base);
+  assert.deepStrictEqual(LANGS.filter(l => DICTS[l].$meta.dir === 'rtl'), ['ar', 'ur']);
+  assert.strictEqual(new Set(LANGS.map(l => DICTS[l].$meta.rank)).size, LANGS.length, 'rangs uniques');
+  /* pluriels : toutes les catégories de la langue (Intl.PluralRules), 'other' toujours ; many facultatif en es/pt/fr */
+  const optional = new Set(['many']);
+  for (const l of LANGS) {
+    const bases = [...new Set(keys(l).filter(k => PLURAL_RE.test(k)).map(k => k.replace(PLURAL_RE, '')))];
+    assert.strictEqual(bases.length, [...new Set(keys('fr').filter(k => PLURAL_RE.test(k)).map(k => k.replace(PLURAL_RE, '')))].length, l + ' : groupes pluriels');
+    const want = CATS(l).filter(c => !(optional.has(c) && ['es', 'pt', 'fr', 'en'].includes(l)));
+    for (const b of bases) assert.deepStrictEqual(want.filter(c => !((b + '.' + c) in DICTS[l])), [], l + ' ' + b + ' : catégories plurielles manquantes');
   }
 });
 

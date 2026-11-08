@@ -101,7 +101,7 @@ function p3ForYou(){
   var fs=secs.filter(function(x){return x.because;})[0]||secs[0],fc=fs.cards[0];
   var IMG=function(c,sz){var p=c.getAttribute('data-poster');return p?esc(IB+sz+p):'';};
   var feat='<section class="p3-feat reco-card"'+_p3Attrs(fc)+'><span class="p3-feat-bg" style="background-image:url(\''+IMG(fc,'w780')+'\')" aria-hidden="true"></span><span class="p3-feat-po" style="background-image:url(\''+IMG(fc,'w342')+'\')" aria-hidden="true"></span>'+
-    '<div class="p3-feat-tx"><div class="p3-k">'+esc(fs.why)+'</div><h3>'+esc(fc.getAttribute('data-title')||'')+'</h3><p>'+esc(strCut(fc.getAttribute('data-overview')||'',220))+'</p>'+
+    '<div class="p3-feat-tx"><div class="p3-k">'+esc(fs.why)+'</div><h3>'+esc(fc.getAttribute('data-title')||'')+'</h3><p>'+esc((function(o){return typeof strCut==='function'?strCut(o,220):o.slice(0,220);})(fc.getAttribute('data-overview')||''))+'</p>'+
     '<div class="p3-feat-b"><button type="button" class="btn btn-p3" data-click="recoAdd">＋ '+esc(t('nav.addToList'))+'</button><button type="button" class="btn btn-pill" data-click="recoPreview">'+esc(t('hero.sheet'))+'</button><button type="button" class="btn btn-pill" data-click="recoDismiss">'+esc(t('nav.notForMe'))+'</button></div></div></section>';
   var rows=secs.map(function(sx){
     var cs=sx.cards.filter(function(c){return c!==fc;});if(!cs.length)return '';

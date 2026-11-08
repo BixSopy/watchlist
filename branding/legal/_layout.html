@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="[[lang]]">
+<html lang="[[lang]]" dir="[[dir]]">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,10 +30,10 @@ h2::before{content:"";flex:none;width:4px;height:20px;border-radius:2px;backgrou
 p,li{color:[[colors.text]]}
 .muted{color:[[colors.textMuted]]}
 a{color:[[colors.accent]];text-underline-offset:3px}
-ul{padding-left:20px}
+ul{padding-inline-start:20px}
 li{margin:4px 0}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 6px}
-th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid [[colors.border]]}
+th,td{text-align:start;vertical-align:top;padding:9px 10px;border-bottom:1px solid [[colors.border]]}
 th{color:[[colors.textMuted]];font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
 /* Petits écrans : les cellules se coupent au lieu d'élargir la page */
 th,td{overflow-wrap:anywhere}

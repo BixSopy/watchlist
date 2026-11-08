@@ -101,7 +101,9 @@ var GENRE_MAP={
   history:{movie:36,tv:null},horror:{movie:27,tv:null},music:{movie:10402,tv:null},
   mystery:{movie:9648,tv:9648},war:{movie:10752,tv:10768}
 };
-function _normTok(s){return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9+>]/g,'');}
+/* Jeton latin : accents retirés, [a-z0-9+>] seulement (inchangé). Les lettres des autres écritures sont
+   gardées (« фильм2020 » ne devient pas l'année « 2020 », un mot arabe ne devient pas vide). */
+function _normTok(s){s=(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');return typeof keepScriptChars==='function'?keepScriptChars(s,'','+>'):s.replace(/[^a-z0-9+>]/g,'');}
 /* Retourne null si rien de structuré n'est reconnu (→ fallback recherche classique) */
 function _parseStructuredQuery(q){
   var tokens=(q||'').trim().split(/\s+/).filter(Boolean);
