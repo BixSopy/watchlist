@@ -144,6 +144,20 @@ fichiers générés à la main : `node --test tests/` échoue s'ils ne sont plus
 l'app : elle fonctionne sur n'importe quel domaine (chemins relatifs, liens d'emails basés sur
 l'adresse depuis laquelle la demande a été faite).
 
+### Prévisualisations Vercel : connexion automatique
+
+Une prévisualisation est une autre origine que la production : pas de session partagée, et la
+connexion y échoue (`captcha_failed`, car `TURNSTILE_SITE_KEY` n'existe que côté « production » alors que
+Supabase exige le CAPTCHA). `js/00-preview-handoff.js` règle ça sans CAPTCHA : une prévisualisation
+sans session fait un aller-retour par la production (`#wl_preview=<origine>` puis `#wl_handoff=<jeton>`)
+et ouvre une session avec le **jeton d'accès** (1 h), jamais le jeton de rafraîchissement. Il faut
+simplement être **connecté sur la production dans le même navigateur** ; après 1 h, un rechargement
+de la prévisualisation renouvelle la session. La passerelle doit être déployée **en production** pour répondre : tant que ce n'est pas le cas (ex. prévisualisation de la PR qui l'ajoute), ouvrir la prévisualisation avec `?wl_nohandoff=1` à la fin de l'adresse. Seules les adresses de `brand.config.json ›
+previewHostPattern` (prévisualisations de l'équipe Vercel de Pierre) reçoivent un jeton ; le
+générateur échoue si ce motif correspond à la production. Tests : `tests/preview-handoff.test.js`
+et `e2e/preview-handoff.test.mjs`. ⚠️ Les prévisualisations utilisent la même base Supabase que la
+production : un compte ouvert dessus modifie les vraies données.
+
 ## 🌐 Langues (français / anglais)
 
 Tout existe en français et en anglais : interface, messages d'erreur (y compris ceux de

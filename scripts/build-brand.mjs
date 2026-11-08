@@ -124,6 +124,12 @@ function validate() {
   const req = ['name', 'shortName', 'tagline', 'description', 'baseUrl', 'contactEmail', 'senderName', 'senderEmail'];
   for (const k of req) if (!brand[k] || typeof brand[k] !== 'string') throw new Error('brand.config.json : « ' + k + ' » manquant');
   if (!/^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(brand.baseUrl)) throw new Error('baseUrl doit être une origine https sans chemin ni « / » final');
+  /* Passerelle de session des prévisualisations : le motif ne doit jamais viser la production */
+  let previewRe;
+  try { previewRe = new RegExp(brand.previewHostPattern); } catch (e) { throw new Error('previewHostPattern : expression régulière invalide'); }
+  if (!brand.previewHostPattern || !brand.previewHostPattern.startsWith('^') || !brand.previewHostPattern.endsWith('$')) throw new Error('previewHostPattern doit être ancré (^…$)');
+  for (const h of [new URL(brand.baseUrl).hostname, ...((brand.domains && brand.domains.legacyHosts) || [])])
+    if (previewRe.test(h)) throw new Error('previewHostPattern correspond à un domaine de production : ' + h);
   for (const k of ['contactEmail', 'senderEmail']) if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(brand[k])) throw new Error(k + ' invalide');
   const dm = brand.domains || {};
   if (dm.legacyHosts && (!Array.isArray(dm.legacyHosts) || dm.legacyHosts.some(h => !/^[a-z0-9.-]+$/i.test(h)))) throw new Error('domains.legacyHosts : liste de noms d\'hôte attendue');
@@ -360,7 +366,7 @@ function buildApp(out) {
   for (const l of LANGS) legal[l] = { privacy: legalPaths(l).privacy, terms: legalPaths(l).terms };
   const pub = {
     name: brand.name, shortName: brand.shortName, wordmark: brand.wordmark, tagline: brand.tagline,
-    baseUrl: brand.baseUrl, contactEmail: brand.contactEmail, defaultLang: DEFAULT_LANG,
+    baseUrl: brand.baseUrl, previewHostRe: brand.previewHostPattern, contactEmail: brand.contactEmail, defaultLang: DEFAULT_LANG,
     legal,
   };
   out['js/00-brand.js'] = '/* MODULE: Identité de l\'app (nom, domaine, contact). ' + GENERATED + ' */\n' +

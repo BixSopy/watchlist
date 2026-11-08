@@ -11,6 +11,7 @@
   var root=document.documentElement,member=false;
   try{
     if(/(^|[#&])access_token=/.test(location.hash||''))member=true;
+    if(window.__wlHandoff)member=true;/* session ouverte par la passerelle des prévisualisations (js/00-preview-handoff.js) */
     if(!member&&localStorage.getItem('wl_app_guest')==='1')member=true;
     for(var i=0;!member&&i<localStorage.length;i++){
       var k=localStorage.key(i);
