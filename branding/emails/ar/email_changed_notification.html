@@ -1,0 +1,8 @@
+subject: تم تغيير عنوان بريدك الإلكتروني · [[name]]
+preheader: تغيّر عنوان تسجيل الدخول لحسابك على [[name]].
+---
+{{ $base := .SiteURL }}
+<h1>تم تغيير عنوان البريد الإلكتروني</h1>
+<p>تغيّر عنوان تسجيل الدخول لحسابك على [[name]] من <strong>{{ .OldEmail }}</strong> إلى <strong>{{ .Email }}</strong> بنجاح.</p>
+<p class="muted">لست من قام بذلك؟ راسلنا فورًا على العنوان <a href="mailto:[[contactEmail]]">[[contactEmail]]</a></p>
+[[button||فتح [[name]]||{{ $base }}?lang=ar]]

@@ -75,6 +75,8 @@ function langMeta(lang) {
   const m = DICTS[lang].$meta;
   return { ...m, tagline: m.tagline || brand.tagline, description: m.description || brand.description };
 }
+/* Sens de lecture de la langue ($meta.dir), pour <html dir> des emails et pages légales */
+function langDir(lang) { return DICTS[lang].$meta.dir === 'rtl' ? 'rtl' : 'ltr'; }
 const LEGAL_KINDS = ['privacy', 'terms'];
 const hasLegal = (lang) => LEGAL_KINDS.every(k => fs.existsSync(rel('branding/legal/' + lang + '/' + k + '.html')));
 const LEGAL_LANGS = LANGS.filter(hasLegal);
@@ -236,8 +238,8 @@ function emailLangSwitch(docs) {
   others.forEach((l, i) => { out += (i ? '{{ else if eq $lang "' + l + '" }}' : '{{ if eq $lang "' + l + '" }}') + docs[l]; });
   return out + '{{ else }}' + docs[DEFAULT_LANG] + '{{ end }}';
 }
-/* Objet bilingue : l'objet n'est pas conditionnel dans le tableau de bord, on met les langues
-   à la suite (langue par défaut d'abord), le nom de l'app une seule fois à la fin. */
+/* Objet bilingue : l'objet n'est pas conditionnel dans le tableau de bord, on met la langue par défaut
+   et l'anglais à la suite (les autres langues : byLanguage / subjectConditional), le nom de l'app une seule fois à la fin. */
 function combineSubjects(list) {
   const suffix = ' · ' + brand.name;
   const all = list.every(s => s.endsWith(suffix));
@@ -257,7 +259,7 @@ function buildEmails(out) {
       const subject = fill(meta.subject).replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
       bylang[lang] = subject;
       docs[lang] = fill(layout, {
-        lang,
+        lang, dir: langDir(lang),
         title: escHtml(subject.replace(/\{\{[^}]*\}\}/g, '').replace(/^\s*[·-]\s*/, '').trim()),
         preheader: fill(meta.preheader || ''),
         tagline: escHtml(langMeta(lang).tagline),
@@ -273,7 +275,7 @@ function buildEmails(out) {
         EMAIL_LANGS.filter(l => l !== DEFAULT_LANG).map((l, i) => (i ? '{{ else if eq $lang "' : '{{ if eq $lang "') + l + '" }}' + bylang[l]).join('') +
         '{{ else }}' + bylang[DEFAULT_LANG] + '{{ end }}'
       : bylang[DEFAULT_LANG];
-    subjects[t.file] = { dashboard: t.dashboard, subject: combineSubjects(EMAIL_LANGS.map(l => bylang[l])), byLanguage: bylang, subjectConditional: conditional };
+    subjects[t.file] = { dashboard: t.dashboard, subject: combineSubjects([DEFAULT_LANG, FALLBACK_LANG].filter((l, i, a) => bylang[l] && a.indexOf(l) === i).map(l => bylang[l])), byLanguage: bylang, subjectConditional: conditional };
   }
   out['supabase/templates/subjects.json'] = JSON.stringify({ $comment: GENERATED,
     $comment_subject: '« subject » (toutes les langues à la suite) est l\'objet à coller dans Supabase. « subjectConditional » (une seule langue selon le compte) est une option non testée sur Supabase : à n\'utiliser qu\'après avoir vérifié qu\'un email de test arrive avec le bon objet.',
@@ -307,7 +309,7 @@ function buildAppEmails(out) {
       const subject = fill(meta.subject).replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
       const content = emailBody(fill(body.trim()), lang);
       const html = fill(layout, {
-        lang, title: escHtml(subject), preheader: fill(meta.preheader || ''),
+        lang, dir: langDir(lang), title: escHtml(subject), preheader: fill(meta.preheader || ''),
         tagline: escHtml(langMeta(lang).tagline),
         footerReason: escHtml(T(lang, 'mail.footer.reason', { name: brand.name })),
         footerQuestion: escHtml(T(lang, 'mail.footer.question')),
@@ -341,7 +343,7 @@ function buildLegal(out) {
       const otherLangs = LEGAL_LANGS.filter(l => l !== lang).map(l =>
         `<a class="lang" href="${escHtml(legalPaths(l)[kind])}" hreflang="${l}" lang="${l}">${escHtml(langMeta(l).name)}</a>`).join('');
       out[paths[kind].slice(1) + '.html'] = '<!-- ' + GENERATED + ' -->\n' + fill(layout, {
-        lang, title: escHtml(meta.title), updated: escHtml(meta.updated), robots,
+        lang, dir: langDir(lang), title: escHtml(meta.title), updated: escHtml(meta.updated), robots,
         description: escHtml(T(lang, 'legal.page.description', { title: meta.title, name: brand.name })),
         canonical: brand.indexable ? `\n<link rel="canonical" href="${escHtml(urls[lang])}">` + hreflangLinks(urls, urls[FALLBACK_LANG] || urls[DEFAULT_LANG]) : '',
         ogLocale: escHtml(langMeta(lang).og || lang),

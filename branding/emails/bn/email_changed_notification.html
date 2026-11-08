@@ -1,0 +1,8 @@
+subject: আপনার ইমেইল ঠিকানা বদলানো হয়েছে · [[name]]
+preheader: আপনার [[name]] অ্যাকাউন্টের লগ ইন ঠিকানা বদলে গেছে।
+---
+{{ $base := .SiteURL }}
+<h1>ইমেইল ঠিকানা বদলানো হয়েছে</h1>
+<p>আপনার [[name]] অ্যাকাউন্টের লগ ইন ঠিকানা <strong>{{ .OldEmail }}</strong> থেকে বদলে <strong>{{ .Email }}</strong> করা হয়েছে।</p>
+<p class="muted">এটি আপনি করেননি? এখনই আমাদের লিখুন <a href="mailto:[[contactEmail]]">[[contactEmail]]</a> ঠিকানায়।</p>
+[[button||[[name]] খুলুন||{{ $base }}?lang=bn]]

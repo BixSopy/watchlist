@@ -1,0 +1,8 @@
+subject: 你的邮箱地址已更换 · [[name]]
+preheader: 你的 [[name]] 账号登录邮箱已更换。
+---
+{{ $base := .SiteURL }}
+<h1>邮箱地址已更换</h1>
+<p>你的 [[name]] 账号登录邮箱已从 <strong>{{ .OldEmail }}</strong> 更换为 <strong>{{ .Email }}</strong>。</p>
+<p class="muted">不是你本人操作？请立即发邮件至 <a href="mailto:[[contactEmail]]">[[contactEmail]]</a> 联系我们。</p>
+[[button||打开 [[name]]||{{ $base }}?lang=zh]]

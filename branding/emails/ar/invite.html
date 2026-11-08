@@ -1,0 +1,9 @@
+subject: دعوة للانضمام إلى [[name]]
+preheader: أنشئ حسابك على [[name]] باختيار كلمة المرور.
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>دعوة للانضمام إلى [[name]]</h1>
+<p>تم إعداد حساب للعنوان <strong>{{ .Email }}</strong> مسبقًا. اقبل الدعوة، ثم اختر كلمة المرور لبدء تتبّع أفلامك ومسلسلاتك والأنمي.</p>
+[[button||قبول الدعوة||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]
+<p class="small">لا يمكن استخدام هذا الرابط إلا مرة واحدة، وتنتهي صلاحيته سريعًا. إذا كنت لا تعرف المرسل، فتجاهل هذه الرسالة.</p>
+[[fallback||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]

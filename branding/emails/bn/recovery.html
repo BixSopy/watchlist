@@ -1,0 +1,11 @@
+subject: আপনার পাসওয়ার্ড রিসেট করুন · [[name]]
+preheader: আপনার [[name]] অ্যাকাউন্টের জন্য নতুন পাসওয়ার্ড বেছে নিন।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>নতুন পাসওয়ার্ড</h1>
+<p>কেউ (সম্ভবত আপনি) <strong>{{ .Email }}</strong> অ্যাকাউন্টের পাসওয়ার্ড রিসেট করার অনুরোধ করেছেন। নতুন পাসওয়ার্ড বেছে নিতে বোতামে ক্লিক করুন।</p>
+[[button||নতুন পাসওয়ার্ড বেছে নিন||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]
+<p class="muted">অথবা [[name]]-এ (“লগ ইন”, তারপর “আমার কাছে কোড আছে”) এই কোডটি লিখুন:</p>
+[[code||{{ .Token }}]]
+<p class="small">লিংক ও কোডের মেয়াদ এক ঘণ্টা, এবং এগুলো শুধু একবারই ব্যবহার করা যায়। আপনি এই অনুরোধ না করে থাকলে ইমেইলটি উপেক্ষা করুন: আপনার বর্তমান পাসওয়ার্ড আগের মতোই কাজ করবে।</p>
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]

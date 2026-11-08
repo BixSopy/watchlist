@@ -71,10 +71,11 @@ test('les gabarits d\'emails utilisent les variables Supabase attendues', () => 
     /* les liens sont échappés pour html/template (&amp; dans les attributs href) */
     for (const m of h.matchAll(/href="([^"]*token_hash[^"]*)"/g)) assert.doesNotMatch(m[1], /&(?!amp;)/, t);
     /* une version par langue, choisie par user_metadata.lang ({{ .Data }}), français par défaut */
-    assert.ok(h.startsWith('{{ $lang := "" }}{{ with .Data }}{{ $lang = printf "%v" .lang }}{{ end }}{{ if eq $lang "en" }}'), t + ' : bascule de langue');
-    assert.ok(h.includes('<html lang="en"') && h.includes('<html lang="fr"'), t + ' : versions fr et en');
-    assert.ok(h.indexOf('<html lang="en"') < h.indexOf('{{ else }}') && h.indexOf('{{ else }}') < h.indexOf('<html lang="fr"'), t + ' : français en repli');
-    if (h.includes('token_hash')) assert.ok(h.includes('&amp;lang=en') && h.includes('&amp;lang=fr'), t + ' : lien qui ouvre l\'app dans la langue de l\'email');
+    const others = ['ar', 'bn', 'en', 'es', 'hi', 'pt', 'ru', 'ur', 'zh'];
+    assert.ok(h.startsWith('{{ $lang := "" }}{{ with .Data }}{{ $lang = printf "%v" .lang }}{{ end }}{{ if eq $lang "ar" }}'), t + ' : bascule de langue');
+    for (const l of [...others, 'fr']) assert.ok(h.includes('<html lang="' + l + '"'), t + ' : version ' + l);
+    assert.ok(h.indexOf('<html lang="zh"') < h.indexOf('{{ else }}') && h.indexOf('{{ else }}') < h.indexOf('<html lang="fr"'), t + ' : français en repli');
+    if (h.includes('token_hash')) for (const l of [...others, 'fr']) assert.ok(h.includes('&amp;lang=' + l), t + ' : lien qui ouvre l\'app dans la langue de l\'email (' + l + ')');
   }
   const subjects = JSON.parse(read('supabase/templates/subjects.json'));
   for (const t of TPL) {
@@ -84,7 +85,8 @@ test('les gabarits d\'emails utilisent les variables Supabase attendues', () => 
     assert.ok(subjects[t].subject.includes(subjects[t].byLanguage.en.replace(' · ' + brand.name, '').replace(' · ' + brand.name, '')), t + ' : objet en');
   }
   assert.strictEqual(subjects.defaultLanguage, 'fr');
-  assert.deepStrictEqual([...subjects.languages].sort(), ['en', 'fr']);
+  assert.deepStrictEqual([...subjects.languages].sort(), ['ar', 'bn', 'en', 'es', 'fr', 'hi', 'pt', 'ru', 'ur', 'zh']);
+  for (const t of TPL) for (const l of subjects.languages) assert.ok(subjects[t].byLanguage[l], t + ' : objet ' + l);
 });
 
 test('CSP : Turnstile autorisé, rien d\'autre d\'ouvert ; redirections de domaine inactives par défaut', () => {
@@ -100,16 +102,16 @@ test('CSP : Turnstile autorisé, rien d\'autre d\'ouvert ; redirections de domai
   if (!(brand.domains && brand.domains.redirects)) assert.strictEqual(vercel.redirects, undefined);
   const ignore = read('.vercelignore');
   for (const f of LEGAL) assert.doesNotMatch(ignore, new RegExp('^' + f.replace('.', '\\.') + '$', 'm'));
-  /* /fr et /en servent l'app (langue imposée par l'adresse) */
-  assert.deepStrictEqual(vercel.rewrites, [{ source: '/:lang(fr|en)', destination: '/' }, { source: '/s/:token', destination: '/api/share?t=:token' }, { source: '/u/:handle', destination: '/api/invite?h=:handle' }]);
+  /* /fr, /en, /zh… servent l'app (langue imposée par l'adresse) */
+  assert.deepStrictEqual(vercel.rewrites, [{ source: '/:lang(fr|ar|bn|en|es|hi|pt|ru|ur|zh)', destination: '/' }, { source: '/s/:token', destination: '/api/share?t=:token' }, { source: '/u/:handle', destination: '/api/invite?h=:handle' }]);
 });
 
 test('pages légales : une version par langue, liées entre elles (hreflang) et au bon pied de page', () => {
   const pairs = { privacy: ['confidentialite.html', 'privacy.html'], terms: ['conditions.html', 'terms.html'] };
   for (const [fr, en] of Object.values(pairs)) {
     const hf = read(fr), he = read(en);
-    assert.match(hf, /<html lang="fr">/, fr);
-    assert.match(he, /<html lang="en">/, en);
+    assert.match(hf, /<html lang="fr" dir="ltr">/, fr);
+    assert.match(he, /<html lang="en" dir="ltr">/, en);
     for (const h of [hf, he]) {
       assert.ok(h.includes('hreflang="fr" href="' + brand.baseUrl + '/' + fr.replace('.html', '') + '"'), 'hreflang fr');
       assert.ok(h.includes('hreflang="en" href="' + brand.baseUrl + '/' + en.replace('.html', '') + '"'), 'hreflang en');

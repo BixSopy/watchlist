@@ -1,0 +1,11 @@
+subject: Confirme seu endereço de e-mail · [[name]]
+preheader: Um clique para ativar sua conta do [[name]].
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Boas-vindas ao [[name]]!</h1>
+<p>Falta só um passo: confirme seu endereço <strong>{{ .Email }}</strong> para ativar sua conta e sincronizar sua lista em todos os seus dispositivos.</p>
+[[button||Confirmar meu e-mail||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=pt]]
+<p class="muted">Prefere digitar um código (app instalado, outro dispositivo)? No [[name]], abra “Entrar”, depois “Tenho um código”, e digite:</p>
+[[code||{{ .Token }}]]
+<p class="small">O link e o código expiram em uma hora e só podem ser usados uma vez. Se você não criou uma conta, é só ignorar este e-mail: nada será ativado.</p>
+[[fallback||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=pt]]

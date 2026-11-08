@@ -1,0 +1,9 @@
+subject: Приглашение в [[name]]
+preheader: Создайте аккаунт [[name]] — осталось только придумать пароль.
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Вас пригласили в [[name]]</h1>
+<p>Для <strong>{{ .Email }}</strong> создан аккаунт. Примите приглашение и придумайте пароль, чтобы начать отслеживать фильмы, сериалы и аниме.</p>
+[[button||Принять приглашение||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=ru]]
+<p class="small">Ссылка действует только один раз и недолго. Если вы не знаете отправителя, проигнорируйте это письмо.</p>
+[[fallback||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=ru]]

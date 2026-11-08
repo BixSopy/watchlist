@@ -1,0 +1,8 @@
+subject: آپ کا ای میل ایڈریس تبدیل ہو گیا · [[name]]
+preheader: آپ کے [[name]] اکاؤنٹ کا سائن اِن ایڈریس تبدیل ہو گیا ہے۔
+---
+{{ $base := .SiteURL }}
+<h1>ای میل ایڈریس تبدیل ہو گیا</h1>
+<p>آپ کے [[name]] اکاؤنٹ کا سائن اِن ایڈریس <strong>{{ .OldEmail }}</strong> سے بدل کر <strong>{{ .Email }}</strong> کر دیا گیا ہے۔</p>
+<p class="muted">یہ تبدیلی آپ نے نہیں کی؟ فوراً ہمیں <a href="mailto:[[contactEmail]]">[[contactEmail]]</a> پر لکھیں۔</p>
+[[button||[[name]] کھولیں||{{ $base }}?lang=ur]]

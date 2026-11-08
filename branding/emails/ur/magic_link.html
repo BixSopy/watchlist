@@ -1,0 +1,11 @@
+subject: آپ کا سائن اِن لنک · [[name]]
+preheader: پاس ورڈ کے بغیر، ایک کلک میں [[name]] میں سائن اِن کریں۔
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>پاس ورڈ کے بغیر سائن اِن</h1>
+<p><strong>{{ .Email }}</strong> کے ساتھ [[name]] میں سائن اِن کرنے کے لیے آپ کا لنک یہ ہے۔</p>
+[[button||سائن اِن کریں||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ur]]
+<p class="muted">یا [[name]] میں (”سائن اِن“، پھر ”میرے پاس کوڈ ہے“) یہ کوڈ درج کریں:</p>
+[[code||{{ .Token }}]]
+<p class="small">لنک اور کوڈ ایک گھنٹے بعد ایکسپائر ہو جاتے ہیں اور صرف ایک بار استعمال ہو سکتے ہیں۔ اگر یہ درخواست آپ نے نہیں کی تو اس ای میل کو نظرانداز کر دیں: اس کے بغیر کوئی سائن اِن نہیں کر سکتا۔</p>
+[[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ur]]

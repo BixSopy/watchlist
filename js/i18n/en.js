@@ -5,7 +5,9 @@
    `node scripts/build-brand.mjs` (adds the <script> tag, sitemap and hreflang entries).
    Optional: branding/emails/<code>/ and branding/legal/<code>/ for emails and legal pages;
    without them, emails use the default language and legal links point to the English pages.
-   {n}, {title}… are variables; .one / .other are plurals (Intl.PluralRules). */
+   {n}, {title}… are variables; plural keys carry one suffix per Intl.PluralRules category of the
+   language (.one/.other here; .zero…many in Arabic, .few/.many in Russian, .other only in Chinese).
+   $meta.dir = reading direction (ltr|rtl), $meta.rank = order in the language picker. */
 (window.I18N_DICTS=window.I18N_DICTS||{})['en']={
  "$meta": {
   "name": "English",
@@ -14,6 +16,8 @@
   "region": "US",
   "justwatch": "https://www.justwatch.com/us/search?q=",
   "og": "en_US",
+  "dir": "ltr",
+  "rank": 1,
   "tagline": "Your movie, series and anime tracker",
   "description": "Track your movies, series and anime in one place: where you left off, new episodes, your list synced everywhere. Free, no ads, no tracking, hosted in the EU.",
   "legal": {
@@ -681,7 +685,7 @@
  "lp.faq.q4": "Is there a phone app?",
  "lp.faq.a4": "Cinepisode installs straight from the browser on Android, iPhone and computers: open the site, then “Add to Home Screen”.",
  "lp.faq.q5": "Where does the movie and series info come from?",
- "lp.faq.a5": "From TMDB, the community-built catalog, in English and French, including the platforms where each title is available.",
+ "lp.faq.a5": "From TMDB, the community-built catalog, in your chosen language, including the platforms where each title is available.",
  "lp.faq.q6": "Can I leave with my data?",
  "lp.faq.a6": "Yes. From “My account” you export your whole list as a file, and you can delete your account at any time.",
  "lp.join.kicker": "Join Cinepisode",

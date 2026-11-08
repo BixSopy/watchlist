@@ -1,0 +1,11 @@
+subject: 验证你的新邮箱地址 · [[name]]
+preheader: 确认更换你的 [[name]] 账号邮箱。
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>更换邮箱地址</h1>
+<p>你申请将 [[name]] 账号的邮箱从 <strong>{{ .Email }}</strong> 更换为 <strong>{{ .NewEmail }}</strong>。请确认此次更换：</p>
+[[button||确认更换||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]
+<p class="muted">或者，在 [[name]] 中（我的账号 › 更换邮箱 › “我有验证码”）输入此验证码：</p>
+[[code||{{ .Token }}]]
+<p class="small">如果开启了双重确认，新旧两个邮箱都会收到相同的邮件，你需要分别确认。如果这不是你本人的操作，请忽略这封邮件并修改密码。</p>
+[[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]

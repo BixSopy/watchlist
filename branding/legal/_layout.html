@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="[[lang]]">
+<html lang="[[lang]]" dir="[[dir]]">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,10 +30,10 @@ h2::before{content:"";flex:none;width:4px;height:20px;border-radius:2px;backgrou
 p,li{color:[[colors.text]]}
 .muted{color:[[colors.textMuted]]}
 a{color:[[colors.accent]];text-underline-offset:3px}
-ul{padding-left:20px}
+ul{padding-inline-start:20px}
 li{margin:4px 0}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 6px}
-th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid [[colors.border]]}
+th,td{text-align:start;vertical-align:top;padding:9px 10px;border-bottom:1px solid [[colors.border]]}
 th{color:[[colors.textMuted]];font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
 /* Petits écrans : les cellules se coupent au lieu d'élargir la page */
 th,td{overflow-wrap:anywhere}
@@ -43,6 +43,11 @@ th,td{overflow-wrap:anywhere}
 .tmdb img{height:14px;width:auto}
 footer{margin-top:44px;padding-top:18px;border-top:1px solid [[colors.border]];font-size:12px;color:[[colors.textFaint]];display:flex;gap:16px;flex-wrap:wrap}
 footer a{color:[[colors.textMuted]]}
+/* Langues non latines : pas d'espacement ni de majuscules (écritures cursives / à ligatures) ; interlignage plus haut */
+:is(:lang(ar),:lang(ur),:lang(hi),:lang(bn),:lang(zh)) :is(*,*::before,*::after){letter-spacing:0!important;text-transform:none!important;font-style:normal!important}
+html:is(:lang(ar),:lang(ur),:lang(hi),:lang(bn)) h1{line-height:1.35}
+html:is(:lang(ar),:lang(ur)) body{line-height:1.9}html:is(:lang(hi),:lang(bn)) body{line-height:1.98}html:lang(zh) body{line-height:1.8;line-break:strict;overflow-wrap:anywhere}
+[dir=rtl] .logo-word,[dir=rtl] .logo{direction:ltr}
 </style>
 </head>
 <body>

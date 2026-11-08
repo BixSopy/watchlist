@@ -1,0 +1,576 @@
+{
+  "extName": {
+    "message": "Cinepisode — автоотслеживание"
+  },
+  "extDescription": {
+    "message": "Сам отмечает серии, которые вы смотрите на Netflix, Prime Video, Crunchyroll, Disney+ и Apple TV. Импорт истории."
+  },
+  "optionsTitle": {
+    "message": "Cinepisode — автоотслеживание"
+  },
+  "tokenLabel": {
+    "message": "Токен"
+  },
+  "save": {
+    "message": "Сохранить"
+  },
+  "tokenEmpty": {
+    "message": "Токен пуст."
+  },
+  "openApp": {
+    "message": "Открыть Cinepisode"
+  },
+  "lastNone": {
+    "message": "Пока ничего не найдено. Серия засчитывается на 80% или на финальных титрах, фильм — на 90%."
+  },
+  "lastAt": {
+    "message": "Когда: $WHEN$",
+    "placeholders": {
+      "when": {
+        "content": "$1",
+        "example": "08/10/2026 21:40"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "Обновлено: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAlready": {
+    "message": "Уже актуально: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNotFound": {
+    "message": "Нет в вашем списке: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAmbiguous": {
+    "message": "Под «$LABEL$» подходят несколько тайтлов, ничего не изменено",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidToken": {
+    "message": "Недействительный токен: создайте новый в Cinepisode, затем Настройки › Токен › Изменить."
+  },
+  "lastNoToken": {
+    "message": "Токен не сохранен: $LABEL$ не отправлено.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNetwork": {
+    "message": "Нет связи с Cinepisode (подключение?): $LABEL$ не отправлено.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastServerError": {
+    "message": "Ошибка сервера Cinepisode: $LABEL$ не сохранено.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidInput": {
+    "message": "Сервер отклонил распознавание: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidDetection": {
+    "message": "Не удалось распознать просмотр на Netflix, ничего не отправлено."
+  },
+  "lastLegacyUpdated": {
+    "message": "Обновлено: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastLegacyNoChange": {
+    "message": "Без изменений для $LABEL$ (нет в списке или уже актуально).",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "importNetflix": {
+    "message": "Импортировать историю Netflix"
+  },
+  "openDetected": {
+    "message": "Найденные тайтлы в Cinepisode"
+  },
+  "importStepTab": {
+    "message": "Открываем Netflix…"
+  },
+  "importStepSession": {
+    "message": "Читаем профиль Netflix…"
+  },
+  "importStepHistory": {
+    "message": "Читаем историю: просмотров — $N$ (страниц — $P$)…",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "p": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepMeta": {
+    "message": "Номера серий: $D$ / $T$ сериалов…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepParse": {
+    "message": "Читаем файл…"
+  },
+  "importStepPush": {
+    "message": "Отправляем в Cinepisode…"
+  },
+  "importDone": {
+    "message": "Отправлено тайтлов: $N$ (новых — $NEW$, обновленных — $UPD$). Выберите, что добавить, во вкладке «Найденные» в Cinepisode.",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "new": {
+        "content": "$2"
+      },
+      "upd": {
+        "content": "$3"
+      }
+    }
+  },
+  "importNothing": {
+    "message": "С прошлого импорта ничего нового."
+  },
+  "importTruncated": {
+    "message": " История очень длинная: прочитаны только 20 000 последних просмотров."
+  },
+  "importMetaFailed": {
+    "message": " Некоторые номера серий не удалось прочитать."
+  },
+  "importErrNoToken": {
+    "message": "Сначала подключите расширение с помощью токена."
+  },
+  "importErrToken": {
+    "message": "Недействительный токен: создайте новый в Cinepisode, затем Настройки › Токен › Изменить."
+  },
+  "importErrNetflixTab": {
+    "message": "Не удалось открыть Netflix в этом браузере."
+  },
+  "importErrNetflixAuth": {
+    "message": "Войдите в Netflix в этом браузере (и выберите профиль), затем повторите попытку."
+  },
+  "importErrNetflix": {
+    "message": "Неожиданный ответ Netflix. Повторите позже или импортируйте файл CSV."
+  },
+  "importErrCsv": {
+    "message": "Файл не читается: выберите NetflixViewingHistory.csv (до 20 МБ)."
+  },
+  "importErrLimit": {
+    "message": "Слишком много найденных тайтлов ждут решения: разберите их во вкладке «Найденные» в Cinepisode."
+  },
+  "importErrServer": {
+    "message": "Ошибка сервера Cinepisode. Повторите позже."
+  },
+  "importErrNetwork": {
+    "message": "Cinepisode недоступен (подключение?)."
+  },
+  "importBusy": {
+    "message": "Импорт уже выполняется."
+  },
+  "importCrunchyroll": {
+    "message": "Импортировать историю Crunchyroll"
+  },
+  "importPrime": {
+    "message": "Импортировать историю Prime Video"
+  },
+  "platformEnabled": {
+    "message": "Включено: распознавание в реальном времени и импорт истории."
+  },
+  "platformNetflixAlways": {
+    "message": "Всегда активно"
+  },
+  "platformDenied": {
+    "message": "Chrome отказал в доступе: ничего не включено."
+  },
+  "importStepCrunchyroll": {
+    "message": "Подключаемся к Crunchyroll…"
+  },
+  "importStepPrime": {
+    "message": "Подключаемся к Prime Video…"
+  },
+  "importStepPrimeMeta": {
+    "message": "Данные о сериях и фильмах: $D$ / $T$…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTruncatedOther": {
+    "message": " История очень длинная: прочитана только последняя часть."
+  },
+  "importPartial": {
+    "message": " Самую старую часть истории прочитать не удалось (Crunchyroll отказал в остальном): все, что до нее, отправлено. Запустите импорт позже, чтобы попробовать снова."
+  },
+  "importErrPermission": {
+    "message": "Сначала включите платформу (ее плитка в сетке)."
+  },
+  "importErrCrunchyrollAuth": {
+    "message": "Crunchyroll не распознает ваш сеанс: войдите на www.crunchyroll.com в этом браузере и повторите попытку."
+  },
+  "importErrCrunchyroll": {
+    "message": "Неожиданный ответ Crunchyroll. Повторите позже; если ошибка повторится, скопируйте диагностику ниже и отправьте нам."
+  },
+  "importErrPrimeAuth": {
+    "message": "Войдите на www.primevideo.com в этом браузере (и выберите профиль), затем повторите попытку."
+  },
+  "importErrPrime": {
+    "message": "Неожиданный ответ Prime Video. Повторите позже."
+  },
+  "importErrCrunchyrollBlocked": {
+    "message": "Crunchyroll (Cloudflare) заблокировал запрос. Откройте www.crunchyroll.com во вкладке, пройдите проверку, если она появится, и повторите попытку."
+  },
+  "importErrCrunchyrollRate": {
+    "message": "Crunchyroll сейчас ограничивает запросы. Повторите через несколько минут."
+  },
+  "importErrCrunchyrollTab": {
+    "message": "Не удалось открыть www.crunchyroll.com во вкладке. Откройте сайт сами и повторите попытку."
+  },
+  "importErrStep": {
+    "message": "Шаг $STEP$: $STATUS$",
+    "placeholders": {
+      "step": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "importErrHttp": {
+    "message": "HTTP $CODE$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoResponse": {
+    "message": "нет ответа (сеть или блокировка)"
+  },
+  "importErrBadAnswer": {
+    "message": "нечитаемый ответ"
+  },
+  "importStepNameTab": {
+    "message": "вкладка"
+  },
+  "importStepNameToken": {
+    "message": "токен"
+  },
+  "importStepNameAccount": {
+    "message": "аккаунт"
+  },
+  "importStepNameHistory": {
+    "message": "история"
+  },
+  "importStepNamePush": {
+    "message": "отправка в Cinepisode"
+  },
+  "importCopyDiag": {
+    "message": "Копировать диагностику"
+  },
+  "importDiagCopied": {
+    "message": "Диагностика скопирована (без токена и пароля)."
+  },
+  "importDiagCopyFailed": {
+    "message": "Не удалось скопировать: выделите текст диагностики вручную."
+  },
+  "importStepCrunchyrollTab": {
+    "message": "Открываем www.crunchyroll.com…"
+  },
+  "platformEnabledLive": {
+    "message": "Включено: распознавание в реальном времени (история на этой платформе недоступна)."
+  },
+  "diagTitle": {
+    "message": "Диагностика"
+  },
+  "diagDebug": {
+    "message": "Подробный журнал (консоль F12)"
+  },
+  "diagCopy": {
+    "message": "Копировать диагностику"
+  },
+  "diagCopied": {
+    "message": "Диагностика скопирована: вставьте ее в сообщение (токена в ней нет)."
+  },
+  "liveOnlyInfoLabel": {
+    "message": "Почему нет импорта истории?"
+  },
+  "liveOnlyInfo": {
+    "message": "Disney+ и Apple TV не дают доступа к истории просмотров: распознаются только серии, которые вы смотрите с этого момента. Чтобы вернуть прошлое, запросите копию своих данных (Disney: настройки аккаунта / Apple: privacy.apple.com)."
+  },
+  "notConnected": {
+    "message": "Не подключено"
+  },
+  "connected": {
+    "message": "Подключено"
+  },
+  "connectedTitle": {
+    "message": "Токен сохранен: просмотры отправляются в ваш аккаунт Cinepisode"
+  },
+  "offHeroTitle": {
+    "message": "Привяжите расширение к аккаунту"
+  },
+  "offHeroSub": {
+    "message": "Серии отмечаются сами, пока вы смотрите."
+  },
+  "offStep1": {
+    "message": "Откройте Cinepisode › Настройки › Автоотслеживание"
+  },
+  "offStep2": {
+    "message": "Нажмите «Создать токен»"
+  },
+  "offStep3": {
+    "message": "Вставьте его ниже"
+  },
+  "tokenPlaceholder": {
+    "message": "Вставьте токен сюда"
+  },
+  "connect": {
+    "message": "Подключить"
+  },
+  "offPrivacy": {
+    "message": "Токен хранится в этом браузере. В Cinepisode отправляются только название, сезон и серия."
+  },
+  "noAccount": {
+    "message": "Еще нет аккаунта?"
+  },
+  "changeTokenFoot": {
+    "message": "Текущий токен действует, пока вы не вставите новый."
+  },
+  "openAppArrow": {
+    "message": "Открыть Cinepisode →"
+  },
+  "cancel": {
+    "message": "Отмена"
+  },
+  "settingsTitle": {
+    "message": "Настройки"
+  },
+  "back": {
+    "message": "Назад"
+  },
+  "nowTitle": {
+    "message": "Сейчас идет"
+  },
+  "liveBadge": {
+    "message": "LIVE"
+  },
+  "idleTitle": {
+    "message": "Ничего не воспроизводится"
+  },
+  "idleSub": {
+    "message": "Включите серию на активной платформе."
+  },
+  "nowEpisode": {
+    "message": "Сезон $S$ · Серия $E$",
+    "placeholders": {
+      "s": {
+        "content": "$1",
+        "example": ""
+      },
+      "e": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "nowMovie": {
+    "message": "Фильм"
+  },
+  "nowPct": {
+    "message": "$P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowRule": {
+    "message": "засчитывается на $P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowCounted": {
+    "message": "✓ засчитано"
+  },
+  "platformsCap": {
+    "message": "Платформы"
+  },
+  "platformsCount": {
+    "message": "Активно: $N$/$T$",
+    "placeholders": {
+      "n": {
+        "content": "$1",
+        "example": ""
+      },
+      "t": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "chipActive": {
+    "message": "Активно"
+  },
+  "chipOff": {
+    "message": "Включить"
+  },
+  "chipDenied": {
+    "message": "Отказано"
+  },
+  "chipTip": {
+    "message": "Включить $NAME$: Chrome запросит доступ к этому сайту",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "importCap": {
+    "message": "Импорт истории"
+  },
+  "pendingNone": {
+    "message": "В «Найденных» ничего нового"
+  },
+  "pendingOne": {
+    "message": "новый тайтл в «Найденных»"
+  },
+  "pendingMany": {
+    "message": "новых в «Найденных»"
+  },
+  "seeDetected": {
+    "message": "Смотреть →"
+  },
+  "accountCap": {
+    "message": "Аккаунт"
+  },
+  "change": {
+    "message": "Изменить"
+  },
+  "csvRow": {
+    "message": "Файл CSV Netflix"
+  },
+  "csvRowHint": {
+    "message": "Аккаунт › Профиль › История просмотров › «Скачать все»"
+  },
+  "choose": {
+    "message": "Выбрать"
+  },
+  "liveOnlySmall": {
+    "message": "Только при просмотре"
+  },
+  "rulesCap": {
+    "message": "Когда тайтл считается просмотренным"
+  },
+  "rulesText": {
+    "message": "Серия — на 80% или с началом финальных титров, фильм — на 90%, после не менее 20 секунд непрерывного просмотра. Тайтлы из вашего списка обновляются, остальные попадают во вкладку «Найденные»."
+  },
+  "diagCopyHint": {
+    "message": "Состояние распознавания, без вашего токена"
+  },
+  "logout": {
+    "message": "Выйти"
+  },
+  "logoutConfirm": {
+    "message": "Удалить токен?"
+  },
+  "logoutYes": {
+    "message": "Да"
+  },
+  "pairButton": {
+    "message": "Войти через Cinepisode"
+  },
+  "pairSub": {
+    "message": "Один клик на сайте, ничего копировать не нужно."
+  },
+  "manualToggle": {
+    "message": "Ввести токен вручную (для опытных)"
+  },
+  "pairedRevoked": {
+    "message": "Это устройство удалено на сайте. Привяжите его снова."
+  },
+  "reviewTitle": {
+    "message": "Cinepisode вам полезен?"
+  },
+  "reviewSub": {
+    "message": "Серий отмечено автоматически: $COUNT$. Отзыв в Chrome Web Store очень помогает независимому проекту.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewYes": {
+    "message": "Оставить отзыв"
+  },
+  "reviewLater": {
+    "message": "Позже"
+  },
+  "reviewNever": {
+    "message": "Больше не спрашивать"
+  }
+}

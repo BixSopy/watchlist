@@ -1,0 +1,11 @@
+subject: 重置你的密码 · [[name]]
+preheader: 为你的 [[name]] 账号设置新密码。
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>设置新密码</h1>
+<p>有人（很可能是你）申请重置账号 <strong>{{ .Email }}</strong> 的密码。点击下方按钮即可设置新密码。</p>
+[[button||设置新密码||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]
+<p class="muted">或者，在 [[name]] 中（“登录”，然后点击“我有验证码”）输入此验证码：</p>
+[[code||{{ .Token }}]]
+<p class="small">链接和验证码一小时后失效，且只能使用一次。如果这不是你本人的请求，请忽略这封邮件：你当前的密码依然有效。</p>
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]

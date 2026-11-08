@@ -55,7 +55,7 @@ function wtHtml(){
     '<em class="wt-n">'+esc(tn('wt.wantN',cur.n))+'</em></div></article></div>';
   h+='<div class="wt-acts"><button type="button" class="wt-ic" aria-label="'+esc(t('wt.shuffle'))+'" title="'+esc(t('wt.shuffle'))+'"'+uiAct('wtShuffle')+'>⤨</button>'+
     '<button type="button" class="soc-cta wt-take"'+uiAct('wtTake')+'>'+esc(t('wt.take'))+'</button>'+
-    '<button type="button" class="wt-ic" aria-label="'+esc(t('wt.next'))+'" title="'+esc(t('wt.next'))+'"'+uiAct('wtNext')+'>→</button></div>';
+    '<button type="button" class="wt-ic" aria-label="'+esc(t('wt.next'))+'" title="'+esc(t('wt.next'))+'"'+uiAct('wtNext')+'>'+(typeof arrowFwd==='function'?arrowFwd():'→')+'</button></div>';
   return h+hid+'<button type="button" class="wt-link"'+uiAct('wtBack')+'>'+esc(t('wt.changeFilters'))+'</button><p class="rc-attr">'+esc(t('reco.tmdb'))+'</p>';
 }
 function wtPosterHtml(x,size){

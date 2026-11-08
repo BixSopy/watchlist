@@ -81,17 +81,25 @@ function renderTags(){
 function _fxRenderSugg(){
   var box=_fxEl('tagSugg');if(!box)return;var cnt={};
   (memDB||[]).forEach(function(i){if(i.deleted)return;(i.tags||[]).forEach(function(g){cnt[g]=(cnt[g]||0)+1;});});
-  var top=Object.keys(cnt).filter(function(g){return curTags.indexOf(g)<0;}).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b);}).slice(0,6);
+  var top=Object.keys(cnt).filter(function(g){return curTags.indexOf(g)<0;}).sort(function(a,b){return cnt[b]-cnt[a]||textCompare(a,b);}).slice(0,6);
   box.innerHTML=top.map(function(g){return '<button type="button" data-tag="'+esc(g)+'">+ '+esc(g)+'</button>';}).join('');
 }
 _fxEl('tagSugg').addEventListener('click',function(e){var b=e.target.closest('[data-tag]');if(b)_fxAddTag(b.getAttribute('data-tag'));});
 function rmTag(i){curTags=curTags.filter(function(x,k){return k!==i});renderTags();_ficheTouch();}
 /* Pastilles, curseur glissant, puces type/genre et ligne meta, d'après les champs cachés */
+/* Curseur des 3 pastilles (décalage en % de sa largeur). En RTL la grille place la 1re pastille à
+   droite : le curseur part de son bord d'ancrage réel (gauche physique, ou droite si le CSS l'ancre
+   en inset-inline-start) et va vers la pastille k. En LTR : k*100, comme avant. */
+function _fxThX(th,k,n){
+  if(!(typeof IS_RTL!=='undefined'&&IS_RTL))return k*100;
+  var p=th.parentNode,leftAnch=!p||!p.offsetWidth||th.offsetLeft+th.offsetWidth/2<p.offsetWidth/2;
+  return leftAnch?(n-1-k)*100:-k*100;
+}
 function _ficheSync(){
   var s=_fxEl('fstat').value,tt=_fxEl('ftype').value,ag=_fxEl('fanimegenre').value;
   var order=['avoir','encours','termine'],k=Math.max(0,order.indexOf(s));
   _fxEl('fxPills').querySelectorAll('[data-st]').forEach(function(b){var on=b.getAttribute('data-st')===s;b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');});
-  var th=_fxEl('fxPills').querySelector('.fx-th');if(th)th.style.transform='translateX('+(k*100)+'%)';
+  var th=_fxEl('fxPills').querySelector('.fx-th');if(th)th.style.transform='translateX('+_fxThX(th,k,order.length)+'%)';
   _fxEl('fxType').querySelectorAll('[data-type]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-type')===tt);});
   _fxEl('fxGenre').querySelectorAll('[data-genre]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-genre')===ag);});
   if(selTmdb){
@@ -269,7 +277,7 @@ function _buildEntryFromForm(){
   var ex=memDB.find(function(i){return i.id==editId});
   var sagaRaw=(document.getElementById('fsaga').value||'').trim();
   var collName=sagaRaw||null;
-  var collId=collName?collName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''):null;
+  var collId=collName?slugKey(collName):null;
   var seasonMatch=showEp&&selTmdb&&selTmdb.seasonEpCountSeason===sai;
   var entry=makeEntry(selTmdb,{type:type,status:status,myRating:myRate,animeGenre:ag,
     saison:showEp?sai:null,episode:showEp?epi:null,totalEp:showEp?totep:(ex?ex.totalEp:null),

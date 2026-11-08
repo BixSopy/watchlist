@@ -13,14 +13,21 @@ const ROOT = path.join(__dirname, '..');
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const brand = JSON.parse(read('brand.config.json'));
 
-test('extension : textes dans _locales/fr et _locales/en, mêmes clés, toutes utilisées existent', () => {
+test('extension : textes dans _locales (fr, en et 7 langues Chrome), mêmes clés, toutes utilisées existent', () => {
   const manifest = JSON.parse(read('extension/manifest.json'));
   assert.strictEqual(manifest.default_locale, 'en');
   const locales = fs.readdirSync(path.join(ROOT, 'extension/_locales')).sort();
-  assert.deepStrictEqual(locales, ['en', 'fr']);
+  /* codes de dossier Chrome (l'ourdou n'est pas une langue d'interface Chrome : anglais par défaut) */
+  assert.deepStrictEqual(locales, ['ar', 'bn', 'en', 'es_419', 'fr', 'hi', 'pt_BR', 'ru', 'zh_CN']);
   const msgs = Object.fromEntries(locales.map(l => [l, JSON.parse(read('extension/_locales/' + l + '/messages.json'))]));
-  assert.deepStrictEqual(Object.keys(msgs.fr).sort(), Object.keys(msgs.en).sort());
   for (const l of locales) {
+    assert.deepStrictEqual(Object.keys(msgs[l]), Object.keys(msgs.en), l + ' : mêmes clés, même ordre');
+    for (const k of Object.keys(msgs.en)) {
+      const ph = x => JSON.stringify(Object.fromEntries(Object.entries(x.placeholders || {}).map(([n, v]) => [n, v.content])));
+      assert.strictEqual(ph(msgs[l][k]), ph(msgs.en[k]), l + ' ' + k + ' : placeholders');
+      const toks = x => [...x.message.matchAll(/\$[A-Z_0-9]+\$/g)].map(m => m[0]).sort().join();
+      assert.strictEqual(toks(msgs[l][k]), toks(msgs.en[k]), l + ' ' + k + ' : jetons $X$');
+    }
     for (const [k, v] of Object.entries(msgs[l])) assert.ok(v.message && v.message.trim(), l + ' ' + k);
     assert.ok(msgs[l].extName.message.length <= 75, l + ' : nom trop long');
     assert.ok(msgs[l].extDescription.message.length <= 132, l + ' : description trop longue (132 max)');

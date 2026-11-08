@@ -159,35 +159,58 @@ générateur échoue si ce motif correspond à la production. Tests : `tests/pre
 et `e2e/preview-handoff.test.mjs`. ⚠️ Les prévisualisations utilisent la même base Supabase que la
 production : un compte ouvert dessus modifie les vraies données.
 
-## 🌐 Langues (français / anglais)
+## 🌐 Langues (10 : les plus parlées au monde)
 
-Tout existe en français et en anglais : interface, messages d'erreur (y compris ceux de
-Supabase), emails, pages légales, extension navigateur. L'app de bureau affiche le site, donc
-suit la même langue.
+Interface, messages d'erreur (y compris ceux de Supabase), emails, extension navigateur : **anglais,
+chinois (zh), hindi (hi), espagnol (es), arabe (ar), français (fr), bengali (bn), portugais
+(pt, Brésil), russe (ru), ourdou (ur)**. L'app de bureau affiche le site, donc suit la même langue.
+Les pages légales existent en français et en anglais seulement (les autres langues pointent vers
+la version anglaise ; en cas de divergence, la version française prévaut).
 
-- **Interface** : `js/i18n/fr.js` et `js/i18n/en.js` (mêmes clés, vérifiées par
-  `tests/i18n.test.js`), lus par `js/00-i18n.js` (`t('clé', {var})`, `tn()` pour les pluriels,
-  `fmtDate` / `fmtNum` via `Intl`). Textes d'`index.html` : attributs `data-i18n` et
-  `data-i18n-attr`. Choix de la langue : `/fr`, `/en` ou `?lang=` dans l'adresse > choix
-  enregistré (`localStorage` `wl_lang`) > langue du navigateur (`fr*` → français, sinon
-  anglais). Sélecteur dans les réglages, la fenêtre de connexion et le pied de page.
-- **Catalogue** : TMDB est interrogé en `fr-FR` (plateformes FR) ou `en-US` (plateformes US) ;
-  la langue fait partie de la clé de cache du proxy. Les titres déjà enregistrés dans une liste
-  ne sont jamais réécrits.
-- **Emails** : un seul modèle par type dans Supabase, qui contient les deux versions et choisit
-  avec `{{ .Data.lang }}` (= `user_metadata.lang`, enregistré à l'inscription et à chaque
-  changement de langue). Sans langue (comptes existants) : français. Les objets ne pouvant pas
-  être conditionnels dans l'interface Supabase, `subjects.json` donne un objet bilingue
-  (`subject`) ; `subjectConditional` est une variante qui choisit la langue, non testée chez
-  Supabase. Après toute modification, recoller les 8 modèles et objets (voir plus bas).
+- **Interface** : `js/i18n/<code>.js` (mêmes clés, vérifiées par `tests/i18n.test.js`), lus par
+  `js/00-i18n.js` (`t('clé', {var})`, `tn()` pour les pluriels, `fmtDate` / `fmtNum` via `Intl`).
+  Textes d'`index.html` : attributs `data-i18n` et `data-i18n-attr`. Choix de la langue : `/<code>`
+  ou `?lang=` dans l'adresse > choix enregistré (`localStorage` `wl_lang`) > langue du navigateur
+  (première langue disponible, sinon anglais). Sélecteur (liste déroulante, ordre `$meta.rank`)
+  dans les réglages, la fenêtre de connexion et le pied de page.
+- **Pluriels** : une clé par catégorie `Intl.PluralRules` de la langue (`.one`/`.other` en
+  français, anglais, espagnol, portugais, hindi, bengali, ourdou ; `.one/.few/.many/.other` en
+  russe ; `.zero/.one/.two/.few/.many/.other` en arabe ; `.other` seul en chinois). `tn()` retombe
+  sur `.other`.
+- **Sens de lecture** : `$meta.dir` (`rtl` pour l'arabe et l'ourdou) pose `<html dir>` ;
+  le CSS utilise des propriétés logiques (`margin-inline-start`, `inset-inline-end`…) plus des
+  surcharges `[dir=rtl]` (icônes de flèche, animations) en fin de `css/app.css` et
+  `landing/landing.css`. Les éléments positionnés en JS via `offsetLeft` restent en `left`
+  physique. Helpers JS (`js/03-dom-utils.js`) : `isRtl`, `hScrollSign`, `arrowFwd`, `bidiIso`
+  (FSI…PDI autour des titres/pseudos latins dans une phrase RTL, appliqué aussi par `t()` aux
+  variables `title`, `name`, `email`, `handle`, `device`…). `‹ ›` sont inversés par l'algorithme
+  bidi seul ; `← →` sont échangés à la main.
+- **Écritures** : `fonts/fonts.css` ajoute, sous les mêmes noms de famille (Inter, IBM Plex Sans)
+  et par `unicode-range`, le cyrillique (Inter/IBM Plex), Noto Sans Devanagari, Bengali et Arabic
+  (auto-hébergés, chargés seulement pour la langue concernée) ; le chinois utilise les polices
+  système (`local()`). Chiffres latins dans toutes les langues (`$meta.locale` avec `-u-nu-latn`
+  en arabe et bengali ; arabe en calendrier grégorien).
+- **Catalogue** : TMDB est interrogé dans `$meta.tmdb` / `$meta.region` (ex. `es-MX`/`MX`,
+  `pt-BR`/`BR`, `zh-CN`/`SG`, `bn-BD`/`IN` : régions couvertes par JustWatch/TMDB) ; la langue
+  fait partie de la clé de cache du proxy. Les titres déjà enregistrés ne sont jamais réécrits.
+  La recherche structurée (« action 2020 ★4+ ») ne reconnaît que les mots français/anglais.
+- **Emails** : un seul modèle par type dans Supabase, qui contient toutes les versions
+  (`branding/emails/<code>/`) et choisit avec `{{ .Data.lang }}` (= `user_metadata.lang`, enregistré à
+  l'inscription et à chaque changement de langue). Sans langue (comptes existants) : français.
+  Les objets ne pouvant pas être conditionnels dans l'interface Supabase, `subjects.json` donne un
+  objet bilingue français/anglais (`subject`) ; `byLanguage` et `subjectConditional` (non testé chez
+  Supabase) couvrent les 10 langues. Après toute modification, recoller les 8 modèles et objets.
+  Emails applicatifs (bienvenue, résumé hebdomadaire) : `branding/app-emails/<code>/`.
+- **Extension** : `extension/_locales/<code>/messages.json` (codes Chrome : `zh_CN`, `es_419`,
+  `pt_BR`, `hi`, `ar`, `bn`, `ru`). L'ourdou n'est pas une langue d'interface Chrome (anglais).
 - **Pages légales** : `branding/legal/fr/*` → `/confidentialite`, `/conditions` ;
-  `branding/legal/en/*` → `/privacy`, `/terms` (en cas de divergence, la version française
-  prévaut).
-- **Ajouter une langue** : copier `js/i18n/en.js` en `js/i18n/<code>.js`, traduire, puis
-  `node scripts/build-brand.mjs` (balise de script, hreflang, sitemap, réécriture `/<code>`).
-  Facultatif : `branding/emails/<code>/` et `branding/legal/<code>/` (sinon emails dans la
-  langue par défaut, pages légales en anglais) ; la bascule des emails est générée pour chaque
-  langue disposant de modèles.
+  `branding/legal/en/*` → `/privacy`, `/terms`.
+- **Ajouter une langue** : copier `js/i18n/en.js` en `js/i18n/<code>.js`, traduire (`$meta` :
+  `dir`, `rank`, `tmdb`, `region`, `justwatch`…, catégories plurielles de la langue), puis
+  `node scripts/build-brand.mjs` (balise de script, hreflang, sitemap, réécriture `/<code>`) et
+  adapter les listes de `tests/i18n.test.js`, `tests/brand.test.js`, `tests/clients.test.js`.
+  Facultatif : `branding/emails/<code>/`, `branding/app-emails/<code>/`, `branding/legal/<code>/`,
+  `extension/_locales/<code>/`, et la table de `api/notifications-digest.js`.
 
 ## ⚙️ Configuration
 

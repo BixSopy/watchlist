@@ -1,0 +1,9 @@
+subject: आपको [[name]] पर बुलाया गया है
+preheader: अपना पासवर्ड चुनकर अपना [[name]] अकाउंट बनाएँ।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>आपको [[name]] पर बुलाया गया है</h1>
+<p><strong>{{ .Email }}</strong> के लिए एक अकाउंट तैयार किया गया है। अपनी फ़िल्में, सीरीज़ और एनीमे ट्रैक करना शुरू करने के लिए न्योता स्वीकार करें, फिर अपना पासवर्ड चुनें।</p>
+[[button||न्योता स्वीकार करें||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=hi]]
+<p class="small">यह लिंक सिर्फ़ एक बार इस्तेमाल हो सकता है और जल्दी एक्सपायर हो जाता है। अगर आप भेजने वाले को नहीं जानते, तो इस ईमेल को अनदेखा करें।</p>
+[[fallback||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=hi]]

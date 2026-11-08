@@ -101,7 +101,9 @@ var GENRE_MAP={
   history:{movie:36,tv:null},horror:{movie:27,tv:null},music:{movie:10402,tv:null},
   mystery:{movie:9648,tv:9648},war:{movie:10752,tv:10768}
 };
-function _normTok(s){return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9+>]/g,'');}
+/* Jeton latin : accents retirés, [a-z0-9+>] seulement (inchangé). Les lettres des autres écritures sont
+   gardées (« фильм2020 » ne devient pas l'année « 2020 », un mot arabe ne devient pas vide). */
+function _normTok(s){s=(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');return typeof keepScriptChars==='function'?keepScriptChars(s,'','+>'):s.replace(/[^a-z0-9+>]/g,'');}
 /* Retourne null si rien de structuré n'est reconnu (→ fallback recherche classique) */
 function _parseStructuredQuery(q){
   var tokens=(q||'').trim().split(/\s+/).filter(Boolean);
@@ -275,7 +277,7 @@ function _renderSR(results){
     var poster=d.poster?'<img class="search-poster" src=\"'+IB+'w185'+esc(d.poster)+'\" alt="" loading="lazy" data-hide-broken>':'<div class="search-poster-ph">'+icon(d.type)+'</div>';
     var chk='<button class="search-check'+(sel?' on':'')+'" type="button" aria-label="'+esc(t('search.select',{title:d.title}))+'" aria-pressed="'+(sel?'true':'false')+'" '+(inList?'disabled':'')+' '+uiAct('toggleSCard',[d.key])+'><span class="search-check-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg></span></button>';
     var stag=inList?'<div class="search-status-tag off">'+esc(t('search.inList'))+'</div>':'<div class="search-status-tag ok">'+esc(t('search.addable'))+'</div>';
-    return '<article class="search-card'+(sel?' selected':'')+(inList?' disabled':'')+'" data-key="'+esc(d.key)+'" tabindex="0">'+chk+'<div class="search-poster-wrap">'+poster+'</div><div class="search-body"><div class="search-title">'+esc(d.title)+'</div><div class="search-meta">'+tbadge(d.type)+'<span class="search-year">'+esc(d.year)+'</span>'+(d.score?'<span class="badge bec">★ '+esc(String(d.score))+'</span>':'')+'</div><div class="search-overview">'+esc(d.overview||t('plex.noOverview'))+'</div>'+stag+'</div></article>';
+    return '<article class="search-card'+(sel?' selected':'')+(inList?' disabled':'')+'" data-key="'+esc(d.key)+'" tabindex="0">'+chk+'<div class="search-poster-wrap">'+poster+'</div><div class="search-body"><div class="search-title">'+esc(bidiIso(d.title))+'</div><div class="search-meta">'+tbadge(d.type)+'<span class="search-year">'+esc(d.year)+'</span>'+(d.score?'<span class="badge bec">★ '+esc(String(d.score))+'</span>':'')+'</div><div class="search-overview">'+esc(d.overview||t('plex.noOverview'))+'</div>'+stag+'</div></article>';
   }).join('');
   _updateCounter();_updatePager();
 }

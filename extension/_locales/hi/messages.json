@@ -1,0 +1,576 @@
+{
+  "extName": {
+    "message": "Cinepisode — ऑटो-ट्रैकिंग"
+  },
+  "extDescription": {
+    "message": "Netflix, Prime Video, Crunchyroll, Disney+ और Apple TV पर देखे गए एपिसोड अपने-आप टिक करता है। हिस्ट्री भी इंपोर्ट करता है।"
+  },
+  "optionsTitle": {
+    "message": "Cinepisode — ऑटो-ट्रैकिंग"
+  },
+  "tokenLabel": {
+    "message": "टोकन"
+  },
+  "save": {
+    "message": "सेव करें"
+  },
+  "tokenEmpty": {
+    "message": "टोकन खाली है।"
+  },
+  "openApp": {
+    "message": "Cinepisode खोलें"
+  },
+  "lastNone": {
+    "message": "अभी तक कुछ नहीं पहचाना गया। एपिसोड 80% पर या एंड क्रेडिट आने पर देखा हुआ माना जाता है, फ़िल्म 90% पर।"
+  },
+  "lastAt": {
+    "message": "$WHEN$ को",
+    "placeholders": {
+      "when": {
+        "content": "$1",
+        "example": "08/10/2026 21:40"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "अपडेट किया गया: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAlready": {
+    "message": "पहले से अप-टू-डेट: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNotFound": {
+    "message": "आपकी लिस्ट में नहीं: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAmbiguous": {
+    "message": "\"$LABEL$\" से कई टाइटल मेल खाते हैं, कुछ नहीं बदला",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidToken": {
+    "message": "टोकन मान्य नहीं है: Cinepisode में नया टोकन बनाएँ, फिर सेटिंग › टोकन › बदलें।"
+  },
+  "lastNoToken": {
+    "message": "कोई टोकन सेव नहीं है: $LABEL$ नहीं भेजा गया।",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNetwork": {
+    "message": "Cinepisode से कनेक्ट नहीं हो सका (कनेक्शन?): $LABEL$ नहीं भेजा गया।",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastServerError": {
+    "message": "Cinepisode सर्वर में गड़बड़ी: $LABEL$ सेव नहीं हुआ।",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidInput": {
+    "message": "सर्वर ने पहचान अस्वीकार कर दी: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidDetection": {
+    "message": "Netflix की पहचान पढ़ी नहीं जा सकी, कुछ नहीं भेजा गया।"
+  },
+  "lastLegacyUpdated": {
+    "message": "अपडेट किया गया: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastLegacyNoChange": {
+    "message": "$LABEL$ में कोई बदलाव नहीं (आपकी लिस्ट में नहीं है या पहले से अप-टू-डेट है)।",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "importNetflix": {
+    "message": "मेरी Netflix हिस्ट्री इंपोर्ट करें"
+  },
+  "openDetected": {
+    "message": "पहचाने गए टाइटल Cinepisode में देखें"
+  },
+  "importStepTab": {
+    "message": "Netflix खुल रहा है…"
+  },
+  "importStepSession": {
+    "message": "Netflix प्रोफ़ाइल पढ़ी जा रही है…"
+  },
+  "importStepHistory": {
+    "message": "हिस्ट्री पढ़ी जा रही है: $N$ व्यू ($P$ पेज)…",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "p": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepMeta": {
+    "message": "एपिसोड नंबर: $D$ / $T$ सीरीज़…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepParse": {
+    "message": "फ़ाइल पढ़ी जा रही है…"
+  },
+  "importStepPush": {
+    "message": "Cinepisode को भेजा जा रहा है…"
+  },
+  "importDone": {
+    "message": "$N$ टाइटल भेजे गए ($NEW$ नए, $UPD$ ज़्यादा हाल के)। क्या जोड़ना है, यह Cinepisode के “पहचाने गए” टैब में चुनें।",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "new": {
+        "content": "$2"
+      },
+      "upd": {
+        "content": "$3"
+      }
+    }
+  },
+  "importNothing": {
+    "message": "पिछले इंपोर्ट के बाद कुछ नया नहीं।"
+  },
+  "importTruncated": {
+    "message": " हिस्ट्री बहुत लंबी है: सिर्फ़ सबसे हाल के 20,000 व्यू पढ़े गए।"
+  },
+  "importMetaFailed": {
+    "message": " कुछ एपिसोड नंबर पढ़े नहीं जा सके।"
+  },
+  "importErrNoToken": {
+    "message": "पहले अपने टोकन से एक्सटेंशन कनेक्ट करें।"
+  },
+  "importErrToken": {
+    "message": "टोकन मान्य नहीं है: Cinepisode में नया टोकन बनाएँ, फिर सेटिंग › टोकन › बदलें।"
+  },
+  "importErrNetflixTab": {
+    "message": "इस ब्राउज़र में Netflix नहीं खुल सका।"
+  },
+  "importErrNetflixAuth": {
+    "message": "इस ब्राउज़र में Netflix पर साइन इन करें (और अपनी प्रोफ़ाइल चुनें), फिर कोशिश करें।"
+  },
+  "importErrNetflix": {
+    "message": "Netflix से अनपेक्षित जवाब मिला। बाद में फिर कोशिश करें, या CSV फ़ाइल इंपोर्ट करें।"
+  },
+  "importErrCsv": {
+    "message": "फ़ाइल पढ़ी नहीं जा सकी: NetflixViewingHistory.csv चुनें (ज़्यादा से ज़्यादा 20 MB)।"
+  },
+  "importErrLimit": {
+    "message": "बहुत सारे पहचाने गए टाइटल बाकी हैं: उन्हें Cinepisode के “पहचाने गए” टैब में निपटाएँ।"
+  },
+  "importErrServer": {
+    "message": "Cinepisode सर्वर में गड़बड़ी। बाद में फिर कोशिश करें।"
+  },
+  "importErrNetwork": {
+    "message": "Cinepisode तक पहुँच नहीं हो पा रही (कनेक्शन?)।"
+  },
+  "importBusy": {
+    "message": "एक इंपोर्ट पहले से चल रहा है।"
+  },
+  "importCrunchyroll": {
+    "message": "मेरी Crunchyroll हिस्ट्री इंपोर्ट करें"
+  },
+  "importPrime": {
+    "message": "मेरी Prime Video हिस्ट्री इंपोर्ट करें"
+  },
+  "platformEnabled": {
+    "message": "चालू: लाइव पहचान और हिस्ट्री इंपोर्ट।"
+  },
+  "platformNetflixAlways": {
+    "message": "हमेशा चालू"
+  },
+  "platformDenied": {
+    "message": "Chrome ने एक्सेस नहीं दिया: कुछ भी चालू नहीं हुआ।"
+  },
+  "importStepCrunchyroll": {
+    "message": "Crunchyroll से कनेक्ट हो रहा है…"
+  },
+  "importStepPrime": {
+    "message": "Prime Video से कनेक्ट हो रहा है…"
+  },
+  "importStepPrimeMeta": {
+    "message": "एपिसोड और फ़िल्मों की जानकारी: $D$ / $T$…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTruncatedOther": {
+    "message": " हिस्ट्री बहुत लंबी है: सिर्फ़ सबसे हाल का हिस्सा पढ़ा गया।"
+  },
+  "importPartial": {
+    "message": " आपकी हिस्ट्री का सबसे पुराना हिस्सा पढ़ा नहीं जा सका (Crunchyroll ने बाकी देने से मना कर दिया): उससे पहले का सब भेज दिया गया। दोबारा कोशिश करने के लिए बाद में फिर इंपोर्ट करें।"
+  },
+  "importErrPermission": {
+    "message": "पहले प्लेटफ़ॉर्म चालू करें (ग्रिड में उसकी टाइल)।"
+  },
+  "importErrCrunchyrollAuth": {
+    "message": "Crunchyroll आपका सेशन नहीं पहचान रहा: इस ब्राउज़र में www.crunchyroll.com पर साइन इन करें, फिर कोशिश करें।"
+  },
+  "importErrCrunchyroll": {
+    "message": "Crunchyroll से अनपेक्षित जवाब मिला। बाद में फिर कोशिश करें; अगर फिर ऐसा हो, तो नीचे दिया डायग्नोस्टिक कॉपी करके हमें भेजें।"
+  },
+  "importErrPrimeAuth": {
+    "message": "इस ब्राउज़र में www.primevideo.com पर साइन इन करें (और अपनी प्रोफ़ाइल चुनें), फिर कोशिश करें।"
+  },
+  "importErrPrime": {
+    "message": "Prime Video से अनपेक्षित जवाब मिला। बाद में फिर कोशिश करें।"
+  },
+  "importErrCrunchyrollBlocked": {
+    "message": "Crunchyroll (Cloudflare) ने रिक्वेस्ट ब्लॉक कर दी। किसी टैब में www.crunchyroll.com खोलें, अगर कोई जाँच दिखे तो उसे पूरा करें, फिर कोशिश करें।"
+  },
+  "importErrCrunchyrollRate": {
+    "message": "Crunchyroll अभी रिक्वेस्ट सीमित कर रहा है। कुछ मिनट बाद फिर कोशिश करें।"
+  },
+  "importErrCrunchyrollTab": {
+    "message": "किसी टैब में www.crunchyroll.com नहीं खुल सका। साइट खुद खोलें, फिर कोशिश करें।"
+  },
+  "importErrStep": {
+    "message": "चरण $STEP$: $STATUS$",
+    "placeholders": {
+      "step": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "importErrHttp": {
+    "message": "HTTP $CODE$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoResponse": {
+    "message": "कोई जवाब नहीं (नेटवर्क या ब्लॉक)"
+  },
+  "importErrBadAnswer": {
+    "message": "जवाब पढ़ा नहीं जा सका"
+  },
+  "importStepNameTab": {
+    "message": "टैब"
+  },
+  "importStepNameToken": {
+    "message": "टोकन"
+  },
+  "importStepNameAccount": {
+    "message": "अकाउंट"
+  },
+  "importStepNameHistory": {
+    "message": "हिस्ट्री"
+  },
+  "importStepNamePush": {
+    "message": "Cinepisode को भेजना"
+  },
+  "importCopyDiag": {
+    "message": "डायग्नोस्टिक कॉपी करें"
+  },
+  "importDiagCopied": {
+    "message": "डायग्नोस्टिक कॉपी हो गया (इसमें कोई टोकन या पासवर्ड नहीं है)।"
+  },
+  "importDiagCopyFailed": {
+    "message": "कॉपी नहीं हो सका: डायग्नोस्टिक टेक्स्ट खुद सिलेक्ट करें।"
+  },
+  "importStepCrunchyrollTab": {
+    "message": "www.crunchyroll.com खुल रहा है…"
+  },
+  "platformEnabledLive": {
+    "message": "चालू: लाइव पहचान (इस प्लेटफ़ॉर्म पर हिस्ट्री उपलब्ध नहीं)।"
+  },
+  "diagTitle": {
+    "message": "डायग्नोस्टिक"
+  },
+  "diagDebug": {
+    "message": "विस्तृत लॉग (F12 कंसोल)"
+  },
+  "diagCopy": {
+    "message": "डायग्नोस्टिक कॉपी करें"
+  },
+  "diagCopied": {
+    "message": "डायग्नोस्टिक कॉपी हो गया: इसे अपने मैसेज में पेस्ट करें (कोई टोकन शामिल नहीं)।"
+  },
+  "liveOnlyInfoLabel": {
+    "message": "हिस्ट्री इंपोर्ट क्यों नहीं?"
+  },
+  "liveOnlyInfo": {
+    "message": "Disney+ और Apple TV आपकी देखने की हिस्ट्री का एक्सेस नहीं देते: सिर्फ़ अब से देखे गए एपिसोड पहचाने जाते हैं। पुरानी हिस्ट्री वापस पाने के लिए अपने डेटा की कॉपी माँगें (Disney: अकाउंट सेटिंग / Apple: privacy.apple.com)।"
+  },
+  "notConnected": {
+    "message": "कनेक्ट नहीं है"
+  },
+  "connected": {
+    "message": "कनेक्ट है"
+  },
+  "connectedTitle": {
+    "message": "टोकन सेव है: पहचाने गए टाइटल आपके Cinepisode अकाउंट में जाते हैं"
+  },
+  "offHeroTitle": {
+    "message": "एक्सटेंशन को अपने अकाउंट से लिंक करें"
+  },
+  "offHeroSub": {
+    "message": "देखते-देखते आपके एपिसोड पर अपने-आप टिक लगता है।"
+  },
+  "offStep1": {
+    "message": "Cinepisode › सेटिंग › ऑटो-ट्रैकिंग खोलें"
+  },
+  "offStep2": {
+    "message": "“मेरा टोकन बनाएँ” पर क्लिक करें"
+  },
+  "offStep3": {
+    "message": "उसे नीचे पेस्ट करें"
+  },
+  "tokenPlaceholder": {
+    "message": "अपना टोकन यहाँ पेस्ट करें"
+  },
+  "connect": {
+    "message": "कनेक्ट करें"
+  },
+  "offPrivacy": {
+    "message": "टोकन इसी ब्राउज़र में रहता है। Cinepisode को सिर्फ़ टाइटल, सीज़न और एपिसोड भेजे जाते हैं।"
+  },
+  "noAccount": {
+    "message": "अभी अकाउंट नहीं है?"
+  },
+  "changeTokenFoot": {
+    "message": "नया टोकन पेस्ट करने तक आपका मौजूदा टोकन चालू रहता है।"
+  },
+  "openAppArrow": {
+    "message": "Cinepisode खोलें →"
+  },
+  "cancel": {
+    "message": "रद्द करें"
+  },
+  "settingsTitle": {
+    "message": "सेटिंग"
+  },
+  "back": {
+    "message": "वापस"
+  },
+  "nowTitle": {
+    "message": "अभी चल रहा है"
+  },
+  "liveBadge": {
+    "message": "लाइव"
+  },
+  "idleTitle": {
+    "message": "कुछ नहीं चल रहा"
+  },
+  "idleSub": {
+    "message": "किसी चालू प्लेटफ़ॉर्म पर कोई एपिसोड शुरू करें।"
+  },
+  "nowEpisode": {
+    "message": "सीज़न $S$ · एपिसोड $E$",
+    "placeholders": {
+      "s": {
+        "content": "$1",
+        "example": ""
+      },
+      "e": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "nowMovie": {
+    "message": "फ़िल्म"
+  },
+  "nowPct": {
+    "message": "$P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowRule": {
+    "message": "$P$% पर गिना जाता है",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowCounted": {
+    "message": "✓ गिना गया"
+  },
+  "platformsCap": {
+    "message": "प्लेटफ़ॉर्म"
+  },
+  "platformsCount": {
+    "message": "$N$/$T$ चालू",
+    "placeholders": {
+      "n": {
+        "content": "$1",
+        "example": ""
+      },
+      "t": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "chipActive": {
+    "message": "चालू"
+  },
+  "chipOff": {
+    "message": "चालू करें"
+  },
+  "chipDenied": {
+    "message": "अनुमति नहीं"
+  },
+  "chipTip": {
+    "message": "$NAME$ चालू करें: Chrome इस साइट के एक्सेस की अनुमति माँगेगा",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "importCap": {
+    "message": "हिस्ट्री इंपोर्ट करें"
+  },
+  "pendingNone": {
+    "message": "“पहचाने गए” में कुछ नया नहीं"
+  },
+  "pendingOne": {
+    "message": "नया टाइटल “पहचाने गए” में"
+  },
+  "pendingMany": {
+    "message": "नए टाइटल “पहचाने गए” में"
+  },
+  "seeDetected": {
+    "message": "देखें →"
+  },
+  "accountCap": {
+    "message": "अकाउंट"
+  },
+  "change": {
+    "message": "बदलें"
+  },
+  "csvRow": {
+    "message": "Netflix CSV फ़ाइल"
+  },
+  "csvRowHint": {
+    "message": "Account › Profile › Viewing activity › “Download all”"
+  },
+  "choose": {
+    "message": "चुनें"
+  },
+  "liveOnlySmall": {
+    "message": "सिर्फ़ लाइव प्लेबैक"
+  },
+  "rulesCap": {
+    "message": "टाइटल कब देखा हुआ माना जाता है"
+  },
+  "rulesText": {
+    "message": "एपिसोड 80% पर या एंड क्रेडिट दिखते ही, फ़िल्म 90% पर, कम से कम 20 सेकंड लगातार चलने के बाद। आपकी लिस्ट में मिले टाइटल अपडेट होते हैं; बाकी “पहचाने गए” टैब में जाते हैं।"
+  },
+  "diagCopyHint": {
+    "message": "पहचान का स्टेटस, आपके टोकन के बिना"
+  },
+  "logout": {
+    "message": "साइन आउट करें"
+  },
+  "logoutConfirm": {
+    "message": "टोकन हटाएँ?"
+  },
+  "logoutYes": {
+    "message": "हाँ"
+  },
+  "pairButton": {
+    "message": "Cinepisode से साइन इन करें"
+  },
+  "pairSub": {
+    "message": "वेबसाइट पर एक क्लिक, कुछ भी कॉपी नहीं करना।"
+  },
+  "manualToggle": {
+    "message": "मैन्युअल टोकन इस्तेमाल करें (एडवांस्ड)"
+  },
+  "pairedRevoked": {
+    "message": "यह डिवाइस वेबसाइट से हटा दिया गया था। इसे फिर से लिंक करें।"
+  },
+  "reviewTitle": {
+    "message": "क्या Cinepisode आपके काम आ रहा है?"
+  },
+  "reviewSub": {
+    "message": "$COUNT$ एपिसोड अपने-आप मार्क हुए। Chrome Web Store पर एक रिव्यू एक इंडिपेंडेंट प्रोजेक्ट की बहुत मदद करता है।",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewYes": {
+    "message": "रिव्यू दें"
+  },
+  "reviewLater": {
+    "message": "बाद में"
+  },
+  "reviewNever": {
+    "message": "फिर न पूछें"
+  }
+}

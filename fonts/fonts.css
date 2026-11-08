@@ -1,5 +1,44 @@
-/* Polices auto-hébergées (SIL OFL 1.1, fichiers @fontsource, sous-ensemble latin).
- * Aucune requête vers Google Fonts : pas de fuite d'IP ni de Referer vers un tiers. */
+/* Polices auto-hébergées (SIL OFL 1.1, fichiers @fontsource 5.3.0). Aucune requête vers Google
+ * Fonts ni aucun tiers (CSP font-src 'self') : pas de fuite d'IP ni de Referer.
+ *
+ * Principe : chaque famille utilisée par l'app ('Inter', 'IBM Plex Sans', 'IBM Plex Mono') est
+ * composée de plusieurs @font-face qui ne diffèrent que par unicode-range. Le navigateur ne
+ * télécharge un fichier que si la page contient un caractère de sa plage : un utilisateur fr/en
+ * ne charge que le latin, exactement comme avant. Aucune police n'est préchargée.
+ *
+ * IMPORTANT : dans une même famille, toutes les faces doivent garder des descripteurs font-weight
+ * IDENTIQUES à ceux des faces latines (Inter : « 100 900 » ; Plex Sans : 300/400/500/600 ; Plex Mono :
+ * 400/500/600). Chromium regroupe les faces par descripteurs et n'en retient qu'un groupe par
+ * requête : une face « 600 900 » ajoutée ferait perdre le latin en gras (vérifié). D'où les faces
+ * Noto variables déclarées une fois par poids pour Plex Sans (même fichier, une seule requête).
+ * Les plages ne se chevauchent pas avec le latin (U+200C-200D, U+2010-2011… retirés des plages Noto),
+ * sinon un caractère latin courant (ZWJ des émojis, tirets) déclencherait leur téléchargement.
+ *
+ * Sous-ensembles :
+ *  - latin : Inter (variable), IBM Plex Sans 300-600, IBM Plex Mono 400-600. Couvre Latin-1 (á é í
+ *    ó ú ñ ü ç ã õ â ê ô à ¿ ¡ « ») et la ponctuation générale U+2000-206F (“ ” ‘ ’ … — – ‹ ›) : fr,
+ *    en, es, pt. Le · (U+00B7) est dans Latin-1.
+ *  - cyrillic (ru) : vraies Inter / IBM Plex Sans / IBM Plex Mono cyrilliques (cyrillic-ext non inclus).
+ *  - devanagari (hi), bengali (bn), arabic (ar, ur) : Noto Sans Devanagari / Bengali / Arabic
+ *    variables (wght 100-900), déclarées sous 'Inter' et 'IBM Plex Sans' (inutile pour la mono).
+ *    Le sous-ensemble arabic contient les lettres ourdoues (ٹ ڈ ڑ ں ھ ہ ے گ چ پ ژ ک ی) et la
+ *    ponctuation ، ؛ ؟ ۔. Pas de Nastaliq : l'ourdou s'affiche en style naskh (Noto Sans Arabic).
+ *  - danda । ॥ (U+0964-0965, communs au hindi et au bengali) : petit fichier (≈1 Ko) extrait avec
+ *    fontTools (pyftsubset) de Noto Sans Devanagari ; sans lui, une page bengali chargerait aussi
+ *    tout le devanagari (et inversement), Chromium chargeant toute face dont la plage est touchée.
+ *  - CJK (zh) : des milliers de glyphes, trop lourd à auto-héberger. Faces local() uniquement,
+ *    pour 'IBM Plex Sans' : on désigne la police chinoise installée sur l'appareil (PingFang,
+ *    Hiragino GB, YaHei, Noto/Source Han, WenQuanYi), sans aucun téléchargement. 300/400 → variante
+ *    régulière ; 500/600 (et donc 700+) → variante grasse. La liste grasse ne contient volontairement
+ *    aucune police sans graisse (WenQuanYi) : si aucune n'est installée, la face échoue et le
+ *    repli système s'applique avec gras synthétique, au lieu d'un régulier figé (vérifié).
+ *    Pas de face CJK pour 'Inter' : sa face unique « 100 900 » imposerait une seule police locale
+ *    pour toutes les graisses, sans gras synthétique (constaté dans Chromium) ; le repli système
+ *    (qui suit lang="zh" pour choisir une police SC) rend mieux. À défaut, sans-serif du système.
+ *
+ * Licences : OFL-ibm-plex.txt (IBM Plex), OFL-inter.txt (Inter), OFL-noto-sans-arabic.txt,
+ * OFL-noto-sans-devanagari.txt, OFL-noto-sans-bengali.txt (Noto, The Noto Project Authors). */
+/* --- Latin (fr, en, es, pt…) : chargé par tous --- */
 @font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/Inter-Variable.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:300;src:url(/fonts/ibm-plex-sans-latin-300-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:400;src:url(/fonts/ibm-plex-sans-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -8,3 +47,41 @@
 @font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:400;src:url(/fonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:500;src:url(/fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:600;src:url(/fonts/ibm-plex-mono-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+/* --- Cyrillique (ru) --- */
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/inter-cyrillic-wght-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:300;src:url(/fonts/ibm-plex-sans-cyrillic-300-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:400;src:url(/fonts/ibm-plex-sans-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:500;src:url(/fonts/ibm-plex-sans-cyrillic-500-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:600;src:url(/fonts/ibm-plex-sans-cyrillic-600-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:400;src:url(/fonts/ibm-plex-mono-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:500;src:url(/fonts/ibm-plex-mono-cyrillic-500-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:600;src:url(/fonts/ibm-plex-mono-cyrillic-600-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+/* --- Devanagari (hi) — Noto Sans Devanagari variable --- */
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/noto-sans-devanagari-devanagari-wght-normal.woff2) format('woff2');unicode-range:U+0900-0963,U+0966-097F,U+1CD0-1CF9,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:300;src:url(/fonts/noto-sans-devanagari-devanagari-wght-normal.woff2) format('woff2');unicode-range:U+0900-0963,U+0966-097F,U+1CD0-1CF9,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:400;src:url(/fonts/noto-sans-devanagari-devanagari-wght-normal.woff2) format('woff2');unicode-range:U+0900-0963,U+0966-097F,U+1CD0-1CF9,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:500;src:url(/fonts/noto-sans-devanagari-devanagari-wght-normal.woff2) format('woff2');unicode-range:U+0900-0963,U+0966-097F,U+1CD0-1CF9,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:600;src:url(/fonts/noto-sans-devanagari-devanagari-wght-normal.woff2) format('woff2');unicode-range:U+0900-0963,U+0966-097F,U+1CD0-1CF9,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09}
+/* --- Bengali (bn) — Noto Sans Bengali variable --- */
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/noto-sans-bengali-bengali-wght-normal.woff2) format('woff2');unicode-range:U+0980-09FE,U+A8F1}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:300;src:url(/fonts/noto-sans-bengali-bengali-wght-normal.woff2) format('woff2');unicode-range:U+0980-09FE,U+A8F1}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:400;src:url(/fonts/noto-sans-bengali-bengali-wght-normal.woff2) format('woff2');unicode-range:U+0980-09FE,U+A8F1}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:500;src:url(/fonts/noto-sans-bengali-bengali-wght-normal.woff2) format('woff2');unicode-range:U+0980-09FE,U+A8F1}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:600;src:url(/fonts/noto-sans-bengali-bengali-wght-normal.woff2) format('woff2');unicode-range:U+0980-09FE,U+A8F1}
+/* --- Arabe (ar, ur) — Noto Sans Arabic variable --- */
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/noto-sans-arabic-arabic-wght-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC,U+102E0-102FB,U+10E60-10E7E,U+10EC2-10EC4,U+10EFC-10EFF,U+1EE00-1EEFF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:300;src:url(/fonts/noto-sans-arabic-arabic-wght-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC,U+102E0-102FB,U+10E60-10E7E,U+10EC2-10EC4,U+10EFC-10EFF,U+1EE00-1EEFF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:400;src:url(/fonts/noto-sans-arabic-arabic-wght-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC,U+102E0-102FB,U+10E60-10E7E,U+10EC2-10EC4,U+10EFC-10EFF,U+1EE00-1EEFF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:500;src:url(/fonts/noto-sans-arabic-arabic-wght-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC,U+102E0-102FB,U+10E60-10E7E,U+10EC2-10EC4,U+10EFC-10EFF,U+1EE00-1EEFF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:600;src:url(/fonts/noto-sans-arabic-arabic-wght-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC,U+102E0-102FB,U+10E60-10E7E,U+10EC2-10EC4,U+10EFC-10EFF,U+1EE00-1EEFF}
+/* --- Danda । ॥ (hi + bn) : 1 Ko extrait de Noto Sans Devanagari, pour qu'une page bengali ne charge pas tout le devanagari (et inversement) --- */
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/noto-sans-devanagari-danda-wght-normal.woff2) format('woff2');unicode-range:U+0964-0965}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:300;src:url(/fonts/noto-sans-devanagari-danda-wght-normal.woff2) format('woff2');unicode-range:U+0964-0965}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:400;src:url(/fonts/noto-sans-devanagari-danda-wght-normal.woff2) format('woff2');unicode-range:U+0964-0965}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:500;src:url(/fonts/noto-sans-devanagari-danda-wght-normal.woff2) format('woff2');unicode-range:U+0964-0965}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:600;src:url(/fonts/noto-sans-devanagari-danda-wght-normal.woff2) format('woff2');unicode-range:U+0964-0965}
+/* --- CJK (zh) : 'IBM Plex Sans' seulement, polices du système (local), aucun fichier téléchargé --- */
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:300;src:local('PingFang SC'),local('PingFangSC-Regular'),local('Hiragino Sans GB'),local('Microsoft YaHei'),local('Noto Sans CJK SC'),local('Noto Sans SC'),local('Source Han Sans SC'),local('WenQuanYi Micro Hei'),local('WenQuanYi Zen Hei');unicode-range:U+2E80-2FFF,U+3000-303F,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:400;src:local('PingFang SC'),local('PingFangSC-Regular'),local('Hiragino Sans GB'),local('Microsoft YaHei'),local('Noto Sans CJK SC'),local('Noto Sans SC'),local('Source Han Sans SC'),local('WenQuanYi Micro Hei'),local('WenQuanYi Zen Hei');unicode-range:U+2E80-2FFF,U+3000-303F,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:500;src:local('PingFang SC Semibold'),local('PingFangSC-Semibold'),local('Hiragino Sans GB W6'),local('Microsoft YaHei Bold'),local('Noto Sans CJK SC Bold'),local('Noto Sans SC Bold'),local('Source Han Sans SC Bold');unicode-range:U+2E80-2FFF,U+3000-303F,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;font-weight:600;src:local('PingFang SC Semibold'),local('PingFangSC-Semibold'),local('Hiragino Sans GB W6'),local('Microsoft YaHei Bold'),local('Noto Sans CJK SC Bold'),local('Noto Sans SC Bold'),local('Source Han Sans SC Bold');unicode-range:U+2E80-2FFF,U+3000-303F,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF}

@@ -52,9 +52,30 @@ function posterImg(path) {
     'style="display:block;border-radius:12px;width:52px;height:78px;object-fit:cover;">';
 }
 /* Date lisible (« ven. 7 nov. » / « Fri, Nov 7 »), même famille que le calendrier in-app (js/26-calendar.js) */
+/* Langues de l'interface (js/i18n/<code>.js) : locale Intl des dates et libellé « N sorties cette semaine »,
+   une forme par catégorie Intl.PluralRules de la langue. Langue inconnue ou absente : français. */
+const DIGEST_LOCALES = { fr: 'fr-FR', en: 'en-US', zh: 'zh-CN', hi: 'hi-IN', es: 'es-MX', ar: 'ar-EG-u-nu-latn', bn: 'bn-BD-u-nu-latn', pt: 'pt-BR', ru: 'ru-RU', ur: 'ur-PK' };
+const RELEASES_LABEL = {
+  fr: { one: '{n} sortie cette semaine', other: '{n} sorties cette semaine' },
+  en: { one: '{n} release this week', other: '{n} releases this week' },
+  zh: { other: '本周上线 {n} 部' },
+  hi: { one: 'इस हफ़्ते {n} रिलीज़', other: 'इस हफ़्ते {n} रिलीज़' },
+  es: { one: '{n} estreno esta semana', other: '{n} estrenos esta semana' },
+  ar: { one: 'إصدار واحد هذا الأسبوع', two: 'إصداران هذا الأسبوع', few: '{n} إصدارات هذا الأسبوع', many: '{n} إصدارًا هذا الأسبوع', other: '{n} إصدار هذا الأسبوع' },
+  bn: { one: 'এই সপ্তাহে {n}টি নতুন রিলিজ', other: 'এই সপ্তাহে {n}টি নতুন রিলিজ' },
+  pt: { one: '{n} lançamento nesta semana', other: '{n} lançamentos nesta semana' },
+  ru: { one: '{n} выход на этой неделе', few: '{n} выхода на этой неделе', many: '{n} выходов на этой неделе', other: '{n} выхода на этой неделе' },
+  ur: { one: 'اس ہفتے {n} نئی ریلیز', other: 'اس ہفتے {n} نئی ریلیزیں' },
+};
+function releasesLabel(count, lang) {
+  const forms = RELEASES_LABEL[lang] || RELEASES_LABEL.fr;
+  let rule = 'other';
+  try { rule = new Intl.PluralRules(DIGEST_LOCALES[lang] || 'fr-FR').select(count); } catch (e) { /* other */ }
+  return (forms[rule] || forms.other).replace('{n}', count);
+}
 function formatAirDate(iso, lang) {
   try {
-    const locale = lang === 'en' ? 'en-US' : 'fr-FR';
+    const locale = DIGEST_LOCALES[lang] || 'fr-FR';
     const d = new Date(iso + 'T00:00:00Z');
     const s = new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(d);
     return s.charAt(0).toUpperCase() + s.slice(1);
@@ -68,9 +89,7 @@ function episodeBadge(it) {
 }
 function itemsHtml(items, lang) {
   const count = items.length;
-  const label = lang === 'en'
-    ? (count === 1 ? '1 release this week' : count + ' releases this week')
-    : (count === 1 ? '1 sortie cette semaine' : count + ' sorties cette semaine');
+  const label = releasesLabel(count, lang);
   const rows = items.map((it, i) =>
     '<tr><td style="padding:14px 0;' + (i > 0 ? 'border-top:1px solid #26262c;' : 'padding-top:2px;') + '">' +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>' +

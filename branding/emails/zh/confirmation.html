@@ -1,0 +1,11 @@
+subject: 验证你的邮箱地址 · [[name]]
+preheader: 只需点一下，即可激活你的 [[name]] 账号。
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>欢迎来到 [[name]]！</h1>
+<p>只差最后一步：验证你的邮箱 <strong>{{ .Email }}</strong>，即可激活账号，并在所有设备间同步你的片单。</p>
+[[button||验证我的邮箱||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]
+<p class="muted">想改用验证码（已安装的应用或其他设备）？在 [[name]] 中打开“登录”，点击“我有验证码”，然后输入：</p>
+[[code||{{ .Token }}]]
+<p class="small">链接和验证码一小时后失效，且只能使用一次。如果你没有注册过账号，请忽略这封邮件：账号不会被激活。</p>
+[[fallback||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]

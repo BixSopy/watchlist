@@ -27,8 +27,10 @@ function activityAgo(iso){
     return rtf.format(-Math.round(h/24),'day');
   }catch(e){return '';}
 }
+/* titre isolé en RTL (js/03-dom-utils.js, bidiIso) : « Severance · S1 E4 » ne se réordonne pas */
 function activityItemMeta(it){
-  return it.kind==='film'?(it.title+' · '+t('status.termine')):(it.title+' · S'+it.season+' E'+it.episode);
+  var ti=typeof bidiIso==='function'?bidiIso(it.title):it.title;
+  return it.kind==='film'?(ti+' · '+t('status.termine')):(ti+' · S'+it.season+' E'+it.episode);
 }
 function activityReactsHtml(it){
   var mine=it.my_reaction,counts=it.reactions||{};
@@ -42,7 +44,7 @@ function activityItemHtml(it,i){
   return '<li class="act-item" style="--i:'+i+'">'+
     '<button type="button" class="fr-row act-row"'+uiAct('openFriend',[it.friend&&it.friend.profile_id])+'>'+
       friendAvatar(it.friend)+
-      '<span class="fr-meta"><b>'+esc(friendName(it.friend))+'</b><span>'+esc(activityItemMeta(it))+'</span></span>'+
+      '<span class="fr-meta"><b>'+esc((typeof bidiIso==='function'?bidiIso:String)(friendName(it.friend)))+'</b><span>'+esc(activityItemMeta(it))+'</span></span>'+
       (ok?'<img class="fr-post" alt="" loading="lazy" src="'+IMG_W92+esc(it.poster_path)+'">':'')+
       '<time class="act-time">'+esc(activityAgo(it.updated_at))+'</time>'+
     '</button>'+

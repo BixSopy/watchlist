@@ -1,0 +1,11 @@
+subject: আপনার নতুন ইমেইল ঠিকানা নিশ্চিত করুন · [[name]]
+preheader: আপনার [[name]] অ্যাকাউন্টের ইমেইল ঠিকানা পরিবর্তন নিশ্চিত করুন।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>ইমেইল ঠিকানা পরিবর্তন</h1>
+<p>আপনি আপনার [[name]] অ্যাকাউন্টে <strong>{{ .Email }}</strong>-এর বদলে <strong>{{ .NewEmail }}</strong> ব্যবহার করতে চেয়েছেন। এই পরিবর্তনটি নিশ্চিত করুন:</p>
+[[button||পরিবর্তন নিশ্চিত করুন||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]
+<p class="muted">অথবা [[name]]-এ (অ্যাকাউন্ট › ইমেইল ঠিকানা বদলান › “আমার কাছে কোড আছে”) এই কোডটি লিখুন:</p>
+[[code||{{ .Token }}]]
+<p class="small">দুটি ঠিকানাই নিশ্চিত করার নিয়ম চালু থাকলে পুরোনো ও নতুন দুই ঠিকানাতেই একই ইমেইল পাঠানো হয়: দুটিই নিশ্চিত করতে হবে। আপনি এই অনুরোধ না করে থাকলে ইমেইলটি উপেক্ষা করুন এবং আপনার পাসওয়ার্ড বদলে ফেলুন।</p>
+[[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]

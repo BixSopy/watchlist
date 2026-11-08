@@ -1,7 +1,8 @@
 /* MODULE: Dossiers/sagas (collections TMDB) et actions rapides sur les cartes de reco. */
 /* DOSSIERS / SAGAS */
 var currentFolder=null;
-function _slugify(s){return(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+/* même clé que la saisie manuelle (js/07-add-edit.js) ; lettres non latines gardées (js/03-dom-utils.js) */
+function _slugify(s){return slugKey(s||'');}
 function folderCardHtml(collId,items){
   var name=items[0].collectionName||collId;
   var sorted=items.slice().sort(function(a,b){return(parseInt(a.year)||9999)-(parseInt(b.year)||9999);});
@@ -139,7 +140,7 @@ function recoDismiss(card){
     if(id)document.querySelectorAll('#sbContent .reco-card[data-tmdbid="'+id+'"]').forEach(function(c){c.remove();});
     p3ForYou();return;
   }
-  card.style.transition='opacity .3s,transform .3s';card.style.opacity='0';card.style.transform='translateX(-16px)';setTimeout(function(){card.remove();},300);
+  card.style.transition='opacity .3s,transform .3s';card.style.opacity='0';card.style.transform='translateX('+(-16*hScrollSign())+'px)';setTimeout(function(){card.remove();},300);
 }
 function getCardData(card){return{tmdbId:card.dataset.tmdbid?parseInt(card.dataset.tmdbid):null,type:card.dataset.type,title:card.dataset.title,year:card.dataset.year,poster:card.dataset.poster||null,score:card.dataset.score||null,overview:card.dataset.overview||''};}
 function recoAddDirect(d){

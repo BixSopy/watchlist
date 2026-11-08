@@ -1,0 +1,9 @@
+subject: [[name]]-এ আপনাকে আমন্ত্রণ জানানো হয়েছে
+preheader: পাসওয়ার্ড বেছে নিয়ে আপনার [[name]] অ্যাকাউন্ট তৈরি করুন।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>[[name]]-এ আপনাকে আমন্ত্রণ জানানো হয়েছে</h1>
+<p><strong>{{ .Email }}</strong> ঠিকানার জন্য একটি অ্যাকাউন্ট তৈরি করা হয়েছে। আমন্ত্রণ গ্রহণ করুন, তারপর পাসওয়ার্ড বেছে নিয়ে আপনার সিনেমা, সিরিজ ও অ্যানিমে ট্র্যাক করা শুরু করুন।</p>
+[[button||আমন্ত্রণ গ্রহণ করুন||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]
+<p class="small">এই লিংকটি শুধু একবারই ব্যবহার করা যায় এবং দ্রুত মেয়াদ শেষ হয়ে যায়। প্রেরককে না চিনলে এই ইমেইলটি উপেক্ষা করুন।</p>
+[[fallback||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]

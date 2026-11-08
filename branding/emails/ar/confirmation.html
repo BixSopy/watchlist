@@ -1,0 +1,11 @@
+subject: تأكيد عنوان بريدك الإلكتروني · [[name]]
+preheader: نقرة واحدة لتفعيل حسابك على [[name]].
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>مرحبًا بك في [[name]]!</h1>
+<p>تبقّت خطوة واحدة فقط: أكّد عنوانك <strong>{{ .Email }}</strong> لتفعيل حسابك ومزامنة قائمتك على جميع أجهزتك.</p>
+[[button||تأكيد بريدي الإلكتروني||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]
+<p class="muted">هل تفضّل إدخال رمز (من التطبيق المثبّت أو من جهاز آخر)؟ افتح «تسجيل الدخول» في [[name]]، ثم «لدي رمز»، وأدخل:</p>
+[[code||{{ .Token }}]]
+<p class="small">تنتهي صلاحية الرابط والرمز بعد ساعة واحدة، ولا يمكن استخدام أي منهما إلا مرة واحدة. إذا لم تنشئ حسابًا، فتجاهل هذه الرسالة: لن يتم تفعيل أي شيء.</p>
+[[fallback||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]

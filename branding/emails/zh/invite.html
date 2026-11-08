@@ -1,0 +1,9 @@
+subject: 你收到了 [[name]] 的邀请
+preheader: 设置密码，即可创建你的 [[name]] 账号。
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>你收到了 [[name]] 的邀请</h1>
+<p>已为 <strong>{{ .Email }}</strong> 创建了一个账号。接受邀请并设置密码后，就可以开始追踪你的电影、剧集和动漫了。</p>
+[[button||接受邀请||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]
+<p class="small">此链接只能使用一次，且很快就会失效。如果你不认识发件人，请忽略这封邮件。</p>
+[[fallback||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]

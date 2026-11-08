@@ -1,0 +1,11 @@
+subject: 你的登录链接 · [[name]]
+preheader: 一键登录 [[name]]，无需密码。
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>无需密码即可登录</h1>
+<p>这是你使用 <strong>{{ .Email }}</strong> 登录 [[name]] 的链接。</p>
+[[button||登录||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]
+<p class="muted">或者，在 [[name]] 中（“登录”，然后点击“我有验证码”）输入此验证码：</p>
+[[code||{{ .Token }}]]
+<p class="small">链接和验证码一小时后失效，且只能使用一次。如果这不是你本人的请求，请忽略这封邮件：没有它，任何人都无法登录。</p>
+[[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=zh]]

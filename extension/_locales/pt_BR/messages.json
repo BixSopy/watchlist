@@ -1,0 +1,576 @@
+{
+  "extName": {
+    "message": "Cinepisode — Acompanhamento automático"
+  },
+  "extDescription": {
+    "message": "Marca sozinho os episódios que você assiste na Netflix, Prime Video, Crunchyroll, Disney+ e Apple TV. Importa o histórico."
+  },
+  "optionsTitle": {
+    "message": "Cinepisode — Acompanhamento automático"
+  },
+  "tokenLabel": {
+    "message": "Token"
+  },
+  "save": {
+    "message": "Salvar"
+  },
+  "tokenEmpty": {
+    "message": "Token vazio."
+  },
+  "openApp": {
+    "message": "Abrir o Cinepisode"
+  },
+  "lastNone": {
+    "message": "Nada detectado ainda. Um episódio conta como visto aos 80% ou nos créditos finais; um filme, aos 90%."
+  },
+  "lastAt": {
+    "message": "Em $WHEN$",
+    "placeholders": {
+      "when": {
+        "content": "$1",
+        "example": "08/10/2026 21:40"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "Atualizado: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAlready": {
+    "message": "Já em dia: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNotFound": {
+    "message": "Não está na sua lista: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAmbiguous": {
+    "message": "Vários títulos correspondem a “$LABEL$”, nada foi alterado",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidToken": {
+    "message": "Token inválido: gere um novo no Cinepisode e depois vá em Configurações › Token › Trocar."
+  },
+  "lastNoToken": {
+    "message": "Nenhum token salvo: $LABEL$ não foi enviado.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNetwork": {
+    "message": "Não foi possível acessar o Cinepisode (conexão?): $LABEL$ não foi enviado.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastServerError": {
+    "message": "Erro no servidor do Cinepisode: $LABEL$ não foi salvo.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidInput": {
+    "message": "Detecção recusada pelo servidor: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidDetection": {
+    "message": "Detecção da Netflix ilegível, nada foi enviado."
+  },
+  "lastLegacyUpdated": {
+    "message": "Atualizado: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastLegacyNoChange": {
+    "message": "Nenhuma alteração para $LABEL$ (fora da sua lista ou já em dia).",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "importNetflix": {
+    "message": "Importar meu histórico da Netflix"
+  },
+  "openDetected": {
+    "message": "Ver títulos detectados no Cinepisode"
+  },
+  "importStepTab": {
+    "message": "Abrindo a Netflix…"
+  },
+  "importStepSession": {
+    "message": "Lendo o perfil da Netflix…"
+  },
+  "importStepHistory": {
+    "message": "Lendo o histórico: $N$ visualizações ($P$ páginas)…",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "p": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepMeta": {
+    "message": "Números dos episódios: $D$ / $T$ séries…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepParse": {
+    "message": "Lendo o arquivo…"
+  },
+  "importStepPush": {
+    "message": "Enviando para o Cinepisode…"
+  },
+  "importDone": {
+    "message": "$N$ títulos enviados ($NEW$ novos, $UPD$ mais recentes). Escolha o que adicionar na aba “Detectados” do Cinepisode.",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "new": {
+        "content": "$2"
+      },
+      "upd": {
+        "content": "$3"
+      }
+    }
+  },
+  "importNothing": {
+    "message": "Nada de novo desde a última importação."
+  },
+  "importTruncated": {
+    "message": " Histórico muito longo: só as 20.000 visualizações mais recentes foram lidas."
+  },
+  "importMetaFailed": {
+    "message": " Não foi possível ler alguns números de episódio."
+  },
+  "importErrNoToken": {
+    "message": "Primeiro, conecte a extensão com seu token."
+  },
+  "importErrToken": {
+    "message": "Token inválido: gere um novo no Cinepisode e depois vá em Configurações › Token › Trocar."
+  },
+  "importErrNetflixTab": {
+    "message": "Não foi possível abrir a Netflix neste navegador."
+  },
+  "importErrNetflixAuth": {
+    "message": "Entre na Netflix neste navegador (e escolha seu perfil) e tente de novo."
+  },
+  "importErrNetflix": {
+    "message": "A Netflix respondeu de forma inesperada. Tente de novo mais tarde ou importe o arquivo CSV."
+  },
+  "importErrCsv": {
+    "message": "Arquivo ilegível: escolha NetflixViewingHistory.csv (máx. 20 MB)."
+  },
+  "importErrLimit": {
+    "message": "Muitos títulos detectados pendentes: organize-os na aba “Detectados” do Cinepisode."
+  },
+  "importErrServer": {
+    "message": "Erro no servidor do Cinepisode. Tente de novo mais tarde."
+  },
+  "importErrNetwork": {
+    "message": "Cinepisode inacessível (conexão?)."
+  },
+  "importBusy": {
+    "message": "Já há uma importação em andamento."
+  },
+  "importCrunchyroll": {
+    "message": "Importar meu histórico da Crunchyroll"
+  },
+  "importPrime": {
+    "message": "Importar meu histórico do Prime Video"
+  },
+  "platformEnabled": {
+    "message": "Ativada: detecção ao vivo e importação do histórico."
+  },
+  "platformNetflixAlways": {
+    "message": "Sempre ativa"
+  },
+  "platformDenied": {
+    "message": "Acesso negado pelo Chrome: nada foi ativado."
+  },
+  "importStepCrunchyroll": {
+    "message": "Conectando à Crunchyroll…"
+  },
+  "importStepPrime": {
+    "message": "Conectando ao Prime Video…"
+  },
+  "importStepPrimeMeta": {
+    "message": "Detalhes de episódios e filmes: $D$ / $T$…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTruncatedOther": {
+    "message": " Histórico muito longo: só a parte mais recente foi lida."
+  },
+  "importPartial": {
+    "message": " Não foi possível ler a parte mais antiga do seu histórico (a Crunchyroll recusou o restante): tudo o que veio antes foi enviado. Rode a importação de novo mais tarde para tentar outra vez."
+  },
+  "importErrPermission": {
+    "message": "Primeiro, ative a plataforma (o quadro dela na grade)."
+  },
+  "importErrCrunchyrollAuth": {
+    "message": "A Crunchyroll não reconhece sua sessão: entre em www.crunchyroll.com neste navegador e tente de novo."
+  },
+  "importErrCrunchyroll": {
+    "message": "A Crunchyroll respondeu de forma inesperada. Tente de novo mais tarde; se acontecer de novo, copie o diagnóstico abaixo e envie para nós."
+  },
+  "importErrPrimeAuth": {
+    "message": "Entre em www.primevideo.com neste navegador (e escolha seu perfil) e tente de novo."
+  },
+  "importErrPrime": {
+    "message": "O Prime Video respondeu de forma inesperada. Tente de novo mais tarde."
+  },
+  "importErrCrunchyrollBlocked": {
+    "message": "A Crunchyroll (Cloudflare) bloqueou a solicitação. Abra www.crunchyroll.com em uma aba, conclua a verificação se aparecer uma e tente de novo."
+  },
+  "importErrCrunchyrollRate": {
+    "message": "A Crunchyroll está limitando as solicitações agora. Tente de novo em alguns minutos."
+  },
+  "importErrCrunchyrollTab": {
+    "message": "Não foi possível abrir www.crunchyroll.com em uma aba. Abra o site manualmente e tente de novo."
+  },
+  "importErrStep": {
+    "message": "Etapa $STEP$: $STATUS$",
+    "placeholders": {
+      "step": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "importErrHttp": {
+    "message": "HTTP $CODE$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoResponse": {
+    "message": "sem resposta (rede ou bloqueio)"
+  },
+  "importErrBadAnswer": {
+    "message": "resposta ilegível"
+  },
+  "importStepNameTab": {
+    "message": "aba"
+  },
+  "importStepNameToken": {
+    "message": "token"
+  },
+  "importStepNameAccount": {
+    "message": "conta"
+  },
+  "importStepNameHistory": {
+    "message": "histórico"
+  },
+  "importStepNamePush": {
+    "message": "envio ao Cinepisode"
+  },
+  "importCopyDiag": {
+    "message": "Copiar diagnóstico"
+  },
+  "importDiagCopied": {
+    "message": "Diagnóstico copiado (sem token nem senha)."
+  },
+  "importDiagCopyFailed": {
+    "message": "Falha ao copiar: selecione o texto do diagnóstico manualmente."
+  },
+  "importStepCrunchyrollTab": {
+    "message": "Abrindo www.crunchyroll.com…"
+  },
+  "platformEnabledLive": {
+    "message": "Ativada: detecção ao vivo (sem histórico disponível nesta plataforma)."
+  },
+  "diagTitle": {
+    "message": "Diagnóstico"
+  },
+  "diagDebug": {
+    "message": "Log detalhado (console F12)"
+  },
+  "diagCopy": {
+    "message": "Copiar diagnóstico"
+  },
+  "diagCopied": {
+    "message": "Diagnóstico copiado: cole na sua mensagem (sem token)."
+  },
+  "liveOnlyInfoLabel": {
+    "message": "Por que não há importação de histórico?"
+  },
+  "liveOnlyInfo": {
+    "message": "O Disney+ e o Apple TV não dão acesso ao seu histórico: só os episódios que você assistir a partir de agora são detectados. Para recuperar o passado, peça uma cópia dos seus dados (Disney: configurações da conta / Apple: privacy.apple.com)."
+  },
+  "notConnected": {
+    "message": "Não conectada"
+  },
+  "connected": {
+    "message": "Conectada"
+  },
+  "connectedTitle": {
+    "message": "Token salvo: as detecções vão para sua conta do Cinepisode"
+  },
+  "offHeroTitle": {
+    "message": "Vincule a extensão à sua conta"
+  },
+  "offHeroSub": {
+    "message": "Seus episódios são marcados sozinhos enquanto você assiste."
+  },
+  "offStep1": {
+    "message": "Abra o Cinepisode › Configurações › Acompanhamento automático"
+  },
+  "offStep2": {
+    "message": "Clique em “Gerar meu token”"
+  },
+  "offStep3": {
+    "message": "Cole o token abaixo"
+  },
+  "tokenPlaceholder": {
+    "message": "Cole seu token aqui"
+  },
+  "connect": {
+    "message": "Conectar"
+  },
+  "offPrivacy": {
+    "message": "O token fica neste navegador. Só o título, a temporada e o episódio são enviados ao Cinepisode."
+  },
+  "noAccount": {
+    "message": "Ainda não tem conta?"
+  },
+  "changeTokenFoot": {
+    "message": "Seu token atual continua ativo até você colar um novo."
+  },
+  "openAppArrow": {
+    "message": "Abrir o Cinepisode →"
+  },
+  "cancel": {
+    "message": "Cancelar"
+  },
+  "settingsTitle": {
+    "message": "Configurações"
+  },
+  "back": {
+    "message": "Voltar"
+  },
+  "nowTitle": {
+    "message": "Em reprodução"
+  },
+  "liveBadge": {
+    "message": "AO VIVO"
+  },
+  "idleTitle": {
+    "message": "Nada em reprodução"
+  },
+  "idleSub": {
+    "message": "Comece um episódio em uma plataforma ativa."
+  },
+  "nowEpisode": {
+    "message": "Temporada $S$ · Episódio $E$",
+    "placeholders": {
+      "s": {
+        "content": "$1",
+        "example": ""
+      },
+      "e": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "nowMovie": {
+    "message": "Filme"
+  },
+  "nowPct": {
+    "message": "$P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowRule": {
+    "message": "conta como visto aos $P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowCounted": {
+    "message": "✓ contado"
+  },
+  "platformsCap": {
+    "message": "Plataformas"
+  },
+  "platformsCount": {
+    "message": "$N$/$T$ ativas",
+    "placeholders": {
+      "n": {
+        "content": "$1",
+        "example": ""
+      },
+      "t": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "chipActive": {
+    "message": "Ativa"
+  },
+  "chipOff": {
+    "message": "Ativar"
+  },
+  "chipDenied": {
+    "message": "Negado"
+  },
+  "chipTip": {
+    "message": "Ativar $NAME$: o Chrome vai pedir acesso a este site",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "importCap": {
+    "message": "Importar histórico"
+  },
+  "pendingNone": {
+    "message": "Nada de novo em Detectados"
+  },
+  "pendingOne": {
+    "message": "título novo em Detectados"
+  },
+  "pendingMany": {
+    "message": "títulos novos em Detectados"
+  },
+  "seeDetected": {
+    "message": "Ver →"
+  },
+  "accountCap": {
+    "message": "Conta"
+  },
+  "change": {
+    "message": "Trocar"
+  },
+  "csvRow": {
+    "message": "Arquivo CSV da Netflix"
+  },
+  "csvRowHint": {
+    "message": "Conta › Perfil › Histórico de visualização › “Baixar tudo”"
+  },
+  "choose": {
+    "message": "Escolher"
+  },
+  "liveOnlySmall": {
+    "message": "Só reprodução ao vivo"
+  },
+  "rulesCap": {
+    "message": "Quando um título conta como visto"
+  },
+  "rulesText": {
+    "message": "Um episódio aos 80% ou assim que aparecem os créditos finais; um filme aos 90%, após pelo menos 20 segundos de reprodução contínua. Os títulos encontrados na sua lista são atualizados; os outros vão para a aba “Detectados”."
+  },
+  "diagCopyHint": {
+    "message": "Status da detecção, sem seu token"
+  },
+  "logout": {
+    "message": "Desconectar"
+  },
+  "logoutConfirm": {
+    "message": "Remover o token?"
+  },
+  "logoutYes": {
+    "message": "Sim"
+  },
+  "pairButton": {
+    "message": "Entrar com Cinepisode"
+  },
+  "pairSub": {
+    "message": "Um clique no site, nada para copiar."
+  },
+  "manualToggle": {
+    "message": "Usar um token manual (avançado)"
+  },
+  "pairedRevoked": {
+    "message": "Este dispositivo foi removido no site. Vincule de novo."
+  },
+  "reviewTitle": {
+    "message": "O Cinepisode tem sido útil?"
+  },
+  "reviewSub": {
+    "message": "$COUNT$ episódios marcados automaticamente. Uma avaliação na Chrome Web Store ajuda muito um projeto independente.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewYes": {
+    "message": "Deixar uma avaliação"
+  },
+  "reviewLater": {
+    "message": "Mais tarde"
+  },
+  "reviewNever": {
+    "message": "Não perguntar de novo"
+  }
+}

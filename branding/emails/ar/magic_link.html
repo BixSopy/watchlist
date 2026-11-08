@@ -1,0 +1,11 @@
+subject: رابط تسجيل الدخول · [[name]]
+preheader: سجّل الدخول إلى [[name]] بنقرة واحدة، دون كلمة مرور.
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>تسجيل الدخول دون كلمة مرور</h1>
+<p>إليك رابط تسجيل الدخول إلى [[name]] باستخدام العنوان <strong>{{ .Email }}</strong> مباشرةً.</p>
+[[button||تسجيل الدخول||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]
+<p class="muted">أو أدخل هذا الرمز في [[name]] («تسجيل الدخول»، ثم «لدي رمز»):</p>
+[[code||{{ .Token }}]]
+<p class="small">تنتهي صلاحية الرابط والرمز بعد ساعة واحدة، ولا يمكن استخدام أي منهما إلا مرة واحدة. إذا لم تطلب ذلك، فتجاهل هذه الرسالة: لا يمكن لأحد تسجيل الدخول بدون هذا الرابط.</p>
+[[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]

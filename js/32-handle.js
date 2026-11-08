@@ -90,7 +90,7 @@ function _hdSet(state,msg,sugg){
   if(state==='taken'){f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake');}
   if(m)m.textContent=msg||'';
   if(b)b.disabled=!(state==='free'||state==='mine');
-  if(s)s.innerHTML=(sugg||[]).slice(0,3).map(function(x,i){return '<button type="button" class="hd-pill" style="--i:'+i+'"'+uiAct('handlePick',[x])+'>@'+esc(x)+'</button>';}).join('');
+  if(s)s.innerHTML=(sugg||[]).slice(0,3).map(function(x,i){return '<button type="button" class="hd-pill" style="--i:'+i+'"'+uiAct('handlePick',[x])+'>'+esc((typeof bidiIso==='function'?bidiIso:String)('@'+(x)))+'</button>';}).join('');
 }
 /* Réponse de check_handle -> état de l'interface. Le serveur renvoie available | taken | reserved | invalid | not_authenticated.
    Seuls taken/reserved affichent « déjà pris » ; une erreur ou un statut inconnu affiche « impossible de vérifier ». */

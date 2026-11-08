@@ -1,0 +1,11 @@
+subject: Confirma tu nuevo correo electrónico · [[name]]
+preheader: Confirma el cambio de correo electrónico de tu cuenta de [[name]].
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Cambio de correo electrónico</h1>
+<p>Pediste reemplazar <strong>{{ .Email }}</strong> por <strong>{{ .NewEmail }}</strong> en tu cuenta de [[name]]. Confirma este cambio:</p>
+[[button||Confirmar el cambio||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=es]]
+<p class="muted">O bien, en [[name]] (Mi cuenta › Cambiar correo electrónico › “Tengo un código”), escribe este código:</p>
+[[code||{{ .Token }}]]
+<p class="small">Si la confirmación de ambas direcciones está activada, se envía un correo idéntico a la dirección anterior y a la nueva: tienes que confirmar las dos. Si no lo solicitaste, ignora este correo y cambia tu contraseña.</p>
+[[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=es]]

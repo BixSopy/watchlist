@@ -7,7 +7,7 @@ function friendsIncomingHtml(inc){
   var me=SOCIAL.me||{};
   return '<h4 class="fr-h">'+esc(tn('friends.requests',inc.length))+'</h4><ul class="rq-list">'+inc.map(function(r,i){
     return '<li class="rq" id="rq-'+esc(r.id)+'" style="--i:'+i+'"><div class="rq-avs">'+friendAvatar(r,'rq-them')+friendAvatar(me,'rq-me')+'<span class="rq-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>'+
-      '<div class="rq-txt"><b>'+esc(friendName(r))+'</b><span>'+esc(t('friends.request',{handle:r.handle}))+'</span></div>'+
+      '<div class="rq-txt"><b>'+esc((typeof bidiIso==='function'?bidiIso:String)(friendName(r)))+'</b><span>'+esc(t('friends.request',{handle:r.handle}))+'</span></div>'+
       '<div class="rq-acts"><button type="button" class="rq-no"'+uiAct('friendRespond',[r.id,false])+' aria-label="'+esc(t('friends.decline'))+'">'+esc(t('friends.decline'))+'</button>'+
       '<button type="button" class="rq-yes"'+uiAct('friendRespond',[r.id,true])+'>'+esc(t('friends.accept'))+'</button></div></li>';
   }).join('')+'</ul>';
@@ -39,7 +39,7 @@ function openFriend(id){
 function friendViewRender(){var w=document.querySelector('#socMbk .fv-wrap');if(!w)return;var x=w.querySelector('.soc-x');w.innerHTML='';if(x)w.appendChild(x);w.insertAdjacentHTML('beforeend',friendViewHtml(FRIEND_VIEW.data.friend,FRIEND_VIEW.data));}
 var FV_TABS=['encours','avoir','termine'];
 function friendViewHtml(f,d){
-  var h='<div class="fv-head">'+friendAvatar(f,'fv-av')+'<div><h2>'+esc(friendName(f))+'</h2><p class="soc-sub">@'+esc(f.handle||'')+'</p></div>'+
+  var h='<div class="fv-head">'+friendAvatar(f,'fv-av')+'<div><h2>'+esc((typeof bidiIso==='function'?bidiIso:String)(friendName(f)))+'</h2><p class="soc-sub">'+esc((typeof bidiIso==='function'?bidiIso:String)('@'+(f.handle||'')))+'</p></div>'+
     '<button type="button" class="fv-more" aria-haspopup="true" aria-label="'+esc(t('friends.more'))+'"'+uiAct('friendMore')+'>⋯</button>'+
     '<div class="fv-menu" id="fvMenu" hidden><button type="button"'+uiAct('friendRemove')+'>'+esc(t('friends.remove'))+'</button><button type="button" class="dng"'+uiAct('friendBlock')+'>'+esc(t('friends.block'))+'</button></div></div>';
   if(!d)return h+'<div class="fv-skel">'+'<i></i>'.repeat(6)+'</div>';
@@ -79,7 +79,7 @@ function friendUnblock(id){
 function friendsBlockedHtml(){
   var b=(SOCIAL.me&&SOCIAL.me.blocked)||[];if(!b.length)return '';
   return '<details class="fr-blk"><summary>'+esc(tn('friends.blockedList',b.length))+'</summary><ul class="fr-list">'+b.map(function(p){
-    return '<li><div class="fr-row">'+friendAvatar(p)+'<span class="fr-meta"><b>'+esc(friendName(p))+'</b><span>@'+esc(p.handle||'')+'</span></span><button type="button" class="soc-ghost fr-ub"'+uiAct('friendUnblock',[p.profile_id])+'>'+esc(t('friends.unblock'))+'</button></div></li>';
+    return '<li><div class="fr-row">'+friendAvatar(p)+'<span class="fr-meta"><b>'+esc((typeof bidiIso==='function'?bidiIso:String)(friendName(p)))+'</b><span>'+esc((typeof bidiIso==='function'?bidiIso:String)('@'+(p.handle||'')))+'</span></span><button type="button" class="soc-ghost fr-ub"'+uiAct('friendUnblock',[p.profile_id])+'>'+esc(t('friends.unblock'))+'</button></div></li>';
   }).join('')+'</ul></details>';
 }
 if(typeof module!=='undefined')module.exports={friendViewHtml:friendViewHtml,friendsIncomingHtml:friendsIncomingHtml,FRIEND_VIEW:FRIEND_VIEW};

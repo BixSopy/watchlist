@@ -1,0 +1,11 @@
+subject: Ссылка для входа · [[name]]
+preheader: Вход в [[name]] в один клик, без пароля.
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Вход без пароля</h1>
+<p>Вот ваша ссылка для входа в [[name]] с адресом <strong>{{ .Email }}</strong>.</p>
+[[button||Войти||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ru]]
+<p class="muted">Или введите этот код в [[name]] («Войти», затем «У меня есть код»):</p>
+[[code||{{ .Token }}]]
+<p class="small">Ссылка и код действуют один час и только один раз. Если вы ничего не запрашивали, проигнорируйте это письмо: без него никто не сможет войти.</p>
+[[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ru]]
