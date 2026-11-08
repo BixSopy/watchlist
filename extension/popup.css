@@ -229,10 +229,10 @@ body.tab{border-radius:26px}
 #importStatus{border-radius:16px;background:var(--ctl-bg);border-color:var(--ctl-bd)}
 .review .card{border-color:rgba(var(--accent-rgb),.35)}
 
-/* Logos des plateformes (SVG en ligne, aucune image distante) */
-.lg svg{width:100%;height:100%;display:block}
-.lg{padding:0;overflow:hidden;font-size:0}
-.lg.nf{background:#000}.lg.cr{background:#f47521}.lg.pv{background:#00a8e1}.lg.dp{background:linear-gradient(135deg,#0b1b4d,#1f80e0)}.lg.at{background:#1c1c1e}
-.lg:not(.sm) svg{width:78%;height:78%;margin:auto}.lg:not(.sm){display:grid;place-items:center}
-.lg.cr svg{width:84%;height:84%}
-.chip.off .lg{filter:grayscale(.55) brightness(.8)}
+/* Logos des plateformes : marques officielles (vectoriel, définies une fois dans options.html), couleur de la marque sur pastille sombre */
+.lg{padding:0;overflow:hidden;font-size:0;display:grid;place-items:center;background:#0b0b0e;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.lg svg{display:block;width:76%;height:76%}
+.lg.nf{color:#e50914}.lg.cr{color:#f47521}.lg.pv{color:#1a98ff}.lg.dp{color:#fff}.lg.at{color:#f2f2f4}
+.lg svg use{fill:currentColor}
+.lg.pv svg,.lg.dp svg{width:86%}
+.chip.off .lg{filter:grayscale(.45) brightness(.8)}

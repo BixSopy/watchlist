@@ -312,3 +312,7 @@ Une seule vue courte, sans texte d'explication :
 
 Animations coupées si le système demande de réduire les mouvements. Tests : la vraie page est
 chargée dans un mini-DOM (`tests/fixtures/popup-harness.js`) et dans Chrome (`e2e/`).
+
+## Logos des plateformes
+
+Netflix, Crunchyroll, Prime Video et Apple TV : tracés officiels de [Simple Icons](https://simpleicons.org) (CC0 ; les marques restent la propriété de leurs détenteurs). Disney+ : logo issu de [svgl](https://github.com/pheralb/svgl), passé en blanc. Définis une seule fois dans `options.html` (`<symbol id="lg-…">`) ; aucune image distante.
