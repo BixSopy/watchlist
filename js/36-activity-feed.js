@@ -52,7 +52,7 @@ function activityItemHtml(it,i){
 function activityFeedHtml(){
   var items=ACT_FEED.data;
   if(items===null)return '<div class="act-skel">'+'<i></i>'.repeat(4)+'</div>';
-  if(!items.length)return '<div class="fr-empty act-empty"><div class="fr-ghosts" aria-hidden="true"><i></i><i></i><i></i></div><h3>'+esc(t('act.empty'))+'</h3><p class="soc-sub">'+esc(t('act.emptySub'))+'</p></div>';
+  if(!items.length)return '<div class="fr-empty act-empty"><div class="fr-ghosts" aria-hidden="true"><i></i><i></i><i></i><i class="fr-spark"></i></div><h3>'+esc(t('act.empty'))+'</h3><p class="soc-sub">'+esc(t('act.emptySub'))+'</p></div>';
   return '<ul class="act-list">'+items.map(activityItemHtml).join('')+'</ul>';
 }
 function activityFeedRefresh(){

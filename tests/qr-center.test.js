@@ -28,7 +28,7 @@ test('QR : le logo central reste exactement centré (VB/2), que N soit pair ou i
   /* Plusieurs longueurs d'URL pour couvrir les deux parités de N (le module count dépend du payload) */
   for (let i = 1; i <= 40; i++) {
     const svg = buildQrSvg('https://cinepisode.com/u/testuser' + 'x'.repeat(i) + '?i=' + 'A'.repeat(12));
-    const m = svg.match(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" rx="[\d.]+" fill="#0a0a0c"\/>/);
+    const m = svg.match(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" rx="[\d.]+" fill="#000000"\/>/);
     assert.ok(m, 'rect de fond du logo introuvable pour i=' + i);
     const lx = parseFloat(m[1]), ly = parseFloat(m[2]), ls = parseFloat(m[3]), lsh = parseFloat(m[4]);
     assert.ok(Math.abs(lx - ly) < 1e-6, 'carré (x===y) pour i=' + i);
@@ -43,7 +43,7 @@ test('QR : le logo central reste exactement centré (VB/2), que N soit pair ou i
 
 test('QR : les 3 barres sont centrées dans la plaque noire (pas décalées comme avant le 06/11)', () => {
   const svg = buildQrSvg('https://cinepisode.com/u/testuser?i=ABCDEFGHIJKL');
-  const plate = svg.match(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" rx="[\d.]+" fill="#0a0a0c"\/>/);
+  const plate = svg.match(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" rx="[\d.]+" fill="#000000"\/>/);
   assert.ok(plate, 'plaque du logo introuvable');
   const lx = parseFloat(plate[1]), ly = parseFloat(plate[2]), ls = parseFloat(plate[3]);
   const g = svg.match(/<g transform="translate\(([\d.-]+) ([\d.-]+)\)">((?:<rect class="qr-logo-bar[^>]*\/>){3})<\/g>/);

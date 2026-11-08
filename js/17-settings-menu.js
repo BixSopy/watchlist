@@ -50,7 +50,8 @@ var SET_ICONS={
   suivi:'<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>',
   token:'<path d="M10 14a5 5 0 0 0 7 0l2.5-2.5a5 5 0 0 0-7-7L11 6"/><path d="M14 10a5 5 0 0 0-7 0L4.5 12.5a5 5 0 0 0 7 7L13 18"/>',
   data:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
-  kbd:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h.01M11 10h.01M15 10h.01M17 10h.01M7 14h10"/>'
+  kbd:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h.01M11 10h.01M15 10h.01M17 10h.01M7 14h10"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 3.2 1.3 4.9 2 6H4c.7-1.1 2-2.8 2-6z"/><path d="M10 21a2 2 0 0 0 4 0"/>'
 };
 function _secIcon(name){return '<span class="settings-section-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(SET_ICONS[name]||'')+'</svg></span>';}
 /* labelHtml est déjà échappé par l'appelant (même convention que le reste du fichier) */
@@ -191,6 +192,7 @@ function renderSettingsMenu(){
   html+=_toggleRow(esc(t('set.providers')),'','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
   html+=_toggleRow(esc(t('set.reminders')),esc(t('set.remindersHint')),'wl_reminders_global',wlSettings.wl_reminders_global==='1');
   html+='</div>';
+  if(typeof _notifSection==='function')html+=_notifSection(idx++);
   html+=_trackTokenSection(idx++);
   html+=_secOpen(idx++)+_secTitle('data',esc(t('set.data')));
   html+='<div class="settings-action-row" data-click="menuAccount"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.accountSync'))+'</div><div class="settings-sync-badge">'+syncLabel+'</div></div></div>';

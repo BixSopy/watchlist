@@ -9,7 +9,7 @@
 <meta name="robots" content="index,follow">
 <meta name="referrer" content="strict-origin">
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#06070a">
+<meta name="theme-color" content="#000000">
 <link rel="icon" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,7 +20,7 @@
 <meta property="og:title" content="Cinepisode · Ton suivi de films, séries et anime">
 <meta property="og:description" content="Suis tes films, séries et anime au même endroit : où tu en es, les nouveaux épisodes, ta liste synchronisée partout. Gratuit, sans pub, sans pistage, hébergé dans l'UE.">
 <meta property="og:url" content="https://cinepisode.com/">
-<meta property="og:image" content="https://cinepisode.com/og/og-share-v2-fr.jpg">
+<meta property="og:image" content="https://cinepisode.com/og/og-share-v5-fr.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -28,7 +28,7 @@
 <meta property="og:locale" content="fr_FR">
 <meta property="og:locale:alternate" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://cinepisode.com/og/og-share-v2-fr.jpg">
+<meta name="twitter:image" content="https://cinepisode.com/og/og-share-v5-fr.jpg">
 <meta name="twitter:image:alt" content="Cinepisode : une rangée d'affiches de séries avec leur barre de progression et le texte « Reprends pile là où tu t'es arrêté. »">
 <link rel="canonical" href="https://cinepisode.com/">
 <link rel="alternate" hreflang="fr" href="https://cinepisode.com/fr">
@@ -38,6 +38,9 @@
 <!-- Thème clair/sombre : décidé avant le premier rendu (aucune requête réseau), même principe que ci-dessous -->
 <script src="/js/00-theme.js"></script>
 <!-- Accueil des visiteurs ou app : décidé avant le premier rendu (aucune requête réseau) -->
+<!-- Passerelle de session des prévisualisations Vercel : décidée avant le premier rendu ; lit BRAND (fichier généré, identique à celui chargé plus bas) -->
+<script src="/js/00-brand.js"></script>
+<script src="/js/00-preview-handoff.js"></script>
 <script src="/js/00-landing-gate.js"></script>
 <script src="/js/00-signup-ref.js"></script>
 <!-- supabase-js 2.117.2 embarqué (identique au paquet npm), intégrité vérifiée par le navigateur -->
@@ -56,7 +59,7 @@
      (fichier externe requis par la CSP : script-src 'self' sans 'unsafe-inline').
      Pas de JS : reste affiché (progressive enhancement, contenu dessous intact). -->
 <div id="brandStartup" class="brand-startup" role="status" aria-live="polite">
-<!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo-->
+<!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent2)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo-->
 <span data-i18n="common.loading">Chargement...</span>
 </div>
 <noscript><style>#brandStartup{display:none}</style></noscript>
@@ -68,7 +71,7 @@
 <a class="lp-skip" href="#lp-main" data-i18n="lp.skip">Aller au contenu</a>
 <header class="lp-nav">
   <div class="lp-wrap lp-nav-in">
-    <a class="lp-brand" href="#lp-top" aria-label="Cinepisode, retour en haut de la page" data-i18n-attr="aria-label:lp.nav.homeAria"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--></a>
+    <a class="lp-brand" href="#lp-top" aria-label="Cinepisode, retour en haut de la page" data-i18n-attr="aria-label:lp.nav.homeAria"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent2)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--></a>
     <nav class="lp-links" aria-label="Sections de la page" data-i18n-attr="aria-label:lp.nav.aria">
       <a href="#lp-features" data-i18n="lp.nav.features">Fonctionnalités</a>
       <a href="#lp-extension" data-i18n="lp.nav.extension">Extension</a>
@@ -98,7 +101,7 @@
 <div class="lp-s lp-s-st" data-s="5"><div class="lp-st-nums"><p><b data-to="48">0</b><span data-i18n="lp.j.titles">titres</span></p><p><b data-to="1284">0</b><span data-i18n="lp.j.eps">épisodes</span></p><p><b data-to="612">0</b><span data-i18n="lp.j.hours">heures</span></p></div><div class="lp-st-bars"><span style="--v:.38"><i></i><span data-i18n="lp.j.films">Films</span></span><span style="--v:.44"><i></i><span data-i18n="lp.j.shows">Séries</span></span><span style="--v:.18"><i></i><span data-i18n="type.anime">Anime</span></span></div><div class="lp-st-q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="lp-st-qt" data-i18n="lp.j.query">un thriller court et bien noté</span><i class="lp-caret"></i></div><p class="lp-st-fy"><b data-i18n="lp.j.forYou">Pour toi</b></p><div class="lp-st-res"><span class="lp-po " data-t="Severance"><img data-tmdb="/xmjW474DJ27bqTYNvS4MvraJgiQ.jpg" data-w="w185" alt="Severance" decoding="async"></span><span class="lp-po " data-t="Squid Game"><img data-tmdb="/heV89pC6pv5fz1plikfyQxYuE4L.jpg" data-w="w185" alt="Squid Game" decoding="async"></span><span class="lp-po " data-t="The Last of Us"><img data-tmdb="/4pMd9VAdqm96KA2W4X8yetgc7EF.jpg" data-w="w185" alt="The Last of Us" decoding="async"></span><span class="lp-po " data-t="Shōgun"><img data-tmdb="/7O4iVfOMQmdCSxhOg1WnzG1AgYT.jpg" data-w="w185" alt="Shōgun" decoding="async"></span></div></div>
 <div class="lp-s lp-s-sync" data-s="6"><p class="lp-sy-h"><b data-i18n="lp.j.mylist">Ma liste</b></p><div class="lp-sy-grid"><span class="lp-po " data-t="Dune"><img data-tmdb="/qpyaW4xUPeIiYA5ckg5zAZFHvsb.jpg" data-w="w185" alt="Dune" decoding="async"></span><span class="lp-po " data-t="Stranger Things"><img data-tmdb="/iGZkjG3BDTuWsWu9Cdmh2jh3q7d.jpg" data-w="w185" alt="Stranger Things" decoding="async"></span><span class="lp-po " data-t="Frieren"><img data-tmdb="/j8K7vgF3Kp5T6EwJvez9B4it6CB.jpg" data-w="w185" alt="Frieren" decoding="async"></span><span class="lp-po " data-t="The Boys"><img data-tmdb="/4Tw8TB9ikrcgzJgR0LOvgfnXD74.jpg" data-w="w185" alt="The Boys" decoding="async"></span><span class="lp-po " data-t="Arcane"><img data-tmdb="/ypS7R36Vjcn51zZsXsta5onnaCo.jpg" data-w="w185" alt="Arcane" decoding="async"></span><span class="lp-po " data-t="The Bear"><img data-tmdb="/iaJfffjCqXATU5msr4PAgOWLMl4.jpg" data-w="w185" alt="The Bear" decoding="async"></span><span class="lp-po " data-t="Shōgun"><img data-tmdb="/7O4iVfOMQmdCSxhOg1WnzG1AgYT.jpg" data-w="w185" alt="Shōgun" decoding="async"></span><span class="lp-po " data-t="One Piece"><img data-tmdb="/dB4EDhre2dsC2kxYDavyKWqLQwi.jpg" data-w="w185" alt="One Piece" decoding="async"></span><span class="lp-po " data-t="Wednesday"><img data-tmdb="/1UzED7WZJgzEIeVz1xiuZ1529nb.jpg" data-w="w185" alt="Wednesday" decoding="async"></span></div><div class="lp-sy-pill"><i></i><span data-i18n="lp.j.synced">Synchronisé</span></div></div>
 <div class="lp-s lp-s-rec" data-s="7"><div class="lp-rc"><p class="lp-rc-brand">cin<em>episode</em></p><p class="lp-rc-t"><span data-i18n="lp.j.recapT">Mon récap</span></p><div class="lp-rc-fan"><span class="lp-po " data-t="Frieren"><img data-tmdb="/j8K7vgF3Kp5T6EwJvez9B4it6CB.jpg" data-w="w185" alt="Frieren" decoding="async"></span><span class="lp-po " data-t="Severance"><img data-tmdb="/xmjW474DJ27bqTYNvS4MvraJgiQ.jpg" data-w="w185" alt="Severance" decoding="async"></span><span class="lp-po " data-t="Arcane"><img data-tmdb="/ypS7R36Vjcn51zZsXsta5onnaCo.jpg" data-w="w185" alt="Arcane" decoding="async"></span><span class="lp-po " data-t="The Bear"><img data-tmdb="/iaJfffjCqXATU5msr4PAgOWLMl4.jpg" data-w="w185" alt="The Bear" decoding="async"></span><span class="lp-po " data-t="Stranger Things"><img data-tmdb="/iGZkjG3BDTuWsWu9Cdmh2jh3q7d.jpg" data-w="w185" alt="Stranger Things" decoding="async"></span></div><p class="lp-rc-n"><b data-to="1284">0</b></p><p class="lp-rc-l" data-i18n="lp.j.epsSeen">épisodes vus</p><div class="lp-rc-tiles"><span><b>48</b><span data-i18n="lp.j.titles">titres</span></span><span><b>612</b><span data-i18n="lp.j.hours">heures</span></span></div></div><div class="lp-pv"><span data-r="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.j.pv1">Gratuit</span></span><span data-r="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.j.pv2">Sans pub</span></span><span data-r="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.j.pv3">Sans pistage</span></span><span data-r="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span data-i18n="lp.j.pv4">Hébergé dans l'UE</span></span></div></div>
-<div class="lp-s lp-s-cta" data-s="8"><div class="lp-cta-card"><div class="lp-cta-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent)"/></svg></div><p class="lp-cta-w">cin<em>episode</em></p><p class="lp-cta-d"><span data-dev="phone" data-i18n="lp.j.dev.phone">Crée ton compte, directement sur ton téléphone.</span><span data-dev="tablet" data-i18n="lp.j.dev.tablet">Crée ton compte, directement sur ta tablette.</span><span data-dev="pc" data-i18n="lp.j.dev.pc">Crée ton compte, directement sur ton ordinateur.</span></p><div class="lp-cta-demo"><div class="lp-j-steps">
+<div class="lp-s lp-s-cta" data-s="8"><div class="lp-cta-card"><div class="lp-cta-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent2)"/></svg></div><p class="lp-cta-w">cin<em>episode</em></p><p class="lp-cta-d"><span data-dev="phone" data-i18n="lp.j.dev.phone">Crée ton compte, directement sur ton téléphone.</span><span data-dev="tablet" data-i18n="lp.j.dev.tablet">Crée ton compte, directement sur ta tablette.</span><span data-dev="pc" data-i18n="lp.j.dev.pc">Crée ton compte, directement sur ton ordinateur.</span></p><div class="lp-cta-demo"><div class="lp-j-steps">
   <div class="lp-j-steps-line" aria-hidden="true"><i></i></div>
   <div class="lp-j-step" data-step="0"><span class="lp-j-step-ic lp-j-step-ic0" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="12" rx="2.5"/><path d="M3 10h18"/><circle class="lp-j-step-dot" cx="7" cy="8.5" r=".6" fill="currentColor" stroke="none"/></svg><b class="lp-j-step-pop">+</b></span><div><b data-i18n="lp.j.step1.t">J'ajoute l'extension</b><p data-i18n="lp.j.step1.p">Un clic sur le Chrome Web Store, c'est tout.</p></div></div>
   <div class="lp-j-step" data-step="1"><span class="lp-j-step-ic lp-j-step-ic1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg><b class="lp-j-step-count">0</b></span><div><b data-i18n="lp.j.step2.t">Mon historique arrive tout seul</b><p data-i18n="lp.j.step2.p">Netflix, Prime Video, Crunchyroll : importés sans rien taper.</p></div></div>
@@ -163,7 +166,7 @@
 
 <footer class="lp-foot">
   <div class="lp-wrap lp-foot-in">
-    <div class="lp-foot-brand"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--><p data-i18n="lp.foot.tagline">Ton suivi de films, séries et anime. Gratuit, sans pub, sans pistage.</p></div>
+    <div class="lp-foot-brand"><!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent2)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo--><p data-i18n="lp.foot.tagline">Ton suivi de films, séries et anime. Gratuit, sans pub, sans pistage.</p></div>
     <nav class="lp-foot-nav" aria-label="Liens du site" data-i18n-attr="aria-label:lp.foot.navAria">
       <a href="#lp-features" data-i18n="lp.nav.features">Fonctionnalités</a>
       <a href="#lp-extension" data-i18n="lp.nav.extension">Extension</a>
@@ -183,7 +186,7 @@
 <header class="hdr">
   <div class="hdr-left">
     <button class="hbtn sb-toggle" data-click="toggleSidebar" title="Recommandations" aria-label="Ouvrir les recommandations" data-i18n-attr="title:set.recos;aria-label:hdr.openRecos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg></button>
-    <!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo-->
+    <!--brand:logo--><div class="logo"><svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><rect class="logo-bar logo-bar-1" x="3.5" y="12" width="4" height="7" rx="2" style="fill:var(--text3)"/><rect class="logo-bar logo-bar-2" x="10" y="8.5" width="4" height="10.5" rx="2" style="fill:var(--text2)"/><rect class="logo-bar logo-bar-3" x="16.5" y="4" width="4" height="14" rx="2" style="fill:var(--accent2)"/></svg><span class="logo-word">cin<em>episode</em></span></div><!--/brand:logo-->
   </div>
   <div class="search-bar liquid-glass" role="search">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -522,7 +525,7 @@
       </button>
     </div>
     <div class="search-modal-toolbar">
-      <div class="search-modal-input-wrap" style="max-width:320px">
+      <div class="search-modal-input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="searchModalInput" placeholder="Chercher..." autocomplete="off" data-i18n-attr="placeholder:search.ph">
       </div>
@@ -637,5 +640,6 @@
 <script defer src="js/37-mfa.js"></script>
 <script defer src="js/38-recommend.js"></script>
 <script defer src="js/39-watch-together.js"></script>
+<script defer src="js/40-notifications.js"></script>
 </body>
 </html>

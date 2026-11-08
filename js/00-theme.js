@@ -9,7 +9,7 @@
     if(pref==='dark'||pref==='light')return pref;
     return (MQ&&MQ.matches)?'light':'dark';
   }
-  function metaColor(theme){return theme==='light'?'#f5f6f8':'#06070a';}
+  function metaColor(theme){return theme==='light'?'#f5f6f8':'#000000';}
   function apply(theme){
     document.documentElement.setAttribute('data-theme',theme);
     var m=document.querySelector('meta[name="theme-color"]');

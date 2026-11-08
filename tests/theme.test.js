@@ -31,7 +31,12 @@ test('css/app.css : #landing reste épinglé au thème sombre, quel que soit dat
   const m = css.match(/#landing\{([^}]*)\}/);
   assert.ok(m, 'règle #landing introuvable (voir aussi le test sur les commentaires mal fermés)');
   assert.match(m[1], /--bg:#000000/, 'fond sombre figé, peu importe :root[data-theme="light"]');
-  assert.match(m[1], /--text:#f0f0f0/);
+  /* Généré par build-brand.mjs dans un bloc marqueur "brand:css-landing" (voir css/app.css),
+     pas recopié à la main : landing.css ne lit que --bg/--accent/--accent-rgb/--on-accent/
+     --p3-grad/--grad-rgb (ses propres textes sont dans des tokens --lp-* déjà fixes) — vérifier
+     que le marqueur a bien été rempli plutôt qu'un hex figé qui driftera à la prochaine
+     recoloration de marque (cf. tests/brand.test.js, anti-drift). */
+  assert.match(m[1], new RegExp('brand:css-landing.{0,3}--bg:#[0-9a-f]{6};--accent:#[0-9a-f]{6};'), 'bloc généré présent, pas une recopie à la main');
 });
 
 test('index.html charge js/00-theme.js de façon synchrone, tôt, avant 00-landing-gate.js', () => {
@@ -56,7 +61,7 @@ test('css/app.css : tokens clairs complets sous :root[data-theme="light"], valeu
   const css = read('css/app.css');
   const lightBlock = css.match(/:root\[data-theme="light"\]\{([^}]*)\}/);
   assert.ok(lightBlock, 'bloc :root[data-theme="light"] présent');
-  for (const tok of ['--bg:', '--bg2:', '--text:', '--text2:', '--text3:', '--ink-rgb:', '--accent:', '--accent-rgb:', '--accent-hover:', '--on-accent:', '--red:', '--green:', '--glass-panel-bg:', '--glass-backdrop-bg:', '--p3-glass:', '--accent-flat:']) {
+  for (const tok of ['--bg:', '--bg2:', '--text:', '--text2:', '--text3:', '--ink-rgb:', '--accent:', '--accent-rgb:', '--accent-hover:', '--on-accent:', '--red:', '--green:', '--glass-panel-bg:', '--glass-backdrop-bg:', '--p3-glass:', '--violet:']) {
     assert.ok(lightBlock[1].includes(tok), 'token clair manquant : ' + tok);
   }
   /* Le mode sombre reste la valeur par défaut de :root (OLED pur, décision du 06/11, PR #110) */
