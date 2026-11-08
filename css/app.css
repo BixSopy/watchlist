@@ -2597,3 +2597,50 @@ body .det-row .btn{box-sizing:border-box;height:34px;min-height:0;padding:0 14px
 body .det-filters{max-width:100%;overflow-x:auto;scrollbar-width:none}
 body .det-filters::-webkit-scrollbar{display:none}
 body .det-filters .stab{flex:none}
+
+/* ===== FENÊTRE « CATALOGUE TMDB » à la DA (demande de Pierre, 08/11) =====
+   Mêmes briques que le reste de l'app : pastilles à --ctl-h, verre, dégradé P3 pour la sélection et l'action principale. */
+#searchModal .search-modal-wrap{max-width:800px;border-radius:26px;box-shadow:0 30px 90px rgba(0,0,0,.75),0 0 0 1px rgba(var(--ink-rgb),.06)}
+#searchModal .search-modal-head{align-items:flex-start;gap:16px;padding:26px 28px 16px;border-bottom:0}
+#searchModal .mtitle{font:850 26px/1.1 'Inter',sans-serif;letter-spacing:-.03em}
+#searchModal .search-modal-sub{margin-top:8px;font-size:13px;line-height:1.45;color:var(--text2)}
+/* fermer et pages précédente / suivante : pastilles rondes (avant : carrés de 32 px) */
+#searchModal .hbtn{box-sizing:border-box;width:var(--ctl-h);height:var(--ctl-h);flex:none;border-radius:50%;background:var(--ctl-bg);border:1px solid var(--ctl-bd);color:var(--text);font:600 16px 'Inter',sans-serif;transition:background .2s,transform .3s var(--p3-spring)}
+#searchModal .hbtn:hover:not(:disabled){background:rgba(var(--ink-rgb),.1);transform:scale(1.05)}
+#searchModal .hbtn:disabled{opacity:.4;cursor:default}
+#searchModal .hbtn svg{width:18px;height:18px}
+#searchModal .search-modal-toolbar{gap:var(--ctl-gap);padding:0 28px 14px;border-bottom:0}
+#searchModal .search-modal-input-wrap{flex:1;min-width:0}
+#searchModal .search-modal-input-wrap input{box-sizing:border-box;height:var(--ctl-h);padding:0 18px 0 44px;border-radius:999px;font:500 14.5px 'Inter',sans-serif;background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+#searchModal .search-modal-input-wrap input:focus{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.16)}
+#searchModal .search-modal-input-wrap>svg{left:17px;width:16px;height:16px;color:var(--text2)}
+#searchModal .search-page-wrap{gap:var(--ctl-gap)}
+#searchModal .search-page-ind{min-width:64px;font-size:12.5px}
+/* filtres : quatre pastilles espacées, de la même hauteur que le reste */
+#searchModal .search-filter-row{gap:var(--ctl-gap);padding:0 28px 16px}
+#searchModal .search-filter-row .csel-btn{box-sizing:border-box;height:var(--ctl-h);min-height:0;padding:0 16px;border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd);font:600 13.5px 'Inter',sans-serif;color:var(--text)}
+#searchModal .search-state{padding:2px 28px 0;font-size:12.5px;color:var(--text2)}
+#searchModal .search-results{padding:14px 28px 112px;gap:12px}
+/* cartes : arrondi des autres cartes ; sélection = bordure en dégradé P3 */
+#searchModal .search-card{border-radius:18px}
+#searchModal .search-card:hover{border-color:rgba(var(--accent-rgb),.35)}
+#searchModal .search-card.selected{border-color:transparent;background:linear-gradient(var(--bg3),var(--bg3)) padding-box,var(--p3-grad) border-box;box-shadow:0 12px 36px rgba(var(--grad-rgb),.22)}
+#searchModal .search-check-box{border-radius:50%;background:rgba(var(--ink-rgb),.1);border:1px solid rgba(var(--ink-rgb),.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#searchModal .search-check.on .search-check-box{background:var(--p3-grad);border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(var(--grad-rgb),.4)}
+#searchModal .search-status-tag{border-radius:999px;padding:4px 12px}
+/* état vide : message centré sur toute la largeur (avant : cadre en pointillés sur une colonne) */
+#searchModal .search-empty{grid-column:1/-1;padding:56px 0;border:0;background:none;border-radius:0;font-size:14px;color:var(--text2)}
+/* pied : compteur et action principale (dégradé, comme « Ajouter » ailleurs) */
+#searchModal .search-footer{padding:16px 28px}
+#searchModal .search-counter{font-size:13.5px}
+#searchModal .search-footer .add-btn{box-sizing:border-box;height:var(--ctl-h);min-height:0;padding:0 22px;border-radius:999px!important;background:var(--p3-grad);color:#fff;font:700 13.5px 'Inter',sans-serif;box-shadow:0 8px 24px rgba(var(--grad-rgb),.35)}
+#searchModal .search-footer .add-btn:disabled{opacity:.45;box-shadow:none;cursor:default}
+@media (max-width:768px){
+  #searchModal .search-modal-wrap{border-radius:0}
+  #searchModal .search-modal-head{padding:calc(18px + env(safe-area-inset-top,0px)) 16px 12px}
+  #searchModal .search-modal-toolbar{padding:0 16px 12px}
+  #searchModal .search-filter-row{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 16px 12px}
+  #searchModal .search-state{padding:2px 16px 0}
+  #searchModal .search-results{padding:12px 16px 104px;grid-template-columns:minmax(0,1fr)}
+  #searchModal .search-footer{padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px))}
+}
