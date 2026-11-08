@@ -50,7 +50,8 @@ function _rcImg(src){
   });
 }
 function _rcRound(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
-function _rcFit(c,txt,max){var s=String(txt||'');if(c.measureText(s).width<=max)return s;while(s.length>1&&c.measureText(s+'…').width>max)s=s.slice(0,-1);return s+'…';}
+/* coupe par point de code (Array.from) : jamais un emoji ou un caractère hors BMP coupé en deux */
+function _rcFit(c,txt,max){var s=String(txt||'');if(c.measureText(s).width<=max)return s;var a=Array.from(s);while(a.length>1&&c.measureText(a.join('')+'…').width>max)a.pop();return a.join('')+'…';}
 
 /* Dessine le récap dans un canvas 1080×1920 ; résout le canvas */
 function recapDraw(stats,range){

@@ -42,7 +42,7 @@ function activityItemHtml(it,i){
   return '<li class="act-item" style="--i:'+i+'">'+
     '<button type="button" class="fr-row act-row"'+uiAct('openFriend',[it.friend&&it.friend.profile_id])+'>'+
       friendAvatar(it.friend)+
-      '<span class="fr-meta"><b>'+esc(friendName(it.friend))+'</b><span>'+esc(activityItemMeta(it))+'</span></span>'+
+      '<span class="fr-meta"><b>'+esc(_bidi(friendName(it.friend)))+'</b><span>'+esc(activityItemMeta(it))+'</span></span>'+
       (ok?'<img class="fr-post" alt="" loading="lazy" src="'+IMG_W92+esc(it.poster_path)+'">':'')+
       '<time class="act-time">'+esc(activityAgo(it.updated_at))+'</time>'+
     '</button>'+

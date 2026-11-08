@@ -65,13 +65,13 @@ function friendsHtml(){
     h+='<ul class="fr-list">'+fr.map(function(f,i){
       var c=f.current,sub=c?(c.title+(c.season&&c.episode?' · S'+c.season+' E'+c.episode:'')):'@'+f.handle;
       return '<li style="--i:'+i+'"><button type="button" class="fr-row"'+uiAct('openFriend',[f.profile_id])+'>'+friendAvatar(f)+
-        '<span class="fr-meta"><b>'+esc(friendName(f))+'</b><span>'+(c?'<i class="fr-live" aria-hidden="true"></i>':'')+esc(sub)+'</span></span>'+
+        '<span class="fr-meta"><b>'+esc(_bidi(friendName(f)))+'</b><span>'+(c?'<i class="fr-live" aria-hidden="true"></i>':'')+esc(sub)+'</span></span>'+
         (c&&c.poster_path&&/^\/[A-Za-z0-9_.-]{1,80}$/.test(c.poster_path)?'<img class="fr-post" alt="" loading="lazy" src="'+IMG_W92+esc(c.poster_path)+'">':'')+'</button></li>';
     }).join('')+'</ul>';
   }
   if(out.length){
     h+='<h4 class="fr-h">'+esc(t('friends.sent'))+'</h4><ul class="fr-list fr-out">'+out.map(function(o){
-      return '<li><div class="fr-row">'+friendAvatar(o)+'<span class="fr-meta"><b>'+esc(friendName(o))+'</b><span>@'+esc(o.handle)+'</span></span><span class="fr-pend">'+esc(t('friends.pending'))+'</span></div></li>';
+      return '<li><div class="fr-row">'+friendAvatar(o)+'<span class="fr-meta"><b>'+esc(_bidi(friendName(o)))+'</b><span>@'+esc(o.handle)+'</span></span><span class="fr-pend">'+esc(t('friends.pending'))+'</span></div></li>';
     }).join('')+'</ul>';
   }
   if(typeof friendsBlockedHtml==='function')h+=friendsBlockedHtml();
