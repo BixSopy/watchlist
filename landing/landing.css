@@ -617,3 +617,9 @@ html.lp-guest,html.lp-guest body{overflow-x:hidden;overflow-x:clip}
 .lp-signup-panel .auth-modal{max-height:none;overflow:visible}
 @media(max-width:850px){.lp-signup-grid{grid-template-columns:1fr;max-width:560px;gap:30px}.lp-signup-panel{padding:24px}}
 @media(max-width:560px){.lp-signup{scroll-margin-top:70px;padding:72px 0}.lp-signup-panel{padding:18px;border-radius:20px}.lp-cta-demo .lp-j-step div>p{display:none}.lp-cta-demo .lp-j-steps{gap:10px}.lp-cta-demo .lp-j-step div>b{font-size:11px}}
+
+/* Anti-saut (CLS) : l'appareil n'est placé (zoom/transform) que par js/23-landing.js ; on le masque jusqu'au
+   premier placement. Filet : réapparaît seul après 1,2 s si le script n'a pas pu s'exécuter. */
+.lp-dv{visibility:hidden;animation:lpDvShow 0s linear 1.2s forwards}
+.lp-dv.lp-on{visibility:visible;animation:none}
+@keyframes lpDvShow{to{visibility:visible}}
