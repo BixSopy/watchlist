@@ -25,17 +25,25 @@ function i18nDetect(){
 var LANG=i18nDetect();
 var I18N_META=(I18N_DICTS[LANG]&&I18N_DICTS[LANG].$meta)||{locale:'fr-FR',tmdb:'fr-FR',region:'FR'};
 var LOCALE=I18N_META.locale;
+/* Sens de lecture : $meta.dir = 'rtl' (arabe, ourdou) → <html dir="rtl"> ; le CSS suit (propriétés logiques). */
+var IS_RTL=I18N_META.dir==='rtl',DIR=IS_RTL?'rtl':'ltr';
 /* Langue et pays des requêtes TMDB (titres, résumés, plateformes de streaming) */
 var TMDB_LANG=I18N_META.tmdb||LOCALE,TMDB_REGION=I18N_META.region||'FR';
+/* Texte inséré dans une phrase de droite à gauche (titre latin, adresse e-mail, pseudo…) : isolé
+   (FSI…PDI) pour que la ponctuation voisine et l'ordre des mots ne s'inversent pas. Inutile en LTR. */
+var I18N_ISOLATE={title:1,name:1,email:1,handle:1,device:1,q:1,kw:1,word:1};
+function i18nIso(k,v){return(IS_RTL&&I18N_ISOLATE[k]&&v&&/[A-Za-z0-9]/.test(v))?'\u2068'+v+'\u2069':v;}
 /* Traduction : t('cle',{n:3}) remplace {n}. Repli : langue active > anglais > français > clé. */
 function t(key,vars){
   var s=null,chain=[LANG,I18N_FALLBACK,'fr'];
   for(var i=0;i<chain.length&&s==null;i++){var d=I18N_DICTS[chain[i]];if(d&&Object.prototype.hasOwnProperty.call(d,key))s=d[key];}
   if(s==null){s=key;try{console.warn('[i18n] clé manquante',key);}catch(e){}}
-  if(vars)s=String(s).replace(/\{(\w+)\}/g,function(m,k){return Object.prototype.hasOwnProperty.call(vars,k)?String(vars[k]):m;});
+  if(vars)s=String(s).replace(/\{(\w+)\}/g,function(m,k){return Object.prototype.hasOwnProperty.call(vars,k)?i18nIso(k,String(vars[k])):m;});
   return s;
 }
-/* Pluriels : tn('cle',n) cherche 'cle.one' / 'cle.other' (règles Intl.PluralRules de la langue) */
+/* Pluriels : tn('cle',n) cherche 'cle.<catégorie>' (zero|one|two|few|many|other, règles
+   Intl.PluralRules de la langue : 2 formes en français/anglais, 4 en russe, 6 en arabe, 1 en chinois),
+   puis 'cle.other'. */
 var _plural=null;
 function tn(key,n,vars){
   var v=Object.assign({n:fmtNum(n)},vars||{}),rule='other';
@@ -100,5 +108,6 @@ function applyI18nHead(){
   if(c&&/^\/[a-z]{2}\/?$/.test(location.pathname))c.setAttribute('href',BRAND.baseUrl+'/'+LANG);
 }
 document.documentElement.lang=LANG;
+document.documentElement.dir=DIR;
 applyI18nHead();
 applyI18n();

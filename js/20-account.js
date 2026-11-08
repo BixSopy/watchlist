@@ -618,12 +618,12 @@ var AUTH_VIEWS={
     },
     after:function(){
       var i=document.getElementById('authDeleteConfirm'),b=document.getElementById('authDeleteBtn');
-      i.addEventListener('input',function(){b.disabled=i.value.trim().toUpperCase()!==t('auth.delete.word');});
+      i.addEventListener('input',function(){b.disabled=i.value.trim().toUpperCase()!==t('auth.delete.word').toUpperCase();});
     },
     submit:function(btn){
       if(!authUser)return authGo('login');
       var pass=_val('authPassword'),wipe=document.getElementById('authDeleteLocal').checked;
-      if(_val('authDeleteConfirm').trim().toUpperCase()!==t('auth.delete.word'))return showAuthMsg(t('auth.delete.typeWord',{word:t('auth.delete.word')})+'.');
+      if(_val('authDeleteConfirm').trim().toUpperCase()!==t('auth.delete.word').toUpperCase())return showAuthMsg(t('auth.delete.typeWord',{word:t('auth.delete.word')})+'.');
       if(!pass)return showAuthMsg(t('auth.err.currentPassword'));
       var email=authUser.email;
       _authBusyBtn(btn,true,t('auth.busy.deleting'));
