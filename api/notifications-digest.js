@@ -49,7 +49,7 @@ async function adminUser(id) {
 function posterImg(path) {
   if (!path || !/^\/[A-Za-z0-9_.-]{1,80}$/.test(path)) return '';
   return '<img src="https://image.tmdb.org/t/p/w92' + path + '" width="52" height="78" alt="" ' +
-    'style="display:block;border-radius:8px;width:52px;height:78px;object-fit:cover;">';
+    'style="display:block;border-radius:12px;width:52px;height:78px;object-fit:cover;">';
 }
 /* Date lisible (« ven. 7 nov. » / « Fri, Nov 7 »), même famille que le calendrier in-app (js/26-calendar.js) */
 function formatAirDate(iso, lang) {

@@ -199,3 +199,21 @@ test('contrôles : gabarit unique --ctl-h placé en fin de feuille', () => {
   for (const sel of ['.hdr .p3-ib', '.hdr .sync-pill', '.stabs .stab', '.ntabs-scroll.seg .ntab', '.nav-right .csel-btn', '.p3-ph-act .srch', '.add-btn', '.cal-seg', '.cal-ics', '.det-filters', '.detected-section .btn', '.sort-sel', '.p3-ib svg', '#searchModal .hbtn', '#searchModal .search-filter-row .csel-btn', '#searchModal .search-footer .add-btn', 'body .btn-primary', 'body .auth-close', 'body .opt-btn', 'body .fiche .fx-th', '#addMbk .fiche{--text'])
     assert.ok(block.includes(sel), sel + ' suit le gabarit');
 });
+
+/* Emails et pages légales à la DA : boutons en pastille, carte à 26 px, vrai logo (3 barres en tableau HTML, ni image distante ni lettre),
+   boutons et titres des pages légales au gabarit (demande de Pierre, 08/11) */
+test('emails et pages légales : pastilles, logo à 3 barres sans image, titres de section au gabarit', () => {
+  const brand = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'brand.config.json'), 'utf8'));
+  const mail = read('supabase/templates/confirmation.html');
+  assert.match(mail, /border-radius:999px/, 'bouton d\'email en pastille');
+  assert.doesNotMatch(mail, /border-radius:12px/, 'plus de bouton à angles de 12 px');
+  assert.match(mail, /border-radius:26px/, 'carte à 26 px');
+  assert.ok(mail.includes('background-color:' + brand.colors.secondary), 'barre du logo en secondary');
+  assert.doesNotMatch(mail, /<img /, 'logo sans image distante');
+  const app = JSON.parse(read('api/_lib/app-emails.json'));
+  assert.doesNotMatch(app.welcome.fr.html, /<img /, 'email de bienvenue : logo sans image');
+  const legal = read('privacy.html');
+  assert.match(legal, /\.back,\.lang\{[^}]*border-radius:999px/, 'boutons de l\'en-tête légal en pastille');
+  assert.match(legal, /h2::before\{[^}]*linear-gradient/, 'repère en dégradé devant les titres de section');
+  assert.match(legal, /h2\{[^}]*font-weight:800/, 'titres de section en Inter 800');
+});
