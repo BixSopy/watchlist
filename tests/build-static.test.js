@@ -16,6 +16,9 @@ test('vercel.json : build statique minifié, publié depuis dist-site', () => {
   const v = JSON.parse(read('vercel.json'));
   assert.strictEqual(v.buildCommand, 'node scripts/build-static.mjs');
   assert.strictEqual(v.outputDirectory, 'dist-site');
+  /* le script de build doit être envoyé à Vercel (.vercelignore ne doit pas l'exclure : cause du premier échec de PR #143) */
+  assert.doesNotMatch(read('.vercelignore'), /^scripts\/?$/m);
+  assert.doesNotMatch(read('.vercelignore'), /build-static/);
   assert.match(read('.gitignore'), /^dist-site$/m);
   assert.match(read('.gitignore'), /^node_modules\/$/m);
 });

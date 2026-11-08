@@ -14,6 +14,10 @@ branding
 desktop
 e2e
 extension
-scripts
 supabase
 tests
+scripts/email-preview
+scripts/email-previews.sh
+scripts/signup-ref-stats.sql
+scripts/test-migrations.sh
+scripts/build-brand.mjs
