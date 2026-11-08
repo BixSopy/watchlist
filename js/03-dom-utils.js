@@ -11,7 +11,7 @@ function toast(msg,kind){
   w.appendChild(tt);
   /* Téléphone : 2 toasts au plus (le plus ancien part), pour ne pas masquer le bas de la liste */
   try{if(window.matchMedia('(max-width:768px)').matches){while(w.children.length>2)w.removeChild(w.firstChild);}}catch(_){}
-  setTimeout(function(){tt.style.transition='opacity .3s,transform .3s';tt.style.opacity='0';tt.style.transform='translateX(40px)';setTimeout(function(){tt.remove();},300);},act?6000:2800);
+  setTimeout(function(){tt.style.transition='opacity .3s,transform .3s';tt.style.opacity='0';tt.style.transform='translateX('+(40*hScrollSign())+'px)';setTimeout(function(){tt.remove();},300);},act?6000:2800);
 }
 
 /* DB */
