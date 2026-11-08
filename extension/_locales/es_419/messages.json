@@ -186,7 +186,7 @@
     "message": "Nada nuevo desde la última importación."
   },
   "importTruncated": {
-    "message": " Historial muy largo: solo se leyeron las 20.000 reproducciones más recientes."
+    "message": " Historial muy largo: solo se leyeron las 20,000 reproducciones más recientes."
   },
   "importMetaFailed": {
     "message": " No se pudieron leer algunos números de episodio."
@@ -228,7 +228,7 @@
     "message": "Importar mi historial de Prime Video"
   },
   "platformEnabled": {
-    "message": "Activada: detección en directo e importación del historial."
+    "message": "Activada: detección en tiempo real e importación del historial."
   },
   "platformNetflixAlways": {
     "message": "Siempre activa"
@@ -281,7 +281,7 @@
     "message": "Crunchyroll está limitando las solicitudes en este momento. Vuelve a intentarlo en unos minutos."
   },
   "importErrCrunchyrollTab": {
-    "message": "No se pudo abrir www.crunchyroll.com en una pestaña. Abre el sitio tú mismo y vuelve a intentarlo."
+    "message": "No se pudo abrir www.crunchyroll.com en una pestaña. Abre el sitio manualmente y vuelve a intentarlo."
   },
   "importErrStep": {
     "message": "Paso $STEP$: $STATUS$",
@@ -336,7 +336,7 @@
     "message": "Abriendo www.crunchyroll.com…"
   },
   "platformEnabledLive": {
-    "message": "Activada: detección en directo (esta plataforma no ofrece historial)."
+    "message": "Activada: detección en tiempo real (esta plataforma no ofrece historial)."
   },
   "diagTitle": {
     "message": "Diagnóstico"
@@ -521,7 +521,7 @@
     "message": "Elegir"
   },
   "liveOnlySmall": {
-    "message": "Solo reproducción en directo"
+    "message": "Solo detección en tiempo real"
   },
   "rulesCap": {
     "message": "Cuándo cuenta un título como visto"

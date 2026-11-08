@@ -7,5 +7,5 @@ preheader: Inicia sesión en [[name]] con un clic, sin contraseña.
 [[button||Iniciar sesión||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=es]]
 <p class="muted">O bien, en [[name]] (“Iniciar sesión” y luego “Tengo un código”), escribe este código:</p>
 [[code||{{ .Token }}]]
-<p class="small">El enlace y el código caducan al cabo de una hora y solo se pueden usar una vez. Si no lo pediste, ignora este correo: nadie puede iniciar sesión sin él.</p>
+<p class="small">El enlace y el código expiran al cabo de una hora y solo se pueden usar una vez. Si no lo pediste, ignora este correo: nadie puede iniciar sesión sin él.</p>
 [[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=es]]

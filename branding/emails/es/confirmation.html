@@ -7,5 +7,5 @@ preheader: Un clic para activar tu cuenta de [[name]].
 [[button||Confirmar mi correo||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=es]]
 <p class="muted">¿Prefieres escribir un código (app instalada, otro dispositivo)? En [[name]], abre “Iniciar sesión”, luego “Tengo un código”, y escribe:</p>
 [[code||{{ .Token }}]]
-<p class="small">El enlace y el código caducan al cabo de una hora y solo se pueden usar una vez. Si no creaste ninguna cuenta, ignora este correo: no se activará nada.</p>
+<p class="small">El enlace y el código expiran al cabo de una hora y solo se pueden usar una vez. Si no creaste ninguna cuenta, ignora este correo: no se activará nada.</p>
 [[fallback||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=es]]
