@@ -228,3 +228,11 @@ body.tab{border-radius:26px}
 .tip,.info-pop{border-radius:14px}
 #importStatus{border-radius:16px;background:var(--ctl-bg);border-color:var(--ctl-bd)}
 .review .card{border-color:rgba(var(--accent-rgb),.35)}
+
+/* Logos des plateformes : marques officielles (vectoriel, définies une fois dans options.html), couleur de la marque sur pastille sombre */
+.lg{padding:0;overflow:hidden;font-size:0;display:grid;place-items:center;background:#0b0b0e;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.lg svg{display:block;width:76%;height:76%}
+.lg.nf{color:#e50914}.lg.cr{color:#f47521}.lg.pv{color:#1a98ff}.lg.dp{color:#fff}.lg.at{color:#f2f2f4}
+.lg svg use{fill:currentColor}
+.lg.pv svg,.lg.dp svg{width:86%}
+.chip.off .lg{filter:grayscale(.45) brightness(.8)}

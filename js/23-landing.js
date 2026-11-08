@@ -234,6 +234,7 @@ function _lpJourney(){
   var z=Math.max(.2,Math.round(s*50)/50);if(dv._z!==z){dv._z=z;dv.style.zoom=String(z);}
   dv.style.transform='translate3d('+((cx-W*z/2)/z).toFixed(2)+'px,'+((cy-H*z/2+float)/z).toFixed(2)+'px,0) perspective('+(1800/z).toFixed(0)+'px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+(s/z).toFixed(4)+')';
 }else{if(dv._z){dv._z=0;dv.style.zoom='';}dv.style.transform='translate3d('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float).toFixed(1)+'px,0) perspective(1800px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+s.toFixed(4)+')';}
+if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'appareil devient visible (voir landing.css, anti-CLS) */
     set(dv,'--sh',(50+ry*3).toFixed(1)+'%');
     if(shadow){shadow.style.transform='translate3d('+(cx-50+ry*3*s).toFixed(1)+'px,'+(cy+H*s/2+18+float*.3+rx*1.2).toFixed(1)+'px,0) scale('+(W*s/100*(1-Math.abs(ry)/90)).toFixed(3)+','+(1+Math.abs(rx)/12).toFixed(3)+')';shadow.style.opacity=String(.75-Math.min(.35,Math.abs(float)/40));}
     set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');

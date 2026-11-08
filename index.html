@@ -49,6 +49,10 @@
      avant même que les feuilles externes ci-dessous aient fini de charger — sinon flash de l'accueil
      pour un membre, ou de l'app pour un visiteur, le temps du chargement réseau. -->
 <style>html:not(.lp-member) .hdr,html:not(.lp-member) .layout,html:not(.lp-member) .app-foot,html:not(.lp-member) .aurora-bg{display:none!important}html:not(.lp-member) .p3-tabbar{display:none!important}html.lp-member #landing{display:none!important}</style>
+<!-- Polices de la page d'accueil préchargées : évite le saut de texte (CLS) quand elles remplacent la police de secours -->
+<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/landing/landing.css">
 <link rel="stylesheet" href="/css/app.css">
