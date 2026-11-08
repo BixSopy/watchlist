@@ -84,7 +84,7 @@ test('carrousel : repère de position (point bleu sans texte, mouvement réduit)
   const pct = new Function('idx', 'n', src.match(/function cfPosPct\(idx,n\)\{([^}]*)\}/)[1]);
   assert.deepEqual([pct(0, 10), pct(9, 10), pct(0, 1)], [0, 100, 0]);
   assert.match(html, /id="cfPosDot"/);
-  assert.match(html, /\.cf-pos-t i:before\{[^}]*#5cc8ff/);
+  assert.match(html, /\.cf-pos-t i:before\{[^}]*var\(--accent\)/);
   assert.doesNotMatch(html, /cf-pos-[lr]|cont\.(newest|oldest)/);
   /* toujours visible : pas de fondu rejoué à chaque pas de molette (effet saccadé) */
   assert.doesNotMatch(html, /\.cf-pos\{[^}]*opacity:0/);

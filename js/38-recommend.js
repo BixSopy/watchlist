@@ -44,7 +44,7 @@ function recoPickHtml(){
   var poster=p.title.poster_path?'<img class="rc-hpost" alt="" src="'+IB+'w185'+esc(p.title.poster_path)+'">':'<span class="rc-hpost rc-noimg" aria-hidden="true"></span>';
   var h='<div class="rc-head">'+poster+'<div><p class="rc-kick">'+esc(t('reco.kicker'))+'</p><h2>'+esc(p.title.title)+'</h2>'+(p.title.year?'<p class="soc-sub">'+esc(p.title.year)+'</p>':'')+'</div></div>';
   if(!fr.length){
-    return h+'<div class="fr-empty rc-empty"><div class="fr-ghosts" aria-hidden="true"><i></i><i></i><i></i></div><h3>'+esc(t('reco.noFriends'))+'</h3><p class="soc-sub">'+esc(t('reco.noFriendsSub'))+'</p>'+
+    return h+'<div class="fr-empty rc-empty"><div class="fr-ghosts" aria-hidden="true"><i></i><i></i><i></i><i class="fr-spark"></i></div><h3>'+esc(t('reco.noFriends'))+'</h3><p class="soc-sub">'+esc(t('reco.noFriendsSub'))+'</p>'+
       '<button type="button" class="soc-cta"'+uiAct('openInvite')+'>'+esc(t('friends.invite'))+'</button></div>';
   }
   h+='<p class="rc-lbl" id="rcLbl">'+esc(t('reco.pickFriends'))+'</p><ul class="rc-chips" role="group" aria-labelledby="rcLbl">'+fr.map(function(f,i){

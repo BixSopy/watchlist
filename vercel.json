@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)COORDINATION.md' ':(exclude)desktop/**' ':(exclude)extension/**'",
+  "buildCommand": "node scripts/build-static.mjs",
+  "outputDirectory": "dist-site",
   "regions": [
     "fra1"
   ],
@@ -156,5 +159,11 @@
     "api/og.mjs": {
       "includeFiles": "api/_fonts/**"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/notifications-digest",
+      "schedule": "0 9 * * 1"
+    }
+  ]
 }

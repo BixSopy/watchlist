@@ -293,5 +293,5 @@ test('migration : RLS sans politique, aucun droit client, fonctions réservées 
   assert.match(sql, /grant execute on function public\.submit_feedback\([^)]*\) to service_role/);
   assert.match(sql, /interval '24 months'/);
   assert.ok(read('supabase/schema.sql').includes('MIGRATION 20261008210000_feedback.sql'));
-  assert.match(read('.vercelignore'), /^!api$/m);
+  assert.doesNotMatch(read('.vercelignore'), /^api$/m);
 });

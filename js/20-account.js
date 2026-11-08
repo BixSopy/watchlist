@@ -110,7 +110,11 @@ var AUTH_ERRORS={
   /* Double authentification (js/37-mfa.js) : "invalid_mfa_code" contient "otp" (to-TP) et
      tomberait sinon dans le message « lien expiré » du repli générique plus bas. */
   invalid_mfa_code:t('autherr.invalid_mfa_code'),
-  mfa_factor_not_found:t('autherr.mfa_factor_not_found')
+  mfa_factor_not_found:t('autherr.mfa_factor_not_found'),
+  /* La double authentification s'active entre-temps dans un autre onglet, ou la vérification
+     d'AAL de _authGoReset (js/37-mfa.js) a un trou de course : filet de sécurité, le cas normal
+     est déjà intercepté avant d'arriver ici. */
+  insufficient_aal:t('autherr.insufficient_aal')
 };
 function authErrorMessage(e){
   if(!e)return t('autherr.generic');
@@ -422,7 +426,7 @@ var AUTH_VIEWS={
         '<form novalidate>'+_codeField()+'<button type="submit" class="btn btn-primary auth-submit">'+esc(t('auth.submitCode'))+'</button></form>'+
         '<div class="mact"><button type="button" class="btn btn-ghost" style="flex:1" data-click="authGo" data-args="[&quot;login&quot;]">'+esc(t('auth.backToLogin'))+'</button></div>';
     },
-    submit:function(btn){_verifyCode(btn,'recovery',_authCtx.email,function(){authGo('reset',{mode:'recovery'});});}
+    submit:function(btn){_verifyCode(btn,'recovery',_authCtx.email,function(){_authGoReset('recovery');});}
   },
   magic:{
     title:function(){return esc(t('auth.magic.title'));},
@@ -702,6 +706,7 @@ function _submitNewPassword(btn,onOk,allowNonce){
           showAuthMsg(t('auth.changePw.codeSent'),'nfo');
         });
       }
+      if(res.error.code==='insufficient_aal')return authGo('mfaChallenge',{mfaFactorId:null,mfaNextView:_authView,mfaNextArgs:{}});
       return showAuthMsg(authErrorMessage(res.error));
     }
     onOk();
@@ -726,7 +731,7 @@ function authResend(btn){
 }
 function _afterEmailVerified(action,data){
   var hasSession=!!(data&&data.session);
-  if(action==='recovery')return authGo('reset',{mode:'recovery'});
+  if(action==='recovery')return _authGoReset('recovery');
   if(action==='invite')return authGo('reset',{mode:'invite'});
   if(action==='email_change'){
     if(!hasSession&&!(data&&data.user)){authGo('account');return showAuthMsg(t('auth.emailChange.half'),'nfo');}
@@ -879,7 +884,7 @@ function handleAuthLanding(){
   if(l.kind==='error'){openAuthModal('linkError',{code:l.code,description:l.description,action:l.action||''});return;}
   if(l.kind==='session'){
     /* Ancien format de lien (#access_token=…) : supabase-js ouvre la session tout seul */
-    if(l.type==='recovery')openAuthModal('reset',{mode:'recovery'});
+    if(l.type==='recovery')_authOpenReset('recovery');
     else if(l.type==='invite')openAuthModal('reset',{mode:'invite'});
     else if(l.type==='signup'){toast(t('auth.toast.confirmed'),'ok');}
     else if(l.type==='email_change'){toast(t('auth.toast.emailUpdated'),'ok');}
@@ -887,7 +892,7 @@ function handleAuthLanding(){
 }
 if(supa){
   supa.auth.onAuthStateChange(function(event){
-    if(event==='PASSWORD_RECOVERY'&&!(document.getElementById('authMbk').classList.contains('on')&&_authView==='reset'))openAuthModal('reset',{mode:'recovery'});
+    if(event==='PASSWORD_RECOVERY'&&!(document.getElementById('authMbk').classList.contains('on')&&_authView==='reset'))_authOpenReset('recovery');
   });
 }
 setTimeout(reopenAfterLangChange,0);

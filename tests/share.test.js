@@ -93,8 +93,9 @@ test('aperçu /api/og : Node, cache court (pas « immutable »), carte génériq
   assert.doesNotMatch(src, /service_role|SUPABASE_SECRET/);
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   assert.deepStrictEqual(Object.keys(pkg.dependencies), ['@vercel/og']);
-  assert.ok(!pkg.scripts || !pkg.scripts.build, 'pas de build : l\'app reste servie telle quelle');
-  assert.match(fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8'), /^!package\.json$/m);
+  assert.deepStrictEqual(Object.keys(pkg.devDependencies || {}), ['esbuild'], 'seule dépendance de build : esbuild (scripts/build-static.mjs)');
+  assert.ok(!pkg.scripts || !pkg.scripts.build, 'le build passe par vercel.json › buildCommand, pas par un script npm');
+  assert.doesNotMatch(fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8'), /^package\.json$/m);
   assert.ok(fs.existsSync(path.join(ROOT, 'api', '_fonts', 'Inter-ExtraBold.ttf')));
 });
 

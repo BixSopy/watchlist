@@ -1,4 +1,6 @@
 desktop/src-tauri/target/
 desktop/src-tauri/gen/
+node_modules/
 e2e/node_modules/
 email-previews/
+dist-site

@@ -33,7 +33,7 @@ test('sounds/ : les 6 fichiers MP3 existent, petits (< 16 Ko chacun, < 40 Ko au 
 });
 
 test('sounds/ publié, mis en cache, et autorisé par la CSP (fetch en connect-src \'self\', pas de <audio>)', () => {
-  assert.match(read('.vercelignore'), /^!sounds$/m);
+  assert.doesNotMatch(read('.vercelignore'), /^sounds$/m);
   const vercel = JSON.parse(read('vercel.json'));
   const rule = vercel.headers.find(h => h.source === '/sounds/(.*)');
   assert.ok(rule, 'règle /sounds/');

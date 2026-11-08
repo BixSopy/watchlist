@@ -36,6 +36,7 @@ gratuite Mixkit (sans attribution obligatoire). Les autres sons (clic, survol, �
 - Storage  : IndexedDB (liste) + localStorage (préférences) + Supabase (synchro, comptes)
 - API      : TMDB v3 + OMDb via fonctions serverless Vercel (`/api`, clés côté serveur)
 - Hosting  : Vercel Hobby (statique + fonctions `/api`, région `fra1`) + Supabase Free (Francfort)
+- Build    : `scripts/build-static.mjs` (esbuild) minifie `js/` et `css/` vers `dist-site/` au déploiement (`vercel.json`) ; sources lisibles et inchangées dans le dépôt
 - Emails   : Supabase Auth via SMTP Resend (domaine vérifié), gabarits dans `supabase/templates/`
 - Anti-robot : Cloudflare Turnstile, via la protection CAPTCHA intégrée à Supabase Auth
 
@@ -110,6 +111,19 @@ Tout ce qui identifie l'app est dans [`brand.config.json`](brand.config.json) : 
 (`contactEmail`, `senderEmail`, `senderName`), couleurs, chemins du logo et des icônes,
 polices, indexation (`indexable`), redirections de domaine (`domains`).
 
+**Règle DA (2ᵉ passe, 07/11)** : tout est dans `brand.config.json › colors`.
+1. **Dominante (~80 %) = dégradé P3** `accentGradStart/Mid/End` (`--p3-grad`, `#5b4fe0 → #2f8fd1 → #1fb8a3`) :
+   boutons, progression, interrupteurs, onglets actifs, mots d'accent des titres, halos.
+   `accent` `#2f8fd1` (arrêt central du dégradé, `--accent`) en couleur unie pour liens, focus, petites icônes.
+2. **Violet = touche subtile** `violet` `#b9aeff` → `violetMid` `#8fc4ff` → `violetEnd` `#7fe0cf`
+   (`--violet`, `--violet-grad`) : réservé au mot « episode » du logo et à de rares détails.
+3. `secondary` `#5cc8ff` (`--accent2`) : troisième couleur (3ᵉ barre du logo).
+Tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Fond `#000` partout. Le thème clair
+se règle dans `colorsLight`. **Ne jamais recopier un hex de marque à la main** : utiliser `var(--p3-grad)`,
+`var(--accent)`, `var(--violet-grad)`, `var(--accent2)` (app, landing, extension) ou
+`api/_lib/brand-tokens.json` (fonctions serveur). `tests/brand.test.js` échoue si une ancienne
+teinte réapparaît en dur.
+
 Pour renommer l'app, changer de domaine, de couleurs ou de logo :
 
 1. Modifier `brand.config.json` (et, pour un nouveau logo, remplacer `branding/logo-mark.svg`
@@ -130,6 +144,20 @@ fichiers générés à la main : `node --test tests/` échoue s'ils ne sont plus
 (`node scripts/build-brand.mjs --check`). Aucun domaine n'est codé en dur dans le code de
 l'app : elle fonctionne sur n'importe quel domaine (chemins relatifs, liens d'emails basés sur
 l'adresse depuis laquelle la demande a été faite).
+
+### Prévisualisations Vercel : connexion automatique
+
+Une prévisualisation est une autre origine que la production : pas de session partagée, et la
+connexion y échoue (`captcha_failed`, car `TURNSTILE_SITE_KEY` n'existe que côté « production » alors que
+Supabase exige le CAPTCHA). `js/00-preview-handoff.js` règle ça sans CAPTCHA : une prévisualisation
+sans session fait un aller-retour par la production (`#wl_preview=<origine>` puis `#wl_handoff=<jeton>`)
+et ouvre une session avec le **jeton d'accès** (1 h), jamais le jeton de rafraîchissement. Il faut
+simplement être **connecté sur la production dans le même navigateur** ; après 1 h, un rechargement
+de la prévisualisation renouvelle la session. La passerelle doit être déployée **en production** pour répondre : tant que ce n'est pas le cas (ex. prévisualisation de la PR qui l'ajoute), ouvrir la prévisualisation avec `?wl_nohandoff=1` à la fin de l'adresse. Seules les adresses de `brand.config.json ›
+previewHostPattern` (prévisualisations de l'équipe Vercel de Pierre) reçoivent un jeton ; le
+générateur échoue si ce motif correspond à la production. Tests : `tests/preview-handoff.test.js`
+et `e2e/preview-handoff.test.mjs`. ⚠️ Les prévisualisations utilisent la même base Supabase que la
+production : un compte ouvert dessus modifie les vraies données.
 
 ## 🌐 Langues (français / anglais)
 

@@ -9,6 +9,8 @@
   "tagline": "Ton suivi de films, séries et anime",
   "description": "Suis tes films, séries et anime au même endroit : où tu en es, les nouveaux épisodes, ta liste synchronisée partout. Gratuit, sans pub, sans pistage, hébergé dans l'UE.",
   "baseUrl": "https://cinepisode.com",
+  "$comment_previewHosts": "Prévisualisations Vercel de l'équipe de Pierre (expression régulière sur le nom d'hôte). Seules ces origines reçoivent une session de production via js/00-preview-handoff.js ; build-brand.mjs échoue si ce motif correspond au domaine de production ou à un ancien domaine (domains.legacyHosts).",
+  "previewHostPattern": "^watchlist-[a-z0-9-]+-pierre-unbekand-s-projects\\.vercel\\.app$",
   "$comment_baseUrl": "Domaine de production (origine https, sans « / » final). Utilisé dans les textes, les balises Open Graph et les instructions ; l'app elle-même fonctionne sur n'importe quel domaine (tout est en chemins relatifs).",
   "domains": {
     "$comment": "Redirections générées dans vercel.json UNIQUEMENT si redirects=true. www → domaine principal est déjà fait par Vercel (Domains). À n'activer que pour rediriger aussi les anciens domaines (legacyHosts).",
@@ -29,8 +31,8 @@
     "$comment_name": "Laisser vide pour un éditeur particulier non professionnel (LCEN art. 6-III-2 : identité communiquée à l'hébergeur). Sinon : nom ou raison sociale."
   },
   "colors": {
-    "accent": "#5cc8ff",
-    "accentHover": "#7ad4ff",
+    "accent": "#2f8fd1",
+    "accentHover": "#5aa9e0",
     "onAccent": "#06070a",
     "bg": "#000000",
     "surface": "#101013",
@@ -42,14 +44,18 @@
     "logoDim": "#7c7c87",
     "logoMid": "#888888",
     "danger": "#ff7070",
-    "themeColor": "#06070a",
-    "accentFlat": "#b9aeff",
+    "themeColor": "#000000",
     "accentGradStart": "#5b4fe0",
     "accentGradMid": "#2f8fd1",
-    "accentGradEnd": "#1fb8a3"
+    "accentGradEnd": "#1fb8a3",
+    "secondary": "#5cc8ff",
+    "secondaryHover": "#7ad4ff",
+    "violet": "#b9aeff",
+    "violetMid": "#8fc4ff",
+    "violetEnd": "#7fe0cf"
   },
   "$comment_colors_logo": "logoDim/logoMid (dans colors) sont les deux tons non-accent du mark (branding/logo-mark.svg) — distincts de textFaint/textMuted (texte des pages légales et des emails) pour ne pas changer ces derniers si la charte du logo évolue. Valeurs alignées sur --text3/--text2 déjà codées en dur dans index.html.",
-  "$comment_accentGrad": "Dégradé cinématographique (choisi par Pierre le 06/11, mode sombre d'abord) : accentGradStart/Mid/End forment --p3-grad (CTA, barre de progression), réservé à ces deux usages — jamais en fond. accentFlat remplace --accent pour le mot « episode » du logo (teinte plus claire : --accent, #5cc8ff, serait illisible comme texte sur de l'OLED pur avec ce violet). Ces 4 valeurs sont documentées ici mais codées à la main dans index.html (--p3-grad, --accent-flat, .logo em) : pas dans le bloc /*brand:css*/ généré, qui ne couvre que bg/accent/accent-hover/on-accent.",
+  "$comment_accentGrad": "Hiérarchie de la DA (revue par Pierre le 07/11, 2ᵉ passe) : 1) COULEUR DOMINANTE (~80 %) = dégradé P3 accentGradStart/Mid/End (--p3-grad) : boutons, progression, interrupteurs, onglets actifs, mots d'accent des titres, halos ; « accent » #2f8fd1 (= arrêt central du dégradé) en couleur unie pour les liens, le focus, les petites icônes et textes d'accent ; 2) VIOLET = TOUCHE SUBTILE : violet #b9aeff → violetMid #8fc4ff → violetEnd #7fe0cf (--violet, --violet-grad), réservé au mot « episode » du logo et à de rares détails ; 3) « secondary » #5cc8ff = troisième couleur (3ᵉ barre du logo) ; tout le reste (rouge, vert, orange…) est tertiaire et sémantique. Générées par scripts/build-brand.mjs vers css/app.css, l'extension, les pages légales, les emails et api/_lib/brand-tokens.json : ne jamais recopier un hex à la main.",
   "logo": {
     "icon192": "/icons/icon-192.png",
     "icon512": "/icons/icon-512.png",
@@ -58,8 +64,8 @@
   },
   "$comment_ogImage": "Image d'aperçu des liens (1200×630). Changer le nom du fichier à chaque nouvelle version : X et les navigateurs gardent l'ancienne en cache sous la même adresse.",
   "ogImage": {
-    "fr": "/og/og-share-v2-fr.jpg",
-    "en": "/og/og-share-v2-en.jpg",
+    "fr": "/og/og-share-v5-fr.jpg",
+    "en": "/og/og-share-v5-en.jpg",
     "width": 1200,
     "height": 630,
     "type": "image/jpeg",
@@ -72,5 +78,17 @@
     "display": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     "body": "'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     "mono": "'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace"
+  },
+  "colorsLight": {
+    "accent": "#1b6fb8",
+    "accentHover": "#155a96",
+    "onAccent": "#ffffff",
+    "secondary": "#1d79c9",
+    "secondaryHover": "#1868ad",
+    "bg": "#f5f6f8",
+    "danger": "#d32f2f",
+    "violet": "#4a3fd1",
+    "violetMid": "#1d79c9",
+    "violetEnd": "#0e8f80"
   }
 }

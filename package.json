@@ -1,8 +1,11 @@
 {
   "name": "cinepisode",
   "private": true,
-  "description": "Dépendance unique côté serveur : @vercel/og pour l'aperçu des liens de partage (api/og.mjs). L'app reste sans build.",
+  "description": "Dépendances : @vercel/og pour l'aperçu des liens de partage (api/og.mjs) ; esbuild (build seulement) pour minifier js/ et css/ au déploiement (scripts/build-static.mjs). Les sources restent sans build : tests et développement local servent les fichiers tels quels.",
   "dependencies": {
     "@vercel/og": "0.8.5"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.4"
   }
 }

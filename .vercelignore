@@ -1,24 +1,23 @@
-# Liste blanche : seuls ces fichiers sont envoyés et servis par Vercel.
-# (Avant, la prod servait publiquement supabase/schema.sql, la doc Supabase et le
-# workflow GitHub.) Tout le reste (supabase/, .github/, tests/, *.md…) est exclu.
-/*
-!api
-!css
-!vendor
-!fonts
-!landing
-!sounds
-!icons
-!og
-!index.html
-!confidentialite.html
-!conditions.html
-!privacy.html
-!terms.html
-!robots.txt
-!sitemap.xml
-!js
-!vercel.json
-!package.json
-!manifest.json
-!sw.js
+# Liste noire : tout le reste est servi par Vercel. Avant (06/11), c'était une liste blanche
+# (/* + !autorisés) — mais /* bloque tout par défaut, .git/ y compris, et ignoreCommand
+# (vercel.json) a besoin d'un vrai dépôt git pour fonctionner (constaté en déploiement réel,
+# PR #124 : "Not a git repository" dès que ignoreCommand s'exécute après le nettoyage de
+# .vercelignore). .git/ n'est de toute façon jamais servi par défaut par Vercel (voir sa propre
+# liste de fichiers système toujours ignorés), donc l'exclusion explicite ne lui apportait rien.
+.claude
+.github
+.gitignore
+COORDINATION.md
+README.md
+brand.config.json
+branding
+desktop
+e2e
+extension
+supabase
+tests
+scripts/email-preview
+scripts/email-previews.sh
+scripts/signup-ref-stats.sql
+scripts/test-migrations.sh
+scripts/build-brand.mjs

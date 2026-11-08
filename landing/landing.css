@@ -21,8 +21,8 @@ html.lp-guest{scroll-behavior:smooth;scroll-padding-top:84px}
 
 /* ---------- Boutons ---------- */
 .lp-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 24px;border-radius:999px;font-family:'Inter',sans-serif;font-size:15.5px;font-weight:650;letter-spacing:-.01em;text-decoration:none;white-space:nowrap;cursor:pointer;border:1px solid transparent;transition:transform .25s var(--lp-ease),background .2s,border-color .2s,box-shadow .25s,color .2s}
-.lp-btn-primary{background:var(--accent);color:var(--on-accent)!important;box-shadow:0 10px 30px -8px rgba(var(--accent-rgb),.55),inset 0 1px 0 rgba(255,255,255,.35)}
-.lp-btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 16px 40px -10px rgba(var(--accent-rgb),.7),inset 0 1px 0 rgba(255,255,255,.35)}
+.lp-btn-primary{background:var(--p3-grad);color:#fff!important;box-shadow:0 10px 30px -8px rgba(var(--grad-rgb),.6),inset 0 1px 0 rgba(255,255,255,.35)}
+.lp-btn-primary:hover{background:var(--p3-grad);filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 16px 40px -10px rgba(var(--grad-rgb),.75),inset 0 1px 0 rgba(255,255,255,.35)}
 .lp-btn-primary:hover .lp-arrow{transform:translateX(3px)}
 .lp-btn-ghost{background:rgba(255,255,255,.04);border-color:var(--lp-line2);color:var(--lp-text)!important}
 .lp-btn-ghost:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.26)}
@@ -49,7 +49,7 @@ html.lp-guest{scroll-behavior:smooth;scroll-padding-top:84px}
 .lp-eyebrow{display:inline-flex;align-items:center;gap:10px;padding:7px 16px 7px 12px;border-radius:999px;border:1px solid var(--lp-line2);background:rgba(255,255,255,.035);color:#cfd0d6;font-size:14px;font-weight:500;letter-spacing:.01em}
 .lp-eyebrow-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.18),0 0 14px rgba(var(--accent-rgb),.8)}
 .lp-h1{font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(2.55rem,1.25rem + 5.4vw,5.4rem);line-height:1.02;letter-spacing:-.045em;margin:26px auto 0;max-width:13ch;text-wrap:balance}
-.lp-grad{background:linear-gradient(100deg,#8fdcff 0%,var(--accent) 35%,#b9a4ff 75%,#e7b7ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.lp-grad{background:var(--p3-grad);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .lp-lead{font-size:clamp(1.0625rem,.98rem + .45vw,1.3rem);line-height:1.6;color:var(--lp-muted);max-width:40rem;margin:26px auto 0;text-wrap:pretty}
 .lp-kicker{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 16px}
 .lp-h2{font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(2rem,1.25rem + 2.9vw,3.4rem);line-height:1.06;letter-spacing:-.035em;text-wrap:balance}
@@ -287,7 +287,7 @@ html.lp-anim .lp-faq-item.lp-open .lp-faq-a p{opacity:1;transform:none}
 .lp-st-nums b{display:block;font:900 38px 'Inter',sans-serif;letter-spacing:-.04em;color:#fff}
 .lp-st-bars{display:grid;gap:10px;margin:18px 0}
 .lp-st-bars span{display:grid;grid-template-columns:1fr;font-size:13px;color:#bbb;gap:4px}
-.lp-st-bars i{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--accent),#2b7fff);transform-origin:0;transform:scaleX(calc(var(--v)*2*var(--bv,0)));order:2}
+.lp-st-bars i{height:12px;border-radius:6px;background:var(--p3-grad);transform-origin:0;transform:scaleX(calc(var(--v)*2*var(--bv,0)));order:2}
 .lp-st-q{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:999px;background:#1a1c22;border:1px solid rgba(var(--accent-rgb),.45);box-shadow:0 0 30px -6px rgba(var(--accent-rgb),.45);font-size:16px;opacity:var(--q,0)}
 .lp-st-q svg{width:18px;color:var(--accent);flex:none}
 .lp-caret{width:2px;height:20px;background:var(--accent);animation:lpCaret 1s steps(2) infinite}
@@ -306,7 +306,7 @@ html.lp-anim .lp-faq-item.lp-open .lp-faq-a p{opacity:1;transform:none}
 .lp-sy-pill i{width:9px;height:9px;border-radius:50%;background:#55e39a;box-shadow:0 0 10px #55e39a}
 
 /* 7 Récap en story + confidentialité */
-.lp-s-rec{background:radial-gradient(120% 60% at 50% 0%,rgba(var(--accent-rgb),.3),transparent 60%),#0a0a0c;padding:50px 18px 18px;text-align:center}
+.lp-s-rec{background:radial-gradient(120% 60% at 50% 0%,rgba(var(--accent-rgb),.3),transparent 60%),#000;padding:50px 18px 18px;text-align:center}
 .lp-rc{transform:scale(calc(1 - var(--pv,0)*.12));opacity:calc(1 - var(--pv,0)*.75)}
 .lp-rc-brand,.lp-cta-w{font:900 20px 'Inter',sans-serif;letter-spacing:-.04em}
 .lp-rc-brand em,.lp-cta-w em,.lp-j-story em{font-style:normal;color:var(--accent)}
@@ -327,13 +327,13 @@ html.lp-anim .lp-faq-item.lp-open .lp-faq-a p{opacity:1;transform:none}
 .lp-pv>span{display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:14px;background:rgba(14,22,30,.95);border:1px solid rgba(var(--accent-rgb),.35);font:700 16px 'Inter',sans-serif;text-align:left;
   opacity:var(--ri,0);transform:translateY(calc((1 - var(--ri,0))*50px))}
 .lp-pv svg{width:18px;color:var(--accent);flex:none}
-.lp-j-story{position:absolute;left:0;top:0;width:220px;padding:16px;border-radius:22px;background:linear-gradient(170deg,#132233,#0a0a0c);border:1px solid rgba(var(--accent-rgb),.4);box-shadow:0 40px 80px -20px rgba(0,0,0,.9),0 0 60px -10px rgba(var(--accent-rgb),.5);text-align:center;opacity:0;will-change:transform,opacity;color:#fff}
+.lp-j-story{position:absolute;left:0;top:0;width:220px;padding:16px;border-radius:22px;background:linear-gradient(170deg,#1b1733,#000);border:1px solid rgba(var(--accent-rgb),.4);box-shadow:0 40px 80px -20px rgba(0,0,0,.9),0 0 60px -10px rgba(var(--accent-rgb),.5);text-align:center;opacity:0;will-change:transform,opacity;color:#fff}
 .lp-j-story .lp-po{border-radius:12px}
 .lp-j-story p{margin-top:12px;font-size:13px;color:var(--accent)}
 .lp-j-story p b{display:block;font:900 44px 'Inter',sans-serif;color:#fff;letter-spacing:-.04em}
 
 /* 8 Appel final */
-.lp-s-cta{background:radial-gradient(100% 70% at 50% 40%,rgba(var(--accent-rgb),.28),transparent 70%),#0a0a0c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.lp-s-cta{background:radial-gradient(100% 70% at 50% 40%,rgba(var(--accent-rgb),.28),transparent 70%),#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 .lp-cta-ic svg{width:110px;height:110px;filter:drop-shadow(0 0 40px rgba(var(--accent-rgb),.7));transform:scale(calc(.6 + var(--ct,0)*.4))}
 .lp-cta-w{font-size:34px}
 .lp-cta-u{font:500 13px 'IBM Plex Mono',monospace;color:#9a9ba6}
@@ -390,7 +390,7 @@ html.lp-anim .lp-ch.on .lp-ch-t>:nth-child(n+4){transition-delay:.18s}
 .lp-j-big{font-size:clamp(2.2rem,1rem + 3.2vw,4.4rem)}
 .lp-j-steps{position:relative;display:grid;gap:22px;margin:30px 0 8px;padding-left:2px}
 .lp-j-steps-line{position:absolute;left:19px;top:8px;bottom:8px;width:2px;background:rgba(255,255,255,.1);border-radius:1px;overflow:hidden}
-.lp-j-steps-line i{display:block;width:100%;height:calc(var(--sp,0)*100%);background:linear-gradient(180deg,var(--accent),#2b7fff);border-radius:1px;box-shadow:0 0 10px rgba(var(--accent-rgb),.6);transition:height .1s linear}
+.lp-j-steps-line i{display:block;width:100%;height:calc(var(--sp,0)*100%);background:linear-gradient(180deg,#5b4fe0,#1fb8a3);border-radius:1px;box-shadow:0 0 10px rgba(var(--accent-rgb),.6);transition:height .1s linear}
 .lp-j-step{position:relative;z-index:1;display:flex;gap:16px;align-items:flex-start}
 .lp-j-step-ic{position:relative;flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#17181d;border:1.5px solid var(--lp-line2);color:var(--lp-faint)}
 .lp-j-step-ic svg{width:17px;height:17px}
@@ -436,11 +436,11 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
   .lp-ch[data-ch="1"]{min-height:170vh}
 
   .lp-ch-t{max-width:none;width:calc(100% - 24px)}
-  .lp-ch[data-ch="0"] .lp-ch-t{width:100%;padding:0 4px;background:linear-gradient(180deg,rgba(10,10,12,.2),rgba(10,10,12,.9) 30%)}
+  .lp-ch[data-ch="0"] .lp-ch-t{width:100%;padding:0 4px;background:linear-gradient(180deg,rgba(0,0,0,.2),rgba(0,0,0,.9) 30%)}
   .lp-ch:not([data-ch="0"]):not([data-ch="8"]) .lp-ch-t{display:none}
   .lp-j-mtext{display:block;position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;
     max-height:min(30vh,230px);overflow:hidden;padding:18px 22px;pointer-events:none;border-radius:22px;
-    background:linear-gradient(180deg,#121318,#0a0a0c);border:1px solid var(--lp-line);opacity:0;
+    background:linear-gradient(180deg,#121318,#000);border:1px solid var(--lp-line);opacity:0;
     visibility:hidden;transition:opacity .4s}
   .lp-j-mtext.on{opacity:1;visibility:visible;pointer-events:auto}
   .lp-j-mtext .lp-p{overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
@@ -460,7 +460,7 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
      descend pour lui laisser la place (cy ajusté en JS). */
   .lp-ch[data-ch="8"]{align-items:flex-start;padding-top:calc(20px + env(safe-area-inset-top))}
   .lp-ch[data-ch="8"] .lp-ch-t{position:fixed;left:12px;top:calc(64px + env(safe-area-inset-top));z-index:6;
-    max-height:52vh;overflow:auto;padding:12px 16px;right:12px;border-radius:22px;background:linear-gradient(180deg,#121318,#0a0a0c);
+    max-height:52vh;overflow:auto;padding:12px 16px;right:12px;border-radius:22px;background:linear-gradient(180deg,#121318,#000);
     border:1px solid var(--lp-line)}
   .lp-ch[data-ch="8"]:not(.on) .lp-ch-t{pointer-events:none}
   .lp-j-h2.lp-j-big{font-size:clamp(1.25rem,5.8vw,1.7rem)}
@@ -475,7 +475,7 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
   /* Sur téléphone, l'extension Chrome ne s'installe pas : le vrai appel est le formulaire du téléphone. */
   .lp-ch[data-ch="8"] .lp-cta-row,.lp-ch[data-ch="8"] .lp-j-ext-link{display:none}
   .lp-j-stick::after{content:"";position:absolute;left:0;right:0;bottom:0;height:28px;z-index:5;pointer-events:none;
-    background:linear-gradient(180deg,rgba(10,10,12,0),#0a0a0c);opacity:var(--f8,0)}
+    background:linear-gradient(180deg,rgba(0,0,0,0),#000);opacity:var(--f8,0)}
   .lp-j-step div>p{font-size:12.5px}
 }
 
@@ -617,3 +617,9 @@ html.lp-guest,html.lp-guest body{overflow-x:hidden;overflow-x:clip}
 .lp-signup-panel .auth-modal{max-height:none;overflow:visible}
 @media(max-width:850px){.lp-signup-grid{grid-template-columns:1fr;max-width:560px;gap:30px}.lp-signup-panel{padding:24px}}
 @media(max-width:560px){.lp-signup{scroll-margin-top:70px;padding:72px 0}.lp-signup-panel{padding:18px;border-radius:20px}.lp-cta-demo .lp-j-step div>p{display:none}.lp-cta-demo .lp-j-steps{gap:10px}.lp-cta-demo .lp-j-step div>b{font-size:11px}}
+
+/* Anti-saut (CLS) : l'appareil n'est placé (zoom/transform) que par js/23-landing.js ; on le masque jusqu'au
+   premier placement. Filet : réapparaît seul après 1,2 s si le script n'a pas pu s'exécuter. */
+.lp-dv{visibility:hidden;animation:lpDvShow 0s linear 1.2s forwards}
+.lp-dv.lp-on{visibility:visible;animation:none}
+@keyframes lpDvShow{to{visibility:visible}}
