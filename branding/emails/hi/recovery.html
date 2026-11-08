@@ -1,0 +1,11 @@
+subject: अपना पासवर्ड रीसेट करें · [[name]]
+preheader: अपने [[name]] अकाउंट के लिए नया पासवर्ड चुनें।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>नया पासवर्ड</h1>
+<p>किसी ने (शायद आपने) <strong>{{ .Email }}</strong> अकाउंट का पासवर्ड रीसेट करने का अनुरोध किया है। नया पासवर्ड चुनने के लिए बटन पर क्लिक करें।</p>
+[[button||नया पासवर्ड चुनें||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=hi]]
+<p class="muted">या [[name]] में ("साइन इन करें", फिर "मेरे पास कोड है") यह कोड डालें:</p>
+[[code||{{ .Token }}]]
+<p class="small">लिंक और कोड एक घंटे में एक्सपायर हो जाते हैं और सिर्फ़ एक बार इस्तेमाल हो सकते हैं। अगर आपने यह अनुरोध नहीं किया, तो इस ईमेल को अनदेखा करें: आपका मौजूदा पासवर्ड पहले की तरह काम करता रहेगा।</p>
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=hi]]

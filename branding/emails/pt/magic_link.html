@@ -1,0 +1,11 @@
+subject: Seu link de login · [[name]]
+preheader: Entre no [[name]] com um clique, sem precisar de senha.
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Entrar sem senha</h1>
+<p>Aqui está seu link para entrar no [[name]] com <strong>{{ .Email }}</strong>.</p>
+[[button||Entrar||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=pt]]
+<p class="muted">Ou, no [[name]] (“Entrar”, depois “Tenho um código”), digite este código:</p>
+[[code||{{ .Token }}]]
+<p class="small">O link e o código expiram em uma hora e só podem ser usados uma vez. Se você não pediu isso, ignore este e-mail: ninguém consegue entrar sem ele.</p>
+[[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=pt]]

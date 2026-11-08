@@ -1,0 +1,576 @@
+{
+  "extName": {
+    "message": "Cinepisode — تتبّع تلقائي"
+  },
+  "extDescription": {
+    "message": "تؤشّر تلقائيًا الحلقات المُشاهَدة على Netflix وPrime Video وCrunchyroll وDisney+ وApple TV، وتستورد سجل المشاهدة."
+  },
+  "optionsTitle": {
+    "message": "Cinepisode — تتبّع تلقائي"
+  },
+  "tokenLabel": {
+    "message": "الرمز المميز"
+  },
+  "save": {
+    "message": "حفظ"
+  },
+  "tokenEmpty": {
+    "message": "الرمز المميز فارغ."
+  },
+  "openApp": {
+    "message": "فتح Cinepisode"
+  },
+  "lastNone": {
+    "message": "لم يُرصد شيء بعد. تُحتسب الحلقة مُشاهَدة عند 80% أو عند شارة النهاية، والفيلم عند 90%."
+  },
+  "lastAt": {
+    "message": "في $WHEN$",
+    "placeholders": {
+      "when": {
+        "content": "$1",
+        "example": "08/10/2026 21:40"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "تم التحديث: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAlready": {
+    "message": "محدَّث بالفعل: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNotFound": {
+    "message": "غير موجود في قائمتك: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAmbiguous": {
+    "message": "عدة عناوين تطابق «$LABEL$»، لم يتغير شيء",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidToken": {
+    "message": "رمز مميز غير صالح: أنشئ رمزًا جديدًا في Cinepisode من الإعدادات › الرمز المميز › تغيير."
+  },
+  "lastNoToken": {
+    "message": "لا يوجد رمز مميز محفوظ: لم يُرسل $LABEL$ بعد.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNetwork": {
+    "message": "تعذّر الوصول إلى Cinepisode (الاتصال؟): لم يُرسل $LABEL$ بعد.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastServerError": {
+    "message": "خطأ في خادم Cinepisode: لم يُحفظ $LABEL$ بعد.",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidInput": {
+    "message": "رفض الخادم عملية الرصد: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidDetection": {
+    "message": "تعذّرت قراءة ما رُصد على Netflix، لم يُرسل شيء."
+  },
+  "lastLegacyUpdated": {
+    "message": "تم التحديث: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastLegacyNoChange": {
+    "message": "لا تغيير على $LABEL$ (غير موجود في قائمتك أو محدَّث بالفعل).",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "importNetflix": {
+    "message": "استيراد سجل Netflix"
+  },
+  "openDetected": {
+    "message": "عرض العناوين المكتشفة في Cinepisode"
+  },
+  "importStepTab": {
+    "message": "جارٍ فتح Netflix…"
+  },
+  "importStepSession": {
+    "message": "جارٍ قراءة الملف الشخصي على Netflix…"
+  },
+  "importStepHistory": {
+    "message": "جارٍ قراءة السجل… (المشاهدات: $N$، الصفحات: $P$)",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "p": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepMeta": {
+    "message": "أرقام الحلقات: $D$ / $T$ مسلسل…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepParse": {
+    "message": "جارٍ قراءة الملف…"
+  },
+  "importStepPush": {
+    "message": "جارٍ الإرسال إلى Cinepisode…"
+  },
+  "importDone": {
+    "message": "العناوين المرسلة: $N$ (جديدة: $NEW$، أحدث: $UPD$). حدّد في Cinepisode، ضمن علامة التبويب «المكتشفة»، ما سيُضاف.",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "new": {
+        "content": "$2"
+      },
+      "upd": {
+        "content": "$3"
+      }
+    }
+  },
+  "importNothing": {
+    "message": "لا جديد منذ آخر استيراد."
+  },
+  "importTruncated": {
+    "message": " السجل طويل جدًا: قُرئت أحدث 20,000 مشاهدة فقط."
+  },
+  "importMetaFailed": {
+    "message": " تعذّرت قراءة بعض أرقام الحلقات."
+  },
+  "importErrNoToken": {
+    "message": "اربط الإضافة برمزك المميز أولًا."
+  },
+  "importErrToken": {
+    "message": "رمز مميز غير صالح: أنشئ رمزًا جديدًا في Cinepisode من الإعدادات › الرمز المميز › تغيير."
+  },
+  "importErrNetflixTab": {
+    "message": "تعذّر فتح Netflix في هذا المتصفح."
+  },
+  "importErrNetflixAuth": {
+    "message": "سجّل الدخول إلى Netflix في هذا المتصفح (واختر ملفك الشخصي)، ثم أعد المحاولة."
+  },
+  "importErrNetflix": {
+    "message": "ردّ Netflix بشكل غير متوقع. أعد المحاولة لاحقًا، أو استورد ملف CSV."
+  },
+  "importErrCsv": {
+    "message": "ملف غير مقروء: اختر الملف NetflixViewingHistory.csv (بحد أقصى 20 ميغابايت)."
+  },
+  "importErrLimit": {
+    "message": "عدد كبير جدًا من العناوين المكتشفة قيد الانتظار: يُرجى فرزها في علامة التبويب «المكتشفة» في Cinepisode أولًا."
+  },
+  "importErrServer": {
+    "message": "خطأ في خادم Cinepisode. أعد المحاولة لاحقًا."
+  },
+  "importErrNetwork": {
+    "message": "تعذّر الوصول إلى Cinepisode (الاتصال؟)."
+  },
+  "importBusy": {
+    "message": "هناك عملية استيراد جارية بالفعل."
+  },
+  "importCrunchyroll": {
+    "message": "استيراد سجل Crunchyroll"
+  },
+  "importPrime": {
+    "message": "استيراد سجل Prime Video"
+  },
+  "platformEnabled": {
+    "message": "مفعّلة: رصد مباشر واستيراد السجل."
+  },
+  "platformNetflixAlways": {
+    "message": "مفعّلة دائمًا"
+  },
+  "platformDenied": {
+    "message": "رفض Chrome الوصول: لم يُفعَّل شيء."
+  },
+  "importStepCrunchyroll": {
+    "message": "جارٍ الاتصال بـCrunchyroll…"
+  },
+  "importStepPrime": {
+    "message": "جارٍ الاتصال بـPrime Video…"
+  },
+  "importStepPrimeMeta": {
+    "message": "تفاصيل الحلقات والأفلام: $D$ / $T$…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTruncatedOther": {
+    "message": " السجل طويل جدًا: قُرئ الجزء الأحدث فقط."
+  },
+  "importPartial": {
+    "message": " تعذّرت قراءة الجزء الأقدم من سجلك (رفض Crunchyroll البقية): أُرسل كل ما سبقه. أعد تشغيل الاستيراد لاحقًا للمحاولة مجددًا."
+  },
+  "importErrPermission": {
+    "message": "فعّل المنصّة أولًا (من مربّعها في الشبكة)."
+  },
+  "importErrCrunchyrollAuth": {
+    "message": "لا يتعرّف Crunchyroll على جلستك: سجّل الدخول على www.crunchyroll.com في هذا المتصفح، ثم أعد المحاولة."
+  },
+  "importErrCrunchyroll": {
+    "message": "ردّ Crunchyroll بشكل غير متوقع. أعد المحاولة لاحقًا؛ وإذا تكرر ذلك، فانسخ التشخيص أدناه وأرسله إلينا."
+  },
+  "importErrPrimeAuth": {
+    "message": "سجّل الدخول على www.primevideo.com في هذا المتصفح (واختر ملفك الشخصي)، ثم أعد المحاولة."
+  },
+  "importErrPrime": {
+    "message": "ردّ Prime Video بشكل غير متوقع. أعد المحاولة لاحقًا."
+  },
+  "importErrCrunchyrollBlocked": {
+    "message": "حظر Crunchyroll (عبر Cloudflare) الطلب. افتح www.crunchyroll.com في علامة تبويب، وأكمل التحقق إن ظهر، ثم أعد المحاولة."
+  },
+  "importErrCrunchyrollRate": {
+    "message": "يحدّ Crunchyroll من الطلبات حاليًا. أعد المحاولة بعد بضع دقائق."
+  },
+  "importErrCrunchyrollTab": {
+    "message": "تعذّر فتح www.crunchyroll.com في علامة تبويب. افتح الموقع بنفسك، ثم أعد المحاولة."
+  },
+  "importErrStep": {
+    "message": "الخطوة $STEP$: $STATUS$",
+    "placeholders": {
+      "step": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "importErrHttp": {
+    "message": "HTTP $CODE$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoResponse": {
+    "message": "لا استجابة (مشكلة في الشبكة أو تم الحظر)"
+  },
+  "importErrBadAnswer": {
+    "message": "استجابة غير مقروءة"
+  },
+  "importStepNameTab": {
+    "message": "علامة التبويب"
+  },
+  "importStepNameToken": {
+    "message": "الرمز المميز"
+  },
+  "importStepNameAccount": {
+    "message": "الحساب"
+  },
+  "importStepNameHistory": {
+    "message": "السجل"
+  },
+  "importStepNamePush": {
+    "message": "الإرسال إلى Cinepisode"
+  },
+  "importCopyDiag": {
+    "message": "نسخ التشخيص"
+  },
+  "importDiagCopied": {
+    "message": "تم نسخ التشخيص (لا يتضمن أي رمز مميز أو كلمة مرور)."
+  },
+  "importDiagCopyFailed": {
+    "message": "فشل النسخ: حدّد نص التشخيص يدويًا."
+  },
+  "importStepCrunchyrollTab": {
+    "message": "جارٍ فتح www.crunchyroll.com…"
+  },
+  "platformEnabledLive": {
+    "message": "مفعّلة: رصد مباشر (لا يتوفر سجل على هذه المنصّة)."
+  },
+  "diagTitle": {
+    "message": "التشخيص"
+  },
+  "diagDebug": {
+    "message": "سجل مفصّل (وحدة التحكم F12)"
+  },
+  "diagCopy": {
+    "message": "نسخ التشخيص"
+  },
+  "diagCopied": {
+    "message": "تم نسخ التشخيص: الصقه في رسالتك (لا يتضمن الرمز المميز)."
+  },
+  "liveOnlyInfoLabel": {
+    "message": "لماذا لا يتوفر استيراد السجل؟"
+  },
+  "liveOnlyInfo": {
+    "message": "لا تتيح Disney+ وApple TV الوصول إلى سجل مشاهداتك: تُرصد فقط الحلقات التي تُشاهد من الآن فصاعدًا. لاستعادة ما فات، اطلب نسخة من بياناتك (Disney: إعدادات الحساب / Apple: privacy.apple.com)."
+  },
+  "notConnected": {
+    "message": "غير متصل"
+  },
+  "connected": {
+    "message": "متصل"
+  },
+  "connectedTitle": {
+    "message": "تم حفظ الرمز المميز: تُرسل عمليات الرصد إلى حسابك على Cinepisode"
+  },
+  "offHeroTitle": {
+    "message": "ربط الإضافة بحسابك"
+  },
+  "offHeroSub": {
+    "message": "تُؤشَّر حلقاتك تلقائيًا أثناء المشاهدة."
+  },
+  "offStep1": {
+    "message": "افتح Cinepisode › الإعدادات › التتبع التلقائي"
+  },
+  "offStep2": {
+    "message": "انقر على «إنشاء رمزي المميز»"
+  },
+  "offStep3": {
+    "message": "الصقه أدناه"
+  },
+  "tokenPlaceholder": {
+    "message": "الصق رمزك المميز هنا"
+  },
+  "connect": {
+    "message": "ربط"
+  },
+  "offPrivacy": {
+    "message": "يبقى الرمز المميز في هذا المتصفح. لا يُرسل إلى Cinepisode سوى العنوان والموسم والحلقة."
+  },
+  "noAccount": {
+    "message": "ليس لديك حساب بعد؟"
+  },
+  "changeTokenFoot": {
+    "message": "يبقى رمزك الحالي نشطًا حتى تلصق رمزًا جديدًا."
+  },
+  "openAppArrow": {
+    "message": "فتح Cinepisode ←"
+  },
+  "cancel": {
+    "message": "إلغاء"
+  },
+  "settingsTitle": {
+    "message": "الإعدادات"
+  },
+  "back": {
+    "message": "رجوع"
+  },
+  "nowTitle": {
+    "message": "قيد التشغيل الآن"
+  },
+  "liveBadge": {
+    "message": "مباشر"
+  },
+  "idleTitle": {
+    "message": "لا شيء قيد التشغيل"
+  },
+  "idleSub": {
+    "message": "شغّل حلقة على منصّة مفعّلة."
+  },
+  "nowEpisode": {
+    "message": "الموسم $S$ · الحلقة $E$",
+    "placeholders": {
+      "s": {
+        "content": "$1",
+        "example": ""
+      },
+      "e": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "nowMovie": {
+    "message": "فيلم"
+  },
+  "nowPct": {
+    "message": "$P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowRule": {
+    "message": "تُحتسب عند $P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowCounted": {
+    "message": "✓ احتُسبت"
+  },
+  "platformsCap": {
+    "message": "المنصّات"
+  },
+  "platformsCount": {
+    "message": "$N$/$T$ مفعّلة",
+    "placeholders": {
+      "n": {
+        "content": "$1",
+        "example": ""
+      },
+      "t": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "chipActive": {
+    "message": "مفعّلة"
+  },
+  "chipOff": {
+    "message": "تفعيل"
+  },
+  "chipDenied": {
+    "message": "مرفوضة"
+  },
+  "chipTip": {
+    "message": "تفعيل $NAME$: سيطلب Chrome الإذن بالوصول إلى هذا الموقع",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "importCap": {
+    "message": "استيراد السجل"
+  },
+  "pendingNone": {
+    "message": "لا جديد في «المكتشفة»"
+  },
+  "pendingOne": {
+    "message": "عنوان جديد في «المكتشفة»"
+  },
+  "pendingMany": {
+    "message": "عناوين جديدة في «المكتشفة»"
+  },
+  "seeDetected": {
+    "message": "عرض ←"
+  },
+  "accountCap": {
+    "message": "الحساب"
+  },
+  "change": {
+    "message": "تغيير"
+  },
+  "csvRow": {
+    "message": "ملف CSV من Netflix"
+  },
+  "csvRowHint": {
+    "message": "الحساب › الملف الشخصي › نشاط المشاهدة › «تنزيل الكل»"
+  },
+  "choose": {
+    "message": "اختيار"
+  },
+  "liveOnlySmall": {
+    "message": "التشغيل المباشر فقط"
+  },
+  "rulesCap": {
+    "message": "متى يُحتسب العنوان مُشاهَدًا"
+  },
+  "rulesText": {
+    "message": "الحلقة عند 80% أو فور ظهور شارة النهاية، والفيلم عند 90%، بعد 20 ثانية على الأقل من التشغيل المتواصل. تُحدَّث العناوين الموجودة في قائمتك، وتذهب البقية إلى علامة التبويب «المكتشفة»."
+  },
+  "diagCopyHint": {
+    "message": "حالة الرصد، دون رمزك المميز"
+  },
+  "logout": {
+    "message": "تسجيل الخروج"
+  },
+  "logoutConfirm": {
+    "message": "حذف الرمز المميز؟"
+  },
+  "logoutYes": {
+    "message": "نعم"
+  },
+  "pairButton": {
+    "message": "تسجيل الدخول باستخدام Cinepisode"
+  },
+  "pairSub": {
+    "message": "نقرة واحدة على الموقع، لا شيء للنسخ."
+  },
+  "manualToggle": {
+    "message": "استخدام رمز مميز يدوي (متقدّم)"
+  },
+  "pairedRevoked": {
+    "message": "أُزيل هذا الجهاز من الموقع. يُرجى ربطه مجددًا."
+  },
+  "reviewTitle": {
+    "message": "هل يفيدك Cinepisode؟"
+  },
+  "reviewSub": {
+    "message": "الحلقات المعلَّمة تلقائيًا: $COUNT$. تقييمك على Chrome Web Store يساعد مشروعًا مستقلًا كثيرًا.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewYes": {
+    "message": "ترك تقييم"
+  },
+  "reviewLater": {
+    "message": "لاحقًا"
+  },
+  "reviewNever": {
+    "message": "عدم السؤال مجددًا"
+  }
+}

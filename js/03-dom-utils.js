@@ -49,11 +49,12 @@ function hScrollPos(el){return Math.abs(el.scrollLeft||0);}
 /* Flèches de navigation écrites dans les gabarits : inversées en RTL */
 function arrowFwd(){return isRtl()?'←':'→';}
 function arrowBack(){return isRtl()?'→':'←';}
-function chevFwd(){return isRtl()?'‹':'›';}
-function chevBack(){return isRtl()?'›':'‹';}
+/* ‹ › sont retournés automatiquement par l'algorithme bidi en RTL (Bidi_Mirrored) : pas d'échange manuel, contrairement à ← → */
+function chevFwd(){return '›';}
+function chevBack(){return '‹';}
 /* Titre, pseudo, nom d'appareil… inséré dans une interface RTL : isolé (FSI…PDI) pour que la
    ponctuation finale (« What If...? ») et les mots voisins (« · S1 E4 ») gardent leur place. Inchangé en LTR. */
-function bidiIso(s){s=s==null?'':String(s);return isRtl()&&s?'⁨'+s+'⁩':s;}
+function bidiIso(s){s=s==null?'':String(s);return isRtl()&&s?'\u2068'+s+'\u2069':s;}
 /* Coupe un texte affiché à n caractères visibles sans casser un emoji ni une syllabe (devanagari, bengali…) */
 function strCut(s,n){
   s=String(s==null?'':s);if(s.length<=n)return s;

@@ -1,0 +1,9 @@
+subject: [[name]] میں شامل ہونے کی دعوت
+preheader: اپنا پاس ورڈ منتخب کر کے اپنا [[name]] اکاؤنٹ بنائیں۔
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>[[name]] میں شامل ہونے کی دعوت</h1>
+<p><strong>{{ .Email }}</strong> کے لیے ایک اکاؤنٹ بنایا گیا ہے۔ دعوت قبول کریں، پھر اپنی فلمیں، سیریز اور اینیمی ٹریک کرنا شروع کرنے کے لیے اپنا پاس ورڈ منتخب کریں۔</p>
+[[button||دعوت قبول کریں||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=ur]]
+<p class="small">یہ لنک صرف ایک بار استعمال ہو سکتا ہے اور جلد ایکسپائر ہو جاتا ہے۔ اگر آپ بھیجنے والے کو نہیں جانتے تو اس ای میل کو نظرانداز کر دیں۔</p>
+[[fallback||{{ $base }}?action=invite&amp;type=invite&amp;token_hash={{ .TokenHash }}&amp;lang=ur]]

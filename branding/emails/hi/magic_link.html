@@ -1,0 +1,11 @@
+subject: आपका साइन-इन लिंक · [[name]]
+preheader: बिना पासवर्ड के, एक क्लिक में [[name]] में साइन इन करें।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>बिना पासवर्ड के साइन इन करें</h1>
+<p><strong>{{ .Email }}</strong> से [[name]] में साइन इन करने के लिए आपका लिंक यह रहा।</p>
+[[button||मुझे साइन इन करें||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=hi]]
+<p class="muted">या [[name]] में ("साइन इन करें", फिर "मेरे पास कोड है") यह कोड डालें:</p>
+[[code||{{ .Token }}]]
+<p class="small">लिंक और कोड एक घंटे में एक्सपायर हो जाते हैं और सिर्फ़ एक बार इस्तेमाल हो सकते हैं। अगर आपने इसके लिए नहीं कहा, तो इस ईमेल को अनदेखा करें: इसके बिना कोई भी साइन इन नहीं कर सकता।</p>
+[[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=hi]]

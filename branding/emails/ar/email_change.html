@@ -1,0 +1,11 @@
+subject: تأكيد عنوان بريدك الإلكتروني الجديد · [[name]]
+preheader: أكّد تغيير عنوان البريد الإلكتروني لحسابك على [[name]].
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>تغيير عنوان البريد الإلكتروني</h1>
+<p>طلبت استبدال العنوان <strong>{{ .Email }}</strong> بالعنوان <strong>{{ .NewEmail }}</strong> في حسابك على [[name]]. يُرجى تأكيد هذا التغيير:</p>
+[[button||تأكيد التغيير||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]
+<p class="muted">أو أدخل هذا الرمز في [[name]] (الحساب › تغيير البريد الإلكتروني › «لدي رمز»):</p>
+[[code||{{ .Token }}]]
+<p class="small">إذا كان تأكيد العنوانين مفعّلًا، فستُرسل رسالة مطابقة إلى العنوان القديم والعنوان الجديد: يجب تأكيد كليهما. إذا لم تطلب هذا التغيير، فتجاهل هذه الرسالة وغيّر كلمة المرور.</p>
+[[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]

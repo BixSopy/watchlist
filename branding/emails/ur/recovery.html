@@ -1,0 +1,11 @@
+subject: اپنا پاس ورڈ ری سیٹ کریں · [[name]]
+preheader: اپنے [[name]] اکاؤنٹ کے لیے نیا پاس ورڈ منتخب کریں۔
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>نیا پاس ورڈ</h1>
+<p>کسی نے (غالباً آپ نے) اکاؤنٹ <strong>{{ .Email }}</strong> کا پاس ورڈ ری سیٹ کرنے کی درخواست کی ہے۔ نیا پاس ورڈ منتخب کرنے کے لیے بٹن پر کلک کریں۔</p>
+[[button||نیا پاس ورڈ منتخب کریں||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=ur]]
+<p class="muted">یا [[name]] میں (”سائن اِن“، پھر ”میرے پاس کوڈ ہے“) یہ کوڈ درج کریں:</p>
+[[code||{{ .Token }}]]
+<p class="small">لنک اور کوڈ ایک گھنٹے بعد ایکسپائر ہو جاتے ہیں اور صرف ایک بار استعمال ہو سکتے ہیں۔ اگر یہ درخواست آپ نے نہیں کی تو اس ای میل کو نظرانداز کر دیں: آپ کا موجودہ پاس ورڈ بدستور کام کرتا رہے گا۔</p>
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=ur]]

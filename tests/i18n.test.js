@@ -130,16 +130,67 @@ test('TMDB est interrogé dans la langue et le pays de l\'interface', () => {
   assert.match(api, /TMDB_LANG/);
 });
 
-test('emails : chaque modèle se rend en français et en anglais (repli français sans langue)', { skip: spawnSync('go', ['version']).status !== 0 && 'Go absent' }, () => {
+test('emails : chaque modèle se rend dans les 10 langues (repli français sans langue)', { skip: spawnSync('go', ['version']).status !== 0 && 'Go absent' }, () => {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'mail-'));
   const res = execFileSync('go', ['run', 'scripts/email-preview/main.go', out], { cwd: ROOT, encoding: 'utf8' });
   const lines = res.trim().split('\n');
-  assert.strictEqual(lines.length, 16, '8 modèles × 2 langues');
-  for (const l of ['fr', 'en']) {
+  assert.strictEqual(lines.length, 80, '8 modèles × 10 langues');
+  for (const l of LANGS) {
     for (const f of fs.readdirSync(out).filter(f => f.startsWith(l + '-'))) {
-      assert.match(fs.readFileSync(path.join(out, f), 'utf8'), new RegExp('<html lang="' + l + '"'), f);
+      assert.match(fs.readFileSync(path.join(out, f), 'utf8'), new RegExp('<html lang="' + l + '" dir="' + (['ar', 'ur'].includes(l) ? 'rtl' : 'ltr') + '"'), f);
     }
   }
   assert.match(fs.readFileSync(path.join(out, 'en-recovery.html'), 'utf8'), /Reset/);
   assert.match(fs.readFileSync(path.join(out, 'fr-recovery.html'), 'utf8'), /Réinitialise/);
+});
+
+/* Moteur dans une langue donnée : pluriels à 4 ou 6 formes, sens de lecture, isolation bidi */
+function engine(lang) {
+  const attrs = {};
+  const ctx = {
+    window: {}, console, URLSearchParams, Intl, Object, JSON, String, Number, Math, Date, Array,
+    location: { search: '?lang=' + lang, pathname: '/', href: 'http://x/?lang=' + lang },
+    localStorage: { getItem: () => null, setItem() {} }, sessionStorage: { getItem: () => null, setItem() {} },
+    navigator: { languages: [lang], language: lang },
+    BRAND: { legal: {}, defaultLang: 'fr', baseUrl: 'http://x', name: 'Cinepisode' },
+    esc: s => String(s),
+    document: { documentElement: { set lang(v) { attrs.lang = v; }, set dir(v) { attrs.dir = v; } }, querySelector: () => null, querySelectorAll: () => [] },
+  };
+  vm.createContext(ctx);
+  for (const l of LANGS) vm.runInContext(read('js/i18n/' + l + '.js'), ctx);
+  vm.runInContext(read('js/00-i18n.js') + '\nthis.__t=t;this.__tn=tn;this.__rtl=IS_RTL;', ctx);
+  return { t: ctx.__t, tn: ctx.__tn, rtl: ctx.__rtl, attrs };
+}
+test('pluriels : russe (one/few/many), arabe (zero…other), chinois (other seul)', () => {
+  const k = 'gd.shows'; /* « {n} série(s) » */
+  assert.ok(('gd.shows.one' in DICTS.fr) && ('gd.shows.many' in DICTS.ru) && ('gd.shows.zero' in DICTS.ar) && !('gd.shows.one' in DICTS.zh));
+  const ru = engine('ru'), ar = engine('ar'), zh = engine('zh'), fr = engine('fr');
+  for (const n of [0, 1, 2, 3, 5, 11, 21, 22, 25, 100, 101]) {
+    for (const e of [ru, ar, zh, fr]) assert.ok(!e.tn(k, n).includes('{'), 'variable restante pour n=' + n);
+  }
+  assert.notStrictEqual(ru.tn(k, 1), ru.tn(k, 2));
+  assert.notStrictEqual(ru.tn(k, 2), ru.tn(k, 5));
+  assert.strictEqual(ru.tn(k, 21), ru.tn(k, 1).replace('1', '21'), 'ru : 21 prend la forme de 1');
+  assert.notStrictEqual(ar.tn(k, 2), ar.tn(k, 3));
+  assert.notStrictEqual(ar.tn(k, 3), ar.tn(k, 11));
+});
+test('sens de lecture : dir="rtl" pour l\'arabe et l\'ourdou seulement, titres isolés en RTL', () => {
+  for (const l of LANGS) {
+    const e = engine(l);
+    assert.strictEqual(e.attrs.lang, l);
+    assert.strictEqual(e.attrs.dir, ['ar', 'ur'].includes(l) ? 'rtl' : 'ltr', l);
+    assert.strictEqual(e.rtl, ['ar', 'ur'].includes(l));
+  }
+  const key = Object.keys(DICTS.fr).find(k => /\{title\}/.test(DICTS.fr[k]) && !/<|href/.test(DICTS.fr[k]));
+  assert.match(engine('ar').t(key, { title: 'Dune' }), /⁨Dune⁩/, 'FSI/PDI autour du titre latin en RTL');
+  assert.doesNotMatch(engine('fr').t(key, { title: 'Dune' }), /⁨/, 'aucun caractère bidi en LTR');
+});
+test('aucun caractère de contrôle bidi ni chiffres non latins dans les dictionnaires', () => {
+  const bad = [];
+  for (const l of LANGS) for (const k of keys(l)) {
+    const v = DICTS[l][k];
+    if (/[‎‏‪-‮⁦-⁩]/.test(v)) bad.push(l + ' ' + k + ' : bidi');
+    if (/[٠-٩۰-۹০-৯०-९]/.test(v)) bad.push(l + ' ' + k + ' : chiffres non latins');
+  }
+  assert.deepStrictEqual(bad, []);
 });

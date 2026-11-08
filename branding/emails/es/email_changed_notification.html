@@ -1,0 +1,8 @@
+subject: Se cambió tu correo electrónico · [[name]]
+preheader: Cambió el correo de inicio de sesión de tu cuenta de [[name]].
+---
+{{ $base := .SiteURL }}
+<h1>Correo electrónico cambiado</h1>
+<p>El correo de inicio de sesión de tu cuenta de [[name]] cambió de <strong>{{ .OldEmail }}</strong> a <strong>{{ .Email }}</strong>.</p>
+<p class="muted">¿No fuiste tú? Escríbenos de inmediato a <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>.</p>
+[[button||Abrir [[name]]||{{ $base }}?lang=es]]

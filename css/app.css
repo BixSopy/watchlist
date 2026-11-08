@@ -2217,9 +2217,9 @@ button.fr-row:hover{background:rgba(var(--ink-rgb),.08);transform:translateX(2px
    derive lente) pour rester dans la meme famille visuelle que le fond. */
 .fr-ghosts::before{content:'';position:absolute;top:-16px;left:50%;width:240px;height:150px;margin-left:-120px;border-radius:50%;background:radial-gradient(circle,rgba(var(--accent-rgb),.14),transparent 70%);filter:blur(28px);animation:frGlow 6.5s ease-in-out infinite}
 .fr-ghosts i{position:absolute;top:30px;left:50%;width:62px;height:62px;border-radius:50%;filter:blur(1.5px);opacity:.75}
-.fr-ghosts i:nth-child(1){margin-inline-start:-104px;background:linear-gradient(135deg,#ff9f7a,#ff5e8a);transform:scale(.85);animation:frOrbit1 5.6s ease-in-out infinite,frBreathe1 4.1s ease-in-out infinite}
-.fr-ghosts i:nth-child(2){margin-inline-start:-31px;top:12px;width:72px;height:72px;background:var(--p3-grad);filter:blur(.5px);opacity:.95;animation:frOrbit2 6.8s ease-in-out infinite,frBreathe2 4.8s ease-in-out infinite}
-.fr-ghosts i:nth-child(3){margin-inline-start:48px;background:var(--p3-grad);animation:frOrbit3 6.1s ease-in-out infinite,frBreathe3 5.3s ease-in-out infinite}
+.fr-ghosts i:nth-child(1){margin-left:-104px;background:linear-gradient(135deg,#ff9f7a,#ff5e8a);transform:scale(.85);animation:frOrbit1 5.6s ease-in-out infinite,frBreathe1 4.1s ease-in-out infinite}
+.fr-ghosts i:nth-child(2){margin-left:-31px;top:12px;width:72px;height:72px;background:var(--p3-grad);filter:blur(.5px);opacity:.95;animation:frOrbit2 6.8s ease-in-out infinite,frBreathe2 4.8s ease-in-out infinite}
+.fr-ghosts i:nth-child(3){margin-left:48px;background:var(--p3-grad);animation:frOrbit3 6.1s ease-in-out infinite,frBreathe3 5.3s ease-in-out infinite}
 /* Etincelle qui relie les 3 "amis a venir" en boucle (connexion qui se forme), meme esprit que
    le halo : discrete, continue, jamais clignotante. Coordonnees calquees sur le centre reel des
    3 cercles ci-dessus (demi-largeur/hauteur + marge). */

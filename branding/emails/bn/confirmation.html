@@ -1,0 +1,11 @@
+subject: আপনার ইমেইল ঠিকানা নিশ্চিত করুন · [[name]]
+preheader: এক ক্লিকেই আপনার [[name]] অ্যাকাউন্ট চালু করুন।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>[[name]]-এ স্বাগতম!</h1>
+<p>আর মাত্র একটি ধাপ বাকি: আপনার অ্যাকাউন্ট চালু করতে এবং সব ডিভাইসে লিস্ট সিঙ্ক করতে আপনার ঠিকানা <strong>{{ .Email }}</strong> নিশ্চিত করুন।</p>
+[[button||আমার ইমেইল নিশ্চিত করুন||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]
+<p class="muted">কোড লিখতে চান (ইনস্টল করা অ্যাপ, অন্য ডিভাইস)? [[name]]-এ “লগ ইন”, তারপর “আমার কাছে কোড আছে” খুলে এই কোডটি লিখুন:</p>
+[[code||{{ .Token }}]]
+<p class="small">লিংক ও কোডের মেয়াদ এক ঘণ্টা, এবং এগুলো শুধু একবারই ব্যবহার করা যায়। আপনি অ্যাকাউন্ট না খুলে থাকলে এই ইমেইলটি উপেক্ষা করুন: কিছুই চালু হবে না।</p>
+[[fallback||{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]

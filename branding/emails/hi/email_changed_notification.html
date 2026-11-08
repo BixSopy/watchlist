@@ -1,0 +1,8 @@
+subject: आपका ईमेल पता बदल दिया गया · [[name]]
+preheader: आपके [[name]] अकाउंट का साइन-इन पता बदल गया है।
+---
+{{ $base := .SiteURL }}
+<h1>ईमेल पता बदल गया</h1>
+<p>आपके [[name]] अकाउंट का साइन-इन पता <strong>{{ .OldEmail }}</strong> से बदलकर <strong>{{ .Email }}</strong> हो गया है।</p>
+<p class="muted">यह आपने नहीं किया? हमें तुरंत <a href="mailto:[[contactEmail]]">[[contactEmail]]</a> पर लिखें।</p>
+[[button||[[name]] खोलें||{{ $base }}?lang=hi]]

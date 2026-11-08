@@ -1,0 +1,576 @@
+{
+  "extName": {
+    "message": "Cinepisode — অটো ট্র্যাকিং"
+  },
+  "extDescription": {
+    "message": "Netflix, Prime Video, Crunchyroll, Disney+ ও Apple TV-তে দেখা পর্বে নিজে থেকেই টিক দেয়। হিস্ট্রিও ইমপোর্ট করে।"
+  },
+  "optionsTitle": {
+    "message": "Cinepisode — অটো ট্র্যাকিং"
+  },
+  "tokenLabel": {
+    "message": "টোকেন"
+  },
+  "save": {
+    "message": "সেভ করুন"
+  },
+  "tokenEmpty": {
+    "message": "টোকেন খালি।"
+  },
+  "openApp": {
+    "message": "Cinepisode খুলুন"
+  },
+  "lastNone": {
+    "message": "এখনো কিছু শনাক্ত হয়নি। কোনো পর্ব 80% বা এন্ড ক্রেডিট পর্যন্ত দেখলে, আর সিনেমা 90% দেখলে দেখা হয়েছে ধরা হয়।"
+  },
+  "lastAt": {
+    "message": "সময়: $WHEN$",
+    "placeholders": {
+      "when": {
+        "content": "$1",
+        "example": "08/10/2026 21:40"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "আপডেট হয়েছে: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAlready": {
+    "message": "আগে থেকেই হালনাগাদ: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNotFound": {
+    "message": "আপনার লিস্টে নেই: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAmbiguous": {
+    "message": "একাধিক টাইটেল “$LABEL$”-এর সঙ্গে মেলে, কিছু বদলানো হয়নি",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidToken": {
+    "message": "টোকেনটি সঠিক নয়: Cinepisode-এ সেটিংস › টোকেন › বদলান থেকে নতুন টোকেন তৈরি করুন।"
+  },
+  "lastNoToken": {
+    "message": "কোনো টোকেন সেভ করা নেই: $LABEL$ পাঠানো হয়নি।",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNetwork": {
+    "message": "Cinepisode-এ পৌঁছানো যায়নি (সংযোগ?): $LABEL$ পাঠানো হয়নি।",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastServerError": {
+    "message": "Cinepisode সার্ভারে সমস্যা: $LABEL$ সেভ হয়নি।",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidInput": {
+    "message": "সার্ভার শনাক্তকরণটি গ্রহণ করেনি: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidDetection": {
+    "message": "Netflix শনাক্তকরণ পড়া যায়নি, কিছু পাঠানো হয়নি।"
+  },
+  "lastLegacyUpdated": {
+    "message": "আপডেট হয়েছে: $LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastLegacyNoChange": {
+    "message": "$LABEL$-এ কোনো পরিবর্তন হয়নি (লিস্টে নেই বা আগে থেকেই হালনাগাদ)।",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "importNetflix": {
+    "message": "আমার Netflix হিস্ট্রি ইমপোর্ট করুন"
+  },
+  "openDetected": {
+    "message": "Cinepisode-এ শনাক্ত টাইটেল দেখুন"
+  },
+  "importStepTab": {
+    "message": "Netflix খোলা হচ্ছে…"
+  },
+  "importStepSession": {
+    "message": "Netflix প্রোফাইল পড়া হচ্ছে…"
+  },
+  "importStepHistory": {
+    "message": "হিস্ট্রি পড়া হচ্ছে: $N$ বার দেখা ($P$ পৃষ্ঠা)…",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "p": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepMeta": {
+    "message": "পর্বের নম্বর: $D$ / $T$টি সিরিজ…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepParse": {
+    "message": "ফাইল পড়া হচ্ছে…"
+  },
+  "importStepPush": {
+    "message": "Cinepisode-এ পাঠানো হচ্ছে…"
+  },
+  "importDone": {
+    "message": "$N$টি টাইটেল পাঠানো হয়েছে ($NEW$টি নতুন, $UPD$টি সাম্প্রতিক)। Cinepisode-এর “শনাক্ত” ট্যাবে কী যোগ করবেন বেছে নিন।",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "new": {
+        "content": "$2"
+      },
+      "upd": {
+        "content": "$3"
+      }
+    }
+  },
+  "importNothing": {
+    "message": "শেষ ইমপোর্টের পর নতুন কিছু নেই।"
+  },
+  "importTruncated": {
+    "message": " হিস্ট্রি অনেক লম্বা: শুধু সাম্প্রতিক 20,000 বার দেখা পড়া হয়েছে।"
+  },
+  "importMetaFailed": {
+    "message": " কিছু পর্বের নম্বর পড়া যায়নি।"
+  },
+  "importErrNoToken": {
+    "message": "আগে আপনার টোকেন দিয়ে এক্সটেনশনটি যুক্ত করুন।"
+  },
+  "importErrToken": {
+    "message": "টোকেনটি সঠিক নয়: Cinepisode-এ সেটিংস › টোকেন › বদলান থেকে নতুন টোকেন তৈরি করুন।"
+  },
+  "importErrNetflixTab": {
+    "message": "এই ব্রাউজারে Netflix খোলা যায়নি।"
+  },
+  "importErrNetflixAuth": {
+    "message": "এই ব্রাউজারে Netflix-এ লগ ইন করুন (এবং প্রোফাইল বেছে নিন), তারপর আবার চেষ্টা করুন।"
+  },
+  "importErrNetflix": {
+    "message": "Netflix অপ্রত্যাশিত উত্তর দিয়েছে। পরে আবার চেষ্টা করুন, অথবা CSV ফাইলটি ইমপোর্ট করুন।"
+  },
+  "importErrCsv": {
+    "message": "ফাইলটি পড়া যায়নি: NetflixViewingHistory.csv বেছে নিন (সর্বোচ্চ 20 MB)।"
+  },
+  "importErrLimit": {
+    "message": "অনেক বেশি শনাক্ত টাইটেল অপেক্ষায়: Cinepisode-এর “শনাক্ত” ট্যাবে সেগুলো গুছিয়ে নিন।"
+  },
+  "importErrServer": {
+    "message": "Cinepisode সার্ভারে সমস্যা। পরে আবার চেষ্টা করুন।"
+  },
+  "importErrNetwork": {
+    "message": "Cinepisode-এ পৌঁছানো যাচ্ছে না (সংযোগ?)।"
+  },
+  "importBusy": {
+    "message": "একটি ইমপোর্ট ইতিমধ্যে চলছে।"
+  },
+  "importCrunchyroll": {
+    "message": "আমার Crunchyroll হিস্ট্রি ইমপোর্ট করুন"
+  },
+  "importPrime": {
+    "message": "আমার Prime Video হিস্ট্রি ইমপোর্ট করুন"
+  },
+  "platformEnabled": {
+    "message": "চালু: লাইভ শনাক্তকরণ ও হিস্ট্রি ইমপোর্ট।"
+  },
+  "platformNetflixAlways": {
+    "message": "সবসময় চালু"
+  },
+  "platformDenied": {
+    "message": "Chrome অ্যাক্সেস দেয়নি: কিছুই চালু হয়নি।"
+  },
+  "importStepCrunchyroll": {
+    "message": "Crunchyroll-এ সংযোগ করা হচ্ছে…"
+  },
+  "importStepPrime": {
+    "message": "Prime Video-তে সংযোগ করা হচ্ছে…"
+  },
+  "importStepPrimeMeta": {
+    "message": "পর্ব ও সিনেমার বিস্তারিত: $D$ / $T$…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTruncatedOther": {
+    "message": " হিস্ট্রি অনেক লম্বা: শুধু সাম্প্রতিক অংশটুকু পড়া হয়েছে।"
+  },
+  "importPartial": {
+    "message": " আপনার হিস্ট্রির সবচেয়ে পুরোনো অংশ পড়া যায়নি (Crunchyroll বাকিটা দেয়নি): তার আগের সবকিছু পাঠানো হয়েছে। আবার চেষ্টা করতে পরে আবার ইমপোর্ট চালান।"
+  },
+  "importErrPermission": {
+    "message": "আগে প্ল্যাটফর্মটি চালু করুন (গ্রিডে তার টাইল)।"
+  },
+  "importErrCrunchyrollAuth": {
+    "message": "Crunchyroll আপনার সেশন চিনতে পারছে না: এই ব্রাউজারে www.crunchyroll.com-এ লগ ইন করুন, তারপর আবার চেষ্টা করুন।"
+  },
+  "importErrCrunchyroll": {
+    "message": "Crunchyroll অপ্রত্যাশিত উত্তর দিয়েছে। পরে আবার চেষ্টা করুন; আবারও হলে নিচের ডায়াগনস্টিক কপি করে আমাদের পাঠান।"
+  },
+  "importErrPrimeAuth": {
+    "message": "এই ব্রাউজারে www.primevideo.com-এ লগ ইন করুন (এবং প্রোফাইল বেছে নিন), তারপর আবার চেষ্টা করুন।"
+  },
+  "importErrPrime": {
+    "message": "Prime Video অপ্রত্যাশিত উত্তর দিয়েছে। পরে আবার চেষ্টা করুন।"
+  },
+  "importErrCrunchyrollBlocked": {
+    "message": "Crunchyroll (Cloudflare) রিকোয়েস্টটি ব্লক করেছে। একটি ট্যাবে www.crunchyroll.com খুলুন, যাচাই দেখা গেলে সেটি সম্পন্ন করুন, তারপর আবার চেষ্টা করুন।"
+  },
+  "importErrCrunchyrollRate": {
+    "message": "Crunchyroll এই মুহূর্তে রিকোয়েস্ট সীমিত করছে। কয়েক মিনিট পর আবার চেষ্টা করুন।"
+  },
+  "importErrCrunchyrollTab": {
+    "message": "ট্যাবে www.crunchyroll.com খোলা যায়নি। সাইটটি নিজে খুলে আবার চেষ্টা করুন।"
+  },
+  "importErrStep": {
+    "message": "ধাপ $STEP$: $STATUS$",
+    "placeholders": {
+      "step": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "importErrHttp": {
+    "message": "HTTP $CODE$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoResponse": {
+    "message": "কোনো উত্তর নেই (নেটওয়ার্ক বা ব্লক)"
+  },
+  "importErrBadAnswer": {
+    "message": "উত্তর পড়া যায়নি"
+  },
+  "importStepNameTab": {
+    "message": "ট্যাব"
+  },
+  "importStepNameToken": {
+    "message": "টোকেন"
+  },
+  "importStepNameAccount": {
+    "message": "অ্যাকাউন্ট"
+  },
+  "importStepNameHistory": {
+    "message": "হিস্ট্রি"
+  },
+  "importStepNamePush": {
+    "message": "Cinepisode-এ পাঠানো"
+  },
+  "importCopyDiag": {
+    "message": "ডায়াগনস্টিক কপি করুন"
+  },
+  "importDiagCopied": {
+    "message": "ডায়াগনস্টিক কপি হয়েছে (এতে কোনো টোকেন বা পাসওয়ার্ড নেই)।"
+  },
+  "importDiagCopyFailed": {
+    "message": "কপি করা যায়নি: ডায়াগনস্টিকের টেক্সট নিজে সিলেক্ট করুন।"
+  },
+  "importStepCrunchyrollTab": {
+    "message": "www.crunchyroll.com খোলা হচ্ছে…"
+  },
+  "platformEnabledLive": {
+    "message": "চালু: লাইভ শনাক্তকরণ (এই প্ল্যাটফর্মে হিস্ট্রি পাওয়া যায় না)।"
+  },
+  "diagTitle": {
+    "message": "ডায়াগনস্টিক"
+  },
+  "diagDebug": {
+    "message": "বিস্তারিত লগ (F12 কনসোল)"
+  },
+  "diagCopy": {
+    "message": "ডায়াগনস্টিক কপি করুন"
+  },
+  "diagCopied": {
+    "message": "ডায়াগনস্টিক কপি হয়েছে: আপনার মেসেজে পেস্ট করুন (কোনো টোকেন নেই)।"
+  },
+  "liveOnlyInfoLabel": {
+    "message": "হিস্ট্রি ইমপোর্ট নেই কেন?"
+  },
+  "liveOnlyInfo": {
+    "message": "Disney+ ও Apple TV দেখার হিস্ট্রিতে অ্যাক্সেস দেয় না: শুধু এখন থেকে যে পর্বগুলো দেখবেন, সেগুলোই শনাক্ত হবে। পুরোনো হিস্ট্রি পেতে আপনার ডেটার একটি কপি চেয়ে নিন (Disney: অ্যাকাউন্ট সেটিংস / Apple: privacy.apple.com)।"
+  },
+  "notConnected": {
+    "message": "যুক্ত নেই"
+  },
+  "connected": {
+    "message": "যুক্ত"
+  },
+  "connectedTitle": {
+    "message": "টোকেন সেভ হয়েছে: শনাক্তকরণ আপনার Cinepisode অ্যাকাউন্টে যাবে"
+  },
+  "offHeroTitle": {
+    "message": "এক্সটেনশনটি আপনার অ্যাকাউন্টে যুক্ত করুন"
+  },
+  "offHeroSub": {
+    "message": "দেখার সময় আপনার পর্বগুলোতে নিজে থেকেই টিক পড়বে।"
+  },
+  "offStep1": {
+    "message": "Cinepisode › সেটিংস › অটো-ট্র্যাকিং খুলুন"
+  },
+  "offStep2": {
+    "message": "“আমার টোকেন তৈরি করুন”-এ ক্লিক করুন"
+  },
+  "offStep3": {
+    "message": "নিচে পেস্ট করুন"
+  },
+  "tokenPlaceholder": {
+    "message": "আপনার টোকেন এখানে পেস্ট করুন"
+  },
+  "connect": {
+    "message": "যুক্ত করুন"
+  },
+  "offPrivacy": {
+    "message": "টোকেন এই ব্রাউজারেই থাকে। Cinepisode-এ শুধু টাইটেল, সিজন ও পর্ব পাঠানো হয়।"
+  },
+  "noAccount": {
+    "message": "এখনো অ্যাকাউন্ট নেই?"
+  },
+  "changeTokenFoot": {
+    "message": "নতুন টোকেন পেস্ট না করা পর্যন্ত বর্তমান টোকেনটি চালু থাকবে।"
+  },
+  "openAppArrow": {
+    "message": "Cinepisode খুলুন →"
+  },
+  "cancel": {
+    "message": "বাতিল"
+  },
+  "settingsTitle": {
+    "message": "সেটিংস"
+  },
+  "back": {
+    "message": "ফিরে যান"
+  },
+  "nowTitle": {
+    "message": "এখন চলছে"
+  },
+  "liveBadge": {
+    "message": "লাইভ"
+  },
+  "idleTitle": {
+    "message": "কিছু চলছে না"
+  },
+  "idleSub": {
+    "message": "চালু থাকা কোনো প্ল্যাটফর্মে একটি পর্ব শুরু করুন।"
+  },
+  "nowEpisode": {
+    "message": "সিজন $S$ · পর্ব $E$",
+    "placeholders": {
+      "s": {
+        "content": "$1",
+        "example": ""
+      },
+      "e": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "nowMovie": {
+    "message": "সিনেমা"
+  },
+  "nowPct": {
+    "message": "$P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowRule": {
+    "message": "$P$%-এ গোনা হবে",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowCounted": {
+    "message": "✓ গোনা হয়েছে"
+  },
+  "platformsCap": {
+    "message": "প্ল্যাটফর্ম"
+  },
+  "platformsCount": {
+    "message": "$N$/$T$ চালু",
+    "placeholders": {
+      "n": {
+        "content": "$1",
+        "example": ""
+      },
+      "t": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "chipActive": {
+    "message": "চালু"
+  },
+  "chipOff": {
+    "message": "চালু করুন"
+  },
+  "chipDenied": {
+    "message": "অনুমতি নেই"
+  },
+  "chipTip": {
+    "message": "$NAME$ চালু করুন: Chrome এই সাইটে অ্যাক্সেস চাইবে",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "importCap": {
+    "message": "হিস্ট্রি ইমপোর্ট"
+  },
+  "pendingNone": {
+    "message": "“শনাক্ত”-তে নতুন কিছু নেই"
+  },
+  "pendingOne": {
+    "message": "নতুন টাইটেল “শনাক্ত”-তে"
+  },
+  "pendingMany": {
+    "message": "নতুন টাইটেল “শনাক্ত”-তে"
+  },
+  "seeDetected": {
+    "message": "দেখুন →"
+  },
+  "accountCap": {
+    "message": "অ্যাকাউন্ট"
+  },
+  "change": {
+    "message": "বদলান"
+  },
+  "csvRow": {
+    "message": "Netflix CSV ফাইল"
+  },
+  "csvRowHint": {
+    "message": "Account › Profile › Viewing activity › “Download all”"
+  },
+  "choose": {
+    "message": "বেছে নিন"
+  },
+  "liveOnlySmall": {
+    "message": "শুধু লাইভ দেখা"
+  },
+  "rulesCap": {
+    "message": "কখন টাইটেল দেখা হয়েছে ধরা হয়"
+  },
+  "rulesText": {
+    "message": "পর্ব 80% দেখলে বা এন্ড ক্রেডিট শুরু হলেই, সিনেমা 90% দেখলে — অন্তত 20 সেকেন্ড টানা চালানোর পর। আপনার লিস্টে থাকা টাইটেল আপডেট হয়; বাকিগুলো “শনাক্ত” ট্যাবে যায়।"
+  },
+  "diagCopyHint": {
+    "message": "শনাক্তকরণের অবস্থা, আপনার টোকেন ছাড়া"
+  },
+  "logout": {
+    "message": "লগ আউট"
+  },
+  "logoutConfirm": {
+    "message": "টোকেনটি সরাবেন?"
+  },
+  "logoutYes": {
+    "message": "হ্যাঁ"
+  },
+  "pairButton": {
+    "message": "Cinepisode দিয়ে লগ ইন করুন"
+  },
+  "pairSub": {
+    "message": "ওয়েবসাইটে এক ক্লিক, কিছু কপি করতে হবে না।"
+  },
+  "manualToggle": {
+    "message": "ম্যানুয়াল টোকেন ব্যবহার করুন (অ্যাডভান্সড)"
+  },
+  "pairedRevoked": {
+    "message": "ওয়েবসাইট থেকে এই ডিভাইসটি সরানো হয়েছে। আবার যুক্ত করুন।"
+  },
+  "reviewTitle": {
+    "message": "Cinepisode কি আপনার কাজে লাগছে?"
+  },
+  "reviewSub": {
+    "message": "$COUNT$টি পর্ব অটোমেটিক চিহ্নিত হয়েছে। Chrome Web Store-এ একটি রিভিউ একটি স্বাধীন প্রজেক্টকে সত্যিই অনেক সাহায্য করে।",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewYes": {
+    "message": "রিভিউ দিন"
+  },
+  "reviewLater": {
+    "message": "পরে"
+  },
+  "reviewNever": {
+    "message": "আর জিজ্ঞেস করবেন না"
+  }
+}

@@ -4,7 +4,15 @@
   "defaultLanguage": "fr",
   "languages": [
     "fr",
-    "en"
+    "ar",
+    "bn",
+    "en",
+    "es",
+    "hi",
+    "pt",
+    "ru",
+    "ur",
+    "zh"
   ],
   "smtp": {
     "senderEmail": "noreply@cinepisode.com",
@@ -18,71 +26,135 @@
     "subject": "Confirme ton adresse email · Confirm your email address · Cinepisode",
     "byLanguage": {
       "fr": "Confirme ton adresse email · Cinepisode",
-      "en": "Confirm your email address · Cinepisode"
+      "ar": "تأكيد عنوان بريدك الإلكتروني · Cinepisode",
+      "bn": "আপনার ইমেইল ঠিকানা নিশ্চিত করুন · Cinepisode",
+      "en": "Confirm your email address · Cinepisode",
+      "es": "Confirma tu correo electrónico · Cinepisode",
+      "hi": "अपना ईमेल पता कन्फ़र्म करें · Cinepisode",
+      "pt": "Confirme seu endereço de e-mail · Cinepisode",
+      "ru": "Подтвердите адрес почты · Cinepisode",
+      "ur": "اپنے ای میل ایڈریس کی تصدیق کریں · Cinepisode",
+      "zh": "验证你的邮箱地址 · Cinepisode"
     },
-    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Confirm your email address · Cinepisode{{ else }}Confirme ton adresse email · Cinepisode{{ end }}"
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"ar\" }}تأكيد عنوان بريدك الإلكتروني · Cinepisode{{ else if eq $lang \"bn\" }}আপনার ইমেইল ঠিকানা নিশ্চিত করুন · Cinepisode{{ else if eq $lang \"en\" }}Confirm your email address · Cinepisode{{ else if eq $lang \"es\" }}Confirma tu correo electrónico · Cinepisode{{ else if eq $lang \"hi\" }}अपना ईमेल पता कन्फ़र्म करें · Cinepisode{{ else if eq $lang \"pt\" }}Confirme seu endereço de e-mail · Cinepisode{{ else if eq $lang \"ru\" }}Подтвердите адрес почты · Cinepisode{{ else if eq $lang \"ur\" }}اپنے ای میل ایڈریس کی تصدیق کریں · Cinepisode{{ else if eq $lang \"zh\" }}验证你的邮箱地址 · Cinepisode{{ else }}Confirme ton adresse email · Cinepisode{{ end }}"
   },
   "invite": {
     "dashboard": "Invite user",
     "subject": "Tu es invité·e sur Cinepisode · You're invited to Cinepisode",
     "byLanguage": {
       "fr": "Tu es invité·e sur Cinepisode",
-      "en": "You're invited to Cinepisode"
+      "ar": "دعوة للانضمام إلى Cinepisode",
+      "bn": "Cinepisode-এ আপনাকে আমন্ত্রণ জানানো হয়েছে",
+      "en": "You're invited to Cinepisode",
+      "es": "Te invitaron a Cinepisode",
+      "hi": "आपको Cinepisode पर बुलाया गया है",
+      "pt": "Você tem um convite para o Cinepisode",
+      "ru": "Приглашение в Cinepisode",
+      "ur": "Cinepisode میں شامل ہونے کی دعوت",
+      "zh": "你收到了 Cinepisode 的邀请"
     },
-    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}You're invited to Cinepisode{{ else }}Tu es invité·e sur Cinepisode{{ end }}"
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"ar\" }}دعوة للانضمام إلى Cinepisode{{ else if eq $lang \"bn\" }}Cinepisode-এ আপনাকে আমন্ত্রণ জানানো হয়েছে{{ else if eq $lang \"en\" }}You're invited to Cinepisode{{ else if eq $lang \"es\" }}Te invitaron a Cinepisode{{ else if eq $lang \"hi\" }}आपको Cinepisode पर बुलाया गया है{{ else if eq $lang \"pt\" }}Você tem um convite para o Cinepisode{{ else if eq $lang \"ru\" }}Приглашение в Cinepisode{{ else if eq $lang \"ur\" }}Cinepisode میں شامل ہونے کی دعوت{{ else if eq $lang \"zh\" }}你收到了 Cinepisode 的邀请{{ else }}Tu es invité·e sur Cinepisode{{ end }}"
   },
   "magic_link": {
     "dashboard": "Magic link",
     "subject": "Ton lien de connexion · Your sign-in link · Cinepisode",
     "byLanguage": {
       "fr": "Ton lien de connexion · Cinepisode",
-      "en": "Your sign-in link · Cinepisode"
+      "ar": "رابط تسجيل الدخول · Cinepisode",
+      "bn": "আপনার লগ ইন লিংক · Cinepisode",
+      "en": "Your sign-in link · Cinepisode",
+      "es": "Tu enlace de acceso · Cinepisode",
+      "hi": "आपका साइन-इन लिंक · Cinepisode",
+      "pt": "Seu link de login · Cinepisode",
+      "ru": "Ссылка для входа · Cinepisode",
+      "ur": "آپ کا سائن اِن لنک · Cinepisode",
+      "zh": "你的登录链接 · Cinepisode"
     },
-    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Your sign-in link · Cinepisode{{ else }}Ton lien de connexion · Cinepisode{{ end }}"
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"ar\" }}رابط تسجيل الدخول · Cinepisode{{ else if eq $lang \"bn\" }}আপনার লগ ইন লিংক · Cinepisode{{ else if eq $lang \"en\" }}Your sign-in link · Cinepisode{{ else if eq $lang \"es\" }}Tu enlace de acceso · Cinepisode{{ else if eq $lang \"hi\" }}आपका साइन-इन लिंक · Cinepisode{{ else if eq $lang \"pt\" }}Seu link de login · Cinepisode{{ else if eq $lang \"ru\" }}Ссылка для входа · Cinepisode{{ else if eq $lang \"ur\" }}آپ کا سائن اِن لنک · Cinepisode{{ else if eq $lang \"zh\" }}你的登录链接 · Cinepisode{{ else }}Ton lien de connexion · Cinepisode{{ end }}"
   },
   "email_change": {
     "dashboard": "Change email address",
     "subject": "Confirme ta nouvelle adresse email · Confirm your new email address · Cinepisode",
     "byLanguage": {
       "fr": "Confirme ta nouvelle adresse email · Cinepisode",
-      "en": "Confirm your new email address · Cinepisode"
+      "ar": "تأكيد عنوان بريدك الإلكتروني الجديد · Cinepisode",
+      "bn": "আপনার নতুন ইমেইল ঠিকানা নিশ্চিত করুন · Cinepisode",
+      "en": "Confirm your new email address · Cinepisode",
+      "es": "Confirma tu nuevo correo electrónico · Cinepisode",
+      "hi": "अपना नया ईमेल पता कन्फ़र्म करें · Cinepisode",
+      "pt": "Confirme seu novo endereço de e-mail · Cinepisode",
+      "ru": "Подтвердите новый адрес почты · Cinepisode",
+      "ur": "اپنے نئے ای میل ایڈریس کی تصدیق کریں · Cinepisode",
+      "zh": "验证你的新邮箱地址 · Cinepisode"
     },
-    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Confirm your new email address · Cinepisode{{ else }}Confirme ta nouvelle adresse email · Cinepisode{{ end }}"
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"ar\" }}تأكيد عنوان بريدك الإلكتروني الجديد · Cinepisode{{ else if eq $lang \"bn\" }}আপনার নতুন ইমেইল ঠিকানা নিশ্চিত করুন · Cinepisode{{ else if eq $lang \"en\" }}Confirm your new email address · Cinepisode{{ else if eq $lang \"es\" }}Confirma tu nuevo correo electrónico · Cinepisode{{ else if eq $lang \"hi\" }}अपना नया ईमेल पता कन्फ़र्म करें · Cinepisode{{ else if eq $lang \"pt\" }}Confirme seu novo endereço de e-mail · Cinepisode{{ else if eq $lang \"ru\" }}Подтвердите новый адрес почты · Cinepisode{{ else if eq $lang \"ur\" }}اپنے نئے ای میل ایڈریس کی تصدیق کریں · Cinepisode{{ else if eq $lang \"zh\" }}验证你的新邮箱地址 · Cinepisode{{ else }}Confirme ta nouvelle adresse email · Cinepisode{{ end }}"
   },
   "recovery": {
     "dashboard": "Reset password",
     "subject": "Réinitialise ton mot de passe · Reset your password · Cinepisode",
     "byLanguage": {
       "fr": "Réinitialise ton mot de passe · Cinepisode",
-      "en": "Reset your password · Cinepisode"
+      "ar": "إعادة تعيين كلمة المرور · Cinepisode",
+      "bn": "আপনার পাসওয়ার্ড রিসেট করুন · Cinepisode",
+      "en": "Reset your password · Cinepisode",
+      "es": "Restablece tu contraseña · Cinepisode",
+      "hi": "अपना पासवर्ड रीसेट करें · Cinepisode",
+      "pt": "Redefina sua senha · Cinepisode",
+      "ru": "Сброс пароля · Cinepisode",
+      "ur": "اپنا پاس ورڈ ری سیٹ کریں · Cinepisode",
+      "zh": "重置你的密码 · Cinepisode"
     },
-    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Reset your password · Cinepisode{{ else }}Réinitialise ton mot de passe · Cinepisode{{ end }}"
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"ar\" }}إعادة تعيين كلمة المرور · Cinepisode{{ else if eq $lang \"bn\" }}আপনার পাসওয়ার্ড রিসেট করুন · Cinepisode{{ else if eq $lang \"en\" }}Reset your password · Cinepisode{{ else if eq $lang \"es\" }}Restablece tu contraseña · Cinepisode{{ else if eq $lang \"hi\" }}अपना पासवर्ड रीसेट करें · Cinepisode{{ else if eq $lang \"pt\" }}Redefina sua senha · Cinepisode{{ else if eq $lang \"ru\" }}Сброс пароля · Cinepisode{{ else if eq $lang \"ur\" }}اپنا پاس ورڈ ری سیٹ کریں · Cinepisode{{ else if eq $lang \"zh\" }}重置你的密码 · Cinepisode{{ else }}Réinitialise ton mot de passe · Cinepisode{{ end }}"
   },
   "reauthentication": {
     "dashboard": "Reauthentication",
     "subject": "{{ .Token }} est ton code de vérification · Your verification code · Cinepisode",
     "byLanguage": {
       "fr": "{{ .Token }} est ton code de vérification · Cinepisode",
-      "en": "Your verification code · Cinepisode"
+      "ar": "رمز التحقق · Cinepisode",
+      "bn": "আপনার যাচাই কোড · Cinepisode",
+      "en": "Your verification code · Cinepisode",
+      "es": "Tu código de verificación · Cinepisode",
+      "hi": "आपका वेरिफ़िकेशन कोड · Cinepisode",
+      "pt": "Seu código de verificação · Cinepisode",
+      "ru": "Код подтверждения · Cinepisode",
+      "ur": "آپ کا تصدیقی کوڈ · Cinepisode",
+      "zh": "你的验证码 · Cinepisode"
     },
-    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Your verification code · Cinepisode{{ else }}{{ .Token }} est ton code de vérification · Cinepisode{{ end }}"
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"ar\" }}رمز التحقق · Cinepisode{{ else if eq $lang \"bn\" }}আপনার যাচাই কোড · Cinepisode{{ else if eq $lang \"en\" }}Your verification code · Cinepisode{{ else if eq $lang \"es\" }}Tu código de verificación · Cinepisode{{ else if eq $lang \"hi\" }}आपका वेरिफ़िकेशन कोड · Cinepisode{{ else if eq $lang \"pt\" }}Seu código de verificação · Cinepisode{{ else if eq $lang \"ru\" }}Код подтверждения · Cinepisode{{ else if eq $lang \"ur\" }}آپ کا تصدیقی کوڈ · Cinepisode{{ else if eq $lang \"zh\" }}你的验证码 · Cinepisode{{ else }}{{ .Token }} est ton code de vérification · Cinepisode{{ end }}"
   },
   "password_changed_notification": {
     "dashboard": "Password changed (notification de sécurité)",
     "subject": "Ton mot de passe a été modifié · Your password was changed · Cinepisode",
     "byLanguage": {
       "fr": "Ton mot de passe a été modifié · Cinepisode",
-      "en": "Your password was changed · Cinepisode"
+      "ar": "تم تغيير كلمة المرور · Cinepisode",
+      "bn": "আপনার পাসওয়ার্ড বদলানো হয়েছে · Cinepisode",
+      "en": "Your password was changed · Cinepisode",
+      "es": "Se cambió tu contraseña · Cinepisode",
+      "hi": "आपका पासवर्ड बदल दिया गया · Cinepisode",
+      "pt": "Sua senha foi alterada · Cinepisode",
+      "ru": "Пароль изменен · Cinepisode",
+      "ur": "آپ کا پاس ورڈ تبدیل ہو گیا · Cinepisode",
+      "zh": "你的密码已修改 · Cinepisode"
     },
-    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Your password was changed · Cinepisode{{ else }}Ton mot de passe a été modifié · Cinepisode{{ end }}"
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"ar\" }}تم تغيير كلمة المرور · Cinepisode{{ else if eq $lang \"bn\" }}আপনার পাসওয়ার্ড বদলানো হয়েছে · Cinepisode{{ else if eq $lang \"en\" }}Your password was changed · Cinepisode{{ else if eq $lang \"es\" }}Se cambió tu contraseña · Cinepisode{{ else if eq $lang \"hi\" }}आपका पासवर्ड बदल दिया गया · Cinepisode{{ else if eq $lang \"pt\" }}Sua senha foi alterada · Cinepisode{{ else if eq $lang \"ru\" }}Пароль изменен · Cinepisode{{ else if eq $lang \"ur\" }}آپ کا پاس ورڈ تبدیل ہو گیا · Cinepisode{{ else if eq $lang \"zh\" }}你的密码已修改 · Cinepisode{{ else }}Ton mot de passe a été modifié · Cinepisode{{ end }}"
   },
   "email_changed_notification": {
     "dashboard": "Email address changed (notification de sécurité)",
     "subject": "Ton adresse email a été modifiée · Your email address was changed · Cinepisode",
     "byLanguage": {
       "fr": "Ton adresse email a été modifiée · Cinepisode",
-      "en": "Your email address was changed · Cinepisode"
+      "ar": "تم تغيير عنوان بريدك الإلكتروني · Cinepisode",
+      "bn": "আপনার ইমেইল ঠিকানা বদলানো হয়েছে · Cinepisode",
+      "en": "Your email address was changed · Cinepisode",
+      "es": "Se cambió tu correo electrónico · Cinepisode",
+      "hi": "आपका ईमेल पता बदल दिया गया · Cinepisode",
+      "pt": "Seu endereço de e-mail foi alterado · Cinepisode",
+      "ru": "Адрес почты изменен · Cinepisode",
+      "ur": "آپ کا ای میل ایڈریس تبدیل ہو گیا · Cinepisode",
+      "zh": "你的邮箱地址已更换 · Cinepisode"
     },
-    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"en\" }}Your email address was changed · Cinepisode{{ else }}Ton adresse email a été modifiée · Cinepisode{{ end }}"
+    "subjectConditional": "{{ $lang := \"\" }}{{ with .Data }}{{ $lang = printf \"%v\" .lang }}{{ end }}{{ if eq $lang \"ar\" }}تم تغيير عنوان بريدك الإلكتروني · Cinepisode{{ else if eq $lang \"bn\" }}আপনার ইমেইল ঠিকানা বদলানো হয়েছে · Cinepisode{{ else if eq $lang \"en\" }}Your email address was changed · Cinepisode{{ else if eq $lang \"es\" }}Se cambió tu correo electrónico · Cinepisode{{ else if eq $lang \"hi\" }}आपका ईमेल पता बदल दिया गया · Cinepisode{{ else if eq $lang \"pt\" }}Seu endereço de e-mail foi alterado · Cinepisode{{ else if eq $lang \"ru\" }}Адрес почты изменен · Cinepisode{{ else if eq $lang \"ur\" }}آپ کا ای میل ایڈریس تبدیل ہو گیا · Cinepisode{{ else if eq $lang \"zh\" }}你的邮箱地址已更换 · Cinepisode{{ else }}Ton adresse email a été modifiée · Cinepisode{{ end }}"
   }
 }

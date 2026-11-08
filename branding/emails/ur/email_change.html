@@ -1,0 +1,11 @@
+subject: اپنے نئے ای میل ایڈریس کی تصدیق کریں · [[name]]
+preheader: اپنے [[name]] اکاؤنٹ کے ای میل ایڈریس کی تبدیلی کی تصدیق کریں۔
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>ای میل ایڈریس کی تبدیلی</h1>
+<p>آپ نے اپنے [[name]] اکاؤنٹ کے لیے <strong>{{ .Email }}</strong> کی جگہ <strong>{{ .NewEmail }}</strong> رکھنے کی درخواست کی ہے۔ اس تبدیلی کی تصدیق کریں:</p>
+[[button||تبدیلی کی تصدیق کریں||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=ur]]
+<p class="muted">یا [[name]] میں (اکاؤنٹ › ای میل ایڈریس تبدیل کریں › ”میرے پاس کوڈ ہے“) یہ کوڈ درج کریں:</p>
+[[code||{{ .Token }}]]
+<p class="small">اگر دونوں ایڈریسز کی تصدیق فعال ہے تو پرانے اور نئے دونوں ایڈریسز پر ایک جیسی ای میل بھیجی جاتی ہے: آپ کو دونوں کی تصدیق کرنی ہوگی۔ اگر یہ درخواست آپ نے نہیں کی تو اس ای میل کو نظرانداز کریں اور اپنا پاس ورڈ تبدیل کریں۔</p>
+[[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=ur]]

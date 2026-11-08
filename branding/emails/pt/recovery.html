@@ -1,0 +1,11 @@
+subject: Redefina sua senha · [[name]]
+preheader: Escolha uma nova senha para sua conta do [[name]].
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Nova senha</h1>
+<p>Alguém (provavelmente você) pediu para redefinir a senha da conta <strong>{{ .Email }}</strong>. Clique no botão para escolher uma nova.</p>
+[[button||Escolher uma nova senha||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=pt]]
+<p class="muted">Ou, no [[name]] (“Entrar”, depois “Tenho um código”), digite este código:</p>
+[[code||{{ .Token }}]]
+<p class="small">O link e o código expiram em uma hora e só podem ser usados uma vez. Se você não fez este pedido, ignore este e-mail: sua senha atual continua valendo.</p>
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=pt]]

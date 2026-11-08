@@ -238,8 +238,8 @@ function emailLangSwitch(docs) {
   others.forEach((l, i) => { out += (i ? '{{ else if eq $lang "' + l + '" }}' : '{{ if eq $lang "' + l + '" }}') + docs[l]; });
   return out + '{{ else }}' + docs[DEFAULT_LANG] + '{{ end }}';
 }
-/* Objet bilingue : l'objet n'est pas conditionnel dans le tableau de bord, on met les langues
-   à la suite (langue par défaut d'abord), le nom de l'app une seule fois à la fin. */
+/* Objet bilingue : l'objet n'est pas conditionnel dans le tableau de bord, on met la langue par défaut
+   et l'anglais à la suite (les autres langues : byLanguage / subjectConditional), le nom de l'app une seule fois à la fin. */
 function combineSubjects(list) {
   const suffix = ' · ' + brand.name;
   const all = list.every(s => s.endsWith(suffix));
@@ -275,7 +275,7 @@ function buildEmails(out) {
         EMAIL_LANGS.filter(l => l !== DEFAULT_LANG).map((l, i) => (i ? '{{ else if eq $lang "' : '{{ if eq $lang "') + l + '" }}' + bylang[l]).join('') +
         '{{ else }}' + bylang[DEFAULT_LANG] + '{{ end }}'
       : bylang[DEFAULT_LANG];
-    subjects[t.file] = { dashboard: t.dashboard, subject: combineSubjects(EMAIL_LANGS.map(l => bylang[l])), byLanguage: bylang, subjectConditional: conditional };
+    subjects[t.file] = { dashboard: t.dashboard, subject: combineSubjects([DEFAULT_LANG, FALLBACK_LANG].filter((l, i, a) => bylang[l] && a.indexOf(l) === i).map(l => bylang[l])), byLanguage: bylang, subjectConditional: conditional };
   }
   out['supabase/templates/subjects.json'] = JSON.stringify({ $comment: GENERATED,
     $comment_subject: '« subject » (toutes les langues à la suite) est l\'objet à coller dans Supabase. « subjectConditional » (une seule langue selon le compte) est une option non testée sur Supabase : à n\'utiliser qu\'après avoir vérifié qu\'un email de test arrive avec le bon objet.',

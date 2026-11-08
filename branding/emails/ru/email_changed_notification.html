@@ -1,0 +1,8 @@
+subject: Адрес почты изменен · [[name]]
+preheader: Адрес для входа в аккаунт [[name]] изменился.
+---
+{{ $base := .SiteURL }}
+<h1>Адрес почты изменен</h1>
+<p>Адрес для входа в аккаунт [[name]] изменен с <strong>{{ .OldEmail }}</strong> на <strong>{{ .Email }}</strong>.</p>
+<p class="muted">Это были не вы? Срочно напишите нам на <a href="mailto:[[contactEmail]]">[[contactEmail]]</a>.</p>
+[[button||Открыть [[name]]||{{ $base }}?lang=ru]]

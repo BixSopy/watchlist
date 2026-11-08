@@ -1,0 +1,11 @@
+subject: Сброс пароля · [[name]]
+preheader: Придумайте новый пароль для аккаунта [[name]].
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>Новый пароль</h1>
+<p>Кто-то (вероятно, вы) запросил сброс пароля для аккаунта <strong>{{ .Email }}</strong>. Нажмите кнопку, чтобы задать новый.</p>
+[[button||Задать новый пароль||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=ru]]
+<p class="muted">Или введите этот код в [[name]] («Войти», затем «У меня есть код»):</p>
+[[code||{{ .Token }}]]
+<p class="small">Ссылка и код действуют один час и только один раз. Если вы ничего не запрашивали, проигнорируйте это письмо: текущий пароль продолжает работать.</p>
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=ru]]

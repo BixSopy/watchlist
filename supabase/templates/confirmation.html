@@ -1,4 +1,130 @@
-{{ $lang := "" }}{{ with .Data }}{{ $lang = printf "%v" .lang }}{{ end }}{{ if eq $lang "en" }}<!DOCTYPE html>
+{{ $lang := "" }}{{ with .Data }}{{ $lang = printf "%v" .lang }}{{ end }}{{ if eq $lang "ar" }}<!DOCTYPE html>
+<html lang="ar" dir="rtl" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>تأكيد عنوان بريدك الإلكتروني · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#2f8fd1}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;" bgcolor="#000000" dir="rtl">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">نقرة واحدة لتفعيل حسابك على Cinepisode.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="24" height="30" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:9px;background-color:#7c7c87;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:13px;background-color:#888888;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:18px;background-color:#5cc8ff;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td></tr></table></td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#b9aeff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:26px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">مرحبًا بك في Cinepisode!</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">تبقّت خطوة واحدة فقط: أكّد عنوانك <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong> لتفعيل حسابك ومزامنة قائمتك على جميع أجهزتك.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#2f8fd1" style="background-color:#2f8fd1;background-image:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);border-radius:999px;"><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ar" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">تأكيد بريدي الإلكتروني</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">هل تفضّل إدخال رمز (من التطبيق المثبّت أو من جهاز آخر)؟ افتح «تسجيل الدخول» في Cinepisode، ثم «لدي رمز»، وأدخل:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:20px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">تنتهي صلاحية الرابط والرمز بعد ساعة واحدة، ولا يمكن استخدام أي منهما إلا مرة واحدة. إذا لم تنشئ حسابًا، فتجاهل هذه الرسالة: لن يتم تفعيل أي شيء.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">الزر لا يعمل؟ انسخ هذا الرابط والصقه في المتصفح:<br><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ar" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ar</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            إثر إجراء تم على حساب في Cinepisode، وصلتك هذه الرسالة.<br>
+            Cinepisode · متتبّعك للأفلام والمسلسلات والأنمي<br>
+            هل لديك سؤال؟ <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+{{ else if eq $lang "bn" }}<!DOCTYPE html>
+<html lang="bn" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>আপনার ইমেইল ঠিকানা নিশ্চিত করুন · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#2f8fd1}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;" bgcolor="#000000" dir="ltr">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">এক ক্লিকেই আপনার Cinepisode অ্যাকাউন্ট চালু করুন।&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="24" height="30" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:9px;background-color:#7c7c87;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:13px;background-color:#888888;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:18px;background-color:#5cc8ff;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td></tr></table></td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#b9aeff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:26px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">Cinepisode-এ স্বাগতম!</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">আর মাত্র একটি ধাপ বাকি: আপনার অ্যাকাউন্ট চালু করতে এবং সব ডিভাইসে লিস্ট সিঙ্ক করতে আপনার ঠিকানা <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong> নিশ্চিত করুন।</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#2f8fd1" style="background-color:#2f8fd1;background-image:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);border-radius:999px;"><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=bn" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">আমার ইমেইল নিশ্চিত করুন</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">কোড লিখতে চান (ইনস্টল করা অ্যাপ, অন্য ডিভাইস)? Cinepisode-এ “লগ ইন”, তারপর “আমার কাছে কোড আছে” খুলে এই কোডটি লিখুন:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:20px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">লিংক ও কোডের মেয়াদ এক ঘণ্টা, এবং এগুলো শুধু একবারই ব্যবহার করা যায়। আপনি অ্যাকাউন্ট না খুলে থাকলে এই ইমেইলটি উপেক্ষা করুন: কিছুই চালু হবে না।</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">বোতামটি কাজ করছে না? এই লিংকটি কপি করে আপনার ব্রাউজারে পেস্ট করুন:<br><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=bn" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=bn</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            একটি Cinepisode অ্যাকাউন্টে করা কোনো কাজের কারণে আপনি এই ইমেইলটি পাচ্ছেন।<br>
+            Cinepisode · আপনার সিনেমা, সিরিজ ও অ্যানিমের ট্র্যাকার<br>
+            কোনো প্রশ্ন আছে? <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+{{ else if eq $lang "en" }}<!DOCTYPE html>
 <html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8">
@@ -53,6 +179,384 @@ a{color:#2f8fd1}
             You're receiving this email because of an action on a Cinepisode account.<br>
             Cinepisode · Your movie, series and anime tracker<br>
             Questions? <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+{{ else if eq $lang "es" }}<!DOCTYPE html>
+<html lang="es" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Confirma tu correo electrónico · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#2f8fd1}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;" bgcolor="#000000" dir="ltr">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Un clic para activar tu cuenta de Cinepisode.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="24" height="30" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:9px;background-color:#7c7c87;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:13px;background-color:#888888;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:18px;background-color:#5cc8ff;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td></tr></table></td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#b9aeff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:26px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">¡Te damos la bienvenida a Cinepisode!</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">Solo te queda un paso: confirma tu correo <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong> para activar tu cuenta y sincronizar tu lista en todos tus dispositivos.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#2f8fd1" style="background-color:#2f8fd1;background-image:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);border-radius:999px;"><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=es" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">Confirmar mi correo</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">¿Prefieres escribir un código (app instalada, otro dispositivo)? En Cinepisode, abre “Iniciar sesión”, luego “Tengo un código”, y escribe:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:20px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">El enlace y el código caducan al cabo de una hora y solo se pueden usar una vez. Si no creaste ninguna cuenta, ignora este correo: no se activará nada.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">¿El botón no funciona? Copia este enlace en tu navegador:<br><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=es" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=es</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            Recibes este correo por una acción realizada en una cuenta de Cinepisode.<br>
+            Cinepisode · Tu seguimiento de películas, series y anime<br>
+            ¿Tienes preguntas? <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+{{ else if eq $lang "hi" }}<!DOCTYPE html>
+<html lang="hi" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>अपना ईमेल पता कन्फ़र्म करें · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#2f8fd1}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;" bgcolor="#000000" dir="ltr">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">अपना Cinepisode अकाउंट चालू करने के लिए बस एक क्लिक।&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="24" height="30" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:9px;background-color:#7c7c87;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:13px;background-color:#888888;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:18px;background-color:#5cc8ff;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td></tr></table></td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#b9aeff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:26px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">Cinepisode में आपका स्वागत है!</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">बस एक कदम बाकी है: अपना अकाउंट चालू करने और अपनी लिस्ट को अपने सभी डिवाइस पर सिंक करने के लिए अपना पता <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong> कन्फ़र्म करें।</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#2f8fd1" style="background-color:#2f8fd1;background-image:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);border-radius:999px;"><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=hi" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">मेरा ईमेल कन्फ़र्म करें</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">कोड टाइप करना ज़्यादा आसान है (इंस्टॉल किया गया ऐप, दूसरा डिवाइस)? Cinepisode में "साइन इन करें", फिर "मेरे पास कोड है" खोलें, और यह डालें:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:20px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">लिंक और कोड एक घंटे में एक्सपायर हो जाते हैं और सिर्फ़ एक बार इस्तेमाल हो सकते हैं। अगर आपने अकाउंट नहीं बनाया है, तो इस ईमेल को अनदेखा करें: कुछ भी चालू नहीं होगा।</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">बटन काम नहीं कर रहा? यह लिंक कॉपी करके अपने ब्राउज़र में खोलें:<br><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=hi" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=hi</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            आपको यह ईमेल इसलिए मिला है क्योंकि किसी Cinepisode अकाउंट पर कोई कार्रवाई हुई है।<br>
+            Cinepisode · फ़िल्मों, सीरीज़ और एनीमे का आपका ट्रैकर<br>
+            कोई सवाल? <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+{{ else if eq $lang "pt" }}<!DOCTYPE html>
+<html lang="pt" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Confirme seu endereço de e-mail · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#2f8fd1}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;" bgcolor="#000000" dir="ltr">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Um clique para ativar sua conta do Cinepisode.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="24" height="30" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:9px;background-color:#7c7c87;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:13px;background-color:#888888;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:18px;background-color:#5cc8ff;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td></tr></table></td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#b9aeff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:26px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">Boas-vindas ao Cinepisode!</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">Falta só um passo: confirme seu endereço <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong> para ativar sua conta e sincronizar sua lista em todos os seus dispositivos.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#2f8fd1" style="background-color:#2f8fd1;background-image:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);border-radius:999px;"><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=pt" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">Confirmar meu e-mail</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">Prefere digitar um código (app instalado, outro dispositivo)? No Cinepisode, abra “Entrar”, depois “Tenho um código”, e digite:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:20px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">O link e o código expiram em uma hora e só podem ser usados uma vez. Se você não criou uma conta, é só ignorar este e-mail: nada será ativado.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">O botão não funciona? Copie este link no seu navegador:<br><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=pt" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=pt</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            Você está recebendo este e-mail por causa de uma ação em uma conta do Cinepisode.<br>
+            Cinepisode · Seu app para acompanhar filmes, séries e animes<br>
+            Alguma dúvida? <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+{{ else if eq $lang "ru" }}<!DOCTYPE html>
+<html lang="ru" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Подтвердите адрес почты · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#2f8fd1}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;" bgcolor="#000000" dir="ltr">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Один клик — и ваш аккаунт Cinepisode активирован.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="24" height="30" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:9px;background-color:#7c7c87;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:13px;background-color:#888888;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:18px;background-color:#5cc8ff;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td></tr></table></td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#b9aeff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:26px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">Добро пожаловать в Cinepisode!</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">Остался всего один шаг: подтвердите адрес <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong>, чтобы активировать аккаунт и синхронизировать список на всех устройствах.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#2f8fd1" style="background-color:#2f8fd1;background-image:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);border-radius:999px;"><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ru" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">Подтвердить адрес</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">Удобнее ввести код (установленное приложение, другое устройство)? В Cinepisode нажмите «Войти», затем «У меня есть код» и введите:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:20px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">Ссылка и код действуют один час и только один раз. Если вы не создавали аккаунт, просто проигнорируйте это письмо: ничего не будет активировано.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">Кнопка не работает? Скопируйте эту ссылку в браузер:<br><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ru" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ru</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            Вы получили это письмо, потому что с аккаунтом Cinepisode было выполнено действие.<br>
+            Cinepisode · Ваш трекер фильмов, сериалов и аниме<br>
+            Есть вопросы? <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+{{ else if eq $lang "ur" }}<!DOCTYPE html>
+<html lang="ur" dir="rtl" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>اپنے ای میل ایڈریس کی تصدیق کریں · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#2f8fd1}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;" bgcolor="#000000" dir="rtl">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">اپنا Cinepisode اکاؤنٹ فعال کرنے کے لیے بس ایک کلک۔&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="24" height="30" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:9px;background-color:#7c7c87;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:13px;background-color:#888888;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:18px;background-color:#5cc8ff;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td></tr></table></td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#b9aeff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:26px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">Cinepisode میں خوش آمدید!</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">بس ایک قدم باقی ہے: اپنا اکاؤنٹ فعال کرنے اور اپنی فہرست تمام ڈیوائسز پر سنک کرنے کے لیے اپنے ایڈریس <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong> کی تصدیق کریں۔</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#2f8fd1" style="background-color:#2f8fd1;background-image:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);border-radius:999px;"><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ur" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">میرے ای میل کی تصدیق کریں</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">کوڈ ٹائپ کرنا زیادہ آسان ہے (انسٹال شدہ ایپ، کوئی دوسری ڈیوائس)؟ Cinepisode میں ”سائن اِن“ کھولیں، پھر ”میرے پاس کوڈ ہے“، اور یہ کوڈ درج کریں:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:20px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">لنک اور کوڈ ایک گھنٹے بعد ایکسپائر ہو جاتے ہیں اور صرف ایک بار استعمال ہو سکتے ہیں۔ اگر آپ نے اکاؤنٹ نہیں بنایا تو اس ای میل کو نظرانداز کر دیں: کچھ بھی فعال نہیں ہوگا۔</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">بٹن کام نہیں کر رہا؟ یہ لنک کاپی کر کے اپنے براؤزر میں کھولیں:<br><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ur" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=ur</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            آپ کو یہ ای میل کسی Cinepisode اکاؤنٹ پر کیے گئے عمل کی وجہ سے موصول ہوئی ہے۔<br>
+            Cinepisode · فلموں، سیریز اور اینیمی کا آپ کا ٹریکر<br>
+            کوئی سوال؟ <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+{{ else if eq $lang "zh" }}<!DOCTYPE html>
+<html lang="zh" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>验证你的邮箱地址 · Cinepisode</title>
+<style>
+:root{color-scheme:dark;supported-color-schemes:dark}
+body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+table{border-collapse:collapse}
+a{color:#2f8fd1}
+@media only screen and (max-width:620px){
+  .wl-card{padding:28px 22px 26px !important}
+  .wl-h1{font-size:22px !important;line-height:30px !important}
+  .wl-code{font-size:26px !important;letter-spacing:6px !important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;" bgcolor="#000000" dir="ltr">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">只需点一下，即可激活你的 Cinepisode 账号。&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;width:100%;">
+  <tr>
+    <td align="center" style="padding:36px 12px 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+        <tr>
+          <td style="padding:0 6px 22px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="24" height="30" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:9px;background-color:#7c7c87;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:13px;background-color:#888888;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td><td valign="bottom" style="padding:0 3px 0 0;font-size:0;line-height:0;"><div style="width:5px;height:18px;background-color:#5cc8ff;border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td></tr></table></td>
+                <td style="padding-left:10px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:21px;line-height:30px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;mso-line-height-rule:exactly;">cin<span style="color:#b9aeff;">episode</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="wl-card" bgcolor="#101013" style="background-color:#101013;border:1px solid #26262c;border-radius:26px;padding:36px 38px 32px;">
+{{ $base := or .RedirectTo .SiteURL }}
+<h1 class="wl-h1" style="margin:0 0 14px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;">欢迎来到 Cinepisode！</h1>
+<p style="margin:0 0 16px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:24px;color:#f0f0f0;">只差最后一步：验证你的邮箱 <strong style="color:#ffffff;font-weight:600;">{{ .Email }}</strong>，即可激活账号，并在所有设备间同步你的片单。</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="#2f8fd1" style="background-color:#2f8fd1;background-image:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);border-radius:999px;"><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=zh" target="_blank" style="display:inline-block;padding:14px 30px;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">验证我的邮箱</a></td></tr></table>
+<p style="margin:0 0 12px;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:14px;line-height:22px;color:#9a9aa3;">想改用验证码（已安装的应用或其他设备）？在 Cinepisode 中打开“登录”，点击“我有验证码”，然后输入：</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="#17171b" style="background-color:#17171b;border:1px dashed #26262c;border-radius:20px;padding:16px 12px;font-family:'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace;font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">{{ .Token }}</td></tr></table>
+<p style="margin:22px 0 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12.5px;line-height:20px;color:#5c5c66;">链接和验证码一小时后失效，且只能使用一次。如果你没有注册过账号，请忽略这封邮件：账号不会被激活。</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #26262c;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:18px;color:#5c5c66;word-break:break-all;">按钮无法点击？请将以下链接复制到浏览器中打开：<br><a href="{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=zh" target="_blank" style="color:#9a9aa3;text-decoration:underline;">{{ $base }}?action=signup&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=zh</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 18px 0;font-family:'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-size:12px;line-height:19px;color:#5c5c66;">
+            你收到这封邮件，是因为某个 Cinepisode 账号进行了相关操作。<br>
+            Cinepisode · 你的电影、剧集和动漫追踪工具<br>
+            有疑问？ <a href="mailto:contact@cinepisode.com" style="color:#9a9aa3;text-decoration:underline;">contact@cinepisode.com</a>
           </td>
         </tr>
       </table>

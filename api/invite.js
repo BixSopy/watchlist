@@ -26,7 +26,8 @@ const TXT = {
     cta: 'Discover Cinepisode', create: 'Start my list — free', foot: 'No cookies, no trackers on this page', busyH: 'Hold on…', busyP: 'Too many requests. Try again in a minute.',
     downH: 'Service temporarily unavailable', downP: 'Try again in a moment.', someone: 'Someone' },
 };
-function lang(req) { return /^\s*en\b/i.test(String((req.headers || {})['accept-language'] || '')) ? 'en' : 'fr'; }
+/* Textes en français et en anglais : français pour un navigateur français (ou sans préférence), anglais pour toutes les autres langues */
+function lang(req) { const h = String((req.headers || {})['accept-language'] || '').trim(); return !h || /^fr\b/i.test(h) ? 'fr' : 'en'; }
 const fill = (s, v) => s.replace(/\{(\w+)\}/g, (_, k) => v[k]);
 
 async function fetchInvite(handle, code, fetchImpl) {

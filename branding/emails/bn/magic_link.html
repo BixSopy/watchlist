@@ -1,0 +1,11 @@
+subject: আপনার লগ ইন লিংক · [[name]]
+preheader: পাসওয়ার্ড ছাড়াই এক ক্লিকে [[name]]-এ লগ ইন করুন।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>পাসওয়ার্ড ছাড়াই লগ ইন</h1>
+<p><strong>{{ .Email }}</strong> দিয়ে [[name]]-এ লগ ইন করার লিংক এই যে।</p>
+[[button||লগ ইন করুন||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]
+<p class="muted">অথবা [[name]]-এ (“লগ ইন”, তারপর “আমার কাছে কোড আছে”) এই কোডটি লিখুন:</p>
+[[code||{{ .Token }}]]
+<p class="small">লিংক ও কোডের মেয়াদ এক ঘণ্টা, এবং এগুলো শুধু একবারই ব্যবহার করা যায়। আপনি এটি না চেয়ে থাকলে ইমেইলটি উপেক্ষা করুন: এটি ছাড়া কেউ লগ ইন করতে পারবে না।</p>
+[[fallback||{{ $base }}?action=magiclink&amp;type=email&amp;token_hash={{ .TokenHash }}&amp;lang=bn]]

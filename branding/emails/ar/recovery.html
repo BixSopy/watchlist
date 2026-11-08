@@ -1,0 +1,11 @@
+subject: إعادة تعيين كلمة المرور · [[name]]
+preheader: اختر كلمة مرور جديدة لحسابك على [[name]].
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>كلمة مرور جديدة</h1>
+<p>طلب شخص ما (أنت على الأرجح) إعادة تعيين كلمة المرور للحساب <strong>{{ .Email }}</strong> مؤخرًا. انقر على الزر لاختيار كلمة مرور جديدة.</p>
+[[button||اختيار كلمة مرور جديدة||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]
+<p class="muted">أو أدخل هذا الرمز في [[name]] («تسجيل الدخول»، ثم «لدي رمز»):</p>
+[[code||{{ .Token }}]]
+<p class="small">تنتهي صلاحية الرابط والرمز بعد ساعة واحدة، ولا يمكن استخدام أي منهما إلا مرة واحدة. إذا لم تطلب ذلك، فتجاهل هذه الرسالة: ستظل كلمة مرورك الحالية تعمل.</p>
+[[fallback||{{ $base }}?action=recovery&amp;type=recovery&amp;token_hash={{ .TokenHash }}&amp;lang=ar]]

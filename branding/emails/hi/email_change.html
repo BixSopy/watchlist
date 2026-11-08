@@ -1,0 +1,11 @@
+subject: अपना नया ईमेल पता कन्फ़र्म करें · [[name]]
+preheader: अपने [[name]] अकाउंट का ईमेल पता बदलना कन्फ़र्म करें।
+---
+{{ $base := or .RedirectTo .SiteURL }}
+<h1>ईमेल पता बदलना</h1>
+<p>आपने अपने [[name]] अकाउंट के लिए <strong>{{ .Email }}</strong> की जगह <strong>{{ .NewEmail }}</strong> रखने का अनुरोध किया है। यह बदलाव कन्फ़र्म करें:</p>
+[[button||बदलाव कन्फ़र्म करें||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=hi]]
+<p class="muted">या [[name]] में (अकाउंट › ईमेल पता बदलें › "मेरे पास कोड है") यह कोड डालें:</p>
+[[code||{{ .Token }}]]
+<p class="small">अगर दोनों पतों का कन्फ़र्मेशन चालू है, तो पुराने और नए, दोनों पतों पर एक जैसा ईमेल भेजा जाता है: आपको दोनों कन्फ़र्म करने होंगे। अगर आपने यह अनुरोध नहीं किया, तो इस ईमेल को अनदेखा करें और अपना पासवर्ड बदल लें।</p>
+[[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=hi]]

@@ -1,0 +1,576 @@
+{
+  "extName": {
+    "message": "Cinepisode — 自动记录"
+  },
+  "extDescription": {
+    "message": "自动为你在 Netflix、Prime Video、Crunchyroll、Disney+ 和 Apple TV 上看过的剧集打勾，并可导入观看记录。"
+  },
+  "optionsTitle": {
+    "message": "Cinepisode — 自动记录"
+  },
+  "tokenLabel": {
+    "message": "令牌"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "tokenEmpty": {
+    "message": "令牌为空。"
+  },
+  "openApp": {
+    "message": "打开 Cinepisode"
+  },
+  "lastNone": {
+    "message": "尚未识别到任何内容。剧集播放到 80% 或片尾字幕出现时计为已看，电影为 90%。"
+  },
+  "lastAt": {
+    "message": "$WHEN$",
+    "placeholders": {
+      "when": {
+        "content": "$1",
+        "example": "08/10/2026 21:40"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "已更新：$LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAlready": {
+    "message": "已是最新：$LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNotFound": {
+    "message": "不在你的片单中：$LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastAmbiguous": {
+    "message": "有多部作品与“$LABEL$”匹配，未做更改",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidToken": {
+    "message": "令牌无效：请在 Cinepisode 中重新生成，然后在“设置 › 令牌 › 更换”中更新。"
+  },
+  "lastNoToken": {
+    "message": "未保存令牌：$LABEL$ 未发送。",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastNetwork": {
+    "message": "无法连接 Cinepisode（网络问题？）：$LABEL$ 未发送。",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastServerError": {
+    "message": "Cinepisode 服务器出错：$LABEL$ 未保存。",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidInput": {
+    "message": "识别结果被服务器拒绝：$LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastInvalidDetection": {
+    "message": "Netflix 识别结果无法读取，未发送任何内容。"
+  },
+  "lastLegacyUpdated": {
+    "message": "已更新：$LABEL$",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "lastLegacyNoChange": {
+    "message": "$LABEL$ 无变化（不在你的片单中或已是最新）。",
+    "placeholders": {
+      "label": {
+        "content": "$1",
+        "example": "Dark S2E3"
+      }
+    }
+  },
+  "importNetflix": {
+    "message": "导入我的 Netflix 观看记录"
+  },
+  "openDetected": {
+    "message": "在 Cinepisode 中查看已识别的作品"
+  },
+  "importStepTab": {
+    "message": "正在打开 Netflix…"
+  },
+  "importStepSession": {
+    "message": "正在读取 Netflix 个人资料…"
+  },
+  "importStepHistory": {
+    "message": "正在读取观看记录：$N$ 次观看（$P$ 页）…",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "p": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepMeta": {
+    "message": "集数信息：$D$ / $T$ 部剧集…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importStepParse": {
+    "message": "正在读取文件…"
+  },
+  "importStepPush": {
+    "message": "正在发送到 Cinepisode…"
+  },
+  "importDone": {
+    "message": "已发送 $N$ 部作品（$NEW$ 部新作品，$UPD$ 部有更新）。请在 Cinepisode 的“已识别”标签页中选择要添加的内容。",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      },
+      "new": {
+        "content": "$2"
+      },
+      "upd": {
+        "content": "$3"
+      }
+    }
+  },
+  "importNothing": {
+    "message": "自上次导入以来没有新内容。"
+  },
+  "importTruncated": {
+    "message": "观看记录过长：仅读取了最近的 20,000 次观看。"
+  },
+  "importMetaFailed": {
+    "message": "部分集数信息无法读取。"
+  },
+  "importErrNoToken": {
+    "message": "请先用令牌连接扩展。"
+  },
+  "importErrToken": {
+    "message": "令牌无效：请在 Cinepisode 中重新生成，然后在“设置 › 令牌 › 更换”中更新。"
+  },
+  "importErrNetflixTab": {
+    "message": "无法在此浏览器中打开 Netflix。"
+  },
+  "importErrNetflixAuth": {
+    "message": "请在此浏览器中登录 Netflix（并选择你的个人资料），然后重试。"
+  },
+  "importErrNetflix": {
+    "message": "Netflix 返回了异常响应。请稍后再试，或导入 CSV 文件。"
+  },
+  "importErrCsv": {
+    "message": "文件无法读取：请选择 NetflixViewingHistory.csv（最大 20 MB）。"
+  },
+  "importErrLimit": {
+    "message": "待处理的已识别作品过多：请先在 Cinepisode 的“已识别”标签页中整理。"
+  },
+  "importErrServer": {
+    "message": "Cinepisode 服务器出错，请稍后再试。"
+  },
+  "importErrNetwork": {
+    "message": "无法连接 Cinepisode（网络问题？）。"
+  },
+  "importBusy": {
+    "message": "已有导入正在进行。"
+  },
+  "importCrunchyroll": {
+    "message": "导入我的 Crunchyroll 观看记录"
+  },
+  "importPrime": {
+    "message": "导入我的 Prime Video 观看记录"
+  },
+  "platformEnabled": {
+    "message": "已开启：实时识别和观看记录导入。"
+  },
+  "platformNetflixAlways": {
+    "message": "始终开启"
+  },
+  "platformDenied": {
+    "message": "Chrome 拒绝了访问权限：未开启任何功能。"
+  },
+  "importStepCrunchyroll": {
+    "message": "正在连接 Crunchyroll…"
+  },
+  "importStepPrime": {
+    "message": "正在连接 Prime Video…"
+  },
+  "importStepPrimeMeta": {
+    "message": "剧集和电影详情：$D$ / $T$…",
+    "placeholders": {
+      "d": {
+        "content": "$1"
+      },
+      "t": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTruncatedOther": {
+    "message": "观看记录过长：仅读取了最近的部分。"
+  },
+  "importPartial": {
+    "message": "最早的一部分观看记录无法读取（Crunchyroll 拒绝了剩余请求）：之前读取到的内容均已发送。请稍后再次导入以重试。"
+  },
+  "importErrPermission": {
+    "message": "请先开启该平台（网格中对应的图块）。"
+  },
+  "importErrCrunchyrollAuth": {
+    "message": "Crunchyroll 无法识别你的登录状态：请在此浏览器中登录 www.crunchyroll.com，然后重试。"
+  },
+  "importErrCrunchyroll": {
+    "message": "Crunchyroll 返回了异常响应。请稍后再试；如果问题仍然存在，请复制下方的诊断信息并发送给我们。"
+  },
+  "importErrPrimeAuth": {
+    "message": "请在此浏览器中登录 www.primevideo.com（并选择你的个人资料），然后重试。"
+  },
+  "importErrPrime": {
+    "message": "Prime Video 返回了异常响应，请稍后再试。"
+  },
+  "importErrCrunchyrollBlocked": {
+    "message": "Crunchyroll（Cloudflare）拦截了请求。请在标签页中打开 www.crunchyroll.com，如出现验证请完成，然后重试。"
+  },
+  "importErrCrunchyrollRate": {
+    "message": "Crunchyroll 目前正在限制请求频率，请几分钟后再试。"
+  },
+  "importErrCrunchyrollTab": {
+    "message": "无法在标签页中打开 www.crunchyroll.com。请手动打开该网站，然后重试。"
+  },
+  "importErrStep": {
+    "message": "步骤 $STEP$：$STATUS$",
+    "placeholders": {
+      "step": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "importErrHttp": {
+    "message": "HTTP $CODE$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrNoResponse": {
+    "message": "无响应（网络问题或被拦截）"
+  },
+  "importErrBadAnswer": {
+    "message": "响应无法读取"
+  },
+  "importStepNameTab": {
+    "message": "标签页"
+  },
+  "importStepNameToken": {
+    "message": "令牌"
+  },
+  "importStepNameAccount": {
+    "message": "账号"
+  },
+  "importStepNameHistory": {
+    "message": "观看记录"
+  },
+  "importStepNamePush": {
+    "message": "发送到 Cinepisode"
+  },
+  "importCopyDiag": {
+    "message": "复制诊断信息"
+  },
+  "importDiagCopied": {
+    "message": "诊断信息已复制（不含令牌或密码）。"
+  },
+  "importDiagCopyFailed": {
+    "message": "复制失败：请手动选中诊断文本。"
+  },
+  "importStepCrunchyrollTab": {
+    "message": "正在打开 www.crunchyroll.com…"
+  },
+  "platformEnabledLive": {
+    "message": "已开启：实时识别（此平台不提供观看记录）。"
+  },
+  "diagTitle": {
+    "message": "诊断"
+  },
+  "diagDebug": {
+    "message": "详细日志（F12 控制台）"
+  },
+  "diagCopy": {
+    "message": "复制诊断信息"
+  },
+  "diagCopied": {
+    "message": "诊断信息已复制：请粘贴到你的留言中（不含令牌）。"
+  },
+  "liveOnlyInfoLabel": {
+    "message": "为什么无法导入观看记录？"
+  },
+  "liveOnlyInfo": {
+    "message": "Disney+ 和 Apple TV 不开放观看记录：只能识别你从现在起观看的剧集。如需找回过去的记录，请申请获取你的数据副本（Disney：账号设置 / Apple：privacy.apple.com）。"
+  },
+  "notConnected": {
+    "message": "未连接"
+  },
+  "connected": {
+    "message": "已连接"
+  },
+  "connectedTitle": {
+    "message": "令牌已保存：识别结果将发送到你的 Cinepisode 账号"
+  },
+  "offHeroTitle": {
+    "message": "将扩展关联到你的账号"
+  },
+  "offHeroSub": {
+    "message": "边看边自动为剧集打勾。"
+  },
+  "offStep1": {
+    "message": "打开 Cinepisode › 设置 › 自动记录"
+  },
+  "offStep2": {
+    "message": "点击“生成我的令牌”"
+  },
+  "offStep3": {
+    "message": "粘贴到下方"
+  },
+  "tokenPlaceholder": {
+    "message": "在此粘贴你的令牌"
+  },
+  "connect": {
+    "message": "连接"
+  },
+  "offPrivacy": {
+    "message": "令牌只保存在此浏览器中。发送给 Cinepisode 的只有片名、季和集。"
+  },
+  "noAccount": {
+    "message": "还没有账号？"
+  },
+  "changeTokenFoot": {
+    "message": "在你粘贴新令牌之前，当前令牌仍然有效。"
+  },
+  "openAppArrow": {
+    "message": "打开 Cinepisode →"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "settingsTitle": {
+    "message": "设置"
+  },
+  "back": {
+    "message": "返回"
+  },
+  "nowTitle": {
+    "message": "正在播放"
+  },
+  "liveBadge": {
+    "message": "直播中"
+  },
+  "idleTitle": {
+    "message": "未在播放"
+  },
+  "idleSub": {
+    "message": "在已开启的平台上播放一集吧。"
+  },
+  "nowEpisode": {
+    "message": "第 $S$ 季 · 第 $E$ 集",
+    "placeholders": {
+      "s": {
+        "content": "$1",
+        "example": ""
+      },
+      "e": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "nowMovie": {
+    "message": "电影"
+  },
+  "nowPct": {
+    "message": "$P$%",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowRule": {
+    "message": "$P$% 时计为已看",
+    "placeholders": {
+      "p": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "nowCounted": {
+    "message": "✓ 已计入"
+  },
+  "platformsCap": {
+    "message": "平台"
+  },
+  "platformsCount": {
+    "message": "已开启 $N$/$T$",
+    "placeholders": {
+      "n": {
+        "content": "$1",
+        "example": ""
+      },
+      "t": {
+        "content": "$2",
+        "example": ""
+      }
+    }
+  },
+  "chipActive": {
+    "message": "已开启"
+  },
+  "chipOff": {
+    "message": "开启"
+  },
+  "chipDenied": {
+    "message": "已拒绝"
+  },
+  "chipTip": {
+    "message": "开启 $NAME$：Chrome 会请求访问该网站的权限",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": ""
+      }
+    }
+  },
+  "importCap": {
+    "message": "导入观看记录"
+  },
+  "pendingNone": {
+    "message": "“已识别”中暂无新内容"
+  },
+  "pendingOne": {
+    "message": "部新作品待查看"
+  },
+  "pendingMany": {
+    "message": "部新作品待查看"
+  },
+  "seeDetected": {
+    "message": "查看 →"
+  },
+  "accountCap": {
+    "message": "账号"
+  },
+  "change": {
+    "message": "更换"
+  },
+  "csvRow": {
+    "message": "Netflix CSV 文件"
+  },
+  "csvRowHint": {
+    "message": "账户 › 个人资料 › 观看记录 › “全部下载”"
+  },
+  "choose": {
+    "message": "选择"
+  },
+  "liveOnlySmall": {
+    "message": "仅限实时播放"
+  },
+  "rulesCap": {
+    "message": "何时计为已看"
+  },
+  "rulesText": {
+    "message": "剧集播放到 80% 或片尾字幕一出现，电影播放到 90%，且至少连续播放 20 秒。片单中已有的作品会自动更新，其余的会进入“已识别”标签页。"
+  },
+  "diagCopyHint": {
+    "message": "识别状态，不含你的令牌"
+  },
+  "logout": {
+    "message": "退出登录"
+  },
+  "logoutConfirm": {
+    "message": "要移除令牌吗？"
+  },
+  "logoutYes": {
+    "message": "是"
+  },
+  "pairButton": {
+    "message": "使用 Cinepisode 登录"
+  },
+  "pairSub": {
+    "message": "在网站上点一下即可，无需复制任何内容。"
+  },
+  "manualToggle": {
+    "message": "使用手动令牌（高级）"
+  },
+  "pairedRevoked": {
+    "message": "此设备已在网站上被移除，请重新关联。"
+  },
+  "reviewTitle": {
+    "message": "Cinepisode 对你有帮助吗？"
+  },
+  "reviewSub": {
+    "message": "已自动标记 $COUNT$ 集。在 Chrome 网上应用店留个评价，对独立项目帮助很大。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "reviewYes": {
+    "message": "去评价"
+  },
+  "reviewLater": {
+    "message": "稍后"
+  },
+  "reviewNever": {
+    "message": "不再询问"
+  }
+}
