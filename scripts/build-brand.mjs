@@ -180,11 +180,13 @@ const CL = { ...C, ...(brand.colorsLight || {}) };
      conditions réelles sur le digest le 07/11) — carré de couleur + initiale en texte, sans image.
    - Emails envoyés par l'app (Resend) : image distante normale (même CDN que les affiches TMDB,
      déjà utilisées sans souci dans ces emails) — c'est la vraie icône Episode Spine. */
-const LOGO_CELL_AUTH = `<div style="width:30px;height:30px;background-color:${C.accentGradMid};background-image:${GRAD};border-radius:9px;` +
-  `color:#ffffff;font-family:${F.display};font-size:16px;font-weight:900;line-height:30px;` +
-  `text-align:center;mso-line-height-rule:exactly;">${escHtml(brand.wordmark.main.charAt(0).toUpperCase())}</div>`;
-const LOGO_CELL_APP = `<img src="${brand.baseUrl}${brand.logo.icon192}" width="30" height="30" alt="" ` +
-  `style="display:block;width:30px;height:30px;border-radius:8px;">`;
+/* Logo des emails : le vrai logo (3 barres croissantes, la plus récente en secondary) dessiné en tableau HTML,
+   sans image : visible même quand le client bloque les images distantes (Gmail) et sans dépendre d'un data: URI. */
+const LOGO_BAR = (w, h, bg) => `<td valign="bottom" style="padding:0 ${w === 5 ? '3px' : '0'} 0 0;font-size:0;line-height:0;"><div style="width:${w}px;height:${h}px;background-color:${bg};border-radius:3px;font-size:0;line-height:0;">&nbsp;</div></td>`;
+const LOGO_MARK = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr>` +
+  LOGO_BAR(5, 9, C.logoDim) + LOGO_BAR(5, 13, C.logoMid) + LOGO_BAR(5, 18, C.secondary) + `</tr></table>`;
+const LOGO_CELL_AUTH = LOGO_MARK;
+const LOGO_CELL_APP = LOGO_MARK;
 const EMAIL_STYLES = {
   h1: `margin:0 0 14px;font-family:${F.display};font-size:25px;line-height:33px;font-weight:800;letter-spacing:-0.3px;color:#ffffff;`,
   p: `margin:0 0 16px;font-family:${F.body};font-size:15px;line-height:24px;color:${C.text};`,
@@ -196,10 +198,10 @@ const EMAIL_STYLES = {
 function emailBody(body, lang) {
   let out = body
     .replace(/\[\[button\|\|([^|]+)\|\|([^\]]+)\]\]/g, (m, label, href) =>
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="${C.accentGradMid}" style="background-color:${C.accentGradMid};background-image:${GRAD};border-radius:12px;">` +
-      `<a href="${href}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${F.display};font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">${label}</a></td></tr></table>`)
+      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="${C.accentGradMid}" style="background-color:${C.accentGradMid};background-image:${GRAD};border-radius:999px;">` +
+      `<a href="${href}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${F.display};font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${label}</a></td></tr></table>`)
     .replace(/\[\[code\|\|([^\]]+)\]\]/g, (m, code) =>
-      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="${C.surface2}" style="background-color:${C.surface2};border:1px dashed ${C.border};border-radius:14px;padding:16px 12px;font-family:${F.mono};font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">${code}</td></tr></table>`)
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="${C.surface2}" style="background-color:${C.surface2};border:1px dashed ${C.border};border-radius:20px;padding:16px 12px;font-family:${F.mono};font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">${code}</td></tr></table>`)
     .replace(/\[\[fallback\|\|([^\]]+)\]\]/g, (m, href) =>
       `<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid ${C.border};font-family:${F.body};font-size:12px;line-height:18px;color:${C.textFaint};word-break:break-all;">${escHtml(T(lang, 'mail.fallback'))}<br><a href="${href}" target="_blank" style="color:${C.textMuted};text-decoration:underline;">${href}</a></p>`)
     .replace(/<h1>/g, `<h1 class="wl-h1" style="${EMAIL_STYLES.h1}">`)
@@ -343,6 +345,7 @@ function buildLegal(out) {
         description: escHtml(T(lang, 'legal.page.description', { title: meta.title, name: brand.name })),
         canonical: brand.indexable ? `\n<link rel="canonical" href="${escHtml(urls[lang])}">` + hreflangLinks(urls, urls[FALLBACK_LANG] || urls[DEFAULT_LANG]) : '',
         ogLocale: escHtml(langMeta(lang).og || lang),
+        gradRgb: hexToRgb(C.accentGradMid),
         logoSvg: logoSvg(), editorLine: editorLine(lang),
         back: escHtml(T(lang, 'legal.page.back')), updatedLabel: escHtml(T(lang, 'legal.page.updated')),
         otherLangs,
