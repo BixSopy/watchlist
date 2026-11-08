@@ -2644,3 +2644,71 @@ body .det-filters .stab{flex:none}
   #searchModal .search-results{padding:12px 16px 104px;grid-template-columns:minmax(0,1fr)}
   #searchModal .search-footer{padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px))}
 }
+
+/* ===== SYSTÈME DE FENÊTRES : une seule DA pour toutes les fenêtres (demande de Pierre, 08/11) =====
+   Audit au navigateur de chaque fenêtre : boutons .btn de 33 à 47 px, arrondis de 10 à 14 px, police IBM Plex 13 px, bouton
+   principal en bleu plat ; fermeture en carré de 30 px ou en rond de 34 / 38 / 44 px ; champs à angles de 8 ou 10 px ;
+   segments et pastilles actifs en bleu plat, en blanc ou en teinte ; menu ☰ sans espace entre icône et texte.
+   Règle : un seul gabarit (hauteur --ctl-h, pastille, Inter), action principale et état actif = dégradé P3. */
+:root{--win-r:26px;--field-h:calc(var(--ctl-h) + 2px)}
+/* conteneurs */
+body .modal-add,body .modal-stats,body .onb-modal,body .sh-wrap,body .soc-wrap{border-radius:var(--win-r)}
+body .mtitle:focus,body .mtitle:focus-visible,body .auth-title:focus,body .auth-title:focus-visible{outline:none}
+/* fermeture : une seule pastille ronde, lisible sur image comme sur fond uni */
+body .auth-close,body .modal-x,body .plex-close,body .onb-x,body .sh-x,body .soc-x{box-sizing:border-box;width:var(--ctl-h);height:var(--ctl-h);border-radius:50%;border:1px solid var(--ctl-bd);background:rgba(var(--surface-rgb),.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;transition:background .2s,transform .3s var(--p3-spring)}
+body .auth-close:hover,body .modal-x:hover,body .plex-close:hover,body .onb-x:hover,body .sh-x:hover,body .soc-x:hover{background:rgba(var(--ink-rgb),.12);transform:scale(1.05)}
+body .auth-close svg,body .modal-x svg,body .plex-close svg{width:16px;height:16px}
+/* boutons : .btn (toutes variantes) = pastille de la même taille que le reste ; principal = dégradé */
+body .btn{box-sizing:border-box;height:var(--ctl-h);min-height:0;padding:0 20px;border-radius:999px;font:600 13.5px 'Inter',sans-serif;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;text-decoration:none;cursor:pointer;border:1px solid var(--ctl-bd);background:var(--ctl-bg);color:var(--text)}
+body .btn:hover:not(:disabled){background:rgba(var(--ink-rgb),.1);color:var(--text)}
+body .btn-primary,body .btn-primary:hover:not(:disabled){background:var(--p3-grad);border:0;color:#fff;box-shadow:0 6px 18px rgba(var(--grad-rgb),.3)}
+body .btn-primary:hover:not(:disabled){filter:brightness(1.08)}
+body .btn:disabled{opacity:.45;box-shadow:none;cursor:default}
+body .fiche .fx-foot .btn{height:var(--ctl-h);padding:0 22px;border-radius:999px}
+body .pair-btn,body .soc-cta{background:var(--p3-grad);color:#fff;box-shadow:0 10px 30px rgba(var(--grad-rgb),.35)}
+body .pair-btn.ghost{background:none;box-shadow:none;color:var(--text2)}
+body .pair-btn:disabled,body .soc-cta:disabled{opacity:.45;box-shadow:none}
+/* champs : pastille (une ligne) ou coins larges (zone de texte) */
+body .field input[type=text],body .field input[type=email],body .field input[type=password],body .field input[type=number],body .field select,body .field .csel-btn,body .fiche .fx-search input{box-sizing:border-box;height:var(--field-h);padding:0 18px;border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd);color:var(--text);font:500 14px 'Inter',sans-serif}
+body .field textarea{box-sizing:border-box;padding:14px 18px;border-radius:20px;background:var(--ctl-bg);border:1px solid var(--ctl-bd);color:var(--text);font:500 14px/1.5 'Inter',sans-serif}
+body .field input:focus,body .field select:focus,body .field textarea:focus,body .fiche .fx-search input:focus{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.16);outline:none}
+body .field .csel-btn{width:100%}
+body .csel-menu{border-radius:18px}
+/* segments et pastilles : actif = dégradé P3, texte blanc */
+body .fiche .fx-pills{border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+body .fiche .fx-pills button{border-radius:999px;font:600 14px 'Inter',sans-serif}
+body .fiche .fx-th{border-radius:999px;background:var(--p3-grad);box-shadow:0 6px 20px rgba(var(--grad-rgb),.35)}
+body .fiche .fx-pills button.on{color:#fff}
+body .fiche .fx-chips button{background:var(--ctl-bg);border:1px solid var(--ctl-bd);font:600 13px 'Inter',sans-serif;color:var(--text2)}
+body .fiche .fx-chips button.on{background:var(--p3-grad);border-color:transparent;color:#fff}
+body .fiche .fx-step{border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+body .fiche .tags-wrap{border-radius:22px;background:var(--ctl-bg);border:1px solid var(--ctl-bd)}
+body .gd-seg{background:var(--ctl-bg);border-color:var(--ctl-bd)}
+body .gd-seg-hl{background:var(--p3-grad);border:0;box-shadow:0 6px 20px rgba(var(--grad-rgb),.35)}
+body .gd-seg button.on{color:#fff}
+body .fb-kind span{border-radius:999px;background:var(--ctl-bg);border-color:var(--ctl-bd);font-weight:600}
+body .fb-kind input:checked+span{background:var(--p3-grad);border-color:transparent;color:#fff}
+body .sh-chips button{background:var(--ctl-bg);border-color:var(--ctl-bd)}
+body .sh-chips button.on{background:var(--p3-grad);border-color:transparent;color:#fff}
+body .sh-kind.on{border-color:transparent;background:linear-gradient(var(--bg2),var(--bg2)) padding-box,var(--p3-grad) border-box;box-shadow:0 10px 30px rgba(var(--grad-rgb),.2)}
+body .rc-chip.on{border-color:transparent;background:linear-gradient(var(--bg2),var(--bg2)) padding-box,var(--p3-grad) border-box}
+/* statistiques : barres = progression = dégradé */
+body .bar-fill{background:var(--p3-grad)}
+/* menu ☰ : verre, rangées aérées, icône séparée du texte */
+body .opt-menu{border-radius:22px;padding:8px}
+body .opt-btn{gap:12px;min-height:var(--ctl-h);padding:0 14px;border-radius:14px;font:600 13.5px 'Inter',sans-serif;color:var(--text)}
+body .opt-btn svg{width:18px;height:18px;flex:none;color:var(--text2)}
+body .opt-btn:hover svg{color:var(--text)}
+body .opt-sep{margin:6px 10px}
+body .auth-menu-btn{border-radius:14px}
+#addMbk .fiche .modal-x{width:var(--ctl-h);height:var(--ctl-h);border:1px solid var(--ctl-bd);background:rgba(var(--surface-rgb),.55)}
+#addMbk .fiche .modal-x:hover{background:rgba(var(--ink-rgb),.12)}
+body .gd-modal .btn,body .gd-modal a.gd-link{height:var(--ctl-h)}
+/* la fiche (ajout / édition) est une feuille « cinéma » sombre dans tous les thèmes : jetons sombres fixés, sinon les contrôles en verre clair
+   et le titre (texte sombre) deviennent illisibles en thème clair */
+#addMbk .fiche{--text:#f0f0f0;--text2:#9a9aa6;--text3:#7c7c87;--ink-rgb:255,255,255;--surface-rgb:0,0,0;--ctl-bg:rgba(28,28,32,.55);--ctl-bd:rgba(var(--ink-rgb),.09);color:var(--text)}
+/* onboarding : pastilles des plateformes dans la même forme que les autres */
+body .onb-chips span{border-radius:999px}
+@media (max-width:480px){
+  body .gd-modal .btn,body .gd-modal a.gd-link{width:100%}
+}
