@@ -668,7 +668,7 @@
  "lp.faq.q4": "¿Hay app para el teléfono?",
  "lp.faq.a4": "Cinepisode se instala directamente desde el navegador en Android, iPhone y PC: abre el sitio y elige “Agregar a la pantalla de inicio”.",
  "lp.faq.q5": "¿De dónde sale la información de las películas y series?",
- "lp.faq.a5": "De TMDB, el catálogo colaborativo, en inglés y en francés, con las plataformas donde está disponible cada título.",
+ "lp.faq.a5": "De TMDB, el catálogo colaborativo, en el idioma que elijas, con las plataformas donde está disponible cada título.",
  "lp.faq.q6": "¿Puedo irme con mis datos?",
  "lp.faq.a6": "Sí. Desde “Mi cuenta” exportas toda tu lista en un archivo, y puedes eliminar tu cuenta cuando quieras.",
  "lp.join.kicker": "Únete a Cinepisode",
