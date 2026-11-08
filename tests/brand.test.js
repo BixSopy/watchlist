@@ -192,10 +192,10 @@ test('contrôles : gabarit unique --ctl-h placé en fin de feuille', () => {
   const css = fs.readFileSync(path.join(__dirname, '..', 'css', 'app.css'), 'utf8');
   const at = css.indexOf('CONTRÔLES : gabarit unique');
   assert.ok(at > 0, 'bloc de gabarit présent');
-  assert.ok(css.length - at < 12000, 'le bloc reste en toute fin de feuille (il doit battre les règles précédentes)');
+  assert.ok(css.length - at < 16000, 'le bloc reste en toute fin de feuille (il doit battre les règles précédentes)');
   const block = css.slice(at);
   assert.match(block, /--ctl-h:42px/);
   assert.match(block, /max-width:768px\)\{:root\{--ctl-h:44px/);
-  for (const sel of ['.hdr .p3-ib', '.hdr .sync-pill', '.stabs .stab', '.ntabs-scroll.seg .ntab', '.nav-right .csel-btn', '.p3-ph-act .srch', '.add-btn', '.cal-seg', '.cal-ics', '.det-filters', '.detected-section .btn', '.sort-sel', '.p3-ib svg'])
+  for (const sel of ['.hdr .p3-ib', '.hdr .sync-pill', '.stabs .stab', '.ntabs-scroll.seg .ntab', '.nav-right .csel-btn', '.p3-ph-act .srch', '.add-btn', '.cal-seg', '.cal-ics', '.det-filters', '.detected-section .btn', '.sort-sel', '.p3-ib svg', '#searchModal .hbtn', '#searchModal .search-filter-row .csel-btn', '#searchModal .search-footer .add-btn'])
     assert.ok(block.includes(sel), sel + ' suit le gabarit');
 });
