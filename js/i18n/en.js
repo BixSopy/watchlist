@@ -5,7 +5,9 @@
    `node scripts/build-brand.mjs` (adds the <script> tag, sitemap and hreflang entries).
    Optional: branding/emails/<code>/ and branding/legal/<code>/ for emails and legal pages;
    without them, emails use the default language and legal links point to the English pages.
-   {n}, {title}… are variables; .one / .other are plurals (Intl.PluralRules). */
+   {n}, {title}… are variables; plural keys carry one suffix per Intl.PluralRules category of the
+   language (.one/.other here; .zero…many in Arabic, .few/.many in Russian, .other only in Chinese).
+   $meta.dir = reading direction (ltr|rtl), $meta.rank = order in the language picker. */
 (window.I18N_DICTS=window.I18N_DICTS||{})['en']={
  "$meta": {
   "name": "English",

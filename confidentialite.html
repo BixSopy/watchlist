@@ -48,6 +48,11 @@ th,td{overflow-wrap:anywhere}
 .tmdb img{height:14px;width:auto}
 footer{margin-top:44px;padding-top:18px;border-top:1px solid #26262c;font-size:12px;color:#5c5c66;display:flex;gap:16px;flex-wrap:wrap}
 footer a{color:#9a9aa3}
+/* Langues non latines : pas d'espacement ni de majuscules (écritures cursives / à ligatures) ; interlignage plus haut */
+:is(:lang(ar),:lang(ur),:lang(hi),:lang(bn),:lang(zh)) :is(*,*::before,*::after){letter-spacing:0!important;text-transform:none!important;font-style:normal!important}
+html:is(:lang(ar),:lang(ur),:lang(hi),:lang(bn)) h1{line-height:1.35}
+html:is(:lang(ar),:lang(ur)) body{line-height:1.9}html:is(:lang(hi),:lang(bn)) body{line-height:1.98}html:lang(zh) body{line-height:1.8;line-break:strict;overflow-wrap:anywhere}
+[dir=rtl] .logo-word,[dir=rtl] .logo{direction:ltr}
 </style>
 </head>
 <body>

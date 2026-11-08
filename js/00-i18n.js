@@ -97,11 +97,11 @@ function setLang(code,opts){
   if(p&&p.then)p.then(done,done);else done();
 }
 /* Sélecteur de langue réutilisable (réglages, écran de connexion, pied de page) : liste déroulante
-   native (accessible, adaptée au clavier mobile et au sens de lecture), chaque langue dans son
+   (csel-done-marker : reste un <select> natif, que enhanceAllSelects de js/18-bootstrap.js ne remplace pas), chaque langue dans son
    écriture et avec son attribut lang. */
 function langSwitcherHtml(cls,opts){
   var args=opts?JSON.stringify([opts]):'';
-  return '<div class="lang-switch '+(cls||'')+'"><select class="lang-select" aria-label="'+esc(t('lang.label'))+'" data-change="setLangSelect"'+(args?' data-args="'+esc(args)+'"':'')+'>'+i18nLanguages().map(function(c){
+  return '<div class="lang-switch '+(cls||'')+'"><select class="lang-pick csel-done-marker" aria-label="'+esc(t('lang.label'))+'" data-change="setLangSelect"'+(args?' data-args="'+esc(args)+'"':'')+'>'+i18nLanguages().map(function(c){
     var m=I18N_DICTS[c].$meta||{};
     return '<option value="'+c+'" lang="'+c+'" dir="'+(m.dir==='rtl'?'rtl':'ltr')+'"'+(c===LANG?' selected':'')+'>'+esc(m.name||c)+'</option>';
   }).join('')+'</select></div>';

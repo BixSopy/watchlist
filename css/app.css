@@ -182,6 +182,11 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .app-foot-tmdb img{height:12px;width:auto}
 /* Sélecteur de langue (réglages, connexion, pied de page) */
 .lang-switch{display:inline-flex;gap:4px;padding:3px;border:1px solid var(--border);border-radius:999px;background:rgba(var(--ink-rgb),.03)}
+.lang-pick{appearance:none;-webkit-appearance:none;font:inherit;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;letter-spacing:0;color:var(--text);background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat;background-position:right 12px center;border:0;border-radius:999px;padding:7px 32px 7px 14px;cursor:pointer;min-width:140px;text-overflow:ellipsis}
+[dir=rtl] .lang-pick{background-position:left 12px center;padding:7px 14px 7px 32px}
+.lang-pick option{background:var(--bg2);color:var(--text)}
+.lang-pick:focus-visible{outline:2px solid rgba(var(--accent-rgb),.7);outline-offset:1px}
+.lang-switch-foot .lang-pick{font-size:11px;padding-block:4px;min-width:118px}
 .lang-btn{font:inherit;font-size:12px;font-family:'IBM Plex Sans',sans-serif;letter-spacing:0;color:var(--text2);background:none;border:0;border-radius:999px;padding:5px 12px;cursor:pointer}
 .lang-btn:hover{color:var(--text)}
 .lang-btn.on{background:rgba(var(--accent-rgb),.16);color:var(--text);font-weight:600}
@@ -1997,7 +2002,7 @@ body.p3-v-calendar .calendar-section{padding:0 40px}
 @keyframes barIn{from{transform:scaleX(0)}}
 .plex-info .plex-acts{padding:0;margin-top:22px;gap:10px}
 .plex-acts .btn{height:44px;border-radius:999px;padding:0 20px;font:650 14px 'Inter',sans-serif}
-.plex-acts .play:before{content:"";display:inline-block;border-inline-start:9px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent}
+.plex-acts .play:before{content:"";display:inline-block;border-left:9px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent}
 .plex-acts label.btn{position:relative;gap:6px;cursor:pointer}
 .plex-acts label.btn select{appearance:none;-webkit-appearance:none;background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;padding-inline-end:4px;outline:none}
 .plex-acts label.btn select option{background:var(--bg3);color:var(--text)}
@@ -2712,3 +2717,60 @@ body .onb-chips span{border-radius:999px}
 @media (max-width:480px){
   body .gd-modal .btn,body .gd-modal a.gd-link{width:100%}
 }
+/* === RTL (arabe, ourdou : <html dir="rtl">, js/00-i18n.js) ===
+   Marges, retraits, ancrages et alignements sont en propriétés logiques dans toute la feuille (identiques
+   en LTR). Ici : ce que le navigateur ne retourne pas seul (translateX, dégradés de bord, origines de
+   transformation, keyframes, icônes directionnelles) et les ancrages physiques liés à env(safe-area-inset-*).
+   Restent en left physique (JS : repère offsetLeft / translateX) : .seg-hl, .p3-hl, .p3-seg-hl, .fx-th,
+   .lp-ls-pill, .dr-arrow.left/.right ; carrousel .cf-card (positions calculées en JS). */
+/* le logo (barres + mot) est une marque : jamais en miroir */
+[dir=rtl] .logo{direction:ltr}
+[dir=rtl] .opt-menu{right:auto;left:calc(12px + env(safe-area-inset-left,0px))}
+@media (max-height:500px) and (orientation:landscape){[dir=rtl] .hero-band-content{left:auto;right:calc(20px + env(safe-area-inset-right,0px))}}
+@media (max-width:1100px){[dir=rtl] .sidebar{transform:translateX(105%);box-shadow:-24px 0 60px rgba(0,0,0,.6)}[dir=rtl] .sidebar.open{transform:translateX(0)}}
+[dir=rtl] .toast{animation-name:toastSlideRtl}@keyframes toastSlideRtl{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
+[dir=rtl] .rq{animation-name:rqInRtl}@keyframes rqInRtl{from{opacity:0;transform:translateX(-40px)}60%{transform:translateX(5px)}}
+[dir=rtl] .rq.gone{animation-name:rqOutRtl}@keyframes rqOutRtl{to{opacity:0;transform:translateX(30px);height:0;padding:0;margin:0}}
+[dir=rtl] .rq-me{transform:translateX(-16px) scale(.7)}[dir=rtl] .rq.joined .rq-them{transform:translateX(4px)}[dir=rtl] .rq.joined .rq-me{transform:translateX(0)}
+[dir=rtl] .settings-action-row:hover,[dir=rtl] button.fr-row:hover{transform:translateX(-2px)}
+[dir=rtl] :is(.hn-row:hover,.hn-row:focus-visible){transform:translateX(-4px)}
+[dir=rtl] .fs-img:nth-child(1){transform:rotate(-5deg)}[dir=rtl] .fs-img:nth-child(2){transform:rotate(-2deg)}
+[dir=rtl] .folder-card:hover .fs-img:nth-child(1){transform:rotate(-9deg) translateX(-4px)}[dir=rtl] .folder-card:hover .fs-img:nth-child(2){transform:rotate(-4deg) translateX(-2px)}[dir=rtl] .folder-card:hover .fs-img:nth-child(3){transform:rotate(1deg)}
+/* interrupteurs : le curseur part du côté start (logique) et glisse vers end */
+[dir=rtl] .cal-sw:checked:after{transform:translateX(-16px)}
+[dir=rtl] .p3-cpt.on .p3-sw:after,[dir=rtl] .sp-row[aria-checked="true"] .p3-sw:after{transform:translateX(-12px)}
+[dir=rtl] .sh-sw.on span{transform:translateX(-15px)}
+@media (prefers-reduced-motion:no-preference){[dir=rtl] .toggle-switch .knob{transition-property:right,background}}
+/* curseurs et barres pilotés par un index CSS (ancrés à start, déplacement inversé) */
+[dir=rtl] .gd-seg-hl{transform:translateX(calc(var(--x)*-100%))}
+[dir=rtl] .cf-pos-t i{transform:translateX(calc(var(--p,0%)*-1))}
+[dir=rtl] .gd-bar i{transform-origin:right;background:linear-gradient(270deg,var(--accent),#7aa7ff)}
+[dir=rtl] .plex-hprog-t i{transform-origin:right}
+[dir=rtl] .reco-because-title{background:linear-gradient(270deg,var(--text) 55%,var(--accent-hover));-webkit-background-clip:text;background-clip:text}
+@media (min-width:769px){[dir=rtl] .p3-feat:after{background:linear-gradient(270deg,rgba(0,0,0,.95),rgba(0,0,0,.25) 75%)}}
+[dir=rtl] .suivi-wrap.collapsed .suivi-toggle-ic{transform:rotate(90deg)}
+/* icônes directionnelles (flèches, chevrons « suivant / retour ») : miroir. `scale` compose avec les
+   transform existants (survol, animations). Ni logos, ni loupe, ni lecture, ni coche, ni croix. */
+[dir=rtl] :is(.settings-back svg,.opt-chev,.ibtn-next svg,.ec-next svg,.cf-nav svg,.cal-ar svg,.wt-entry>svg,.rc-send svg,.auth-menu-btn[data-click="signOut"] svg){scale:-1 1}
+/* contenu technique : toujours LTR, aligné à droite dans une interface RTL */
+[dir=rtl] :where(input[type=email],input[type=url],input[type=password],input[type=number],input[type=tel]):not(.auth-code-input){direction:ltr;text-align:right}
+[dir=rtl] :where(code,kbd,samp){direction:ltr;unicode-bidi:isolate}
+[dir=rtl] :where(pre){direction:ltr;text-align:left}
+/* texte libre saisi et titres venus de TMDB : la direction suit le contenu (titre latin dans l'UI arabe) */
+:where(textarea,input[type=search],input[type=text],input:not([type])){unicode-bidi:plaintext}
+[dir=rtl] :is(.card-title,.ec-title,.hero-title,.plex-title,.search-title,.sptitle,.reco-title,.reco-because-title,.dr-title,.det-title,.folder-item-title,.suivi-title,.wt-ct,.rc-t,.hn-tx>b,.p3-pc b,.p3-feat h3,.p-stat-v){unicode-bidi:plaintext;text-align:match-parent}
+/* triangle « lecture » (.plex-acts .play) : border-left physique, jamais en miroir */
+/* === Langues non latines === */
+:is(:lang(ar),:lang(ur),:lang(hi),:lang(bn),:lang(zh)) :is(*,*::before,*::after,::placeholder){letter-spacing:0!important;text-transform:none!important;font-style:normal!important;font-synthesis:none;font-variant-caps:normal!important}
+html:lang(hi) body,html:lang(bn) body{line-height:1.55}
+html:is(:lang(ar),:lang(ur)) body{line-height:1.5}
+html:lang(zh) body{line-height:1.45}
+:is(:lang(hi),:lang(bn)) :is(.plex-overview){line-height:2.04}:is(:lang(ar),:lang(ur)) .plex-overview{line-height:1.96}:lang(zh) .plex-overview{line-height:1.87}
+:is(:lang(hi),:lang(bn)) :is(.auth-sub,.gd-lead,.sb-auth-msg){line-height:1.86}:is(:lang(ar),:lang(ur)) :is(.auth-sub,.gd-lead,.sb-auth-msg){line-height:1.78}:lang(zh) :is(.auth-sub,.gd-lead,.sb-auth-msg){line-height:1.7}
+:is(:lang(hi),:lang(bn)) :is(.search-overview,.onb-body>p,.cal-note,.gd-note,.fb-hint,.auth-local-note){line-height:1.8}:is(:lang(ar),:lang(ur)) :is(.search-overview,.onb-body>p,.cal-note,.gd-note,.fb-hint,.auth-local-note){line-height:1.73}:lang(zh) :is(.search-overview,.onb-body>p,.cal-note,.gd-note,.fb-hint,.auth-local-note){line-height:1.65}
+:is(:lang(hi),:lang(bn)) :is(.sh-sub,.search-modal-sub,.det-sub,.det-foot,.setting-hint){line-height:1.72}:is(:lang(ar),:lang(ur)) :is(.sh-sub,.search-modal-sub,.det-sub,.det-foot,.setting-hint){line-height:1.65}:lang(zh) :is(.sh-sub,.search-modal-sub,.det-sub,.det-foot,.setting-hint){line-height:1.58}
+/* coupures : chinois sans espaces ; mots longs (russe, composés) dans les pastilles et boutons */
+html:lang(zh) body{line-break:strict;word-break:normal;overflow-wrap:anywhere}
+html:is(:lang(ru),:lang(hi),:lang(bn),:lang(ar),:lang(ur),:lang(es),:lang(pt)) body{overflow-wrap:break-word}
+html:not(:lang(fr)):not(:lang(en)) :is(.p3-pill,.p3-seg button){min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:768px){html:not(:lang(fr)):not(:lang(en)) body .stabs .stab{flex:1 0 auto;padding:0 12px}}

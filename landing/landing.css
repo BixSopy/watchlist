@@ -617,3 +617,30 @@ html.lp-guest,html.lp-guest body{overflow-x:hidden;overflow-x:clip}
 .lp-signup-panel .auth-modal{max-height:none;overflow:visible}
 @media(max-width:850px){.lp-signup-grid{grid-template-columns:1fr;max-width:560px;gap:30px}.lp-signup-panel{padding:24px}}
 @media(max-width:560px){.lp-signup{scroll-margin-top:70px;padding:72px 0}.lp-signup-panel{padding:18px;border-radius:20px}.lp-cta-demo .lp-j-step div>p{display:none}.lp-cta-demo .lp-j-steps{gap:10px}.lp-cta-demo .lp-j-step div>b{font-size:11px}}
+/* === RTL (arabe, ourdou) === marges, ancrages et alignements sont logiques ci-dessus.
+   La scène animée (.lp-j-stick : appareil, affiches, écrans simulés) est positionnée en JS par
+   translate3d en coordonnées physiques : elle reste une illustration LTR (texte isolé selon son contenu). */
+[dir=rtl] .lp-j-stick{direction:ltr}
+[dir=rtl] .lp-j-stick :is(p,b,h2,small,em){unicode-bidi:plaintext}
+/* l'appareil est placé en JS à 70 % de la largeur (js/23-landing.js, cx=vw*.7, physique) : sur ordinateur,
+   la colonne de texte des chapitres reste à gauche pour ne pas le chevaucher (texte aligné à droite dedans). */
+@media (min-width:861px){[dir=rtl] .lp-ch-t{margin-right:auto}}
+[dir=rtl] .lp-j-prog i{transform-origin:100% 0}
+[dir=rtl] .lp-arrow{scale:-1 1}
+[dir=rtl] .lp-j-hint i{background:linear-gradient(270deg,var(--accent),transparent)}
+/* === Langues non latines === */
+:is(:lang(ar),:lang(ur),:lang(hi),:lang(bn),:lang(zh)) :is(*,*::before,*::after,::placeholder){letter-spacing:0!important;text-transform:none!important;font-style:normal!important;font-synthesis:none}
+:is(:lang(ar),:lang(ur),:lang(hi),:lang(bn)) :is(.lp-h1,.lp-h2,.lp-h3,.lp-j-h2){line-height:1.3}
+:lang(zh) :is(.lp-h1,.lp-h2,.lp-h3,.lp-j-h2){line-height:1.2}
+:is(:lang(ar),:lang(ur),:lang(hi),:lang(bn)) .lp-j-w{line-height:1.15}
+:is(:lang(hi),:lang(bn)) :is(.lp-p,.lp-faq-item p){line-height:2.04}:is(:lang(ar),:lang(ur)) :is(.lp-p,.lp-faq-item p){line-height:1.96}:lang(zh) :is(.lp-p,.lp-faq-item p){line-height:1.87}
+:is(:lang(hi),:lang(bn)) :is(.lp-lead,.lp-sec-lead,.lp-foot-brand p){line-height:1.95}:is(:lang(ar),:lang(ur)) :is(.lp-lead,.lp-sec-lead,.lp-foot-brand p){line-height:1.86}:lang(zh) :is(.lp-lead,.lp-sec-lead,.lp-foot-brand p){line-height:1.78}
+:is(:lang(hi),:lang(bn)) :is(.lp-list li,.lp-j-step div>p){line-height:1.8}:is(:lang(ar),:lang(ur)) :is(.lp-list li,.lp-j-step div>p){line-height:1.73}
+html:lang(zh) body{line-break:strict;word-break:normal;overflow-wrap:anywhere}
+html:is(:lang(ru),:lang(hi),:lang(bn),:lang(ar),:lang(ur),:lang(es),:lang(pt)) body{overflow-wrap:break-word}
+@media (min-width:861px){:is(.lp-h1,.lp-h2,.lp-h3,.lp-j-w){overflow-wrap:normal}}
+/* Titre du hero : les deux « lignes » sont des <span> accolés (pas d'espace entre eux dans le HTML) :
+   sans séparateur, « regardes,enfin » ou « مشاهداتك،أخيرًا » forment un seul mot insécable qui déborde
+   de la colonne. Une espace (zéro largeur en chinois, qui s'écrit sans espaces) rend la coupure possible. */
+.lp-h1 .lp-line+.lp-line::before{content:" "}
+.lp-h1:lang(zh) .lp-line+.lp-line::before,:lang(zh) .lp-h1 .lp-line+.lp-line::before{content:"\200B"}
