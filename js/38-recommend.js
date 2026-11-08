@@ -124,9 +124,11 @@ function recoInboxHtml(){
   }
   if(!items||!items.length)return h;
   return h+'<section class="rc-inbox" aria-labelledby="rcInboxH"><h3 class="rc-h" id="rcInboxH">'+esc(t('reco.inbox'))+'<em>'+items.length+'</em></h3>'+
-    '<ul class="rc-rail">'+items.map(recoCardHtml).join('')+'</ul><p class="rc-attr">'+esc(t('reco.tmdb'))+'</p></section>';
+    '<ul class="rc-rail">'+items.map(friendRecoCardHtml).join('')+'</ul><p class="rc-attr">'+esc(t('reco.tmdb'))+'</p></section>';
 }
-function recoCardHtml(x,i){
+/* Carte d'une recommandation d'AMI (boîte « Recommandé par tes amis »). Ne PAS la nommer recoCardHtml : ce nom global est
+   celui de js/11-recos.js (cartes « Pour toi » de Découvrir) ; chargé après lui, ce fichier le remplaçait et vidait Découvrir. */
+function friendRecoCardHtml(x,i){
   var poster=x.poster_path&&RECO_POSTER_RE.test(x.poster_path)?'<img alt="" loading="lazy" src="'+IB+'w342'+esc(x.poster_path)+'">':'<span class="rc-noimg" aria-hidden="true">'+esc((x.title||'?').charAt(0))+'</span>';
   var mine=recoInMyList(x);
   return '<li class="rc-card'+(x.status==='new'?' new':'')+'" style="--i:'+i+'" data-reco="'+esc(x.id)+'">'+
@@ -194,5 +196,5 @@ function recoExportData(id){
 }
 if(typeof module!=='undefined')module.exports={RECO:RECO,recoEnabled:recoEnabled,recoUnread:recoUnread,recoLoad:recoLoad,recoFromPlex:recoFromPlex,
   recoPickHtml:recoPickHtml,openRecommend:openRecommend,recoToggle:recoToggle,recoMsg:recoMsg,recoSend:recoSend,recoSendResult:recoSendResult,
-  recoInboxHtml:recoInboxHtml,recoCardHtml:recoCardHtml,recoInMyList:recoInMyList,recoAddToMyList:recoAddToMyList,recoRespond:recoRespond,
+  recoInboxHtml:recoInboxHtml,recoCardHtml:friendRecoCardHtml,recoInMyList:recoInMyList,recoAddToMyList:recoAddToMyList,recoRespond:recoRespond,
   recoMarkSeen:recoMarkSeen,recoPrivRowHtml:recoPrivRowHtml,recoExportData:recoExportData,recoPlexButton:recoPlexButton};

@@ -208,6 +208,8 @@ uiOn('contPrev',function(){contScroll(-1);});
 uiOn('contNext',function(){contScroll(1);});
 uiOn('contSeeAll',function(){sfx('click');contSeeAll();});
 uiOn('drScrollRow',function(el,e,id,dir){drScrollRow(id,dir);});
+uiOn('drRetryRow',function(el,e,tab,id){sfx('click');drRetryRow(tab,id);});
+uiOn('retryRecos',function(){sfx('click');loadRecos();});
 uiOn('openPlexRecoCard',function(el){sfx('open');openPlexReco(getCardData(el));});
 uiOn('toggleSuivi',function(){toggleSuiviSection();});
 uiOn('suiviToggleAll',function(){sfx('click');suiviToggleAll();});

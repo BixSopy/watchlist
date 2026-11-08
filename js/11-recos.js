@@ -7,7 +7,11 @@ function loadRecos(){
   clearTimeout(_loadRecosTimer);
   _loadRecosTimer=setTimeout(_loadRecosNow,400);
 }
+/* Appels TMDB en erreur pendant le chargement en cours : si TOUT a échoué, on affiche une erreur avec « Réessayer »
+   au lieu du message « Rien de nouveau à te proposer » (qui laissait croire que TMDB n'avait rien à proposer) */
+var _recoFail=0;
 function _loadRecosNow(){
+  _recoFail=0;
   var sb=document.getElementById('sbContent');sb.innerHTML=skeletonHTML();
   stopAutoScroll();var inList=memDB.map(function(i){return i.tmdbId});
   var excl=inList.concat(dismissed).concat(seenRecos);
@@ -23,15 +27,15 @@ function _loadRecosNow(){
   var spotlightType=((profile.typeW.serie||0)+(profile.typeW.anime||0))>(profile.typeW.film||0)?'tv':'movie';
   /* Fetch tout en parallèle */
   Promise.all([
-    tf(TB+'/trending/all/week?language='+TMDB_LANG+'&page='+Math.ceil(Math.random()*3)).then(function(d){return{type:'trending',data:d}}).catch(function(){return{type:'trending',data:null}}),
-    (function(){var best=null;memDB.forEach(function(i){if(i.myRating&&(!best||i.myRating>best.myRating))best=i;});if(!best)return Promise.resolve({type:'because',data:null});var tt=best.tmdbType||(best.type=='film'?'movie':'tv');return tf(TB+'/'+tt+'/'+best.tmdbId+'/recommendations?language='+TMDB_LANG).then(function(d){return{type:'because',data:{best:best,results:d}}}).catch(function(){return{type:'because',data:null}})})(),
+    tf(TB+'/trending/all/week?language='+TMDB_LANG+'&page='+Math.ceil(Math.random()*3)).then(function(d){return{type:'trending',data:d}}).catch(function(){_recoFail++;return{type:'trending',data:null}}),
+    (function(){var best=null;memDB.forEach(function(i){if(i.myRating&&(!best||i.myRating>best.myRating))best=i;});if(!best)return Promise.resolve({type:'because',data:null});var tt=best.tmdbType||(best.type=='film'?'movie':'tv');return tf(TB+'/'+tt+'/'+best.tmdbId+'/recommendations?language='+TMDB_LANG).then(function(d){return{type:'because',data:{best:best,results:d}}}).catch(function(){_recoFail++;return{type:'because',data:null}})})(),
     Promise.all([
       tf(TB+'/discover/movie?language='+TMDB_LANG+'&sort_by=popularity.desc&vote_count.gte=200&page='+rp1),
       tf(TB+'/discover/movie?language='+TMDB_LANG+'&sort_by=vote_average.desc&vote_count.gte=500&page='+rp2),
       tf(TB+'/discover/tv?language='+TMDB_LANG+'&sort_by=popularity.desc&vote_count.gte=100&page='+rp2),
       tf(TB+'/discover/tv?language='+TMDB_LANG+'&with_genres=16&sort_by=popularity.desc&page='+rp3)
-    ]).then(function(res){return{type:'discover',data:res}}).catch(function(){return{type:'discover',data:null}}),
-    (topKw?tf(TB+'/discover/'+spotlightType+'?language='+TMDB_LANG+'&with_keywords='+topKw+'&sort_by=popularity.desc').then(function(d){return{type:'spotlight',data:d}}).catch(function(){return{type:'spotlight',data:null}}):Promise.resolve({type:'spotlight',data:null}))
+    ]).then(function(res){return{type:'discover',data:res}}).catch(function(){_recoFail++;return{type:'discover',data:null}}),
+    (topKw?tf(TB+'/discover/'+spotlightType+'?language='+TMDB_LANG+'&with_keywords='+topKw+'&sort_by=popularity.desc').then(function(d){return{type:'spotlight',data:d}}).catch(function(){_recoFail++;return{type:'spotlight',data:null}}):Promise.resolve({type:'spotlight',data:null}))
   ]).then(function(res){
     var tHtml='',bHtml='',sHtml='',dJson={films:[],series:[],anime:[]};
     res.forEach(function(r){
@@ -75,7 +79,12 @@ function _loadRecosNow(){
       }
     });
     renderRecos(tHtml,bHtml,sHtml,dJson,inList);
+    if(_recoFail&&!_apiAuthState&&!tHtml&&!bHtml&&!sHtml&&!dJson.films.length&&!dJson.series.length&&!dJson.anime.length)_renderRecoError();
   });
+}
+function _renderRecoError(){
+  var sb=document.getElementById('sbContent');if(!sb)return;
+  sb.innerHTML='<div class="sb-loading sb-error">'+esc(t('disc.forYouError'))+'<div class="sb-cta"><button type="button" class="btn" data-click="retryRecos">'+esc(t('disc.retry'))+'</button></div></div>';
 }
 function recoCardHtml(d,idx){
   var ph=d.poster?'<img class="reco-img" src=\"'+IB+'w185'+esc(d.poster)+'\" alt="" loading="eager" width="110" height="165" data-hide-broken>':'<div class="reco-img-ph">'+icon(d.type=='movie'?'film':'serie')+'</div>';

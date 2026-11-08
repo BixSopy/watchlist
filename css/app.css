@@ -490,6 +490,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .dr-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 var(--dr-pad,48px)}
 .dr-row-title{font-family:'Inter',sans-serif;font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.3px}
 .dr-row-title em{color:var(--accent);font-style:normal;font-size:14px;font-weight:600;margin-left:8px;font-family:'IBM Plex Sans',sans-serif}
+.dr-row-err{display:flex;align-items:center;gap:var(--ctl-gap,8px);flex-wrap:wrap;padding:6px var(--dr-pad,48px) 12px;color:var(--text2);font-size:13.5px}
 .dr-row-wrap{position:relative}
 .dr-row-inner{display:flex;overflow-x:hidden;padding:6px var(--dr-pad,48px) 10px}
 .dr-card{flex-shrink:0;width:var(--dr-card-w,126px);cursor:pointer;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
