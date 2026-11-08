@@ -16,7 +16,7 @@
 [hidden]{display:none!important}
 html{background:var(--bg)}
 body{margin:0;width:360px;color:var(--text);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;line-height:1.35;background:var(--bg);
- background-image:radial-gradient(120% 60% at 0% 0%,rgba(var(--accent-rgb),.10),transparent 60%),radial-gradient(80% 50% at 100% 0%,rgba(140,90,255,.07),transparent 60%);background-repeat:no-repeat}
+ background-image:radial-gradient(120% 60% at 0% 0%,rgba(var(--accent-rgb),.10),transparent 60%),radial-gradient(80% 50% at 100% 0%,rgba(var(--accent-rgb),.06),transparent 60%);background-repeat:no-repeat}
 body.tab{margin:24px auto;border:1px solid var(--border);border-radius:14px;overflow:hidden}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid rgba(var(--accent-rgb),.7);outline-offset:2px}
@@ -202,3 +202,29 @@ button{font:inherit;color:inherit}
 .rv-s{margin:0 0 10px;font-size:11.5px;color:var(--text2);line-height:1.45}
 .review .acts{align-items:center}
 .review .btn.pri{width:auto;height:30px}
+
+/* ---------- DA unifiée (même gabarit que l'app : voir css/app.css « CONTRÔLES : gabarit unique ») ----------
+   Boutons = pilules verre, Inter 600 ; actions principales et états actifs = dégradé P3 ; mêmes écarts partout. */
+:root{--ctl-h:38px;--ctl-gap:8px;--ctl-bg:rgba(28,28,32,.55);--ctl-bd:rgba(255,255,255,.09)}
+body.tab{border-radius:26px}
+.hd{gap:var(--ctl-gap)}
+.conn{height:30px;padding:0 12px;border-radius:999px;background:var(--ctl-bg);border-color:var(--ctl-bd);font-family:'Inter',sans-serif;font-weight:600}
+.icbtn{width:32px;height:32px;border-radius:50%;background:var(--ctl-bg);border-color:var(--ctl-bd)}
+.card{border-radius:20px;background:rgba(23,23,27,.6)}
+.btn{height:var(--ctl-h);border-radius:999px;background:var(--ctl-bg);border:1px solid var(--ctl-bd);font-size:13px;gap:8px;padding:0 14px}
+.acts{gap:var(--ctl-gap)}
+.btn.pri{height:44px;border-radius:999px;font-size:13.5px;box-shadow:0 6px 18px rgba(var(--grad-rgb),.3)}
+.btn.sm{height:30px;padding:0 14px;font-size:12px}
+.review .btn.pri{height:30px}
+.btn.pair{height:44px}
+.chip{border-radius:18px;background:var(--ctl-bg);border-color:var(--ctl-bd)}
+.chip.off .st{color:var(--accent)}
+.lg{border-radius:12px}
+.lg.sm{border-radius:6px}
+.hero .lg{background:var(--p3-grad);color:#fff;border-radius:16px}
+.steps li::before{background:var(--p3-grad);color:#fff}
+.inp{height:var(--ctl-h);border-radius:999px;background:var(--ctl-bg);border-color:var(--ctl-bd);padding:0 16px}
+.sw[aria-checked="true"]{background:var(--p3-grad)}.sw[aria-checked="true"]::after{background:#fff}
+.tip,.info-pop{border-radius:14px}
+#importStatus{border-radius:16px;background:var(--ctl-bg);border-color:var(--ctl-bd)}
+.review .card{border-color:rgba(var(--accent-rgb),.35)}
