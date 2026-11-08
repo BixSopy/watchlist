@@ -152,7 +152,7 @@
     }
   },
   "importStepMeta": {
-    "message": "أرقام الحلقات: $D$ / $T$ مسلسل…",
+    "message": "أرقام الحلقات: $D$ / $T$ من المسلسلات…",
     "placeholders": {
       "d": {
         "content": "$1"

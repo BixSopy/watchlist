@@ -5,7 +5,7 @@ preheader: Подтвердите смену адреса почты для ак
 <h1>Смена адреса почты</h1>
 <p>Вы запросили замену адреса <strong>{{ .Email }}</strong> на <strong>{{ .NewEmail }}</strong> для аккаунта [[name]]. Подтвердите смену:</p>
 [[button||Подтвердить смену||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=ru]]
-<p class="muted">Или введите этот код в [[name]] (Аккаунт › Сменить адрес почты › «У меня есть код»):</p>
+<p class="muted">Или введите этот код в [[name]] (Мой аккаунт › Сменить адрес почты › «У меня есть код»):</p>
 [[code||{{ .Token }}]]
 <p class="small">Если включено подтверждение обоих адресов, одинаковое письмо приходит на старый и на новый адрес: подтвердить нужно оба. Если вы ничего не запрашивали, проигнорируйте это письмо и смените пароль.</p>
 [[fallback||{{ $base }}?action=email_change&amp;type=email_change&amp;token_hash={{ .TokenHash }}&amp;lang=ru]]
