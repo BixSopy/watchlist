@@ -228,3 +228,11 @@ body.tab{border-radius:26px}
 .tip,.info-pop{border-radius:14px}
 #importStatus{border-radius:16px;background:var(--ctl-bg);border-color:var(--ctl-bd)}
 .review .card{border-color:rgba(var(--accent-rgb),.35)}
+
+/* Logos des plateformes (SVG en ligne, aucune image distante) */
+.lg svg{width:100%;height:100%;display:block}
+.lg{padding:0;overflow:hidden;font-size:0}
+.lg.nf{background:#000}.lg.cr{background:#f47521}.lg.pv{background:#00a8e1}.lg.dp{background:linear-gradient(135deg,#0b1b4d,#1f80e0)}.lg.at{background:#1c1c1e}
+.lg:not(.sm) svg{width:78%;height:78%;margin:auto}.lg:not(.sm){display:grid;place-items:center}
+.lg.cr svg{width:84%;height:84%}
+.chip.off .lg{filter:grayscale(.55) brightness(.8)}
