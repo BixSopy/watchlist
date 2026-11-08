@@ -124,10 +124,17 @@ function validate() {
   const req = ['name', 'shortName', 'tagline', 'description', 'baseUrl', 'contactEmail', 'senderName', 'senderEmail'];
   for (const k of req) if (!brand[k] || typeof brand[k] !== 'string') throw new Error('brand.config.json : « ' + k + ' » manquant');
   if (!/^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(brand.baseUrl)) throw new Error('baseUrl doit être une origine https sans chemin ni « / » final');
+  /* Passerelle de session des prévisualisations : le motif ne doit jamais viser la production */
+  let previewRe;
+  try { previewRe = new RegExp(brand.previewHostPattern); } catch (e) { throw new Error('previewHostPattern : expression régulière invalide'); }
+  if (!brand.previewHostPattern || !brand.previewHostPattern.startsWith('^') || !brand.previewHostPattern.endsWith('$')) throw new Error('previewHostPattern doit être ancré (^…$)');
+  for (const h of [new URL(brand.baseUrl).hostname, ...((brand.domains && brand.domains.legacyHosts) || [])])
+    if (previewRe.test(h)) throw new Error('previewHostPattern correspond à un domaine de production : ' + h);
   for (const k of ['contactEmail', 'senderEmail']) if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(brand[k])) throw new Error(k + ' invalide');
   const dm = brand.domains || {};
   if (dm.legacyHosts && (!Array.isArray(dm.legacyHosts) || dm.legacyHosts.some(h => !/^[a-z0-9.-]+$/i.test(h)))) throw new Error('domains.legacyHosts : liste de noms d\'hôte attendue');
   for (const [k, v] of Object.entries(brand.colors)) hexToRgb(v), k;
+  for (const [k, v] of Object.entries(brand.colorsLight || {})) hexToRgb(v), k;
 }
 
 /* ---------- morceaux réutilisés ---------- */
@@ -136,7 +143,7 @@ function logoSvg() { return fill(read('branding/logo-mark.svg').trim()); }
    correspond à une variable CSS déjà déclarée dans :root (sinon le hex littéral est laissé tel quel) —
    le mark reste donc réactif au thème sans supposer un nombre ou un ordre fixe de couleurs. */
 function logoSvgCss() {
-  const map = [[C.accent, '--accent'], [C.logoMid, '--text2'], [C.logoDim, '--text3']];
+  const map = [[C.secondary, '--accent2'], [C.logoMid, '--text2'], [C.logoDim, '--text3']];
   let svg = logoSvg();
   for (const [hex, cssVar] of map) svg = svg.split(`fill="${hex}"`).join(`style="fill:var(${cssVar})"`);
   return svg;
@@ -149,6 +156,23 @@ const robots = brand.indexable ? 'index,follow' : 'noindex,nofollow';
 
 /* ---------- emails ---------- */
 const C = brand.colors, F = brand.fonts;
+/* ---------- variables de couleur (DA : accent plat > dégradé P3 > secondary > tertiaires) ---------- */
+const GRAD = `linear-gradient(135deg,${C.accentGradStart},${C.accentGradMid} 55%,${C.accentGradEnd})`;
+/* Famille d'accent d'un thème. dark=true : inclut aussi fond, dérivés translucides et dégradé P3 */
+function brandVars(c, dark, grad = dark) {
+  const v = [
+    `--accent:${c.accent}`, `--accent-rgb:${hexToRgb(c.accent)}`, `--accent-hover:${c.accentHover}`,
+    `--on-accent:${c.onAccent}`,
+    `--violet:${c.violet}`, `--violet-mid:${c.violetMid}`, `--violet-end:${c.violetEnd}`,
+    `--violet-grad:linear-gradient(100deg,${c.violet},${c.violetMid} 55%,${c.violetEnd})`,
+    `--accent2:${c.secondary}`, `--accent2-rgb:${hexToRgb(c.secondary)}`, `--accent2-hover:${c.secondaryHover}`,
+  ];
+  if (grad) v.push(`--grad-rgb:${hexToRgb(c.accentGradMid)}`, `--p3-grad:${GRAD}`);
+  if (dark) v.unshift(`--bg:${c.bg}`), v.push('--accent-dim:rgba(var(--accent-rgb),0.12)', '--accent-dim2:rgba(var(--accent-rgb),0.35)');
+  return v.join(';') + ';';
+}
+const CL = { ...C, ...(brand.colorsLight || {}) };
+
 /* Logo du bandeau d'email : deux gabarits différents, pas la même contrainte.
    - Gabarits d'authentification Supabase : jamais d'image distante (tests/brand.test.js,
      « pas de script ni d'image distante »), et un data: URI s'est révélé tout aussi fragile en
@@ -156,8 +180,8 @@ const C = brand.colors, F = brand.fonts;
      conditions réelles sur le digest le 07/11) — carré de couleur + initiale en texte, sans image.
    - Emails envoyés par l'app (Resend) : image distante normale (même CDN que les affiches TMDB,
      déjà utilisées sans souci dans ces emails) — c'est la vraie icône Episode Spine. */
-const LOGO_CELL_AUTH = `<div style="width:30px;height:30px;background-color:${C.accent};border-radius:9px;` +
-  `color:${C.onAccent};font-family:${F.display};font-size:16px;font-weight:900;line-height:30px;` +
+const LOGO_CELL_AUTH = `<div style="width:30px;height:30px;background-color:${C.accentGradMid};background-image:${GRAD};border-radius:9px;` +
+  `color:#ffffff;font-family:${F.display};font-size:16px;font-weight:900;line-height:30px;` +
   `text-align:center;mso-line-height-rule:exactly;">${escHtml(brand.wordmark.main.charAt(0).toUpperCase())}</div>`;
 const LOGO_CELL_APP = `<img src="${brand.baseUrl}${brand.logo.icon192}" width="30" height="30" alt="" ` +
   `style="display:block;width:30px;height:30px;border-radius:8px;">`;
@@ -172,8 +196,8 @@ const EMAIL_STYLES = {
 function emailBody(body, lang) {
   let out = body
     .replace(/\[\[button\|\|([^|]+)\|\|([^\]]+)\]\]/g, (m, label, href) =>
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="${C.accent}" style="background-color:${C.accent};border-radius:12px;">` +
-      `<a href="${href}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${F.display};font-size:15px;line-height:20px;font-weight:700;color:${C.onAccent};text-decoration:none;border-radius:12px;">${label}</a></td></tr></table>`)
+      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 24px;"><tr><td align="center" bgcolor="${C.accentGradMid}" style="background-color:${C.accentGradMid};background-image:${GRAD};border-radius:12px;">` +
+      `<a href="${href}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${F.display};font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">${label}</a></td></tr></table>`)
     .replace(/\[\[code\|\|([^\]]+)\]\]/g, (m, code) =>
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 8px;"><tr><td class="wl-code" align="center" bgcolor="${C.surface2}" style="background-color:${C.surface2};border:1px dashed ${C.border};border-radius:14px;padding:16px 12px;font-family:${F.mono};font-size:30px;line-height:36px;letter-spacing:8px;font-weight:600;color:#ffffff;">${code}</td></tr></table>`)
     .replace(/\[\[fallback\|\|([^\]]+)\]\]/g, (m, href) =>
@@ -342,7 +366,7 @@ function buildApp(out) {
   for (const l of LANGS) legal[l] = { privacy: legalPaths(l).privacy, terms: legalPaths(l).terms };
   const pub = {
     name: brand.name, shortName: brand.shortName, wordmark: brand.wordmark, tagline: brand.tagline,
-    baseUrl: brand.baseUrl, contactEmail: brand.contactEmail, defaultLang: DEFAULT_LANG,
+    baseUrl: brand.baseUrl, previewHostRe: brand.previewHostPattern, contactEmail: brand.contactEmail, defaultLang: DEFAULT_LANG,
     legal,
   };
   out['js/00-brand.js'] = '/* MODULE: Identité de l\'app (nom, domaine, contact). ' + GENERATED + ' */\n' +
@@ -409,10 +433,7 @@ function buildApp(out) {
       '  <div class="app-foot-tmdb"><img src="/icons/tmdb-logo.svg" alt="TMDB" width="92" height="12" loading="lazy"><span>This product uses the TMDB API but is not endorsed or certified by TMDB.</span></div>\n' +
       '</footer>\n',
   };
-  const cssVars = [
-    `--bg:${C.bg}`, `--accent:${C.accent}`, `--accent-rgb:${hexToRgb(C.accent)}`, `--accent-hover:${C.accentHover}`,
-    '--accent-dim:rgba(var(--accent-rgb),0.12)', '--accent-dim2:rgba(var(--accent-rgb),0.35)', `--on-accent:${C.onAccent}`,
-  ].join(';') + ';';
+  const cssVars = brandVars(C, true);
 
   let html = read('index.html');
   for (const [name, content] of Object.entries(blocks)) {
@@ -432,7 +453,24 @@ function buildApp(out) {
   const cssRe = /\/\*brand:css\*\/[\s\S]*?\/\*\/brand:css\*\//;
   if (!cssRe.test(appCss)) throw new Error('css/app.css : bloc /*brand:css*/ introuvable');
   appCss = appCss.replace(cssRe, () => '/*brand:css*/' + cssVars + '/*/brand:css*/');
+  /* Thème clair : seule la famille d'accent vient de la marque (les gris et fonds clairs sont dans :root[data-theme="light"]) */
+  const lightRe = /\/\*brand:css-light\*\/[\s\S]*?\/\*\/brand:css-light\*\//;
+  if (!lightRe.test(appCss)) throw new Error('css/app.css : bloc /*brand:css-light*/ introuvable');
+  appCss = appCss.replace(lightRe, () => '/*brand:css-light*/' + brandVars(CL, false) + '/*/brand:css-light*/');
   out['css/app.css'] = appCss;
+
+  /* Extension : feuille propre (fond #000 comme l'app), même famille d'accent que l'app (sombre uniquement) */
+  let popCss = read('extension/popup.css');
+  const popRe = /\/\*brand:css\*\/[\s\S]*?\/\*\/brand:css\*\//;
+  if (!popRe.test(popCss)) throw new Error('extension/popup.css : bloc /*brand:css*/ introuvable');
+  out['extension/popup.css'] = popCss.replace(popRe, () => '/*brand:css*/' + brandVars(C, false, true) + '/*/brand:css*/');
+
+  /* Couleurs pour les fonctions serveur (page de partage, invitation, OG, digest) */
+  out['api/_lib/brand-tokens.json'] = JSON.stringify({ $comment: GENERATED,
+    accent: C.accent, violet: C.violet, violetMid: C.violetMid, violetEnd: C.violetEnd, violetGrad: `linear-gradient(100deg,${C.violet},${C.violetMid} 55%,${C.violetEnd})`, accentHover: C.accentHover, onAccent: C.onAccent, secondary: C.secondary, secondaryHover: C.secondaryHover,
+    gradStart: C.accentGradStart, gradMid: C.accentGradMid, gradEnd: C.accentGradEnd, grad: GRAD,
+    bg: C.bg, surface: C.surface, text: C.text, textMuted: C.textMuted, textFaint: C.textFaint, border: C.border, danger: C.danger,
+    accentRgb: hexToRgb(C.accent), secondaryRgb: hexToRgb(C.secondary), gradRgb: hexToRgb(C.accentGradMid) }, null, 2) + '\n';
 
   /* Indexation : X-Robots-Tag noindex partout si indexable=false ; sinon seulement hors du
      domaine de production (previews, *.vercel.app) et sur /api/. Les balises meta robots

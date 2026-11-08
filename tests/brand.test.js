@@ -164,3 +164,38 @@ test('indexation : pages publiques indexables sur le domaine de production seule
   const ignore = read('.vercelignore');
   for (const f of ['robots.txt', 'sitemap.xml']) assert.doesNotMatch(ignore, new RegExp('^' + f.replace('.', '\\.') + '$', 'm'));
 });
+
+/* DA : la palette vient uniquement de brand.config.json (accent plat > dégradé P3 > secondary).
+   Les anciennes teintes bleues ne doivent pas réapparaître en dur dans les feuilles de style ni
+   les fonctions serveur ; les rares usages volontaires du secondary (#5cc8ff) sont listés ici. */
+test('DA : aucune couleur de marque ni ancien fond (#0a0a0c) recopiés à la main hors liste blanche', () => {
+  const brand = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'brand.config.json'), 'utf8'));
+  const old = new RegExp([brand.colors.secondary, brand.colors.secondaryHover, '#8adcff', '#3aa8f0', '#3a7bff', '#3b8bff', '92, ?200, ?255', '58, ?123, ?255', '#0a0a0c', '10, ?10, ?12']
+    .map(s => s.replace('#', '#')).join('|'), 'i');
+  const ALLOWED = { 'js/26-calendar.js': 'couleur de type « film »', 'js/33-friends.js': 'barre secondary du logo dessiné en canvas' };
+  const files = ['css/app.css', 'landing/landing.css', 'extension/popup.css', 'extension/options.html', 'api/share.js', 'api/invite.js', 'api/og.mjs', 'api/notifications-digest.js',
+    ...fs.readdirSync(path.join(__dirname, '..', 'js')).filter(f => f.endsWith('.js')).map(f => 'js/' + f)];
+  const bad = [];
+  for (const f of files) {
+    if (ALLOWED[f]) continue;
+    fs.readFileSync(path.join(__dirname, '..', f), 'utf8').split('\n').forEach((line, i) => {
+      if (line.includes('/*brand:css')) return; /* bloc généré */
+      if (old.test(line)) bad.push(f + ':' + (i + 1));
+    });
+  }
+  assert.deepStrictEqual(bad, [], 'Couleur de marque en dur : utiliser var(--accent / --accent2 / --p3-grad) ou brand-tokens.json\n' + bad.join('\n'));
+});
+
+/* Contrôles : un seul gabarit de taille (--ctl-h) pour l'en-tête et la barre de filtres, défini en
+   dernier dans css/app.css pour l'emporter sur les anciennes règles empilées (demande de Pierre, 07/11). */
+test('contrôles : gabarit unique --ctl-h placé en fin de feuille', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'css', 'app.css'), 'utf8');
+  const at = css.indexOf('CONTRÔLES : gabarit unique');
+  assert.ok(at > 0, 'bloc de gabarit présent');
+  assert.ok(css.length - at < 30000, 'le bloc reste en toute fin de feuille (il doit battre les règles précédentes)');
+  const block = css.slice(at);
+  assert.match(block, /--ctl-h:42px/);
+  assert.match(block, /max-width:768px\)\{:root\{--ctl-h:44px/);
+  for (const sel of ['.hdr .p3-ib', '.hdr .sync-pill', '.stabs .stab', '.ntabs-scroll.seg .ntab', '.nav-right .csel-btn', '.p3-ph-act .srch', '.add-btn', '.cal-seg', '.cal-ics', '.det-filters', '.detected-section .btn', '.sort-sel', '.p3-ib svg', '#searchModal .hbtn', '#searchModal .search-filter-row .csel-btn', '#searchModal .search-footer .add-btn', 'body .btn-primary', 'body .auth-close', 'body .opt-btn', 'body .fiche .fx-th', '#addMbk .fiche{--text'])
+    assert.ok(block.includes(sel), sel + ' suit le gabarit');
+});

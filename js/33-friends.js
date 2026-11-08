@@ -17,7 +17,7 @@ function friendPendingParse(search){
 /* Avatar : emoji ou initiale sur la couleur du profil */
 function friendAvatar(p,cls){
   p=p||{};var name=(p.name&&p.name!=='Moi')?p.name:(p.handle||'?');
-  var col=/^#[0-9a-fA-F]{6}$/.test(p.avatar_color||'')?p.avatar_color:'#5cc8ff';
+  var col=/^#[0-9a-fA-F]{6}$/.test(p.avatar_color||'')?p.avatar_color:'#2f8fd1';
   var em=p.avatar&&String(p.avatar).length<=8?p.avatar:'';
   return '<span class="fr-av'+(cls?' '+cls:'')+'" style="background:'+col+'" aria-hidden="true">'+esc(em||name.charAt(0).toUpperCase())+'</span>';
 }
@@ -101,7 +101,7 @@ function friendQrSvg(text){
   var q=qrcode(0,'H');q.addData(String(text||''));q.make();
   var N=q.getModuleCount(),GAP=1;
   var VB=440,c=VB/2,Rd=VB*0.335,u=(VB*0.56)/(N+6),o=c-N*u/2;
-  var TILE='#e4f0fa',NAVY0='#08101e',NAVY1='#0a3a60',BG='#0a0a0c';
+  var TILE='#e4f0fa',NAVY0='#08101e',NAVY1='#0a3a60',BG='#000000';
   var G1='#7c7c87',G2='#888888',ACC='#5cc8ff',HOV='#7ad4ff';
   var alt=esc(typeof t==='function'?t('friends.qrAlt'):'QR');
   function isFinder(r,cc){return (r<7&&cc<7)||(r<7&&cc>=N-7)||(r>=N-7&&cc<7);}

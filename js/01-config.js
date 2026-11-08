@@ -35,6 +35,8 @@ var AUTH_LANDING=(function(){
   }catch(e){return null;}
 })();
 var supa=(typeof supabase!=='undefined')?supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}}):null;
+/* Prévisualisations Vercel : session de production transmise sans CAPTCHA (js/00-preview-handoff.js) */
+if(typeof PreviewHandoff!=='undefined')PreviewHandoff.apply(supa);
 var authUser=null,authProfileId=null,syncInProgress=false,syncLoopTimer=null,lastSyncErrorToast=0;
 /* STATE */
 var idb=null,memDB=[],editId=null,selTmdb=null,myRate=0,stimer=null;
