@@ -93,6 +93,10 @@ function p3ForYou(){
   var excl={};(typeof memDB!=='undefined'?memDB:[]).forEach(function(i){if(i&&!i.deleted&&i.tmdbId)excl[i.tmdbId]=1;});
   (typeof dismissed!=='undefined'?dismissed:[]).forEach(function(id){excl[id]=1;});
   secs=secs.map(function(x){return {why:x.why,because:x.because,cards:x.cards.filter(function(c){return !excl[c.getAttribute('data-tmdbid')]&&c.style.opacity!=='0';})};}).filter(function(x){return x.cards.length;});
+  if(!secs.length&&src.querySelector('.sb-error')){
+    box.innerHTML='<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>'+esc(t('disc.forYouError'))+'</p><button type="button" class="btn" data-click="retryRecos">'+esc(t('disc.retry'))+'</button></div>';
+    return;
+  }
   if(!secs.length){
     box.innerHTML=src.querySelector('.sb-loading,.skel,.sb-skel')?'<div class="p3-fy-skel"><i></i><i></i><i></i><i></i><i></i><i></i></div>'
       :'<div class="empty-state"><div class="empty-state-icon">✨</div><p>'+esc(t('disc.forYouEmpty'))+'</p><small>'+esc(t('disc.forYouEmptyHint'))+'</small></div>';
