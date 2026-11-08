@@ -165,7 +165,9 @@ function renderSettingsMenu(){
   var syncLabel=esc(!supa?t('set.unavailable'):(authUser?(pending?tn('set.pending',pending):t('sync.synced')):t('set.notSignedIn')));
   var html='';
   var idx=0;
-  html+=_secOpen(idx++)+_secTitle('lang',esc(t('lang.label')))+langSwitcherHtml('lang-switch-settings',{reopen:'settings'})+'</div>';
+  html+=_secOpen(idx++)+_secTitle('lang',esc(t('lang.label')))+langSwitcherHtml('lang-switch-settings',{reopen:'settings'});
+  html+='<div class="settings-action-row'+(TR_BUSY?' busy':'')+'" data-click="refreshLangAction"><div class="setting-row" style="padding:0"><div class="setting-label">'+esc(t('set.refreshLang'))+'</div><div class="settings-sync-badge" id="refreshLangBadge"></div></div></div>';
+  html+='<div class="setting-hint">'+esc(t('set.refreshLangHint'))+'</div></div>';
   html+=_secOpen(idx++)+_secTitle('appearance',esc(t('set.appearance')));
   html+=_selectRow(esc(t('set.theme')),'wl_theme',[{v:'system',l:esc(t('set.themeSystem'))},{v:'dark',l:esc(t('set.themeDark'))},{v:'light',l:esc(t('set.themeLight'))}],wlSettings.wl_theme);
   html+=_delegatedToggleRow(esc(t('set.compact')),'','toggleCompact',compactOn);

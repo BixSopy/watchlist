@@ -300,6 +300,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .settings-section-title+.settings-action-row{border-top:none}
 .settings-action-row:hover{background:rgba(var(--ink-rgb),.055);transform:translateX(2px)}
 .settings-action-row .setting-row{border-top:none;padding:0}
+.settings-action-row.busy{opacity:.55;pointer-events:none}
 .settings-danger{color:#ff7070}
 .settings-foot{padding:10px 14px;font-size:10.5px;color:var(--text3);border-top:1px solid var(--border);text-align:center}
 .settings-sync-badge{font-size:11px;color:var(--text2)}
