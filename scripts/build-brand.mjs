@@ -462,6 +462,11 @@ function buildApp(out) {
   const lightRe = /\/\*brand:css-light\*\/[\s\S]*?\/\*\/brand:css-light\*\//;
   if (!lightRe.test(appCss)) throw new Error('css/app.css : bloc /*brand:css-light*/ introuvable');
   appCss = appCss.replace(lightRe, () => '/*brand:css-light*/' + brandVars(CL, false) + '/*/brand:css-light*/');
+  /* #landing (visiteurs) : toujours sombre, quel que soit le thème choisi dans l'app (PR #123) —
+     mêmes valeurs sombres que :root ci-dessus, générées pour ne jamais diverger si la marque change. */
+  const landingRe = /\/\*brand:css-landing\*\/[\s\S]*?\/\*\/brand:css-landing\*\//;
+  if (!landingRe.test(appCss)) throw new Error('css/app.css : bloc /*brand:css-landing*/ introuvable');
+  appCss = appCss.replace(landingRe, () => '/*brand:css-landing*/' + cssVars + '/*/brand:css-landing*/');
   out['css/app.css'] = appCss;
 
   /* Extension : feuille propre (fond #000 comme l'app), même famille d'accent que l'app (sombre uniquement) */

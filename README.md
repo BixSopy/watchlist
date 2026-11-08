@@ -36,6 +36,7 @@ gratuite Mixkit (sans attribution obligatoire). Les autres sons (clic, survol, �
 - Storage  : IndexedDB (liste) + localStorage (préférences) + Supabase (synchro, comptes)
 - API      : TMDB v3 + OMDb via fonctions serverless Vercel (`/api`, clés côté serveur)
 - Hosting  : Vercel Hobby (statique + fonctions `/api`, région `fra1`) + Supabase Free (Francfort)
+- Build    : `scripts/build-static.mjs` (esbuild) minifie `js/` et `css/` vers `dist-site/` au déploiement (`vercel.json`) ; sources lisibles et inchangées dans le dépôt
 - Emails   : Supabase Auth via SMTP Resend (domaine vérifié), gabarits dans `supabase/templates/`
 - Anti-robot : Cloudflare Turnstile, via la protection CAPTCHA intégrée à Supabase Auth
 

@@ -209,6 +209,8 @@ uiOn('contPrev',function(){contScroll(-1);});
 uiOn('contNext',function(){contScroll(1);});
 uiOn('contSeeAll',function(){sfx('click');contSeeAll();});
 uiOn('drScrollRow',function(el,e,id,dir){drScrollRow(id,dir);});
+uiOn('drRetryRow',function(el,e,tab,id){sfx('click');drRetryRow(tab,id);});
+uiOn('retryRecos',function(){sfx('click');loadRecos();});
 uiOn('openPlexRecoCard',function(el){sfx('open');openPlexReco(getCardData(el));});
 uiOn('toggleSuivi',function(){toggleSuiviSection();});
 uiOn('suiviToggleAll',function(){sfx('click');suiviToggleAll();});
@@ -279,3 +281,15 @@ uiOn('mfaCopyCodes',function(){mfaCopyCodes();});
 uiOn('mfaDownloadCodes',function(){mfaDownloadCodes();});
 uiOn('mfaCopySecret',function(){mfaCopySecret();});
 uiOn('mfaCodesDone',function(){mfaCodesDone();});
+/* Réglages → Langue : actualiser les titres déjà en liste dans la langue active (js/41-tmdb-refresh.js) */
+uiOn('refreshLangAction',function(el){
+  el.classList.add('busy');
+  refreshListFromTmdb(function(done,total){
+    /* re-cherché à chaque appel : le menu Réglages peut être refermé puis rouvert
+       (nouveau DOM) pendant les quelques secondes que dure l'actualisation */
+    var badge=document.getElementById('refreshLangBadge');
+    if(badge)badge.textContent=done<total?t('set.refreshLangProgress',{done:done,total:total}):'';
+  },function(){
+    if(document.body.contains(el))el.classList.remove('busy');
+  });
+});

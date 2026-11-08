@@ -63,7 +63,8 @@ function _drFetchBecause(filter){
   if(!best)return Promise.resolve({title:'',items:[]});
   var tt=best.tmdbType||(best.type==='film'?'movie':'tv');
   var inL=new Set(memDB.map(function(i){return i.tmdbId;}));
-  function get(u){return apiFetch(u).then(function(r){return r.ok?r.json():{results:[]};}).catch(function(){return{results:[]};});}
+  var failed=false;/* une page en erreur ≠ « aucun résultat » : voir _renderDrRow (message + Réessayer) */
+  function get(u){return apiFetch(u).then(function(r){if(!r.ok){failed=true;return{results:[]};}return r.json();}).catch(function(){failed=true;return{results:[]};});}
   var base=TB+'/'+tt+'/'+best.tmdbId,q='?language='+TMDB_LANG+'&page=';
   /* recommendations p1+p2 puis similar p1+p2 en fallback → pool large garanti */
   return Promise.all([get(base+'/recommendations'+q+'1'),get(base+'/recommendations'+q+'2'),get(base+'/similar'+q+'1'),get(base+'/similar'+q+'2')]).then(function(pages){
@@ -75,14 +76,14 @@ function _drFetchBecause(filter){
         items.push(_drNormItem(x,tt));
       });
     });
-    return{title:best.title,items:_pickByProfile(items,computeTasteProfile(),30,RECO_EXPLORE_RATIO)};
-  }).catch(function(){return{title:'',items:[]};});
+    return{title:best.title,items:_pickByProfile(items,computeTasteProfile(),30,RECO_EXPLORE_RATIO),failed:failed&&!items.length};
+  }).catch(function(){return{title:'',items:[],failed:true};});
 }
 function _drFetchRow(cfg){
   var inL=new Set(memDB.map(function(i){return i.tmdbId;}));
   if(cfg.type==='because')return _drFetchBecause(cfg.filter);
   var sep=cfg.url.indexOf('?')>-1?'&':'?';
-  var TARGET=30,seen={},out=[];
+  var TARGET=30,seen={},out=[],failed=false;/* failed : au moins une page en erreur (voir _renderDrRow) */
   function keep(x){
     if(seen[x.id])return;seen[x.id]=1;
     if(inL.has(x.id)||dismissed.indexOf(x.id)>=0||!x.poster_path)return;
@@ -92,7 +93,7 @@ function _drFetchRow(cfg){
   }
   function get(p){
     return apiFetch(TB+cfg.url+sep+'language='+TMDB_LANG+'&page='+p)
-      .then(function(r){return r.ok?r.json():{results:[]};}).catch(function(){return{results:[]};});
+      .then(function(r){if(!r.ok){failed=true;return{results:[]};}return r.json();}).catch(function(){failed=true;return{results:[]};});
   }
   /* Burst initial : 3 pages en parallèle depuis un offset aléatoire (renouvellement) */
   var start=Math.ceil(Math.random()*4);
@@ -112,7 +113,7 @@ function _drFetchRow(cfg){
     }
     return next();
   }).then(function(){
-    return{title:null,items:_pickByProfile(out,computeTasteProfile(),TARGET,RECO_EXPLORE_RATIO)};
+    return{title:null,items:_pickByProfile(out,computeTasteProfile(),TARGET,RECO_EXPLORE_RATIO),failed:failed&&!out.length};
   });
 }
 function _drCardHtml(d){
@@ -158,11 +159,22 @@ function drScrollRow(innerId,dir){
   var step=(cw+10)*_drVisible;/* une page de cards visibles exactement */
   _animHScroll(el,el.scrollLeft+dir*step,560);
 }
+/* Sens de lecture (isRtl vient de js/03-dom-utils.js ; absent dans les harnais de test qui ne chargent que ce fichier) */
+function _drRtl(){return typeof isRtl==='function'&&isRtl();}
 function _renderDrRow(cfg,data,tab){
   var rowId='dr-'+tab+'-'+cfg.id;
   var innerId='dr-inner-'+tab+'-'+cfg.id;
   var row=document.getElementById(rowId);if(!row)return;
   var items=data.items||[];
+  /* Erreur de chargement (session expirée, quota, réseau, TMDB) : on le dit et on propose de réessayer,
+     au lieu de masquer la rangée comme si TMDB n'avait rien à proposer */
+  if(!items.length&&data.failed){
+    row.style.display='';
+    row.innerHTML='<div class="dr-row-head"><div class="dr-row-title">'+esc(cfg.title)+'</div></div>'+
+      '<div class="dr-row-err"><span>'+esc(t('disc.rowError'))+'</span>'+
+      '<button type="button" class="btn sm"'+uiAct('drRetryRow',[tab,cfg.id])+'>'+esc(t('disc.retry'))+'</button></div>';
+    return;
+  }
   if(!items.length){row.style.display='none';return;}
   var label=esc(cfg.title)+(cfg.type==='because'&&data.title?' <em>'+esc(strCut(data.title,20))+'</em>':'');
   row.innerHTML=
@@ -170,11 +182,11 @@ function _renderDrRow(cfg,data,tab){
       '<div class="dr-row-title">'+label+'</div>'+
     '</div>'+
     '<div class="dr-row-wrap">'+
-      '<button class="dr-arrow left" '+uiAct('drScrollRow',[innerId,-1])+' aria-label="'+esc(t(isRtl()?'common.next':'common.prev'))+'">'+
+      '<button class="dr-arrow left" '+uiAct('drScrollRow',[innerId,-1])+' aria-label="'+esc(t(_drRtl()?'common.next':'common.prev'))+'">'+
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>'+
       '</button>'+
       '<div class="dr-row-inner" id="'+innerId+'">'+items.map(_drCardHtml).join('')+'</div>'+
-      '<button class="dr-arrow right" '+uiAct('drScrollRow',[innerId,1])+' aria-label="'+esc(t(isRtl()?'common.prev':'common.next'))+'">'+
+      '<button class="dr-arrow right" '+uiAct('drScrollRow',[innerId,1])+' aria-label="'+esc(t(_drRtl()?'common.prev':'common.next'))+'">'+
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</button>'+
     '</div>';
@@ -195,10 +207,22 @@ function loadDiscovery(tab){
   cfgs.forEach(function(cfg){
     var cacheKey=tab+':'+cfg.id;
     if(_drCache[cacheKey]){_renderDrRow(cfg,_drCache[cacheKey],tab);return;}
-    _drFetchRow(cfg).then(function(data){
-      _drCache[cacheKey]=data;
+    _drFetchRow(cfg).catch(function(){return{title:'',items:[],failed:true};}).then(function(data){
+      if(!data.failed)_drCache[cacheKey]=data;/* un échec n'est jamais mis en cache : le rechargement réessaie */
       _renderDrRow(cfg,data,tab);
     });
+  });
+}
+/* Bouton « Réessayer » d'une rangée en erreur */
+function drRetryRow(tab,id){
+  var cfg=(DISCOVER_CONFIG[tab]||[]).filter(function(c){return c.id===id;})[0];
+  var row=document.getElementById('dr-'+tab+'-'+id);
+  if(!cfg||!row)return;
+  delete _drCache[tab+':'+id];
+  row.innerHTML='<div class="dr-row-head"><div class="dr-row-title">'+esc(cfg.title)+'</div></div><div class="dr-skeleton-row">'+_drSkeletonHtml()+'</div>';
+  _drFetchRow(cfg).catch(function(){return{title:'',items:[],failed:true};}).then(function(data){
+    if(!data.failed)_drCache[tab+':'+id]=data;
+    _renderDrRow(cfg,data,tab);
   });
 }
 var discoverCat='all';

@@ -644,3 +644,9 @@ html:is(:lang(ru),:lang(hi),:lang(bn),:lang(ar),:lang(ur),:lang(es),:lang(pt)) b
    de la colonne. Une espace (zéro largeur en chinois, qui s'écrit sans espaces) rend la coupure possible. */
 .lp-h1 .lp-line+.lp-line::before{content:" "}
 .lp-h1:lang(zh) .lp-line+.lp-line::before,:lang(zh) .lp-h1 .lp-line+.lp-line::before{content:"\200B"}
+
+/* Anti-saut (CLS) : l'appareil n'est placé (zoom/transform) que par js/23-landing.js ; on le masque jusqu'au
+   premier placement. Filet : réapparaît seul après 1,2 s si le script n'a pas pu s'exécuter. */
+.lp-dv{visibility:hidden;animation:lpDvShow 0s linear 1.2s forwards}
+.lp-dv.lp-on{visibility:visible;animation:none}
+@keyframes lpDvShow{to{visibility:visible}}

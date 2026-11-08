@@ -51,6 +51,17 @@
   --p3-glass:rgba(255,255,255,.72);
   --surface-rgb:255,255,255;
 }
+/* Page d'accueil (visiteurs, #landing) : jamais touchée par le mode clair — décision du 06/11
+   (PR #110) déjà actée « pas de changement sur les sélecteurs lp- / le flux d'inscription ».
+   Sans ce verrou, un visiteur dont l'OS est en clair recevait data-theme="light" sur <html>
+   (js/00-theme.js suit le système par défaut) : le fond de la page (body{background:var(--bg)})
+   et le texte hérité passaient en clair, mais landing.css (jamais mis à jour pour le mode clair)
+   reste truffé de littéraux blancs/gris clairs pensés pour un fond sombre — texte illisible
+   signalé en prod. On réépingle ici les mêmes variables que :root (sombre) ci-dessus — générées
+   par build-brand.mjs, pas recopiées à la main, pour ne jamais diverger si la marque change
+   (landing.css ne lit que --bg/--accent/--accent-rgb/--on-accent/--p3-grad/--grad-rgb : ses
+   propres textes/lignes sont dans des tokens --lp-* déjà fixes, indépendants du thème). */
+#landing{/*brand:css-landing*/--bg:#000000;--accent:#2f8fd1;--accent-rgb:47,143,209;--accent-hover:#5aa9e0;--on-accent:#06070a;--violet:#b9aeff;--violet-mid:#8fc4ff;--violet-end:#7fe0cf;--violet-grad:linear-gradient(100deg,#b9aeff,#8fc4ff 55%,#7fe0cf);--accent2:#5cc8ff;--accent2-rgb:92,200,255;--accent2-hover:#7ad4ff;--grad-rgb:47,143,209;--p3-grad:linear-gradient(135deg,#5b4fe0,#2f8fd1 55%,#1fb8a3);--accent-dim:rgba(var(--accent-rgb),0.12);--accent-dim2:rgba(var(--accent-rgb),0.35);/*/brand:css-landing*/}
 *{box-sizing:border-box;margin:0;padding:0}
 /* <html> sans fond = blanc par défaut du navigateur dans la zone de rebond élastique au-dessus
    de la page (trackpad macOS/iOS, scroll au-delà du haut) : un flash blanc qui semble « couper »
@@ -294,6 +305,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .settings-section-title+.settings-action-row{border-top:none}
 .settings-action-row:hover{background:rgba(var(--ink-rgb),.055);transform:translateX(2px)}
 .settings-action-row .setting-row{border-top:none;padding:0}
+.settings-action-row.busy{opacity:.55;pointer-events:none}
 .settings-danger{color:#ff7070}
 .settings-foot{padding:10px 14px;font-size:10.5px;color:var(--text3);border-top:1px solid var(--border);text-align:center}
 .settings-sync-badge{font-size:11px;color:var(--text2)}
@@ -484,6 +496,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .dr-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 var(--dr-pad,48px)}
 .dr-row-title{font-family:'Inter',sans-serif;font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.3px}
 .dr-row-title em{color:var(--accent);font-style:normal;font-size:14px;font-weight:600;margin-inline-start:8px;font-family:'IBM Plex Sans',sans-serif}
+.dr-row-err{display:flex;align-items:center;gap:var(--ctl-gap,8px);flex-wrap:wrap;padding:6px var(--dr-pad,48px) 12px;color:var(--text2);font-size:13.5px}
 .dr-row-wrap{position:relative}
 .dr-row-inner{display:flex;overflow-x:hidden;padding:6px var(--dr-pad,48px) 10px}
 .dr-card{flex-shrink:0;width:var(--dr-card-w,126px);cursor:pointer;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}

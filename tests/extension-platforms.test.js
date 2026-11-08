@@ -958,9 +958,9 @@ test('fenêtre 0.7.3 : polices embarquées (la CSP n\'autorise que les fichiers 
   assert.ok(fs.existsSync(path.join(ROOT, 'extension', 'fonts', 'OFL-ibm-plex.txt')), 'licence des polices');
   assert.doesNotMatch(css, /https?:\/\//, 'aucune ressource externe');
   assert.match(css, /@media \(prefers-reduced-motion:reduce\)\{\*,\*::before,\*::after\{animation:none!important;transition:none!important\}\}/);
-  /* logos : pastilles à lettre (pas d'image de marque) */
+  /* logos : SVG en ligne (aucune image distante), un par plateforme */
   const html = read('extension/options.html');
-  assert.deepStrictEqual([...html.matchAll(/<span class="lg (\w+)" aria-hidden="true">([^<]+)<\/span>/g)].map(m => m[1] + ':' + m[2]),
-    ['nf:N', 'cr:C', 'pv:p', 'dp:D+', 'at:tv']);
+  assert.deepStrictEqual([...html.matchAll(/<span class="lg (\w+)" aria-hidden="true"><svg/g)].map(m => m[1]),
+    ['nf', 'cr', 'pv', 'dp', 'at']);
   assert.doesNotMatch(html, /<img/i);
 });
