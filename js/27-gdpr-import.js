@@ -443,7 +443,7 @@ window.gdprCardHtml=function(){
     +'<div class="gd-card-h"><div><div class="gd-card-t">'+esc(t('gd.card.title'))+'</div><div class="gd-card-s">'+esc(t('gd.card.sub'))+'</div></div></div>'
     +'<div class="gd-plats">'+['disney','apple','tvtime'].map(function(p){
       var s=statusLine(p);
-      return '<button type="button" class="gd-plat gd-'+p+' gd-'+s.cls+'" data-sfx-hover'+uiAct('gdprOpen',[p])+'>'
+      return '<button type="button" class="gd-plat gd-'+p+' gd-'+s.cls+'"'+uiAct('gdprOpen',[p])+'>'
         +'<span class="gd-logo">'+LOGO[p]+'</span><span class="gd-pb"><span class="gd-pn">'+esc(P[p].name)+'</span><span class="gd-ps">'+esc(s.txt)+'</span>'
         +(s.pct!=null?'<span class="gd-bar"><i style="--p:'+s.pct+'%"></i></span>':'')+'</span>'
         +'<span class="gd-go">'+esc(t(P[p].closed&&s.cls==='none'?'gd.card.import':s.cls==='none'?'gd.card.start':s.cls==='ok'?'gd.card.again':s.cls==='due'?'gd.card.import':'gd.card.continue'))+'</span></button>';
