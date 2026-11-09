@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Sons d'interface : 9 fichiers de sounds/ (petits, déclarés, servis avec cache), chargement paresseux,
- * aucune synthèse ni son de survol, volume général, mise en veille du contexte audio, pas de sons empilés.
+ * aucune synthèse ni son de survol, bandeaux d'information muets, volume général, mise en veille du contexte audio.
  * Lancer : node --test tests/
  */
 const test = require('node:test');
@@ -81,7 +81,7 @@ function audioContext({ fetchOk = true, decodeFails = [], store = {} } = {}) {
   ctx.window.document = ctx.document;
   vm.createContext(ctx);
   vm.runInContext('var soundOn=true;\n' + read('js/02-audio.js') +
-    '\nthis.sfx=sfx;this.loadSfxFiles=loadSfxFiles;this.loadSfxVolume=loadSfxVolume;this.setSfxVolume=setSfxVolume;this.sfxRecent=sfxRecent;this.state=function(){return _sfxState;};this.master=function(){return _master;};this.ac=function(){return actx;};', ctx);
+    '\nthis.sfx=sfx;this.loadSfxFiles=loadSfxFiles;this.loadSfxVolume=loadSfxVolume;this.setSfxVolume=setSfxVolume;this.state=function(){return _sfxState;};this.master=function(){return _master;};this.ac=function(){return actx;};', ctx);
   const tick = ms => { now += ms; for (const t of timers) if (t.fn && t.at <= now) { const f = t.fn; t.fn = null; f(); } };
   return { ctx, log, tick };
 }
@@ -146,17 +146,12 @@ test('volume : wl_snd_vol (0-100, 50 par défaut) appliqué au volume général'
   assert.strictEqual(ctx.loadSfxVolume(), 50);
 });
 
-test('pas de sons empilés : le son du toast est sauté juste après un son d\'action', () => {
-  const { ctx, tick } = audioContext();
-  assert.strictEqual(ctx.sfxRecent(300), false);
-  ctx.sfx('toast');
-  assert.strictEqual(ctx.sfxRecent(300), false, 'le toast ne compte pas');
-  ctx.sfx('add');
-  assert.strictEqual(ctx.sfxRecent(300), true);
-  tick(301);
-  assert.strictEqual(ctx.sfxRecent(300), false);
-  assert.match(read('js/03-dom-utils.js'), /function toast\(msg,kind\)\{\s*if\(!\(typeof sfxRecent==='function'&&sfxRecent\(300\)\)\)sfx\('toast'\)/);
+test('bandeaux d\'information muets : seul le module des sorties joue le son « toast »', () => {
+  const code = read('js/03-dom-utils.js').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(code, /sfx\(/);
   assert.match(read('js/14-suivi.js'), /sfx\('toast'\)/);
+  const users = fs.readdirSync(path.join(ROOT, 'js')).filter(f => f.endsWith('.js') && /sfx\('toast'\)/.test(read('js/' + f).replace(/\/\*[\s\S]*?\*\//g, '')));
+  assert.deepStrictEqual(users, ['14-suivi.js']);
 });
 
 test('ouverture des fenêtres : son « open » au lieu de « click » (fiche, ajout, édition, compte, stats, dossiers, recherche)', () => {

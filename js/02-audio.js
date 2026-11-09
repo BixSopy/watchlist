@@ -6,7 +6,8 @@
    - click, open, close, next, toast : SND, kit 01 « Sine » (Yasuhiro Tsuchiya, snd.dev) ;
    - done, err, del : kit maison créé pour Cinepisode (scripts/sounds-maison.py) ;
    - add : Kenney Interface Sounds (CC0), inchangé.
-   Pas de son de survol : ni iOS ni Android n'en ont, c'est ce qui faisait « jeu vidéo ».
+   Pas de son de survol (ni iOS ni Android n'en ont), ni de son sur chaque bandeau d'information :
+   « toast » est réservé aux vraies notifications (nouveaux épisodes).
    Les fichiers sont téléchargés et décodés une seule fois, au premier geste de l'utilisateur
    (fetch en connect-src 'self', aucun lecteur <audio>), puis joués depuis la mémoire. Un son dont le
    fichier ne charge pas reste silencieux : mieux vaut rien qu'un bip de remplacement.
@@ -92,13 +93,8 @@ function audioUnlock(){getAC();if(soundOn)loadSfxFiles();}
   evs.forEach(function(ev){document.addEventListener(ev,once,true);});
 })();
 
-var _lastSfxAt=0;
-/* Un son d'action a-t-il été joué il y a moins de ms millisecondes ? (évite d'empiler le
-   son d'un toast sur le son d'ajout, de suppression, d'erreur…) */
-function sfxRecent(ms){return Date.now()-_lastSfxAt<(ms||300);}
 function sfx(x){
   if(!soundOn||!SFX_FILES[x])return;
-  if(x!='toast')_lastSfxAt=Date.now();
   var ac=getAC();if(!ac)return;
   if(_sfxState[x]==='ready'){_playFile(ac,x);return;}
   if(!_sfxLoading)loadSfxFiles();
