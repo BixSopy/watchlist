@@ -68,7 +68,7 @@ test('boutons principaux : cartes, fiche, édition, épisode suivant, menu, rég
     const b = { id: 'e2e2', title: 'Série à voir', type: 'serie', status: 'avoir', poster: '/introuvable2.jpg', tags: [], createdAt: now, updatedAtLocal: now };
     memDB.push(a, b); dbPut(a, () => dbPut(b, () => { render(); res(); }));
   }));
-  /* Espion sur les sons : vérifie les sons de survol et de clic sans les entendre */
+  /* Espion sur les sons : vérifie l'absence de son au survol et le son de clic sans les entendre */
   await page.evaluate(() => { window.__sfx = []; const o = window.sfx; window.sfx = function (k) { window.__sfx.push(k); return o.apply(this, arguments); }; });
   const strip = page.locator('.ec-card').filter({ hasText: 'Série en cours' }).first();
   const card = page.locator('.card').filter({ hasText: 'Série à voir' }).first();
@@ -76,10 +76,11 @@ test('boutons principaux : cartes, fiche, édition, épisode suivant, menu, rég
   await card.waitFor();
   // Images cassées masquées (ancien onerror)
   await page.waitForFunction(() => ['.card .card-poster', '.ec-card .ec-poster'].every(s => { const i = document.querySelector(s); return i && i.style.display === 'none'; }));
-  // Survol : son « hover » (ancien onmouseenter)
+  // Survol : aucun son (supprimé, comme sur iOS/Android)
   await page.mouse.move(5, 5);
   await card.hover();
-  await page.waitForFunction(() => window.__sfx.includes('hover'));
+  await page.waitForTimeout(100);
+  assert.deepEqual(await page.evaluate(() => window.__sfx), [], 'pas de son au survol');
   // Épisode suivant : ne doit pas ouvrir la fiche (stopPropagation conservé)
   await strip.locator('.ec-next[data-click="quickNextEp"]').click();
   await page.waitForFunction(() => memDB.find(i => i.id === 'e2e1').episode === 4);

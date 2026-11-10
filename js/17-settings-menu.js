@@ -152,6 +152,7 @@ function _onSettingChanged(key,val){
   if(key==='wl_reco_limit'){
     loadRecos();
   }
+  if(key==='wl_spoilers'&&typeof plexEpisodesRefresh==='function')plexEpisodesRefresh();
   sfx('click');
 }
 function renderSettingsMenu(){
@@ -192,6 +193,7 @@ function renderSettingsMenu(){
   html+=_secOpen(idx++)+_secTitle('suivi',esc(t('set.suivi')));
   html+=_delegatedToggleRow(esc(t('set.suiviCollapsed')),'','toggleSuiviSection',suiviCollapsed);
   html+=_toggleRow(esc(t('set.providers')),'','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
+  html+=_toggleRow(esc(t('set.spoilers')),esc(t('set.spoilersHint')),'wl_spoilers',wlSettings.wl_spoilers==='1');
   if(typeof mpSettingsHtml==='function')html+='<div class="setting-block mp-block">'+mpSettingsHtml()+'</div>';
   html+=_toggleRow(esc(t('set.reminders')),esc(t('set.remindersHint')),'wl_reminders_global',wlSettings.wl_reminders_global==='1');
   html+='</div>';
