@@ -23,7 +23,9 @@ after(async () => { await browser?.close(); await server?.close(); });
 
 async function newPage(t) {
   server.config = { turnstileSiteKey: '', signupsOpen: true };
-  const ctx = await browser.newContext({ locale: 'fr-FR', viewport: { width: 1280, height: 860 } });
+  /* Service worker bloqué : il traiterait lui-même les fichiers de /sounds/, que page.route() (utilisé
+     pour simuler un téléchargement impossible) ne verrait alors plus passer. */
+  const ctx = await browser.newContext({ locale: 'fr-FR', viewport: { width: 1280, height: 860 }, serviceWorkers: 'block' });
   const page = await ctx.newPage();
   const problems = [];
   page.on('console', m => { const x = m.text(); if (m.type() === 'error' && !/^Failed to load resource/.test(x)) problems.push(x); if (/Content Security Policy/i.test(x)) problems.push(x); });

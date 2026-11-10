@@ -49,3 +49,32 @@ test('build-static : fichiers minifiés valides, vendor identique, sources intac
   assert.ok(read('js/18-bootstrap.js').split('\n').length > 100);
   fs.rmSync(OUT, {recursive: true, force: true});
 });
+
+test('empreintes : chaque script/feuille locale des pages a ?v=<sha256 du fichier publié>, cache immuable seulement avec ?v=', () => {
+  execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'build-static.mjs')], {stdio: 'pipe'});
+  const crypto = require('node:crypto');
+  for (const page of ['index.html', 'privacy.html', 'conditions.html']) {
+    const html = fs.readFileSync(path.join(OUT, page), 'utf8');
+    const refs = [...html.matchAll(/<(?:script|link)\b[^>]*?\s(?:src|href)="(\/?(?:js|css|landing|fonts)\/[^"]+\.(?:js|css)(?:\?[^"]*)?)"/g)].map(m => m[1]);
+    assert.ok(refs.length > 0, page);
+    for (const ref of refs) {
+      const m = /^(\/?[^?]+)\?v=([0-9a-f]{10})$/.exec(ref);
+      assert.ok(m, page + ' : ' + ref + ' sans empreinte');
+      const sum = crypto.createHash('sha256').update(fs.readFileSync(path.join(OUT, m[1].replace(/^\//, '')))).digest('hex').slice(0, 10);
+      assert.strictEqual(m[2], sum, ref + ' : empreinte du fichier publié');
+    }
+    assert.doesNotMatch(html, /vendor\/[^"]+\?v=/, 'vendor/ : version déjà dans le nom (SRI)');
+  }
+  assert.doesNotMatch(read('index.html'), /\?v=/, 'source non modifiée');
+  const headers = JSON.parse(read('vercel.json')).headers;
+  for (const dir of ['js', 'css', 'landing', 'fonts']) {
+    const r = headers.find(h => h.source === '/' + dir + '/(.*)' && h.has);
+    assert.ok(r, dir);
+    assert.deepStrictEqual(r.has, [{type: 'query', key: 'v'}]);
+    assert.match(r.headers.find(h => h.key === 'Cache-Control').value, /max-age=31536000, immutable/);
+  }
+  assert.ok(!headers.some(h => /^\/(js|css)\//.test(h.source) && !h.has), 'sans ?v= : pas de cache long sur js/css');
+  const fonts = headers.find(h => h.source === '/fonts/(.*)' && !h.has);
+  assert.deepStrictEqual(fonts.missing, [{type: 'query', key: 'v'}]);
+  assert.strictEqual(headers.find(h => h.source === '/sw.js').headers[0].value, 'no-cache');
+});
