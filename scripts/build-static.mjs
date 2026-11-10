@@ -13,6 +13,7 @@
    - un fichier qui ne se minifie pas, ou ressort plus gros, est copié tel quel (jamais de déploiement cassé).
    - esbuild absent : tout est copié tel quel, avec un avertissement clair dans le journal de build. */
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -49,9 +50,31 @@ function walk(dir) {
     if (e.isDirectory()) walk(rel); else emit(rel);
   }
 }
+/* Empreinte de contenu : chaque <script src> / <link href> local d'une page HTML publiée reçoit
+   ?v=<10 premiers caractères du SHA-256 du fichier publié>. Ces URL changent à chaque modification du
+   fichier, d'où un cache immuable d'un an côté navigateur (vercel.json : seulement pour les requêtes
+   qui portent ?v=) et côté service worker (sw.js). /vendor/ a déjà sa version dans le nom et son SRI. */
+const VERSIONED = /^\/?(js|css|landing|fonts)\/[^?#"]+\.(js|css)$/;
+function fingerprint(html) {
+  return html.replace(/(<(?:script|link)\b[^>]*?\s(?:src|href)=")([^"]+)(")/g, (all, a, url, z) => {
+    if (!VERSIONED.test(url)) return all;
+    const file = path.join(OUT, url.replace(/^\//, ''));
+    if (!fs.existsSync(file)) return all;
+    const v = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 10);
+    return a + url + '?v=' + v + z;
+  });
+}
+
 fs.rmSync(OUT, {recursive: true, force: true});
 for (const f of FILES) emit(f);
 for (const d of DIRS) walk(d);
+let versioned = 0;
+for (const f of FILES.filter(f => f.endsWith('.html'))) {
+  const p = path.join(OUT, f), before = fs.readFileSync(p, 'utf8'), after = fingerprint(before);
+  versioned += (after.match(/\?v=[0-9a-f]{10}"/g) || []).length;
+  if (after !== before) fs.writeFileSync(p, after);
+}
+console.log('[build-static] empreintes : ' + versioned + ' références ?v= dans les pages');
 for (const k of ['js', 'css']) {
   const [n, a, b] = stats[k];
   console.log('[build-static] ' + k + ' : ' + n + ' fichiers minifiés, ' + a + ' → ' + b + ' octets');
