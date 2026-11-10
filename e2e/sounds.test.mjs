@@ -1,6 +1,6 @@
-/* Sons d'interface dans le vrai navigateur, sous la CSP de production : les 6 fichiers de /sounds/
-   se chargent et se décodent au premier geste, servis avec un long cache ; repli sur la synthèse si
-   le téléchargement échoue ; le curseur de volume est enregistré et survit au rechargement.
+/* Sons d'interface dans le vrai navigateur, sous la CSP de production : les 9 fichiers de /sounds/
+   se chargent et se décodent au premier geste, servis avec un long cache ; silence (sans erreur ni
+   synthèse) si le téléchargement échoue ; le curseur de volume est enregistré et survit au rechargement.
    Lancer : cd e2e && npm test */
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ import { installFakeSupabase } from './fake-supabase.mjs';
 
 const CHROME = process.env.CHROME_PATH || ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser',
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find(p => fs.existsSync(p));
-const NAMES = ['open', 'close', 'add', 'done', 'del', 'err'];
+const NAMES = ['click', 'open', 'close', 'next', 'toast', 'add', 'done', 'del', 'err'];
 let browser, server;
 
 before(async () => {
@@ -33,7 +33,7 @@ async function newPage(t) {
   return { page, problems };
 }
 
-test('premier clic : les 6 sons se chargent et se décodent (CSP respectée), avec un long cache', async t => {
+test('premier clic : les 9 sons se chargent et se décodent (CSP respectée), avec un long cache', async t => {
   const { page, problems } = await newPage(t);
   const responses = [];
   page.on('response', r => { if (r.url().includes('/sounds/')) responses.push(r); });
@@ -43,32 +43,40 @@ test('premier clic : les 6 sons se chargent et se décodent (CSP respectée), av
   await page.mouse.click(5, 5);
   await page.waitForFunction(n => n.every(k => _sfxState[k] === 'ready' || _sfxState[k] === 'failed'), NAMES);
   assert.deepEqual(await page.evaluate(n => n.map(k => _sfxState[k]), NAMES), NAMES.map(() => 'ready'));
-  assert.equal(responses.length, 6);
+  assert.equal(responses.length, 9);
   for (const r of responses) {
     assert.equal(r.status(), 200);
     assert.match(r.headers()['cache-control'] || '', /max-age=\d{6,}/);
   }
   /* Lecture : passe par le fichier décodé (aucune erreur) */
-  await page.evaluate(() => { sfx('open'); sfx('add'); sfx('done'); sfx('close'); sfx('del'); sfx('err'); sfx('click'); });
+  const played = await page.evaluate(n => {
+    let srcs = 0; const o = AudioContext.prototype.createBufferSource;
+    AudioContext.prototype.createBufferSource = function () { srcs++; return o.apply(this, arguments); };
+    n.forEach(k => sfx(k)); sfx('hover');
+    AudioContext.prototype.createBufferSource = o;
+    return srcs;
+  }, NAMES);
+  assert.equal(played, 9, 'un fichier joué par son, rien pour le survol');
   await page.waitForTimeout(100);
   assert.deepEqual(problems, []);
 });
 
-test('téléchargement impossible : chaque son retombe sur la synthèse, sans erreur', async t => {
+test('téléchargement impossible : silence, sans erreur ni synthèse', async t => {
   const { page, problems } = await newPage(t);
   await page.route('**/sounds/**', r => r.abort());
   await page.goto(server.url + '/');
   await page.waitForFunction(() => typeof sfx === 'function');
   await page.mouse.click(5, 5);
   await page.waitForFunction(n => n.every(k => _sfxState[k] === 'failed'), NAMES);
-  const synth = await page.evaluate(n => {
-    let osc = 0; const o = AudioContext.prototype.createOscillator;
-    AudioContext.prototype.createOscillator = function () { osc++; return o.apply(this, arguments); };
-    const out = n.map(k => { const before = osc; sfx(k); return osc > before; });
-    AudioContext.prototype.createOscillator = o;
-    return out;
+  const nodes = await page.evaluate(n => {
+    let c = 0; const os = AudioContext.prototype.createOscillator, bs = AudioContext.prototype.createBufferSource;
+    AudioContext.prototype.createOscillator = function () { c++; return os.apply(this, arguments); };
+    AudioContext.prototype.createBufferSource = function () { c++; return bs.apply(this, arguments); };
+    n.forEach(k => sfx(k));
+    AudioContext.prototype.createOscillator = os; AudioContext.prototype.createBufferSource = bs;
+    return c;
   }, NAMES);
-  assert.deepEqual(synth, NAMES.map(() => true));
+  assert.equal(nodes, 0);
   assert.deepEqual(problems, []);
 });
 
