@@ -29,6 +29,9 @@ const TMDB = {
   'tv:Ted Lasso': [{ id: 97546, name: 'Ted Lasso', original_name: 'Ted Lasso', first_air_date: '2020-08-14', popularity: 90, vote_average: 8.4, poster_path: '/ted.jpg' }],
   'tv:Severance': [{ id: 95396, name: 'Severance', original_name: 'Severance', first_air_date: '2022-02-17', popularity: 120, vote_average: 8.4, poster_path: '/sev.jpg' }],
   'movie:Seven Sisters': [{ id: 406990, title: 'Seven Sisters', original_title: 'What Happened to Monday', release_date: '2017-08-18', popularity: 30, vote_average: 7, poster_path: '/ss.jpg' }],
+  'movie:Dune': [{ id: 438631, title: 'Dune', original_title: 'Dune', release_date: '2021-09-15', popularity: 200, vote_average: 7.8, poster_path: '/d21.jpg' },
+    { id: 841, title: 'Dune', original_title: 'Dune', release_date: '1984-12-14', popularity: 30, vote_average: 6.3, poster_path: '/d84.jpg' }],
+  'movie:Tenet': [{ id: 577922, title: 'Tenet', original_title: 'Tenet', release_date: '2020-08-22', popularity: 80, vote_average: 7.2, poster_path: '/tenet.jpg' }],
   'movie:CODA': [{ id: 776503, title: 'CODA', original_title: 'CODA', release_date: '2021-08-13', popularity: 40, vote_average: 8, poster_path: '/coda.jpg' }],
 };
 async function newPage(t, opts = {}) {
@@ -36,7 +39,7 @@ async function newPage(t, opts = {}) {
   const ctx = await browser.newContext({ locale: opts.locale || 'fr-FR', viewport: opts.mobile ? { width: 390, height: 844 } : { width: 1280, height: 900 },
     ...(opts.mobile ? { deviceScaleFactor: 2, isMobile: true, hasTouch: true } : {}), reducedMotion: opts.reduced ? 'reduce' : 'no-preference' });
   const page = await ctx.newPage();
-  const problems = [], external = [], finds = [];
+  const problems = [], external = [], finds = [], details = [];
   page.on('console', m => { const x = m.text(); if (m.type() === 'error' && !/^Failed to load resource: the server responded with a status of (4\d\d)/.test(x)) problems.push(x); if (/Content Security Policy/i.test(x)) problems.push(x); });
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
   page.on('request', r => { const u = new URL(r.url()); if (!/^(127\.0\.0\.1|localhost)$/.test(u.hostname) && !/^(data|blob):/.test(r.url()) && u.hostname !== 'batfulcvvquffgfeppcx.supabase.co' && u.hostname !== 'image.tmdb.org') external.push(u.hostname); });
@@ -48,13 +51,16 @@ async function newPage(t, opts = {}) {
     if (m) body = { page: 1, results: TMDB[m[1] + ':' + u.searchParams.get('query')] || [] };
     const f = tp.match(/^\/find\/(\d+)$/);
     if (f) { finds.push([f[1], u.searchParams.get('external_source')]); body = { movie_results: [], tv_results: f[1] === '82066' ? [{ id: 1705, name: 'Fringe', original_name: 'Fringe', first_air_date: '2008-09-09', popularity: 60, vote_average: 8, poster_path: '/fr.jpg' }] : [] }; }
+    const mv = tp.match(/^\/movie\/(\d+)$/);
+    if (mv) { details.push(tp); body = mv[1] === '949' ? { id: 949, title: 'Heat', original_title: 'Heat', release_date: '1995-12-15', popularity: 50, vote_average: 7.9, poster_path: '/heat.jpg', genres: [{ id: 80 }] } : {}; }
     const d = tp.match(/^\/tv\/(\d+)$/);
-    if (d) body = { id: +d[1], status: 'Returning Series', number_of_episodes: 30, seasons: [{ season_number: 1, episode_count: 10 }, { season_number: 2, episode_count: 10 }] };
+    if (d) details.push(tp);
+    if (d) body = { id: +d[1], ...(d[1] === '95396' ? { name: 'Severance', original_name: 'Severance', first_air_date: '2022-02-17', popularity: 120, poster_path: '/sev.jpg', origin_country: ['US'] } : {}), status: 'Returning Series', number_of_episodes: 30, seasons: [{ season_number: 1, episode_count: 10 }, { season_number: 2, episode_count: 10 }] };
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
   await page.route('https://image.tmdb.org/**', r => r.fulfill({ status: 404, body: '' }));
   t.after(() => ctx.close());
-  return { page, db, problems, external, finds };
+  return { page, db, problems, external, finds, details };
 }
 async function login(page) {
   await page.click('#syncStatusPill');
@@ -74,7 +80,7 @@ for (const mobile of [false, true]) test('Import RGPD : tutoriel, suivi de la de
   await login(page);
   await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
   await page.click('button[data-v="detectes"]:visible');
-  await page.click('.det-ext-btn');
+  await page.click('.det-ext-btn:not(.det-ext-store)');
   const card = page.locator('.gd-card');
   await card.waitFor();
   assert.match(await card.textContent(), /Pas encore demandé/);
@@ -137,7 +143,7 @@ test('Import RGPD : texte Disney+ collé, anglais, animations réduites', async 
   await page.evaluate(() => { const m = document.getElementById('authMbk'); if (m) m.classList.remove('on'); });
   await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
   await page.click('button[data-v="detectes"]:visible');
-  await page.click('.det-ext-btn');
+  await page.click('.det-ext-btn:not(.det-ext-store)');
   await page.click('.gd-plat.gd-disney');
   assert.match(await page.locator('#gdprView').textContent(), /I made the request/);
   const anim = await page.locator('.gd-steps li').first().evaluate(e => getComputedStyle(e).animationName);
@@ -160,7 +166,7 @@ test('Import TV Time : zip officiel lu localement, série trouvée par id TVDB (
   await login(page);
   await page.locator('button[data-v="detectes"]:visible').waitFor({ state: 'visible' });
   await page.click('button[data-v="detectes"]:visible');
-  await page.click('.det-ext-btn');
+  await page.click('.det-ext-btn:not(.det-ext-store)');
   await page.locator('.gd-plat.gd-tvtime').waitFor();
   assert.match(await page.locator('.gd-plat.gd-tvtime').textContent(), /Service fermé/);
   await page.click('.gd-plat.gd-tvtime');
@@ -201,6 +207,71 @@ test('Import TV Time : zip officiel lu localement, série trouvée par id TVDB (
   const fr = await page.evaluate(() => memDB.find(i => i.title === 'Fringe'));
   assert.deepEqual([fr.tmdbId, fr.saison, fr.episode], [1705, 2, 11]);
   assert.equal(db.detected.length, 0);
+  assert.deepEqual(external, []);
+  assert.deepEqual(problems, []);
+});
+
+test('Import Letterboxd : CSV déposés, homonyme choisi par l\'année, watchlist en « À voir », note sur 10', async t => {
+  const { page, problems, external } = await newPage(t);
+  await page.goto(server.url + '/');
+  await login(page);
+  await page.click('button[data-v="detectes"]:visible');
+  await page.click('.det-ext-btn:not(.det-ext-store)');
+  await page.locator('.gd-plat.gd-letterboxd').waitFor();
+  assert.match(await page.locator('.gd-plat.gd-letterboxd').textContent(), /Export immédiat/);
+  await page.click('.gd-plat.gd-letterboxd');
+  await page.locator('#gdprFile').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('#gdprMbk .gd-prog').count(), 0, 'pas de demande à suivre');
+  assert.equal(await page.locator('#gdprView a.gd-link').getAttribute('href'), 'https://letterboxd.com/settings/data/');
+  await shot(page, '9-letterboxd', '#gdprMbk .gd-modal');
+  await page.locator('#gdprFile').setInputFiles([
+    { name: 'watched.csv', mimeType: 'text/csv', buffer: Buffer.from('Date,Name,Year,Letterboxd URI\n2023-02-01,Dune,1984,https://boxd.it/a2\n') },
+    { name: 'ratings.csv', mimeType: 'text/csv', buffer: Buffer.from('Date,Name,Year,Letterboxd URI,Rating\n2023-02-02,Dune,1984,https://boxd.it/a2,3.5\n') },
+    { name: 'watchlist.csv', mimeType: 'text/csv', buffer: Buffer.from('Date,Name,Year,Letterboxd URI\n2024-01-01,Tenet,2020,https://boxd.it/w1\n') },
+  ]);
+  await page.locator('.gd-res').waitFor();
+  assert.match(await page.locator('.gd-res').textContent(), /2 titres trouvés/);
+  await page.click('#gdprSendBtn');
+  await page.waitForFunction(() => !document.getElementById('gdprMbk').classList.contains('on'));
+  await page.locator('.det-row').nth(1).waitFor();
+  await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche'));
+  assert.match(await page.locator('.det-src-letterboxd').first().textContent(), /Letterboxd/);
+  await page.click('#detAddSelBtn');
+  await page.waitForFunction(() => typeof memDB !== 'undefined' && memDB.filter(i => !i.deleted).length === 2);
+  const got = await page.evaluate(() => memDB.map(i => [i.title, i.tmdbId, i.status, i.myRating]).sort());
+  assert.deepEqual(got, [['Dune', 841, 'termine', 7], ['Tenet', 577922, 'avoir', 0]]);
+  assert.deepEqual(external, []);
+  assert.deepEqual(problems, []);
+});
+
+test('Import Trakt : JSON de l\'API, fiches lues par leur id TMDB (aucune recherche par titre)', async t => {
+  const { page, problems, external, details } = await newPage(t);
+  await page.goto(server.url + '/');
+  await login(page);
+  await page.click('button[data-v="detectes"]:visible');
+  await page.click('.det-ext-btn:not(.det-ext-store)');
+  await page.click('.gd-plat.gd-trakt');
+  await page.locator('#gdprFile').waitFor({ state: 'attached' });
+  const history = [
+    { watched_at: '2024-03-01T20:00:00.000Z', type: 'episode', episode: { season: 1, number: 4 }, show: { title: 'Severance', year: 2022, ids: { tmdb: 95396, tvdb: 371980 } } },
+    { watched_at: '2024-02-01T20:00:00.000Z', type: 'movie', movie: { title: 'Heat', year: 1995, ids: { tmdb: 949 } } },
+  ];
+  const ratings = [{ rated_at: '2024-02-02T00:00:00.000Z', rating: 9, type: 'movie', movie: { title: 'Heat', year: 1995, ids: { tmdb: 949 } } }];
+  await page.locator('#gdprFile').setInputFiles([
+    { name: 'history.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(history)) },
+    { name: 'ratings-movies.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(ratings)) },
+  ]);
+  await page.locator('.gd-res').waitFor();
+  assert.match(await page.locator('.gd-res').textContent(), /2 titres trouvés/);
+  await page.click('#gdprSendBtn');
+  await page.waitForFunction(() => !document.getElementById('gdprMbk').classList.contains('on'));
+  await page.locator('.det-row').nth(1).waitFor();
+  await page.waitForFunction(() => !document.querySelector('#detectedSection').textContent.includes('Recherche de la fiche'));
+  await page.click('#detAddSelBtn');
+  await page.waitForFunction(() => typeof memDB !== 'undefined' && memDB.filter(i => !i.deleted).length === 2);
+  const got = await page.evaluate(() => memDB.map(i => [i.title, i.tmdbId, i.status, i.saison, i.episode, i.myRating]).sort());
+  assert.deepEqual(got, [['Heat', 949, 'termine', null, null, 9], ['Severance', 95396, 'encours', 1, 4, 0]]);
+  assert.ok(details.includes('/movie/949') && details.includes('/tv/95396'), 'fiches lues par id : ' + details.join(' '));
   assert.deepEqual(external, []);
   assert.deepEqual(problems, []);
 });

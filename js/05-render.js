@@ -4,6 +4,7 @@ function getItems(tab,stat,q){
   var items=memDB.slice().filter(function(i){return !i.deleted});
   if(tab&&tab!='all')items=items.filter(function(i){return i.type==tab});
   if(stat&&stat!='all')items=items.filter(function(i){if(stat=='avoir')return i.status=='avoir'||i.status=='todo';return i.status==stat});
+  if(typeof mpFilterItems==='function')items=mpFilterItems(items);
   if(q){var ql=q.toLowerCase();items=items.filter(function(i){return(i.title&&i.title.toLowerCase().indexOf(ql)>-1)||(i.tags&&i.tags.join(' ').toLowerCase().indexOf(ql)>-1)});}
   var so=document.getElementById('sortSel').value;
   items.sort(function(a,b){
@@ -38,7 +39,7 @@ function cardHtml(item,idx){
   var todof=(item.status==='todo'||item.needsConfig)?'<div class="card-todo-flag" title="'+esc(t('status.todo'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>':'';
   var id=item.id;var delay=idx*0.02;
   var nextBtn=(item.status=='encours'&&item.type!='film')?'<div class="ibtn ibtn-next"'+uiAct('quickNextEp',[id])+' title="'+esc(t('card.nextEp'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>':'';
-  return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s" data-sfx-hover'+uiAct('openPlex',[id])+'>'+newep+todof+po+ph+'<div class="cact">'+nextBtn+'<div class="ibtn"'+uiAct('editEntry',[id])+' title="'+esc(t('common.edit'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del"'+uiAct('delEntry',[id])+' title="'+esc(t('common.delete'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(bidiIso(item.title))+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
+  return '<div class="card" '+(arguments[2]||'')+' style="animation-delay:'+delay+'s"'+uiAct('openPlex',[id])+'>'+newep+todof+po+ph+'<div class="cact">'+nextBtn+'<div class="ibtn"'+uiAct('editEntry',[id])+' title="'+esc(t('common.edit'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="ibtn del"'+uiAct('delEntry',[id])+' title="'+esc(t('common.delete'))+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div></div><div class="card-body"><div class="card-title">'+esc(bidiIso(item.title))+'</div><div class="card-meta">'+tbadge(item.type)+sbadge(item.status)+'</div><div style="display:flex;align-items:center;gap:4px">'+sc+mr+'</div>'+ep+'</div>'+prog+'</div>';
 }
 
 /* Session 11B : estimation du nombre de colonnes réelles de la grille principale,
@@ -245,7 +246,7 @@ function render(opts){
   _secSeq=0;
   /* Même vue qu'au rendu précédent (onglet, filtre, recherche, tri, mode compact, langue) : c'est une mise à
      jour des données (synchro, épisode suivant, détection de sagas…), donc rendu discret, sans animation. */
-  var viewKey=[tab,stat,q,sortBy,compactOn?1:0,document.documentElement.lang].join('|');
+  var viewKey=[tab,stat,q,sortBy,compactOn?1:0,document.documentElement.lang,typeof mpFilterOn==='function'&&mpFilterOn()?1:0].join('|');
   if(viewKey===_lastViewKey)quiet=true;
   _lastViewKey=viewKey;
 
@@ -260,7 +261,7 @@ function render(opts){
         var epct=_seasonProgressPct(item);
         var pb=epct!=null?'<div class="pbar"><div class="pbar-fill" style="width:'+epct+'%"></div></div>':'';
         var nextBtn=item.type!='film'?'<button class="ec-next" title="'+esc(t('card.nextEp'))+'" '+uiAct('quickNextEp',[item.id])+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>':'';
-        html+='<div class="ec-card" data-sfx-hover'+uiAct('openPlex',[item.id])+'>'+po+ph+nextBtn+'<div class="ec-body"><div class="ec-title">'+esc(bidiIso(item.title))+'</div><div class="ec-ep">'+epT+'</div>'+pb+'</div></div>';
+        html+='<div class="ec-card"'+uiAct('openPlex',[item.id])+'>'+po+ph+nextBtn+'<div class="ec-body"><div class="ec-title">'+esc(bidiIso(item.title))+'</div><div class="ec-ep">'+epT+'</div>'+pb+'</div></div>';
       });
       html+='</div></div>';
     }

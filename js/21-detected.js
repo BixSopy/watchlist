@@ -41,12 +41,19 @@ var DET_CORE=(function(){
     (rows||[]).forEach(function(r){
       if(!r||r.state!=='pending'||!r.normalized_title)return;
       var kind=r.media_type==='movie'?'movie':'show';
-      var key=kind+':'+r.normalized_title;
+      /* Année connue (exports Letterboxd / Trakt) : deux films homonymes restent deux groupes */
+      var key=kind+':'+r.normalized_title+(r.year!=null&&kind==='movie'?'|'+r.year:'');
       var g=by[key];
       if(!g){g=by[key]={key:key,kind:kind,norm:r.normalized_title,title:r.raw_title,ids:[],sources:[],progress:null,lastMs:null,unknownProgress:false};order.push(key);}
       g.ids.push(r.id);
       if(r.tvdb_id!=null&&g.tvdb==null&&kind==='show')g.tvdb=r.tvdb_id;/* import TV Time : id TVDB de la série */
+      if(r.tmdb_id!=null&&g.tmdb==null)g.tmdb=r.tmdb_id;/* import Trakt : id TMDB exact */
+      if(r.year!=null&&g.year==null)g.year=r.year;
+      if(r.rating!=null)g.rating=r.rating;
       if(g.sources.indexOf(r.source)<0)g.sources.push(r.source);
+      /* « À voir » (watchlist) : seulement si aucune ligne du groupe n'est un visionnage */
+      if(r.want){if(g.want==null)g.want=true;return;}
+      g.want=false;
       var w=ms(r.watched_at);
       if(w!==null&&(g.lastMs===null||w>g.lastMs)){g.lastMs=w;g.title=r.raw_title;}
       if(kind==='show'){
@@ -55,18 +62,21 @@ var DET_CORE=(function(){
         }else g.unknownProgress=true;
       }
     });
-    return order.map(function(k){var g=by[k];if(g.progress)g.unknownProgress=false;return g;})
+    return order.map(function(k){var g=by[k];if(g.progress)g.unknownProgress=false;if(g.want===false)delete g.want;return g;})
       .sort(function(a,b){return(b.lastMs||0)-(a.lastMs||0);});
   }
 
   /* ---------- Correspondance avec la liste ---------- */
   function typeOk(kind,item){return kind==='movie'?item.type==='film':(item.type==='serie'||item.type==='anime');}
+  /* Années connues des deux côtés et trop éloignées : homonyme, pas le même titre */
+  function yearOk(group,y){var a=parseInt(group.year,10),b=parseInt(y,10);return !(a>0&&b>0&&Math.abs(a-b)>1);}
   function listMatches(group,items){
-    return(items||[]).filter(function(it){return it&&!it.deleted&&typeOk(group.kind,it)&&normalizeTitle(it.title||'')===group.norm;});
+    return(items||[]).filter(function(it){return it&&!it.deleted&&typeOk(group.kind,it)&&normalizeTitle(it.title||'')===group.norm&&yearOk(group,it.year);});
   }
   /* La détection fait-elle avancer ce titre ? Un titre terminé reste terminé (revisionnage). */
   function movesForward(item,group){
     if(item.status==='termine')return false;
+    if(group.want)return false;/* « à voir » : déjà dans la liste, rien à faire avancer */
     if(group.kind==='movie')return true;
     var p=group.progress;
     if(!p)return false;
@@ -158,6 +168,13 @@ var DET_CORE=(function(){
       genreIds:r.genre_ids||[],originCountry:r.origin_country||[]};
   }
   /* Réponse de /find (id TVDB) -> candidats exacts (match 1) ; vide si TMDB ne connaît pas l'id */
+  /* Fiche TMDB lue par son id (import Trakt) -> candidat exact */
+  function detailsCandidate(group,d){
+    if(!d||!d.id)return [];
+    var c=toCandidate(group,Object.assign({media_type:group.kind==='movie'?'movie':'tv'},d,{genre_ids:d.genre_ids||(d.genres||[]).map(function(x){return x&&x.id;}).filter(Boolean)}));
+    if(!c)return [];
+    c.match=1;c.manual=false;c.exact=true;return [c];
+  }
   function findCandidates(group,d){
     var res=(group.kind==='movie'?(d&&d.movie_results):(d&&d.tv_results))||[];
     return res.slice(0,1).map(function(r){var c=toCandidate(group,Object.assign({media_type:group.kind==='movie'?'movie':'tv'},r));if(c){c.match=1;c.manual=false;c.exact=true;}return c;}).filter(Boolean);
@@ -183,6 +200,7 @@ var DET_CORE=(function(){
       if(!c.title)return;
       c.match=similarity(group.norm,c,opts.manual?alts.concat([{n:normalizeTitle(opts.query||''),w:1}]):alts);
       if(c.tmdbType!==wanted)c.match=Math.max(0,c.match-0.04);
+      if(!yearOk(group,c.year))c.match=Math.max(0,c.match-0.2);/* même titre, autre année : un homonyme */
       c.manual=!!opts.manual;
       if(opts.manual||c.match>=MATCH_LOW)out.push(c);
     });
@@ -265,13 +283,19 @@ var DET_CORE=(function(){
        de TMDB, l'utilisateur vérifie avant d'ajouter ou de mettre à jour */
     if(group.kind==='show'&&group.progress&&group.progress.src==='crunchyroll')return false;
     if(c.kind==='update')return group.kind==='movie'||!!group.progress;
-    return c.kind==='new'&&!!c.cand&&c.unambiguous===true&&(group.kind==='movie'||!!group.progress);
+    return c.kind==='new'&&!!c.cand&&c.unambiguous===true&&(group.kind==='movie'||!!group.progress||!!group.want);
   }
   function filterOf(c){return c.kind==='update'?'updates':c.kind==='uptodate'?'uptodate':c.kind==='ambiguous'?'ambiguous':'new';}
 
   /* Champs d'un nouveau titre, comme un ajout manuel (série « en cours » au dernier épisode vu,
      « terminé » si c'est le dernier épisode d'une série finie ; film « terminé ») */
   function newEntryFields(group,cand,details){
+    var f=_newEntryFields(group,cand,details);
+    if(group.rating>=1&&group.rating<=10)f.myRating=group.rating;/* note Letterboxd / Trakt, sur 10 */
+    return f;
+  }
+  function _newEntryFields(group,cand,details){
+    if(group.want)return{type:cand.tmdbType==='movie'?'film':(isAnime(cand)?'anime':'serie'),status:'avoir',saison:null,episode:null,totalEp:null,animeGenre:'',watchedAt:null};
     if(cand.tmdbType==='movie')return{type:'film',status:'termine',saison:null,episode:null,totalEp:null,animeGenre:'',watchedAt:group.lastMs||null};
     var anime=isAnime(cand),p=group.progress;
     var finished=!!p&&isSeriesFinished(p,details);
@@ -290,7 +314,7 @@ var DET_CORE=(function(){
   }
 
   return{normalizeTitle:normalizeTitle,groupRows:groupRows,furthest:furthest,listMatches:listMatches,movesForward:movesForward,
-    itemByTmdb:itemByTmdb,levenshtein:levenshtein,similarity:similarity,rankCandidates:rankCandidates,findCandidates:findCandidates,isUnambiguous:isUnambiguous,
+    itemByTmdb:itemByTmdb,levenshtein:levenshtein,similarity:similarity,rankCandidates:rankCandidates,findCandidates:findCandidates,detailsCandidate:detailsCandidate,yearOk:yearOk,isUnambiguous:isUnambiguous,
     cleanSearchTitle:cleanSearchTitle,searchQueries:searchQueries,lookupPlan:lookupPlan,goodEnough:goodEnough,
     isAnime:isAnime,isSeriesFinished:isSeriesFinished,classify:classify,actionable:actionable,defaultChecked:defaultChecked,
     filterOf:filterOf,newEntryFields:newEntryFields,updateFields:updateFields};
@@ -367,7 +391,7 @@ function updateDetectedBadge(){
 }
 
 /* ---------- Recherche TMDB des titres absents (proxy du site, quota du compte) ---------- */
-function _detCacheKey(g){return DET_CACHE_PREFIX+TMDB_LANG+':'+g.kind+':'+g.norm;}
+function _detCacheKey(g){return DET_CACHE_PREFIX+TMDB_LANG+':'+g.kind+':'+g.norm+(g.year?':'+g.year:'')+(g.tmdb?':#'+g.tmdb:'');}
 function _detCacheGet(g){
   try{var v=sessionStorage.getItem(_detCacheKey(g));return v?JSON.parse(v):null;}catch(e){return null;}
 }
@@ -394,6 +418,14 @@ function _detQueueLookups(){
 /* Recherches successives d'un titre (DET_CORE.lookupPlan) jusqu'à une fiche assez ressemblante */
 function _detLookup(g){
   var plan=DET_CORE.lookupPlan(g,TMDB_LANG),ranked=[],i=0;
+  /* Id TMDB connu (import Trakt) : la fiche elle-même, correspondance exacte ; repli sur le titre */
+  if(g.tmdb!=null&&/^\d{1,9}$/.test(String(g.tmdb))&&DET.requests<DET_REQ_MAX&&!DET.stopped){
+    DET.requests++;
+    return tf(TB+'/'+(g.kind==='movie'?'movie':'tv')+'/'+g.tmdb+'?language='+encodeURIComponent(TMDB_LANG||'fr-FR')).then(function(d){
+      var exact=DET_CORE.detailsCandidate(g,d);
+      return exact.length?exact:next();
+    },function(err){if(err&&err.status===429)throw err;return next();});
+  }
   /* Id TVDB connu (import TV Time) : /find d'abord, correspondance exacte ; repli sur la recherche par titre */
   if(g.tvdb!=null&&/^\d{1,9}$/.test(String(g.tvdb))&&DET.requests<DET_REQ_MAX&&!DET.stopped){
     DET.requests++;
@@ -486,9 +518,9 @@ function onDetectedTabHidden(){
 }
 if(typeof window!=='undefined')window.addEventListener('hashchange',function(){if(location.hash==='#detectes')openDetectedTab();});
 
-var DET_SOURCE_KEY={netflix:'det.src.netflix',netflix_csv:'det.src.netflixCsv',live:'det.src.live',crunchyroll:'det.src.crunchyroll',prime:'det.src.prime',disney_gdpr:'det.src.disneyGdpr',apple_gdpr:'det.src.appleGdpr',tvtime_gdpr:'det.src.tvtime'};
+var DET_SOURCE_KEY={netflix:'det.src.netflix',netflix_csv:'det.src.netflixCsv',live:'det.src.live',crunchyroll:'det.src.crunchyroll',prime:'det.src.prime',disney_gdpr:'det.src.disneyGdpr',apple_gdpr:'det.src.appleGdpr',tvtime_gdpr:'det.src.tvtime',letterboxd_export:'det.src.letterboxd',trakt_export:'det.src.trakt'};
 /* Pastille par plateforme (couleurs dans index.html : .det-src-*) */
-var DET_SOURCE_CLS={netflix:'netflix',netflix_csv:'netflix',live:'live',crunchyroll:'crunchyroll',prime:'prime',disney_gdpr:'disney',apple_gdpr:'apple',tvtime_gdpr:'tvtime'};
+var DET_SOURCE_CLS={netflix:'netflix',netflix_csv:'netflix',live:'live',crunchyroll:'crunchyroll',prime:'prime',disney_gdpr:'disney',apple_gdpr:'apple',tvtime_gdpr:'tvtime',letterboxd_export:'letterboxd',trakt_export:'trakt'};
 function _detEp(p){return p?(p.approx?'≈ ':'')+'S'+pad(p.season)+' E'+pad(p.episode):'';}
 function _detListProgress(it){
   if(it.status==='termine')return t('status.termine');
@@ -595,7 +627,7 @@ function renderDetected(){
   var selectable=vis.filter(function(x){return DET_CORE.actionable(x.g,x.c);});
   var allOn=selectable.length>0&&selectable.every(function(x){return _detSel(x.g.key).checked;});
   var filters=['all','new','updates','ambiguous'].map(function(f){
-    return '<button type="button" class="stab'+(DET.filter===f?' on':'')+'" data-sfx-hover'+uiAct('detFilter',[f])+'>'+esc(t('det.filter.'+f))+' <span class="det-n">'+fmtNum(counts[f])+'</span></button>';
+    return '<button type="button" class="stab'+(DET.filter===f?' on':'')+'"'+uiAct('detFilter',[f])+'>'+esc(t('det.filter.'+f))+' <span class="det-n">'+fmtNum(counts[f])+'</span></button>';
   }).join('');
   var busy=DET.busy?' disabled':'';
   var ae=document.activeElement,focusKey=ae&&ae.classList&&ae.classList.contains('det-q')?ae.getAttribute('data-key'):null;

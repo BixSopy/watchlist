@@ -23,12 +23,13 @@ https://watchlist-omega-three.vercel.app continue de fonctionner).
 - 🌙 Dark mode OLED (`#0a0a0c`)
 - 🔍 Search modal avec 3 filtres (type, tri, année)
 - 🎯 Notation bloquée sur statut "À voir"
-- 🔊 Sons d'interface (désactivables, touche `M`, volume réglable) : fichiers courts dans `sounds/` + synthèse Web Audio
+- 🔊 Sons d'interface (désactivables, touche `M`, volume réglable) : 9 fichiers courts dans `sounds/`, aucun son de survol
 
-**Crédits sons** : `sounds/open.mp3`, `close.mp3`, `add.mp3`, `done.mp3` — [Kenney](https://kenney.nl) Interface Sounds
-(maximize_008, minimize_008, confirmation_001, confirmation_004), licence CC0 ; `sounds/del.mp3`, `err.mp3` —
-[Mixkit](https://mixkit.co) (n° 1120 « Modern click box check », n° 2569 « Negative tone interface tap »), licence
-gratuite Mixkit (sans attribution obligatoire). Les autres sons (clic, survol, épisode suivant, alerte) sont synthétisés.
+**Crédits sons** : `sounds/click.mp3`, `open.mp3`, `close.mp3`, `next.mp3`, `toast.mp3` — [SND](https://snd.dev), kit 01
+« Sine » par Yasuhiro Tsuchiya (tap_01, transition_up, transition_down, button, notification) : utilisation gratuite,
+commerciale comprise, droits d'auteur conservés par le sound designer ; `sounds/done.mp3`, `err.mp3`, `del.mp3` —
+créés pour Cinepisode (synthèse modale rendue hors ligne, `scripts/sounds-maison.py`) ; `sounds/add.mp3` —
+[Kenney](https://kenney.nl) Interface Sounds (confirmation_001), licence CC0. Tous normalisés au même niveau par rôle.
 
 ## 🛠 Tech Stack
 

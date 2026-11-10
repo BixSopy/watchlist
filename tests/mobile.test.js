@@ -69,7 +69,7 @@ function syncSandbox(remoteRows, localItems) {
   const calls = { render: [], suivi: 0 };
   const ctx = {
     console, Date, JSON, Promise, setTimeout, setInterval() { return 1; }, clearInterval() {},
-    document: { getElementById: () => null },
+    document: { getElementById: () => null, addEventListener() {} },
     navigator: { onLine: true }, memDB: localItems,
     render(o) { calls.render.push(o || null); }, renderSuivi() { calls.suivi++; },
     dbPut(e, cb) { cb && cb(); }, toast() {}, t: k => k, _logErr(...a) { calls.err = a; }, refreshAuthModalView() {},

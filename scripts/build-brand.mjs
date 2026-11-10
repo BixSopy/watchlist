@@ -446,11 +446,21 @@ function buildApp(out) {
     if (!html.includes('<!--brand:' + name + '-->')) throw new Error('index.html : bloc <!--brand:' + name + '--> introuvable');
     html = html.replace(re, () => '<!--brand:' + name + '-->' + content + '<!--/brand:' + name + '-->');
   }
-  /* Dictionnaires chargés avant js/00-i18n.js (ordre : langue par défaut, puis alphabétique) */
+  /* Dictionnaires : un seul script synchrone, js/00-i18n-load.js, qui choisit la langue puis n'écrit que
+     les balises des dictionnaires utiles (langue active + repli), avant js/00-i18n.js */
   const i18nRe = /<!--i18n:scripts-->[\s\S]*?<!--\/i18n:scripts-->/;
   if (!i18nRe.test(html)) throw new Error('index.html : bloc <!--i18n:scripts--> introuvable');
-  html = html.replace(i18nRe, () => '<!--i18n:scripts-->\n' + LANGS.map(l => `<script defer src="js/i18n/${l}.js"></script>`).join('\n') + '\n<!--/i18n:scripts-->');
+  html = html.replace(i18nRe, () => '<!--i18n:scripts-->\n<script src="js/00-i18n-load.js"></script>\n<!--/i18n:scripts-->');
   out['index.html'] = html;
+
+  /* Liste des langues du chargeur : nom, ordre du sélecteur, sens de lecture (tirés des $meta) */
+  let loader = read('js/00-i18n-load.js');
+  const langsRe = /\/\*i18n:langs\*\/[\s\S]*?\/\*\/i18n:langs\*\//;
+  if (!langsRe.test(loader)) throw new Error('js/00-i18n-load.js : bloc /*i18n:langs*/ introuvable');
+  const langList = {};
+  for (const l of LANGS) { const m = langMeta(l); langList[l] = { name: m.name, rank: m.rank || 99, dir: m.dir === 'rtl' ? 'rtl' : 'ltr' }; }
+  loader = loader.replace(langsRe, () => '/*i18n:langs*/' + JSON.stringify(langList) + '/*/i18n:langs*/');
+  out['js/00-i18n-load.js'] = loader;
 
   /* Variables de marque : feuille externe css/app.css (cf. <link> dans index.html), pas inline
      dans la page — mise en cache séparément du HTML, qui change beaucoup plus souvent. */

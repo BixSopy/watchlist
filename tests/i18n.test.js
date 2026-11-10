@@ -111,16 +111,53 @@ test('aucune variable locale ne s\'appelle t (elle masquerait la fonction de tra
   assert.deepStrictEqual(bad, []);
 });
 
-test('index.html charge les dictionnaires puis js/00-i18n.js, après tout le balisage traduit', () => {
+test('index.html : le chargeur de langues (synchrone) précède js/00-i18n.js, après tout le balisage traduit', () => {
   const html = read('index.html');
   const pos = s => { const i = html.indexOf(s); assert.ok(i >= 0, s); return i; };
   const foot = pos('<!--/brand:footer-->');
   const brand = pos('<script defer src="js/00-brand.js">');
+  const loader = pos('<script src="js/00-i18n-load.js"></script>');
   const i18n = pos('<script defer src="js/00-i18n.js">');
-  assert.ok(foot < brand && brand < i18n, 'scripts après le pied de page');
-  for (const l of LANGS) { const p = pos('<script defer src="js/i18n/' + l + '.js">'); assert.ok(brand < p && p < i18n, l); }
+  assert.ok(foot < brand && brand < loader && loader < i18n);
+  assert.doesNotMatch(html, /src="js\/i18n\/[a-z]{2}\.js"/, 'plus aucun dictionnaire chargé en dur');
   assert.ok(i18n < pos('<script defer src="js/01-config.js">'));
   assert.ok(html.lastIndexOf('data-i18n') < i18n, 'aucun élément traduit après les scripts');
+});
+
+/* Exécute le chargeur dans un faux navigateur : renvoie la langue choisie et les dictionnaires écrits */
+function runLoader({ search = '', pathname = '/', saved = null, langs = ['fr-FR'] } = {}) {
+  const store = saved ? { wl_lang: saved } : {};
+  let written = '';
+  const ctx = { URLSearchParams, location: { search, pathname }, navigator: { languages: langs },
+    localStorage: { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = v; } },
+    document: { write: s => { written += s; } } };
+  vm.createContext(ctx);
+  vm.runInContext(read('js/00-i18n-load.js') + '\nthis.__lang=LANG;this.__langs=I18N_LANGS;', ctx);
+  return { lang: ctx.__lang, langs: JSON.parse(JSON.stringify(ctx.__langs)), files: [...written.matchAll(/src="js\/i18n\/([a-z]{2})\.js"/g)].map(m => m[1]), store };
+}
+
+test('chargeur : liste des langues = $meta de chaque dictionnaire (nom, ordre, sens)', () => {
+  const { langs } = runLoader();
+  assert.deepStrictEqual(Object.keys(langs).sort(), LANGS);
+  for (const l of LANGS) {
+    const m = DICTS[l].$meta;
+    assert.deepStrictEqual(langs[l], { name: m.name, rank: m.rank || 99, dir: m.dir === 'rtl' ? 'rtl' : 'ltr' }, l);
+  }
+});
+
+test('chargeur : même règle de choix qu\'avant, et seulement la langue active + anglais + français', () => {
+  assert.strictEqual(runLoader({ langs: ['fr-FR'] }).lang, 'fr');
+  assert.deepStrictEqual(runLoader({ langs: ['fr-FR'] }).files, ['fr', 'en']);
+  assert.deepStrictEqual(runLoader({ langs: ['en-US'] }).files, ['en', 'fr']);
+  const ru = runLoader({ langs: ['ru-RU', 'fr'] });
+  assert.strictEqual(ru.lang, 'ru');
+  assert.deepStrictEqual(ru.files, ['ru', 'en', 'fr']);
+  assert.strictEqual(runLoader({ langs: ['xx', 'de-DE'] }).lang, 'en', 'langue inconnue : anglais');
+  assert.strictEqual(runLoader({ saved: 'zh', langs: ['fr'] }).lang, 'zh', 'choix enregistré avant le navigateur');
+  const forced = runLoader({ search: '?lang=ar', saved: 'zh' });
+  assert.strictEqual(forced.lang, 'ar', '?lang= avant le choix enregistré');
+  assert.strictEqual(forced.store.wl_lang, 'ar', 'et mémorisé');
+  assert.strictEqual(runLoader({ pathname: '/en', langs: ['fr'] }).lang, 'en', '/en dans l\'adresse');
 });
 
 test('TMDB est interrogé dans la langue et le pays de l\'interface', () => {
@@ -154,9 +191,10 @@ function engine(lang) {
     navigator: { languages: [lang], language: lang },
     BRAND: { legal: {}, defaultLang: 'fr', baseUrl: 'http://x', name: 'Cinepisode' },
     esc: s => String(s),
-    document: { documentElement: { set lang(v) { attrs.lang = v; }, set dir(v) { attrs.dir = v; } }, querySelector: () => null, querySelectorAll: () => [] },
+    document: { documentElement: { set lang(v) { attrs.lang = v; }, set dir(v) { attrs.dir = v; } }, querySelector: () => null, querySelectorAll: () => [], write() {} },
   };
   vm.createContext(ctx);
+  vm.runInContext(read('js/00-i18n-load.js'), ctx);
   for (const l of LANGS) vm.runInContext(read('js/i18n/' + l + '.js'), ctx);
   vm.runInContext(read('js/00-i18n.js') + '\nthis.__t=t;this.__tn=tn;this.__rtl=IS_RTL;', ctx);
   return { t: ctx.__t, tn: ctx.__tn, rtl: ctx.__rtl, attrs };
