@@ -10,6 +10,8 @@
    Formats : Apple « Video Play Activity.csv » (dans « Apple Media Services information », zip
    imbriqué) — colonnes détectées de façon souple ; Disney+ : section « Titles Watched » (profil,
    titre, date) d'après des exports publiés, format non documenté → lecture « au mieux ».
+   Letterboxd et Trakt (direct) : l'export se télécharge tout de suite, pas de demande à suivre ;
+   Letterboxd = CSV (films, notes, watchlist), Trakt = JSON de l'API (films, épisodes, ids TMDB).
    Le cœur (GDPR_CORE) est pur, sans DOM : testé par tests/gdpr-import.test.js. */
 var GDPR_CORE=(function(){
   var DAY=86400000;
@@ -17,8 +19,13 @@ var GDPR_CORE=(function(){
     apple:{id:'apple',name:'Apple TV',source:'apple_gdpr',url:'https://privacy.apple.com/',delayDays:7,steps:5},
     disney:{id:'disney',name:'Disney+',source:'disney_gdpr',url:'https://privacy.thewaltdisneycompany.com/en/current-privacy-policy/data-subject-rights-portal/',delayDays:30,steps:5},
     /* Service fermé : plus de demande possible, on importe l'export déjà gardé (closed) */
-    tvtime:{id:'tvtime',name:'TV Time',source:'tvtime_gdpr',url:null,delayDays:0,steps:0,closed:true}
+    tvtime:{id:'tvtime',name:'TV Time',source:'tvtime_gdpr',url:null,delayDays:0,steps:0,closed:true},
+    /* Export immédiat (direct) : pas de demande à suivre, le fichier se télécharge tout de suite */
+    letterboxd:{id:'letterboxd',name:'Letterboxd',source:'letterboxd_export',url:'https://letterboxd.com/settings/data/',site:'letterboxd.com',delayDays:0,steps:0,direct:true},
+    trakt:{id:'trakt',name:'Trakt',source:'trakt_export',url:'https://trakt.tv/settings/data',site:'trakt.tv',delayDays:0,steps:0,direct:true}
   };
+  /* Sans délai d'attente : service fermé (export gardé) ou export téléchargeable tout de suite */
+  function instant(p){return !!(PLATFORMS[p]&&(PLATFORMS[p].closed||PLATFORMS[p].direct));}
 
   /* ---------- CSV (guillemets, BOM, séparateur , ; ou tabulation) ---------- */
   function parseCsv(text){
@@ -274,6 +281,122 @@ var GDPR_CORE=(function(){
     return out;
   }
 
+  /* ---------- Letterboxd (films uniquement) ----------
+     Export « Settings → Data → Export your data » : un .zip de CSV (en-têtes Date, Name, Year,
+     Letterboxd URI ; diary.csv ajoute Rating, Rewatch, Tags, Watched Date). Lus : watched.csv (tous
+     les films vus), diary.csv (dates de visionnage, notes), ratings.csv (note actuelle, 0,5 à 5
+     étoiles → ×2 sur l'échelle /10 de l'app), watchlist.csv (films à voir). Ignorés : reviews,
+     likes, lists, comments et les dossiers deleted/ et orphaned/. Aucun id TMDB dans l'export :
+     correspondance par titre ET année. */
+  function lbRating(v){var n=num(v);return n!=null&&n>0&&n<=5?Math.round(n*2):null;}
+  function lbYear(v){var y=ttInt(v);return y!=null&&y>=1870&&y<=2100?y:null;}
+  function parseLetterboxd(objs,file){
+    var b=String(file||'').split('/').pop().toLowerCase(),out=[];
+    var kind=/^watchlist/.test(b)?'want':/^ratings/.test(b)?'rating':/^diary/.test(b)?'diary':/^watched/.test(b)?'watched':null;
+    if(!kind)return out;
+    (objs||[]).forEach(function(o){
+      var title=pick(o,['name','title','film']);if(!title)return;
+      var ev={title:title,type:'movie',season:null,episode:null,watchedAt:null,pct:null,tvdb:null,year:lbYear(pick(o,['year']))};
+      if(kind==='want')ev.want=true;
+      else if(kind==='rating'){ev.rating=lbRating(pick(o,['rating']));ev.ratingOnly=true;if(ev.rating==null)return;}
+      else{
+        ev.watchedAt=toMs(pick(o,kind==='diary'?['watched date','date']:['date']));
+        if(kind==='diary'){var r=lbRating(pick(o,['rating']));if(r!=null)ev.rating=r;}
+      }
+      out.push(ev);
+    });
+    return out;
+  }
+
+  /* ---------- Trakt (films et séries, ids TMDB fournis) ----------
+     Export de « Settings → Data » ou d'un outil de sauvegarde : JSON au format de l'API Trakt
+     (sync/history, sync/watched, sync/ratings, sync/watchlist). Lecture par la forme des objets :
+     {watched_at, type:'episode', episode:{season,number}, show:{title,year,ids}} (historique),
+     {last_watched_at, show, seasons:[{number, episodes:[{number,last_watched_at}]}]} (séries vues),
+     {last_watched_at|plays, movie} (films vus), {listed_at, movie|show} (liste « à voir », seulement
+     dans un fichier ou une clé « watchlist »), {rating, rated_at, movie|show} (notes /10). Ignorés :
+     collection, listes personnelles, commentaires, favoris, réglages. */
+  function tkIds(x){var i=(x&&x.ids)||{},n=function(v){return v!=null&&/^\d{1,9}$/.test(String(v))?+v:null;};return{tmdb:n(i.tmdb),tvdb:n(i.tvdb)};}
+  function tkMedia(x,type){
+    if(!x||typeof x!=='object'||!x.title)return null;
+    var ids=tkIds(x);
+    return{title:String(x.title),type:type,season:null,episode:null,watchedAt:null,pct:null,
+      tvdb:type==='show'?ids.tvdb:null,tmdb:ids.tmdb,year:lbYear(x.year)};
+  }
+  function tkInt(v){return Number.isInteger(v)?v:ttInt(v);}
+  function parseTrakt(v,file){
+    var out=[],fname=String(file||'').toLowerCase();
+    function walk(x,path){
+      if(Array.isArray(x)){x.forEach(function(y){walk(y,path);});return;}
+      if(!x||typeof x!=='object')return;
+      if(/collection|comment|favorite|setting|recommend|hidden|lists\b|\blist\b/.test(path)&&!/watchlist/.test(path))return;
+      var want=/watchlist/.test(path),ev;
+      if(x.show&&Array.isArray(x.seasons)){
+        var base=tkMedia(x.show,'show');if(!base)return;
+        x.seasons.forEach(function(s){((s&&s.episodes)||[]).forEach(function(e){
+          var se=tkInt(s.number),ep=tkInt(e&&e.number);if(se==null||ep==null)return;
+          out.push(Object.assign({},base,{season:se,episode:ep,watchedAt:toMs(e.last_watched_at)||toMs(x.last_watched_at)}));
+        });});
+        return;
+      }
+      var hasMedia=x.movie||x.show||x.episode;
+      if(hasMedia&&x.rating!=null&&(x.rated_at||x.type)){
+        var rt=x.type==='movie'||(!x.type&&x.movie)?'movie':x.type==='show'||(!x.type&&x.show&&!x.episode)?'show':null;
+        var rn=tkInt(x.rating);
+        if(rt&&rn!=null&&rn>=1&&rn<=10){ev=tkMedia(rt==='movie'?x.movie:x.show,rt);if(ev){ev.rating=rn;ev.ratingOnly=true;out.push(ev);}}
+        return;
+      }
+      if(hasMedia&&x.listed_at){
+        if(!want)return;
+        var wt=x.movie?'movie':x.show?'show':null;
+        ev=wt&&tkMedia(wt==='movie'?x.movie:x.show,wt);if(ev){ev.want=true;out.push(ev);}
+        return;
+      }
+      if(x.episode&&x.show&&(x.watched_at||x.type==='episode')){
+        ev=tkMedia(x.show,'show');if(!ev)return;
+        ev.season=tkInt(x.episode.season);ev.episode=tkInt(x.episode.number);ev.watchedAt=toMs(x.watched_at);
+        out.push(ev);return;
+      }
+      if(x.movie&&(x.watched_at||x.last_watched_at||x.plays)){
+        ev=tkMedia(x.movie,'movie');if(!ev)return;
+        ev.watchedAt=toMs(x.watched_at||x.last_watched_at);out.push(ev);return;
+      }
+      Object.keys(x).forEach(function(k){if(x[k]&&typeof x[k]==='object')walk(x[k],path+'/'+k.toLowerCase());});
+    }
+    walk(v,fname);
+    return out;
+  }
+  /* Letterboxd et Trakt : une entrée par film/épisode ; note rattachée au titre (la plus récente :
+     ratings.csv / notes Trakt d'abord, puis le journal) ; « à voir » seulement si jamais vu. */
+  function mergeExport(events){
+    var tkey=function(e){return e.type+'|'+(e.tmdb!=null?'#'+e.tmdb:low(e.title)+'|'+(e.year||''));};
+    var rating={},seen={},by={},out=[];
+    (events||[]).forEach(function(e){
+      if(!e||!e.title)return;
+      var tk=tkey(e);
+      if(e.rating!=null&&(e.ratingOnly||rating[tk]==null))rating[tk]=e.rating;
+      if(!e.ratingOnly&&!e.want)seen[tk]=1;
+    });
+    (events||[]).forEach(function(e){
+      if(!e||!e.title||e.ratingOnly)return;
+      var tk=tkey(e);
+      if(e.want&&seen[tk])return;
+      var k=tk+'|'+(e.want?'want':e.season+'|'+e.episode);
+      var prev=by[k];
+      if(prev){if(e.watchedAt!=null&&(prev.watchedAt==null||e.watchedAt>prev.watchedAt))prev.watchedAt=e.watchedAt;return;}
+      var c=Object.assign({},e);delete c.ratingOnly;
+      if(rating[tk]!=null)c.rating=rating[tk];else delete c.rating;
+      by[k]=c;out.push(c);
+    });
+    /* Note seule (titre noté mais absent du reste de l'export) : compté comme vu */
+    Object.keys(rating).forEach(function(tk){
+      if(out.some(function(e){return tkey(e)===tk;}))return;
+      var src=(events||[]).filter(function(e){return e&&e.ratingOnly&&tkey(e)===tk;})[0];
+      if(src){var c=Object.assign({},src);delete c.ratingOnly;out.push(c);}
+    });
+    return out;
+  }
+
   /* ---------- Fichier texte → événements ---------- */
   function looksCsv(text){var f=String(text).replace(/^\uFEFF/,'').split(/\r?\n/,1)[0]||'';return /[,;\t]/.test(f)&&/(name|title|titre|date)/i.test(f);}
   function parseText(platform,name,text){
@@ -282,6 +405,8 @@ var GDPR_CORE=(function(){
       if(/\.json$/.test(n)||/^\s*[[{]/.test(text)){try{return parseTvTimeJson(JSON.parse(text),n);}catch(e){return [];}}
       return parseTvTimeObjs(parseCsv(text),n);
     }
+    if(platform==='letterboxd')return parseLetterboxd(parseCsv(text),n);
+    if(platform==='trakt'){try{return parseTrakt(JSON.parse(String(text).replace(/^\uFEFF/,'')),n);}catch(e){return [];}}
     if(/\.json$/.test(n)||/^\s*[[{]/.test(text)){
       try{var arrs=walkJson(JSON.parse(text),[]);var ev=[];arrs.forEach(function(a){ev=ev.concat(platform==='apple'?parseApple(a):parseDisneyObjs(a));});return ev;}catch(e){}
     }
@@ -292,6 +417,8 @@ var GDPR_CORE=(function(){
   function wanted(platform,name){
     var b=String(name).split('/').pop().toLowerCase();
     if(/\.zip$/.test(b))return 'zip';
+    if(platform==='letterboxd')return /(^|\/)(deleted|orphaned|lists|likes)\//i.test(name)?null:/^(watched|diary|ratings|watchlist)\.csv$/.test(b)?'text':null;
+    if(platform==='trakt'){var nl=String(name).toLowerCase();return !/\.json$/.test(b)?null:/watchlist/.test(nl)?'text':/(collection|comment|favorite|setting|recommend|hidden|user|profile|stats|lists?\/)/.test(nl)?null:'text';}
     if(platform==='tvtime')return /^(tracking-prod-records(-v2)?|seen_episode|tvtime-(series-episodes|episodes|movies|series))\.(csv|json)$/.test(b)?'text':null;
     if(platform==='apple')return /video play activity|tv app.*(play|activity)|playback activity/.test(b)&&/\.(csv|json)$/.test(b)?'text':null;
     return /(watch|view|titles|histor|playback|visionn)/.test(b)&&/\.(csv|json|txt)$/.test(b)?'text':(/\.pdf$/.test(b)?'pdf':null);
@@ -303,9 +430,15 @@ var GDPR_CORE=(function(){
     (events||[]).forEach(function(ev,i){
       if(!ev||!ev.title)return;
       var norm=normalize(ev.title);if(!norm)return;
-      var k=ev.type+'|'+norm+'|'+ev.season+'|'+ev.episode+'|'+ev.watchedAt+'|'+(ev.tvdb||'');if(seen[k])return;seen[k]=1;
-      rows.push({id:null,source:source,raw_title:ev.title,normalized_title:norm,media_type:ev.type==='movie'?'movie':'show',
-        season:ev.season,episode:ev.episode,tvdb_id:ev.tvdb!=null?ev.tvdb:null,watched_at:ev.watchedAt?new Date(ev.watchedAt).toISOString():null,progress_pct:ev.pct,state:'pending'});
+      var k=ev.type+'|'+norm+'|'+ev.season+'|'+ev.episode+'|'+ev.watchedAt+'|'+(ev.tvdb||'')+'|'+(ev.tmdb||'')+'|'+(ev.year||'')+'|'+(ev.want?1:0);if(seen[k])return;seen[k]=1;
+      var row={id:null,source:source,raw_title:ev.title,normalized_title:norm,media_type:ev.type==='movie'?'movie':'show',
+        season:ev.season,episode:ev.episode,tvdb_id:ev.tvdb!=null?ev.tvdb:null,watched_at:ev.watchedAt?new Date(ev.watchedAt).toISOString():null,progress_pct:ev.pct,state:'pending'};
+      /* Champs des exports Letterboxd / Trakt (absents ailleurs : lignes inchangées) */
+      if(ev.tmdb!=null)row.tmdb_id=ev.tmdb;
+      if(ev.year!=null)row.year=ev.year;
+      if(ev.rating!=null)row.rating=ev.rating;
+      if(ev.want)row.want=true;
+      rows.push(row);
     });
     return rows;
   }
@@ -320,17 +453,17 @@ var GDPR_CORE=(function(){
   function status(st,p,now){
     st=st||{};
     if(st.importedAt)return{kind:'imported',at:st.importedAt,count:st.count||0};
-    if(PLATFORMS[p]&&PLATFORMS[p].closed)return{kind:'none'};
+    if(instant(p))return{kind:'none'};
     if(!st.requestedAt)return{kind:'none'};
     var r=readyAt(st,p);
     return{kind:now>=r?'due':'waiting',at:st.requestedAt,readyAt:r,daysLeft:Math.max(0,Math.ceil((r-now)/DAY))};
   }
   function dueReminders(state,now){
-    return Object.keys(PLATFORMS).filter(function(p){if(PLATFORMS[p].closed)return false;var s=status(state&&state[p],p,now);return s.kind==='due'&&!((state[p]||{}).remindedDay===dayKey(now));});
+    return Object.keys(PLATFORMS).filter(function(p){if(instant(p))return false;var s=status(state&&state[p],p,now);return s.kind==='due'&&!((state[p]||{}).remindedDay===dayKey(now));});
   }
   function dayKey(ms){return new Date(ms).toISOString().slice(0,10);}
 
-  return{PLATFORMS:PLATFORMS,parseCsv:parseCsv,parseApple:parseApple,parseDisneyObjs:parseDisneyObjs,parseDisneyText:parseDisneyText,
+  return{PLATFORMS:PLATFORMS,instant:instant,parseLetterboxd:parseLetterboxd,parseTrakt:parseTrakt,mergeExport:mergeExport,parseCsv:parseCsv,parseApple:parseApple,parseDisneyObjs:parseDisneyObjs,parseDisneyText:parseDisneyText,
     parseText:parseText,parseTvTimeObjs:parseTvTimeObjs,parseTvTimeJson:parseTvTimeJson,tvtimeFinalize:tvtimeFinalize,splitEpisode:splitEpisode,toMs:toMs,wanted:wanted,toRows:toRows,summarize:summarize,status:status,readyAt:readyAt,dueReminders:dueReminders,dayKey:dayKey};
 })();
 
@@ -427,12 +560,15 @@ function mbk(){return document.getElementById('gdprMbk');}
 function d(ms){return fmtDate(ms,{day:'numeric',month:'long'});}
 var LOGO={apple:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.5 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9s-2-.9-3.3-.9c-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.2 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.8-1-2.8-4.2zM14 5.1c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z"/></svg>',
   tvtime:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8 2.5l4 3.5 4-3.5"/></svg>',
-  disney:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 15c3-6 12-9 18-4"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M17 6v6M14 9h6"/></svg>'};
+  disney:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 15c3-6 12-9 18-4"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M17 6v6M14 9h6"/></svg>',
+  letterboxd:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg>',
+  trakt:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 12.5l2.6 2.6L16 9.5"/></svg>'};
+var ORDER=['disney','apple','letterboxd','trakt','tvtime'];
 
 function statusLine(p){
   var s=C.status(load()[p],p,Date.now());
   if(s.kind==='imported')return{cls:'ok',txt:tn('gd.st.imported',s.count,{date:d(s.at)})};
-  if(P[p].closed)return{cls:'none',txt:t('gd.'+p+'.st')};
+  if(C.instant(p))return{cls:'none',txt:t('gd.'+p+'.st')};
   if(s.kind==='due')return{cls:'due',txt:t('gd.st.due',{date:d(s.at)})};
   if(s.kind==='waiting')return{cls:'wait',txt:t('gd.st.waiting',{date:d(s.at),ready:d(s.readyAt)}),pct:Math.round(100*(1-s.daysLeft/P[p].delayDays))};
   return{cls:'none',txt:t('gd.st.none')};
@@ -441,12 +577,12 @@ function statusLine(p){
 window.gdprCardHtml=function(){
   return '<div class="gd-card">'
     +'<div class="gd-card-h"><div><div class="gd-card-t">'+esc(t('gd.card.title'))+'</div><div class="gd-card-s">'+esc(t('gd.card.sub'))+'</div></div></div>'
-    +'<div class="gd-plats">'+['disney','apple','tvtime'].map(function(p){
+    +'<div class="gd-plats">'+ORDER.map(function(p){
       var s=statusLine(p);
       return '<button type="button" class="gd-plat gd-'+p+' gd-'+s.cls+'"'+uiAct('gdprOpen',[p])+'>'
         +'<span class="gd-logo">'+LOGO[p]+'</span><span class="gd-pb"><span class="gd-pn">'+esc(P[p].name)+'</span><span class="gd-ps">'+esc(s.txt)+'</span>'
         +(s.pct!=null?'<span class="gd-bar"><i style="--p:'+s.pct+'%"></i></span>':'')+'</span>'
-        +'<span class="gd-go">'+esc(t(P[p].closed&&s.cls==='none'?'gd.card.import':s.cls==='none'?'gd.card.start':s.cls==='ok'?'gd.card.again':s.cls==='due'?'gd.card.import':'gd.card.continue'))+'</span></button>';
+        +'<span class="gd-go">'+esc(t(C.instant(p)&&s.cls==='none'?'gd.card.import':s.cls==='none'?'gd.card.start':s.cls==='ok'?'gd.card.again':s.cls==='due'?'gd.card.import':'gd.card.continue'))+'</span></button>';
     }).join('')+'</div></div>';
 };
 
@@ -457,7 +593,7 @@ function stepsHtml(p){
 function render(){
   var v=document.getElementById('gdprView');if(!v)return;
   var p=ui.p,st=load()[p]||{},s=C.status(st,p,Date.now());
-  var TABS=['disney','apple','tvtime'],closed=!!P[p].closed;
+  var TABS=ORDER,closed=C.instant(p);
   var tabs='<div class="gd-seg" role="tablist" style="--n:'+TABS.length+'">'+TABS.map(function(x){return '<button type="button" role="tab" aria-selected="'+(x===p)+'" class="'+(x===p?'on':'')+'"'+uiAct('gdprPlat',[x])+'>'+LOGO[x]+esc(P[x].name)+'</button>';}).join('')+'<i class="gd-seg-hl" style="--x:'+Math.max(0,TABS.indexOf(p))+'"></i></div>';
   var prog=closed?'':'<div class="gd-prog">'+[0,1,2].map(function(i){return '<span class="'+(i<ui.step?'done':i===ui.step?'on':'')+'"><b>'+(i+1)+'</b>'+esc(t('gd.step'+i))+'</span>';}).join('<i></i>')+'</div>';
   var body='';
@@ -478,7 +614,8 @@ function render(){
       +'<button type="button" class="btn btn-ghost gd-reset"'+uiAct('gdprReset',[p])+'>'+esc(t('gd.reset'))+'</button></div>';
   }else{
     var r=ui.result;
-    body=(closed?'<p class="gd-lead">'+esc(t('gd.'+p+'.lead'))+'</p><div class="gd-note">'+esc(t('gd.'+p+'.note'))+'</div>':'')+'<label class="gd-drop'+(ui.busy?' busy':'')+'" id="gdprDrop"><input type="file" id="gdprFile" multiple accept=".zip,.csv,.json,.txt,.pdf">'
+    body=(closed?'<p class="gd-lead">'+esc(t('gd.'+p+'.lead'))+'</p><div class="gd-note">'+esc(t('gd.'+p+'.note'))+'</div>'
+      +(P[p].direct?'<div class="gd-act gd-act-top"><a class="btn btn-ghost gd-link" href="'+esc(P[p].url)+'" target="_blank" rel="noopener noreferrer">'+esc(t('gd.open',{site:P[p].site}))+' ↗</a></div>':''):'')+'<label class="gd-drop'+(ui.busy?' busy':'')+'" id="gdprDrop"><input type="file" id="gdprFile" multiple accept=".zip,.csv,.json,.txt,.pdf">'
       +'<span class="gd-drop-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></span>'
       +'<span class="gd-drop-t">'+esc(ui.busy?t('gd.reading'):t('gd.drop'))+'</span><span class="gd-drop-s">'+esc(t('gd.'+p+'.files'))+'</span></label>'
       +(p==='disney'?'<details class="gd-paste"><summary>'+esc(t('gd.paste'))+'</summary><textarea id="gdprPaste" rows="4" placeholder="Titles Watched&#10;Profil  Titre  2024-01-31">'+esc(ui.paste)+'</textarea><button type="button" class="btn btn-ghost"'+uiAct('gdprPasteGo')+'>'+esc(t('gd.pasteGo'))+'</button></details>':'')
@@ -499,6 +636,7 @@ function render(){
 }
 function finish(p,events){
   if(p==='tvtime')events=C.tvtimeFinalize(events);
+  else if(P[p].direct)events=C.mergeExport(events);
   var rows=C.toRows(events,P[p].source,DET_CORE.normalizeTitle);
   var groups=DET_CORE.groupRows(rows).map(function(g){g.ids=[];g.key=g.key+':'+P[p].source;g.local=true;return g;});
   ui.result={groups:groups,sum:C.summarize(groups)};
