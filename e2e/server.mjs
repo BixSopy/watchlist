@@ -15,9 +15,11 @@ const BLOCKED = fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8').split(
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json',
   '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml', '.webmanifest': 'application/manifest+json' };
 
-function headersFor(urlPath, host) {
+function headersFor(urlPath, host, query) {
   const out = {};
-  const hostOk = (conds, want) => (conds || []).every(c => c.type !== 'host' || (c.value === host) === want);
+  /* has/missing de vercel.json : host (valeur exacte) et query (présence de la clé) */
+  const match = c => c.type === 'host' ? c.value === host : c.type === 'query' ? !!(query && query.has(c.key)) : true;
+  const hostOk = (conds, want) => (conds || []).every(c => match(c) === want);
   for (const rule of vercel.headers) {
     const re = new RegExp('^' + rule.source.replace(/\(\.\*\)/g, '(.*)') + '$');
     if (re.test(urlPath) && hostOk(rule.has, true) && hostOk(rule.missing, false)) for (const h of rule.headers) out[h.key] = h.value;
@@ -34,14 +36,14 @@ export function startServer({ config = { turnstileSiteKey: '', signupsOpen: true
     const u = new URL(req.url, 'http://localhost');
     let p = decodeURIComponent(u.pathname);
     const send = (status, body, type, extra = {}) => {
-      res.writeHead(status, { 'Content-Type': type, ...headersFor(u.pathname, String(req.headers.host || '').replace(/:\d+$/, '')), ...extra });
+      res.writeHead(status, { 'Content-Type': type, ...headersFor(u.pathname, String(req.headers.host || '').replace(/:\d+$/, ''), u.searchParams), ...extra });
       res.end(body);
     };
     if (shares && /^\/s\/[^/]+$/.test(p)) {
       const tok = p.slice(3);
       const fake = async (url, o) => new Response(JSON.stringify(shares[JSON.parse(o.body).p_token] || null), { status: 200 });
       req.url = '/api/share?t=' + encodeURIComponent(tok);
-      const hs = headersFor(u.pathname, String(req.headers.host || '').replace(/:\d+$/, ''));
+      const hs = headersFor(u.pathname, String(req.headers.host || '').replace(/:\d+$/, ''), u.searchParams);
       for (const k of Object.keys(hs)) res.setHeader(k, hs[k]);
       return require('../api/share.js')(req, res, { fetch: fake });
     }

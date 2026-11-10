@@ -1,34 +1,9 @@
 /* MODULE: Langues (i18n) — dictionnaires js/i18n/<code>.js, langue active, t() / tn(), formats Intl.
    Ajouter une langue : copier js/i18n/en.js en js/i18n/<code>.js, le traduire, puis lancer
-   `node scripts/build-brand.mjs` (qui ajoute la balise <script> du dictionnaire dans index.html).
-   Choix de la langue : ?lang= ou /en, /fr dans l'adresse > choix enregistré > langue du
-   navigateur (première langue disponible) > anglais. */
+   `node scripts/build-brand.mjs` (qui l'ajoute à la liste des langues de js/00-i18n-load.js). */
 var I18N_DICTS=window.I18N_DICTS||{};
-var I18N_STORAGE_KEY='wl_lang',I18N_FALLBACK='en';
-/* Langues disponibles, dans l'ordre de $meta.rank (les plus parlées d'abord) */
-function i18nLanguages(){
-  return Object.keys(I18N_DICTS).sort(function(a,b){
-    var ra=(I18N_DICTS[a].$meta||{}).rank||99,rb=(I18N_DICTS[b].$meta||{}).rank||99;
-    return ra-rb||(a<b?-1:1);
-  });
-}
-function i18nNormalize(code){
-  var base=String(code||'').toLowerCase().split(/[-_]/)[0];
-  return I18N_DICTS[base]?base:'';
-}
-function i18nDetect(){
-  try{
-    var q=new URLSearchParams(location.search).get('lang');
-    var p=(location.pathname.match(/^\/([a-z]{2})\/?$/)||[])[1];
-    var forced=i18nNormalize(q)||i18nNormalize(p);
-    if(forced){try{localStorage.setItem(I18N_STORAGE_KEY,forced);}catch(e){}return forced;}
-  }catch(e){}
-  try{var saved=i18nNormalize(localStorage.getItem(I18N_STORAGE_KEY));if(saved)return saved;}catch(e){}
-  var navs=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||''];
-  for(var i=0;i<navs.length;i++){var l=i18nNormalize(navs[i]);if(l)return l;}
-  return I18N_DICTS[I18N_FALLBACK]?I18N_FALLBACK:(i18nLanguages()[0]||'fr');
-}
-var LANG=i18nDetect();
+/* LANG, I18N_LANGS, i18nLanguages(), i18nNormalize() : définis par js/00-i18n-load.js, qui choisit
+   la langue avant de charger son dictionnaire. */
 var I18N_META=(I18N_DICTS[LANG]&&I18N_DICTS[LANG].$meta)||{locale:'fr-FR',tmdb:'fr-FR',region:'FR'};
 var LOCALE=I18N_META.locale;
 /* Sens de lecture : $meta.dir = 'rtl' (arabe, ourdou) → <html dir="rtl"> ; le CSS suit (propriétés logiques). */
@@ -102,7 +77,7 @@ function setLang(code,opts){
 function langSwitcherHtml(cls,opts){
   var args=opts?JSON.stringify([opts]):'';
   return '<div class="lang-switch '+(cls||'')+'"><select class="lang-pick csel-done-marker" aria-label="'+esc(t('lang.label'))+'" data-change="setLangSelect"'+(args?' data-args="'+esc(args)+'"':'')+'>'+i18nLanguages().map(function(c){
-    var m=I18N_DICTS[c].$meta||{};
+    var m=I18N_LANGS[c]||{};
     return '<option value="'+c+'" lang="'+c+'" dir="'+(m.dir==='rtl'?'rtl':'ltr')+'"'+(c===LANG?' selected':'')+'>'+esc(m.name||c)+'</option>';
   }).join('')+'</select></div>';
 }
