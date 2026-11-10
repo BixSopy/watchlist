@@ -235,6 +235,21 @@ export async function installFakeSupabase(page, opts = {}) {
       db.users = db.users.filter(x => x !== usr); db.profiles = db.profiles.filter(x => x.account_id !== usr.id); db.deleted = true;
       return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
     }
+    /* Abonnement calendrier (js/26-calendar.js) : seulement si le test passe { calendarFeeds: [] } —
+       sinon 404 comme une base où la migration 20261110120000 n'est pas encore appliquée (carte masquée). */
+    if (db.calendarFeeds && /^\/rest\/v1\/rpc\/calendar_feed_(get|rotate|revoke)$/.test(p)) {
+      const usr = current(req), fn = p.split('_').pop();
+      db.calls.push('calendar_feed_' + fn);
+      if (!usr || !db.profiles.some(x => x.id === body.p_profile_id && x.account_id === usr.id)) return ok(route, { status: 'not_authenticated' });
+      const i = db.calendarFeeds.findIndex(x => x.profile_id === body.p_profile_id);
+      if (fn === 'revoke') { if (i > -1) db.calendarFeeds.splice(i, 1); return ok(route, { status: 'ok' }); }
+      if (fn === 'get') return ok(route, { status: 'ok', feed: i > -1 ? db.calendarFeeds[i].feed : null });
+      const n = db.calendarFeeds.length + (db.calRotations = (db.calRotations || 0) + 1);
+      const tok = Array.from({ length: 22 }, (_, k) => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'[(n * 11 + k * 7) % 64]).join('');
+      const feed = { token: tok, lang: body.p_lang || 'fr', created_at: new Date().toISOString(), last_fetched_at: null };
+      if (i > -1) db.calendarFeeds[i].feed = feed; else db.calendarFeeds.push({ profile_id: body.p_profile_id, feed });
+      return ok(route, { status: 'ok', feed });
+    }
     return err(route, 404, 'not_found', 'stub: ' + p);
   });
   return db;

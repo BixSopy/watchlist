@@ -54,7 +54,7 @@ const MOVIE_RD = {
 };
 const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="154" height="231"><defs><linearGradient id="g" x2="1" y2="1"><stop offset="0" stop-color="#3b4b8a"/><stop offset="1" stop-color="#b44a7a"/></linearGradient></defs><rect width="154" height="231" fill="url(#g)"/></svg>';
 
-async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = false, locale = 'fr-FR' } = {}) {
+async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = false, locale = 'fr-FR', fake = {} } = {}) {
   server.config = { turnstileSiteKey: '', signupsOpen: true };
   const ctx = await browser.newContext({ locale, timezoneId: 'Europe/Paris', viewport, acceptDownloads: true, ...(mobile ? { isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : {}) });
   const page = await ctx.newPage();
@@ -63,7 +63,7 @@ async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = fa
   page.on('console', m => { const x = m.text(); if (m.type() === 'error' && !/^Failed to load resource: the server responded with a status of (4\d\d)/.test(x)) problems.push(x); if (/Content Security Policy/i.test(x)) problems.push(x); });
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
   page.on('request', r => { const u = new URL(r.url()); if (!/^(127\.0\.0\.1|localhost)$/.test(u.hostname) && u.hostname !== 'image.tmdb.org' && !/supabase/.test(u.hostname)) calls.push(r.url()); });
-  await installFakeSupabase(page, { items: items() });
+  const db = await installFakeSupabase(page, { items: items(), ...fake });
   await page.route(u => u.pathname === '/api/tmdb', r => {
     const u = new URL(r.request().url()), p = u.searchParams.get('path') || '';
     let body = { results: [], page: 1, total_pages: 1 }, m;
@@ -87,7 +87,7 @@ async function newPage(t, { viewport = { width: 1440, height: 900 }, mobile = fa
   await page.locator('#authViewTitle').filter({ hasText: /Mon compte|My account/ }).waitFor();
   await page.click('#authMbk .auth-close');
   await page.waitForFunction(() => memDB.filter(i => !i.deleted).length >= 8 && !syncInProgress);
-  return { page, problems, calls };
+  return { page, problems, calls, db };
 }
 const openCal = async page => { await page.click('button[data-v="calendar"]:visible'); await page.waitForFunction(() => _calState.loaded && !_calState.loading); };
 
@@ -189,5 +189,47 @@ test('compteurs des onglets : suivent le filtre de statut (Tous / À voir / En c
   assert.deepEqual(await counts(), ['2', '1', '1', '0']);
   await page.click('#stabs .stab[data-s="all"]');
   assert.deepEqual(await counts(), ['8', '3', '3', '2']);
+  assert.deepEqual(problems, []);
+});
+
+test('Abonnement : carte masquée tant que la migration manque ; créer, liens Google/Apple, nouveau lien, désactiver', async t => {
+  { /* base sans les fonctions calendar_feed_* : pas de carte, pas d'erreur */
+    const { page, problems } = await newPage(t);
+    await openCal(page);
+    await page.waitForFunction(() => window._calSub && _calSub.loaded);
+    assert.equal(await page.locator('.cal-subc').count(), 0);
+    assert.deepEqual(problems, []);
+  }
+  const { page, problems, calls, db } = await newPage(t, { fake: { calendarFeeds: [] } });
+  await openCal(page);
+  const card = page.locator('.cal-subc');
+  await card.locator('#calSubCreate').waitFor();
+  assert.match(await card.textContent(), /S’abonner au calendrier/);
+  await card.locator('#calSubCreate').click();
+  const url = page.locator('#calSubUrl');
+  await url.waitFor();
+  const v1 = await url.inputValue();
+  assert.match(v1, /^http:\/\/127\.0\.0\.1:\d+\/cal\/[A-Za-z0-9_-]{22}$/);
+  const tok1 = v1.split('/').pop();
+  assert.equal(db.calendarFeeds[0].feed.lang, 'fr');
+  const links = await card.locator('a.btn').evaluateAll(as => as.map(a => a.getAttribute('href')));
+  assert.equal(links[0], 'https://calendar.google.com/calendar/r?cid=' + encodeURIComponent('webcal://' + new URL(v1).host + '/cal/' + tok1));
+  assert.equal(links[1], 'webcal://' + new URL(v1).host + '/cal/' + tok1);
+  if (SHOTS) await card.screenshot({ path: SHOTS + '/cal-abonnement.png' });
+  /* Nouveau lien : confirmation dans la carte, puis jeton remplacé */
+  await card.getByRole('button', { name: 'Nouveau lien' }).click();
+  await card.locator('.cal-sub-conf').waitFor();
+  await card.locator('.cal-sub-conf .btn-primary').click();
+  await page.waitForFunction(t1 => !document.querySelector('.cal-sub-conf') && document.getElementById('calSubUrl').value.split('/').pop() !== t1, tok1);
+  /* Désactiver : confirmation, puis retour au bouton de création */
+  await card.getByRole('button', { name: 'Désactiver' }).click();
+  await card.locator('.cal-sub-conf .btn-primary').click();
+  await card.locator('#calSubCreate').waitFor();
+  assert.equal(db.calendarFeeds.length, 0);
+  /* lecture relancée si le profil actif change pendant l'ouverture : au moins une, puis 2 créations et 1 désactivation */
+  const fc = db.calls.filter(c => /^calendar_feed_/.test(c));
+  assert.ok(fc.filter(c => c === 'calendar_feed_get').length >= 1);
+  assert.deepEqual(fc.filter(c => c !== 'calendar_feed_get'), ['calendar_feed_rotate', 'calendar_feed_rotate', 'calendar_feed_revoke']);
+  assert.deepEqual(calls, [], 'aucune requête hors proxy (le lien Google n\'est qu\'un lien)');
   assert.deepEqual(problems, []);
 });

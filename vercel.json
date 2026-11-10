@@ -217,6 +217,10 @@
       "destination": "/api/share?t=:token"
     },
     {
+      "source": "/cal/:token",
+      "destination": "/api/calendar?t=:token"
+    },
+    {
       "source": "/u/:handle",
       "destination": "/api/invite?h=:handle"
     }

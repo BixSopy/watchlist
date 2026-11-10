@@ -196,3 +196,27 @@ Turnstile, URL de redirection, SMTP Resend, gabarits d'emails (`supabase/templat
 Garder « Allow anonymous sign-ins » désactivé et relancer Advisors › Security après chaque
 migration. Double authentification TOTP : rien à faire, déjà active. Passkey : non activée
 (voir ci-dessus, phase 2).
+
+## Abonnement calendrier (lien `/cal/<jeton>`)
+
+Migration `20261110120000_calendrier_abonnement.sql` (validée par Pierre le 10/11 au titre des
+fonctionnalités ; **à appliquer seulement sur son feu vert explicite**). Même patron que les liens
+de partage (`20261013150000`) : opt-in, jeton 128 bits base64url généré côté base, lecture
+publique par une seule fonction qui ne renvoie que les champs utiles.
+
+| Fonction | Sécurité | Rôle | Effet |
+|---|---|---|---|
+| `calendar_feed_get(p_profile_id)` | SECURITY DEFINER | authenticated | mon lien (jeton, langue, création, dernière lecture) ou `null` |
+| `calendar_feed_rotate(p_profile_id, p_lang)` | SECURITY DEFINER | authenticated | crée ou remplace le lien (l'ancien jeton cesse aussitôt) ; 1 fois / 10 s |
+| `calendar_feed_revoke(p_profile_id)` | SECURITY DEFINER | authenticated | désactive (supprime la ligne) |
+| `get_calendar_feed(p_token)` | SECURITY DEFINER | anon, authenticated | flux public : `{lang, items:[{uid,title,type,date}]}`, `null` si inconnu/remplacé/désactivé |
+
+Table : `calendar_feeds` (une ligne par profil). RLS activée, **aucun** accès direct (ni lecture,
+ni écriture) : tout passe par les fonctions. Suppression de compte : cascade.
+
+- Données : `watchlist_items.next_air` (séries/anime en cours ou à voir, date valide ≥ J-7, 300 max),
+  déjà synchronisée par le client — aucun appel TMDB côté serveur.
+- `last_fetched_at` écrit au plus une fois par heure ; ni IP ni user-agent.
+- Servi par `api/calendar.js` (réécriture `/cal/:token` dans `vercel.json`, générée par
+  `scripts/build-brand.mjs`) avec la clé publique, `Cache-Control: private` (pas de cache partagé).
+- Tests : `supabase/tests/94_calendrier_abonnement.test.sql`.
