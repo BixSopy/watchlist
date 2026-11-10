@@ -76,13 +76,38 @@ function applyGlass(pct){
 function applyGrain(pct){
   var tt=Math.max(0,Math.min(100,pct||0))/100;
   document.documentElement.style.setProperty('--grain-opacity',(tt*0.07).toFixed(3));
+  /* À 0 %, l'overlay plein écran (mode de fusion) est retiré au lieu d'être rendu invisible */
+  document.documentElement.classList.toggle('grain-off',tt===0);
 }
 /* 0% = aurora invisible ; 100% = intensite de reference des taches de couleur.
    Multiplicateur applique a chaque .aurora-blob (voir index.html). */
 function applyAurora(pct){
   var tt=Math.max(0,Math.min(100,pct||0))/100;
   document.documentElement.style.setProperty('--aurora-opacity',tt.toFixed(2));
+  document.documentElement.classList.toggle('aurora-off',tt===0);
 }
+/* Repos visuel : html.calm après CALM_MS sans geste, ou dès que la fenêtre passe en arrière-plan ;
+   retiré au premier geste. Le CSS y fige les animations décoratives (voir css/app.css). Un seul
+   minuteur à la fois : un geste ne fait que noter l'heure, sans rien reprogrammer. */
+var CALM_MS=8000;
+(function(){
+  if(typeof document==='undefined'||!document.addEventListener)return;
+  var root=document.documentElement,last=Date.now(),timer=null;
+  function check(){
+    timer=null;
+    var idle=Date.now()-last;
+    if(idle>=CALM_MS)root.classList.add('calm');else timer=setTimeout(check,CALM_MS-idle);
+  }
+  function wake(){
+    last=Date.now();
+    if(root.classList.contains('calm'))root.classList.remove('calm');
+    if(!timer)timer=setTimeout(check,CALM_MS);
+  }
+  ['pointermove','pointerdown','keydown','wheel','touchstart','focus'].forEach(function(ev){window.addEventListener(ev,wake,{capture:true,passive:true});});
+  window.addEventListener('scroll',wake,{capture:true,passive:true});
+  window.addEventListener('blur',function(){root.classList.add('calm');});
+  timer=setTimeout(check,CALM_MS);
+})();
 
 
 
