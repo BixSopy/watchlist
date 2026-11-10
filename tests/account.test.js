@@ -28,11 +28,11 @@ function i18nContext(lang, extra) {
     navigator: { languages: [lang] },
     localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = String(v); } },
     sessionStorage: { getItem: () => null, setItem() {} },
-    document: { documentElement: {}, querySelector: () => null, querySelectorAll: () => [] },
+    document: { documentElement: {}, querySelector: () => null, querySelectorAll: () => [], write() {} },
   }, extra || {});
   ctx.window = ctx;
   vm.createContext(ctx);
-  vm.runInContext(read('js/00-brand.js') + '\n' + read('js/i18n/fr.js') + '\n' + read('js/i18n/en.js') + '\n' +
+  vm.runInContext(read('js/00-brand.js') + '\n' + read('js/00-i18n-load.js') + '\n' + read('js/i18n/fr.js') + '\n' + read('js/i18n/en.js') + '\n' +
     read('js/00-i18n.js') + '\nthis.LANG=LANG;this.t=t;this.tn=tn;', ctx);
   return ctx;
 }
@@ -95,11 +95,12 @@ test('écrans de compte en anglais : règles, solidité et erreurs Supabase trad
   }
 });
 
-test('choix de la langue : adresse > choix enregistré > navigateur (fr* → fr, sinon en)', () => {
+test('choix de la langue : adresse > choix enregistré > navigateur (langue disponible, sinon en)', () => {
   assert.strictEqual(i18nContext('fr-CA').LANG, 'fr');
   assert.strictEqual(i18nContext('fr').LANG, 'fr');
   assert.strictEqual(i18nContext('de-DE').LANG, 'en');
-  assert.strictEqual(i18nContext('es').LANG, 'en');
+  assert.strictEqual(i18nContext('es').LANG, 'es');
+  assert.strictEqual(i18nContext('it-IT').LANG, 'en', 'langue sans dictionnaire : anglais');
   assert.strictEqual(i18nContext('en-GB').LANG, 'en');
   assert.strictEqual(i18nContext('fr-FR', { location: { search: '?lang=en', pathname: '/', hash: '' } }).LANG, 'en');
   assert.strictEqual(i18nContext('en-US', { location: { search: '', pathname: '/fr', hash: '' } }).LANG, 'fr');
