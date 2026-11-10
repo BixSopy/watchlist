@@ -71,13 +71,15 @@ test('.ics : VCALENDAR valide, journées entières, texte échappé, CRLF, ligne
   assert.doesNotMatch(ics.replace(/\r\n/g, ''), /\n/);
 });
 
-test('intégration : onglet, section, script, clés fr/en, aucune migration ni appel hors proxy', () => {
+test('intégration : onglet, section, script, clés fr/en, aucun appel hors proxy', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assert.match(html, /data-tab="calendar"[^>]*data-click="switchTab"/);
   assert.match(html, /id="calendarSection"/);
   assert.match(html, /<script defer src="js\/26-calendar\.js"><\/script>/);
   const src = fs.readFileSync(path.join(ROOT, 'js/26-calendar.js'), 'utf8');
-  assert.doesNotMatch(src, /https?:\/\/(?!image\.tmdb)/, 'aucun domaine tiers : TMDB uniquement via TB (/api/tmdb)');
+  /* Seule exception : le lien « Google Agenda » de l'abonnement, ouvert par un clic (aucune requête de l'app) */
+  assert.doesNotMatch(src, /https?:\/\/(?!image\.tmdb|calendar\.google\.com\/calendar\/r\?cid=')/, 'aucun domaine tiers : TMDB uniquement via TB (/api/tmdb)');
+  assert.doesNotMatch(src, /fetch\([^)]*google/);
   assert.doesNotMatch(src, /api_key/);
   const keys = [...new Set([...src.matchAll(/t[n]?\('(cal\.[\w.]*\w)'/g)].map(m => m[1]))];
   for (const lang of ['fr', 'en']) {

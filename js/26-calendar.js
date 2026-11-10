@@ -53,6 +53,7 @@ var CAL_CORE=(function(){
   function buildIcs(evs,o){
     o=o||{};var stamp=(o.now||new Date()).toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
     var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Cinepisode//Calendrier//FR','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:'+icsEsc(o.name||'Cinepisode')];
+    (o.headers||[]).forEach(function(h){L.push(h);});/* ex. intervalle de rafraîchissement du flux abonné */
     sortEvs(evs).forEach(function(e){
       var d=e.date.replace(/-/g,''),nd=addDays(e.date,1).replace(/-/g,'');
       var sum=e.title+(code(e)?' — '+code(e).replace(' · ',''):'')+(e.label?' ('+e.label+')':'');
@@ -196,9 +197,67 @@ function paint(){
   var from=curMonth&&sel<td?td:sel;
   var sw=function(k,lbl){return '<label class="cal-opt-l"><input type="checkbox" class="cal-sw"'+(opts[k]?' checked':'')+uiAct('calOpt',[k],'change')+'><span>'+esc(t(lbl))+'</span></label>';};
   var side='<aside class="cal-side"><div class="cal-card"><h3 class="cal-card-h">'+esc(t('cal.upcoming'))+' <em>'+esc(tn('cal.days',7))+'</em>'+(st.loading?'<span class="cal-spin" aria-hidden="true"></span>':'')+'</h3>'+agendaHtml(evs,from,7)+'</div>'+
-    '<div class="cal-card cal-optc"><h3 class="cal-card-h">'+esc(t('cal.options'))+'</h3><div class="cal-opt">'+sw('onlyList','cal.optList')+sw('hideWatched','cal.optWatched')+sw('avoirFilms','cal.optAvoir')+'<p class="cal-note">'+esc(t('cal.note'))+'</p></div></div></aside>';
+    '<div class="cal-card cal-optc"><h3 class="cal-card-h">'+esc(t('cal.options'))+'</h3><div class="cal-opt">'+sw('onlyList','cal.optList')+sw('hideWatched','cal.optWatched')+sw('avoirFilms','cal.optAvoir')+'<p class="cal-note">'+esc(t('cal.note'))+'</p></div></div>'+subHtml()+'</aside>';
   sec.innerHTML=h+(view==='week'?'<div class="cal-main cal-week-main">'+main+'</div><div class="cal-main cal-week-side">'+side+'</div>':'<div class="cal-main cal-'+view+'">'+main+side+'</div>');
 }
+/* ---------- Abonnement (lien /cal/<jeton>, migration 20261110120000) ----------
+   Un lien par profil, créé à la demande ; « Nouveau lien » et « Désactiver » demandent une
+   confirmation dans la carte. Tant que la migration n'est pas appliquée (fonction absente),
+   la carte n'apparaît pas. */
+var feedSt={loaded:false,loading:false,feed:null,err:false,missing:false,busy:false,confirm:null,pid:null};
+function subUrl(tok,scheme){var h=location.host;return (scheme||location.protocol.replace(':',''))+'://'+h+'/cal/'+tok;}
+function subLoad(force){
+  if(typeof supa==='undefined'||!supa||typeof authProfileId==='undefined'||!authProfileId)return;
+  if(feedSt.pid!==authProfileId){feedSt.loaded=false;feedSt.feed=null;feedSt.pid=authProfileId;}
+  if(feedSt.loading||(feedSt.loaded&&!force))return;
+  feedSt.loading=true;feedSt.err=false;
+  supa.rpc('calendar_feed_get',{p_profile_id:authProfileId}).then(function(r){
+    feedSt.loading=false;feedSt.loaded=true;
+    if(r.error){if(r.error.code==='PGRST202'||/calendar_feed_get/.test(r.error.message||''))feedSt.missing=true;else feedSt.err=true;}
+    else if(r.data&&r.data.status==='ok')feedSt.feed=r.data.feed||null;else feedSt.err=true;
+    paint();
+  },function(){feedSt.loading=false;feedSt.loaded=true;feedSt.err=true;paint();});
+}
+function subHtml(){
+  if(feedSt.missing)return '';
+  var head='<div class="cal-card cal-subc"><h3 class="cal-card-h">'+esc(t('cal.sub.title'))+'</h3><p class="cal-note">'+esc(t('cal.sub.lead'))+'</p>';
+  if(typeof authProfileId==='undefined'||!authProfileId)return head+'<p class="cal-note cal-sub-muted">'+esc(t('cal.sub.login'))+'</p></div>';
+  if(!feedSt.loaded||feedSt.pid!==authProfileId){subLoad(false);return head+'<p class="cal-note cal-sub-muted">'+esc(t('common.loading'))+'</p></div>';}
+  if(feedSt.err&&!feedSt.feed)return head+'<p class="cal-note cal-sub-err" role="alert">'+esc(t('cal.sub.error'))+'</p><div class="cal-sub-act"><button type="button" class="btn btn-ghost"'+uiAct('calSubRetry')+'>'+esc(t('cal.sub.retry'))+'</button></div></div>';
+  if(!feedSt.feed)return head+'<div class="cal-sub-act"><button type="button" class="btn btn-primary" id="calSubCreate"'+(feedSt.busy?' disabled':'')+uiAct('calSubCreate')+'>'+esc(t('cal.sub.create'))+'</button></div><p class="cal-note cal-sub-muted">'+esc(t('cal.sub.scope'))+'</p></div>';
+  var f=feedSt.feed,url=subUrl(f.token,'https'),web=subUrl(f.token,'webcal');
+  if(/^(localhost|127\.)/.test(location.hostname))url=subUrl(f.token);
+  var gcal='https://calendar.google.com/calendar/r?cid='+encodeURIComponent(web);
+  var seen=f.last_fetched_at?t('cal.sub.fetched',{date:fmtDate(f.last_fetched_at,{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}):t('cal.sub.never');
+  var conf=feedSt.confirm?'<div class="cal-sub-conf" role="alert"><p class="cal-note">'+esc(t(feedSt.confirm==='rotate'?'cal.sub.confirmRotate':'cal.sub.confirmRevoke'))+'</p><div class="cal-sub-act"><button type="button" class="btn btn-primary"'+(feedSt.busy?' disabled':'')+uiAct(feedSt.confirm==='rotate'?'calSubRotateGo':'calSubRevokeGo')+'>'+esc(t(feedSt.confirm==='rotate'?'cal.sub.rotate':'cal.sub.revoke'))+'</button><button type="button" class="btn btn-ghost"'+uiAct('calSubCancel')+'>'+esc(t('common.cancel'))+'</button></div></div>':'';
+  return head+'<div class="cal-sub-url"><input type="text" id="calSubUrl" readonly value="'+esc(url)+'" aria-label="'+esc(t('cal.sub.title'))+'" spellcheck="false"><button type="button" class="btn btn-ghost"'+uiAct('calSubCopy')+'>'+esc(t('common.copy'))+'</button></div>'
+    +'<div class="cal-sub-act"><a class="btn btn-ghost" href="'+esc(gcal)+'" target="_blank" rel="noopener noreferrer">'+esc(t('cal.sub.google'))+' ↗</a><a class="btn btn-ghost" href="'+esc(web)+'">'+esc(t('cal.sub.apple'))+'</a></div>'
+    +'<p class="cal-note cal-sub-muted">'+esc(seen)+'</p><p class="cal-note cal-sub-muted">'+esc(t('cal.sub.privacy'))+'</p>'
+    +(conf||'<div class="cal-sub-act cal-sub-manage"><button type="button" class="btn btn-ghost"'+uiAct('calSubAsk',['rotate'])+'>'+esc(t('cal.sub.rotate'))+'</button><button type="button" class="btn btn-ghost cal-sub-off"'+uiAct('calSubAsk',['revoke'])+'>'+esc(t('cal.sub.revoke'))+'</button></div>')+'</div>';
+}
+function subRpc(name,args,after){
+  if(feedSt.busy)return;feedSt.busy=true;paint();
+  supa.rpc(name,args).then(function(r){
+    feedSt.busy=false;feedSt.confirm=null;
+    var d=r&&r.data;
+    if(r.error||!d||d.status!=='ok'){toast(t(d&&d.status==='rate_limited'?'cal.sub.wait':'cal.sub.error'),'err');paint();return;}
+    after(d);paint();
+  },function(){feedSt.busy=false;toast(t('cal.sub.error'),'err');paint();});
+}
+CAL_ACTIONS.calSubRetry=(function(){feedSt.loaded=false;subLoad(true);paint();});
+CAL_ACTIONS.calSubCreate=(function(){sfx('click');subRpc('calendar_feed_rotate',{p_profile_id:authProfileId,p_lang:(typeof LANG!=='undefined'&&/^[a-z]{2}$/.test(LANG)?LANG:'fr')},function(d){feedSt.feed=d.feed;sfx('add');toast(t('cal.sub.created'));});});
+CAL_ACTIONS.calSubAsk=(function(el,e,k){sfx('click');feedSt.confirm=k==='revoke'?'revoke':'rotate';paint();});
+CAL_ACTIONS.calSubCancel=(function(){feedSt.confirm=null;paint();});
+CAL_ACTIONS.calSubRotateGo=(function(){subRpc('calendar_feed_rotate',{p_profile_id:authProfileId,p_lang:(typeof LANG!=='undefined'&&/^[a-z]{2}$/.test(LANG)?LANG:'fr')},function(d){feedSt.feed=d.feed;toast(t('cal.sub.rotated'));});});
+CAL_ACTIONS.calSubRevokeGo=(function(){subRpc('calendar_feed_revoke',{p_profile_id:authProfileId},function(){feedSt.feed=null;toast(t('cal.sub.revoked'));});});
+CAL_ACTIONS.calSubCopy=(function(){
+  var inp=document.getElementById('calSubUrl');if(!inp)return;
+  var done=function(){toast(t('common.copied'),'nfo');};
+  var manual=function(){try{inp.focus();inp.select();}catch(x){}toast(t('cal.sub.copyManual'));};
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(inp.value).then(done,manual);return;}}catch(x){}
+  manual();
+});
+window._calSub=feedSt;
 function updateBadge(){
   var b=document.querySelector('.ntab[data-tab="calendar"]');if(!b)return;
   var em=b.querySelector('.ntab-cnt');
@@ -223,6 +282,7 @@ CAL_ACTIONS.calIcs=(function(){
 window.onCalendarTabShown=function(){
   if(!st.y){var n=new Date();setMonth(n.getFullYear(),n.getMonth());}
   try{if(location.hash!=='#calendrier')history.replaceState(null,'',location.pathname+location.search+'#calendrier');}catch(e){}
+  subLoad(false);
   var s2=sig();if(s2!==_sig||(!st.loaded&&!st.loading)){_sig=s2;load(false);}else paint();
 };
 window.onCalendarTabHidden=function(){try{if(location.hash==='#calendrier')history.replaceState(null,'',location.pathname+location.search);}catch(e){}};

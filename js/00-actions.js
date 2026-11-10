@@ -195,6 +195,13 @@ uiOn('calKind',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calKind;i
 uiOn('calSel',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSel;if(f)return f.apply(this,arguments);});
 uiOn('calOpt',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calOpt;if(f)return f.apply(this,arguments);});
 uiOn('calIcs',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calIcs;if(f)return f.apply(this,arguments);});
+uiOn('calSubRetry',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSubRetry;if(f)return f.apply(this,arguments);});
+uiOn('calSubCreate',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSubCreate;if(f)return f.apply(this,arguments);});
+uiOn('calSubAsk',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSubAsk;if(f)return f.apply(this,arguments);});
+uiOn('calSubCancel',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSubCancel;if(f)return f.apply(this,arguments);});
+uiOn('calSubRotateGo',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSubRotateGo;if(f)return f.apply(this,arguments);});
+uiOn('calSubRevokeGo',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSubRevokeGo;if(f)return f.apply(this,arguments);});
+uiOn('calSubCopy',function(){var f=window.CAL_ACTIONS&&window.CAL_ACTIONS.calSubCopy;if(f)return f.apply(this,arguments);});
 uiOn('openPlex',function(el,e,id){sfx('open');openPlex(_uiId(id));});
 uiOn('openPlexQuiet',function(el,e,id){openPlex(_uiId(id));});
 uiOn('quickNextEp',function(el,e,id){quickNextEp(_uiId(id),e);});

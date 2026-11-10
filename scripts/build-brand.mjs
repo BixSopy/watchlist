@@ -518,6 +518,7 @@ function buildApp(out) {
   vercel.rewrites = [{ source: '/:lang(' + LANGS.join('|') + ')', destination: '/' },
     /* Liens de partage en lecture seule : page rendue par api/share.js */
     { source: '/s/:token', destination: '/api/share?t=:token' },
+    { source: '/cal/:token', destination: '/api/calendar?t=:token' },
     { source: '/u/:handle', destination: '/api/invite?h=:handle' }];
   /* Redirections de domaine (désactivées tant que domains.redirects=false) */
   const dm = brand.domains || {};

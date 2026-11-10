@@ -66,4 +66,4 @@ function headline(d) {
   return 'La liste de ' + who + (d.kind === 'filtered' ? ' · ' + filterLabel(d) : '');
 }
 
-module.exports = { TOKEN_RE, fetchShare, clientIp, makeLimiter, headline, filterLabel, displayName, STATUS_FR, TYPE_FR };
+module.exports = { TOKEN_RE, publishableKey, fetchShare, clientIp, makeLimiter, headline, filterLabel, displayName, STATUS_FR, TYPE_FR };
