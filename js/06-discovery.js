@@ -120,7 +120,7 @@ function _drCardHtml(d){
   var p=d.poster?'<img class="dr-poster" src="'+IB+'w185'+esc(d.poster)+'" alt="" loading="lazy" data-hide-broken>':'<div class="dr-poster-ph">'+icon(d.type==='movie'?'film':d.type==='tv'?'serie':'anime')+'</div>';
   var sc=d.score?'<div class="dr-score">&#9733; '+d.score+'</div>':'';
   var ds='data-tmdbid="'+esc(String(d.tmdbId||''))+'" data-type="'+esc(d.type||'')+'" data-title="'+esc(d.title||'')+'" data-year="'+esc(d.year||'')+'" data-poster="'+esc(d.poster||'')+'" data-score="'+esc(String(d.score||''))+'" data-overview="'+esc(d.overview||'')+'"';
-  return '<div class="dr-card" '+ds+' data-click="openPlexRecoCard" data-sfx-hover><div class="dr-poster-wrap">'+p+'</div><div class="dr-title">'+esc(d.title)+'</div><div style="display:flex;gap:5px;align-items:center">'+sc+'<div class="dr-year">'+esc(d.year||'')+'</div></div></div>';
+  return '<div class="dr-card" '+ds+' data-click="openPlexRecoCard"><div class="dr-poster-wrap">'+p+'</div><div class="dr-title">'+esc(d.title)+'</div><div style="display:flex;gap:5px;align-items:center">'+sc+'<div class="dr-year">'+esc(d.year||'')+'</div></div></div>';
 }
 function _drSkeletonHtml(){var h='';for(var i=0;i<10;i++)h+='<div class="dr-skel"><div class="dr-skel-img"></div><div class="dr-skel-txt"></div></div>';return h;}
 /* CARD SIZE DYNAMIQUE — nb de cards visibles adapté au viewport */

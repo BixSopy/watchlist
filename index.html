@@ -248,7 +248,7 @@
   <aside class="sidebar sb-full">
     <div class="sb-hdr">
       <div class="sb-title" data-i18n="set.recos">Recommandations</div>
-      <button class="sb-refresh" data-sfx-hover data-click="refreshRecos">
+      <button class="sb-refresh" data-click="refreshRecos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
         <span data-i18n="sb.refresh">Actualiser</span>
       </button>
@@ -292,24 +292,24 @@
     <div class="nav floating liquid-glass">
       <div class="tabs-row">
       <div class="ntabs-scroll seg" id="tabSeg"><span class="seg-hl" id="segHl" aria-hidden="true"></span>
-        <button class="ntab on" data-tab="all" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z"/></svg><span data-i18n="tab.all">Tout</span></button>
-        <button class="ntab" data-tab="film" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4z M4 9h16 M4 15h16 M8 5v14 M16 5v14"/></svg><span data-i18n="type.films">Films</span></button>
-        <button class="ntab" data-tab="serie" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v11H3z M8 21h8 M12 17v4"/></svg><span data-i18n="type.series">Séries</span></button>
-        <button class="ntab" data-tab="anime" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span data-i18n="type.anime">Anime</span></button>
+        <button class="ntab on" data-tab="all" data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z"/></svg><span data-i18n="tab.all">Tout</span></button>
+        <button class="ntab" data-tab="film" data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4z M4 9h16 M4 15h16 M8 5v14 M16 5v14"/></svg><span data-i18n="type.films">Films</span></button>
+        <button class="ntab" data-tab="serie" data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v11H3z M8 21h8 M12 17v4"/></svg><span data-i18n="type.series">Séries</span></button>
+        <button class="ntab" data-tab="anime" data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span data-i18n="type.anime">Anime</span></button>
       </div>
-        <button class="ntab sp" data-tab="discover" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span data-i18n="tab.discover">Découvrir</span></button>
-        <button class="ntab sp" data-tab="calendar" data-sfx-hover data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5"/></svg><span data-i18n="cal.tab">Calendrier</span></button>
-        <button class="ntab sp" id="detTab" data-tab="detectes" data-sfx-hover data-click="switchTab" hidden><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M4 19h16"/></svg><span data-i18n="det.tab">Détectés</span><span class="det-badge" id="detBadge" hidden>0</span></button>
+        <button class="ntab sp" data-tab="discover" data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span data-i18n="tab.discover">Découvrir</span></button>
+        <button class="ntab sp" data-tab="calendar" data-click="switchTab"><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5"/></svg><span data-i18n="cal.tab">Calendrier</span></button>
+        <button class="ntab sp" id="detTab" data-tab="detectes" data-click="switchTab" hidden><svg class="ntab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M4 19h16"/></svg><span data-i18n="det.tab">Détectés</span><span class="det-badge" id="detBadge" hidden>0</span></button>
       </div>
       <div class="nav-right">
-        <button class="add-btn" data-sfx-hover data-click="openAdd">
+        <button class="add-btn" data-click="openAdd">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span class="add-btn-lbl" data-i18n="common.add">Ajouter</span>
         </button>
         <div class="stabs" id="stabs">
-          <button class="stab on" data-s="all" data-sfx-hover data-i18n="stab.all">Tous</button>
-          <button class="stab" data-s="avoir" data-sfx-hover data-i18n="status.avoir">À voir</button>
-          <button class="stab" data-s="encours" data-sfx-hover data-i18n="status.encours">En cours</button>
-          <button class="stab" data-s="termine" data-sfx-hover data-i18n="status.termine">Terminé</button>
+          <button class="stab on" data-s="all" data-i18n="stab.all">Tous</button>
+          <button class="stab" data-s="avoir" data-i18n="status.avoir">À voir</button>
+          <button class="stab" data-s="encours" data-i18n="status.encours">En cours</button>
+          <button class="stab" data-s="termine" data-i18n="status.termine">Terminé</button>
         </div>
         <select class="stat-sel-mobile" id="statSelMobile" data-change="statSelMobile">
           <option value="all" data-i18n="stab.all">Tous</option>
@@ -337,10 +337,10 @@
       </div>
       <div id="mc"></div>
       <div class="discover-cat-pills" id="discoverCatPills">
-        <button class="stab on" data-dc="all" data-sfx-hover data-click="switchDiscoverCat" data-i18n="tab.all">Tout</button>
-        <button class="stab" data-dc="film" data-sfx-hover data-click="switchDiscoverCat" data-i18n="type.films">Films</button>
-        <button class="stab" data-dc="serie" data-sfx-hover data-click="switchDiscoverCat" data-i18n="type.series">Séries</button>
-        <button class="stab" data-dc="anime" data-sfx-hover data-click="switchDiscoverCat" data-i18n="type.anime">Anime</button>
+        <button class="stab on" data-dc="all" data-click="switchDiscoverCat" data-i18n="tab.all">Tout</button>
+        <button class="stab" data-dc="film" data-click="switchDiscoverCat" data-i18n="type.films">Films</button>
+        <button class="stab" data-dc="serie" data-click="switchDiscoverCat" data-i18n="type.series">Séries</button>
+        <button class="stab" data-dc="anime" data-click="switchDiscoverCat" data-i18n="type.anime">Anime</button>
       </div>
       <div id="discoverSection" class="discover-section"></div>
       <div id="detectedSection" class="detected-section" aria-live="polite"></div>
@@ -616,16 +616,7 @@
 <script defer src="js/00-brand.js"></script>
 <script defer src="js/00-actions.js"></script>
 <!--i18n:scripts-->
-<script defer src="js/i18n/fr.js"></script>
-<script defer src="js/i18n/ar.js"></script>
-<script defer src="js/i18n/bn.js"></script>
-<script defer src="js/i18n/en.js"></script>
-<script defer src="js/i18n/es.js"></script>
-<script defer src="js/i18n/hi.js"></script>
-<script defer src="js/i18n/pt.js"></script>
-<script defer src="js/i18n/ru.js"></script>
-<script defer src="js/i18n/ur.js"></script>
-<script defer src="js/i18n/zh.js"></script>
+<script src="js/00-i18n-load.js"></script>
 <!--/i18n:scripts-->
 <script defer src="js/00-i18n.js"></script>
 <script defer src="js/01-config.js"></script>

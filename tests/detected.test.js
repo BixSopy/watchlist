@@ -190,7 +190,7 @@ test('cases cochées par défaut : seulement sans choix à faire', () => {
 
 test('site : nouvel onglet branché sans gestionnaire en ligne, ajout par le même code que le formulaire', () => {
   const html = read('index.html');
-  assert.match(html, /<button class="ntab sp" id="detTab" data-tab="detectes" data-sfx-hover data-click="switchTab" hidden>/);
+  assert.match(html, /<button class="ntab sp" id="detTab" data-tab="detectes" data-click="switchTab" hidden>/);
   assert.match(html, /<div id="detectedSection"/);
   assert.ok(html.indexOf('<script defer src="js/20-account.js">') < html.indexOf('<script defer src="js/21-detected.js">'));
   const actions = read('js/00-actions.js');

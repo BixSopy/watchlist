@@ -78,17 +78,24 @@ function _onApiAuthRestored(){
 
 /* CACHE FETCH — TTL 24h pour que le throttle Suivi (lastEpisodeCheck) redevienne effectif en session longue */
 var TF_CACHE_TTL=86400000;
+/* Requêtes en cours, par URL : plusieurs modules qui demandent la même fiche au même moment (alertes,
+   suivi, calendrier au démarrage) partagent un seul appel au lieu d'en lancer un chacun. */
+var _tfInflight={};
 function tf(url){
   var c=cache[url];
   if(c&&(Date.now()-c.t)<TF_CACHE_TTL)return Promise.resolve(c.d);
-  return apiFetch(url).then(function(r){
+  if(_tfInflight[url])return _tfInflight[url];
+  var p=apiFetch(url).then(function(r){
     /* Une réponse d'erreur (401, 429, 5xx...) n'est jamais mise en cache */
     if(!r.ok){var e=new Error('HTTP '+r.status);e.status=r.status;throw e;}
     return r.json();
   }).then(function(d){
+    delete _tfInflight[url];
     if(!_isApiErrorBody(d))cache[url]={d:d,t:Date.now()};
     return d;
-  });
+  },function(e){delete _tfInflight[url];throw e;});
+  _tfInflight[url]=p;
+  return p;
 }
 /* Corps d'erreur renvoyés avec un statut 200 : TMDB (success:false), OMDb (quota/clé) */
 function _isApiErrorBody(d){
