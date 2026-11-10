@@ -14,13 +14,13 @@ function notifLoad(force){
   if(NOTIF.loading&&!force)return NOTIF.loading;
   NOTIF.loading=supa.rpc('get_my_notification_prefs',{p_profile_id:authProfileId}).then(function(r){
     NOTIF.loading=null;
-    if(r.error){if(typeof socialUnavailable==='function'&&socialUnavailable(r.error))NOTIF.available=false;return null;}
-    if(!r.data||r.data.status!=='ok')return null;
+    if(r.error){if(typeof socialUnavailable==='function'&&socialUnavailable(r.error))NOTIF.available=false;else NOTIF.failedAt=Date.now();return null;}
+    if(!r.data||r.data.status!=='ok'){NOTIF.failedAt=Date.now();return null;}
     NOTIF.available=true;
     var p=r.data.prefs||{};
     NOTIF.releases=!!p.releases;NOTIF.newsletter=!!p.newsletter;
     return NOTIF;
-  },function(){NOTIF.loading=null;return null;});
+  },function(){NOTIF.loading=null;NOTIF.failedAt=Date.now();return null;});
   return NOTIF.loading;
 }
 if(typeof socialOnChange==='function')socialOnChange(function(){NOTIF.available=null;notifLoad();});
@@ -64,7 +64,13 @@ function toggleNotifNewsletter(){_notifToggle('newsletter');}
    affiché-puis-caché si la migration n'est pas en place), même esprit que _trackTokenSection. */
 function _notifSection(idx){
   if(!authProfileId)return '';
-  if(NOTIF.available===null){notifLoad().then(function(){if(typeof renderSettingsMenu==='function')renderSettingsMenu();});return '';}
+  /* Redessiné seulement si le chargement réussit : après un échec (hors connexion, erreur passagère),
+     redessiner relançait aussitôt le chargement, donc une boucle de rendu du panneau entier. Nouvel
+     essai au plus une fois par minute, à la prochaine ouverture ou au prochain rendu. */
+  if(NOTIF.available===null){
+    if(!(NOTIF.failedAt&&Date.now()-NOTIF.failedAt<60000))notifLoad().then(function(r){if(r&&typeof renderSettingsMenu==='function')renderSettingsMenu();});
+    return '';
+  }
   if(NOTIF.available===false)return '';
   var html=_secOpen(idx)+_secTitle('bell',esc(t('set.notifSection')));
   html+=_delegatedToggleRow(esc(t('set.notifReleases')),esc(t('set.notifReleasesHint')),'toggleNotifReleases',NOTIF.releases);

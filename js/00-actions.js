@@ -231,6 +231,8 @@ uiOn('ficheRemove',function(){ficheRemove();});
 uiOn('setRate',function(el,e,v){setRate(v);});
 uiOn('rmTag',function(el,e,i){rmTag(i);});
 uiOn('plexSeason',function(el,e,n){plexSeason(n);});
+uiOn('toggleMyProvFilter',function(){toggleMyProvFilter();});
+uiOn('toggleMyProvider',function(el,e,id){toggleMyProvider(id);});
 uiOn('openFolder',function(el,e,id){sfx('open');openFolder(_uiId(id));});
 uiOn('folderItem',function(el,e,id){id=_uiId(id);sfx('open');closeFolder();setTimeout(function(){openPlex(id);},80);});
 uiOn('closeFolder',function(){sfx('close');closeFolder();});

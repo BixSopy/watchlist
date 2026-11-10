@@ -121,7 +121,7 @@ loadSettings();applySettings();
    (réseau lent) : on attend qu'ils soient tous exécutés (DOMContentLoaded) avant de démarrer. */
 function _whenScriptsReady(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn,{once:true});else fn();}
 openDB(function(){_whenScriptsReady(_bootApp);});
-function _bootApp(){render();loadRecos();setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);setTimeout(loadBingeSignal,4500);enhanceAllSelects(document);setTimeout(function(){detectCollections(true);},6000);}
+function _bootApp(){render();loadRecos();setTimeout(checkAllAir,2000);bindSearchModalEvents();updateStatsFooter();var sw=document.getElementById('suiviWrap');if(sw&&suiviCollapsed)sw.classList.add('collapsed');initSuivi();initAuth();setTimeout(buildTasteProfileCache,4000);setTimeout(loadBingeSignal,4500);enhanceAllSelects(document);setTimeout(function(){detectCollections(true);},6000);if(typeof mpChipUpdate==='function'){mpChipUpdate();setTimeout(mpRefresh,5000);}}
 
 /* PWA : enregistre un service worker volontairement sans cache (voir sw.js), uniquement
    pour satisfaire le critère d'installabilité de Chrome/Android ("Ajouter à l'écran

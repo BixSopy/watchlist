@@ -192,6 +192,7 @@ function renderSettingsMenu(){
   html+=_secOpen(idx++)+_secTitle('suivi',esc(t('set.suivi')));
   html+=_delegatedToggleRow(esc(t('set.suiviCollapsed')),'','toggleSuiviSection',suiviCollapsed);
   html+=_toggleRow(esc(t('set.providers')),'','wl_suivi_providers',wlSettings.wl_suivi_providers==='1');
+  if(typeof mpSettingsHtml==='function')html+='<div class="setting-block mp-block">'+mpSettingsHtml()+'</div>';
   html+=_toggleRow(esc(t('set.reminders')),esc(t('set.remindersHint')),'wl_reminders_global',wlSettings.wl_reminders_global==='1');
   html+='</div>';
   if(typeof _notifSection==='function')html+=_notifSection(idx++);
@@ -213,6 +214,7 @@ function renderSettingsMenu(){
   html+='</div>';
   }
   body.innerHTML=html;
+  if(typeof mpSettingsFill==='function')mpSettingsFill();
   body.classList.toggle('settings-anim',_settingsAnimate);
   _settingsAnimate=false;
   enhanceAllSelects(body);

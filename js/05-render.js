@@ -4,6 +4,7 @@ function getItems(tab,stat,q){
   var items=memDB.slice().filter(function(i){return !i.deleted});
   if(tab&&tab!='all')items=items.filter(function(i){return i.type==tab});
   if(stat&&stat!='all')items=items.filter(function(i){if(stat=='avoir')return i.status=='avoir'||i.status=='todo';return i.status==stat});
+  if(typeof mpFilterItems==='function')items=mpFilterItems(items);
   if(q){var ql=q.toLowerCase();items=items.filter(function(i){return(i.title&&i.title.toLowerCase().indexOf(ql)>-1)||(i.tags&&i.tags.join(' ').toLowerCase().indexOf(ql)>-1)});}
   var so=document.getElementById('sortSel').value;
   items.sort(function(a,b){
@@ -245,7 +246,7 @@ function render(opts){
   _secSeq=0;
   /* Même vue qu'au rendu précédent (onglet, filtre, recherche, tri, mode compact, langue) : c'est une mise à
      jour des données (synchro, épisode suivant, détection de sagas…), donc rendu discret, sans animation. */
-  var viewKey=[tab,stat,q,sortBy,compactOn?1:0,document.documentElement.lang].join('|');
+  var viewKey=[tab,stat,q,sortBy,compactOn?1:0,document.documentElement.lang,typeof mpFilterOn==='function'&&mpFilterOn()?1:0].join('|');
   if(viewKey===_lastViewKey)quiet=true;
   _lastViewKey=viewKey;
 

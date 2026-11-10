@@ -22,6 +22,8 @@ const ROUTES = [
   { re: /^\/search\/(multi|movie|tv)$/, ttl: 15 * 60 },
   { re: /^\/trending\/(all|movie|tv)\/(day|week)$/, ttl: 3600 },
   { re: /^\/discover\/(movie|tv)$/, ttl: 3600 },
+  /* Mes plateformes : catalogue des plateformes d'un pays (js/42-my-providers.js) */
+  { re: /^\/watch\/providers\/(movie|tv)$/, ttl: 24 * 3600 },
   /* Import TV Time : id TVDB -> fiche TMDB (external_source obligatoire, voir plus bas) */
   { re: /^\/find\/\d{1,9}$/, ttl: 24 * 3600, need: 'external_source' },
 ];
