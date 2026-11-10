@@ -234,7 +234,7 @@ function fillPlexDetails(det){
     if(seasons.length>1){
       var sel=document.getElementById('sSelWrap');
       var curSn=d.item&&d.item.saison&&d.item.status!=='avoir'?d.item.saison:seasons[0].season_number;
-      sel.innerHTML='<div class="s-seg" role="group" aria-label="'+esc(t('plex.seasonsLbl'))+'">'+seasons.map(function(s){return '<button type="button" class="s-btn'+(s.season_number===curSn?' on':'')+'" data-s="'+s.season_number+'" data-sfx-hover'+uiAct('plexSeason',[s.season_number])+'>'+esc(t('plex.seasonN',{n:s.season_number}))+'</button>';}).join('')+'</div>';
+      sel.innerHTML='<div class="s-seg" role="group" aria-label="'+esc(t('plex.seasonsLbl'))+'">'+seasons.map(function(s){return '<button type="button" class="s-btn'+(s.season_number===curSn?' on':'')+'" data-s="'+s.season_number+'"'+uiAct('plexSeason',[s.season_number])+'>'+esc(t('plex.seasonN',{n:s.season_number}))+'</button>';}).join('')+'</div>';
     }
     /* Episodes de la saison en cours (cache local, pas item.totalEp = total de la série) :
        recalcul exact ici (on a déjà det.seasons), mis à jour aussi pour les cartes/grille. */

@@ -595,7 +595,7 @@ function renderDetected(){
   var selectable=vis.filter(function(x){return DET_CORE.actionable(x.g,x.c);});
   var allOn=selectable.length>0&&selectable.every(function(x){return _detSel(x.g.key).checked;});
   var filters=['all','new','updates','ambiguous'].map(function(f){
-    return '<button type="button" class="stab'+(DET.filter===f?' on':'')+'" data-sfx-hover'+uiAct('detFilter',[f])+'>'+esc(t('det.filter.'+f))+' <span class="det-n">'+fmtNum(counts[f])+'</span></button>';
+    return '<button type="button" class="stab'+(DET.filter===f?' on':'')+'"'+uiAct('detFilter',[f])+'>'+esc(t('det.filter.'+f))+' <span class="det-n">'+fmtNum(counts[f])+'</span></button>';
   }).join('');
   var busy=DET.busy?' disabled':'';
   var ae=document.activeElement,focusKey=ae&&ae.classList&&ae.classList.contains('det-q')?ae.getAttribute('data-key'):null;
