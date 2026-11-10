@@ -1,8 +1,9 @@
 /* MODULE: Suivi des sorties (prochains épisodes/films, rappels, plateformes de streaming). */
 /* AIR ALERTS */
 function checkAir(item){
-  if(!item.tmdbId||item.type=='film')return;
-  tf(TB+'/tv/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){
+  if(!item.tmdbId||item.type=='film')return Promise.resolve();
+  return tf(TB+'/tv/'+item.tmdbId+'?language='+TMDB_LANG).then(function(d){
+    _airMark(item.tmdbId);
     var changed=false;
     if(d.next_episode_to_air&&d.next_episode_to_air.air_date){item.nextAir=d.next_episode_to_air.air_date;changed=true;}
     var last=d.last_episode_to_air,isNew=false;
@@ -22,21 +23,41 @@ function checkAir(item){
     if(changed){for(var j=0;j<memDB.length;j++){if(memDB[j].id==item.id){memDB[j]=item;break}}dbPut(item,function(){});}
   }).catch(function(){});
 }
+/* Une série n'est revérifiée qu'après AIR_CHECK_MS : le proxy TMDB garde lui-même ses réponses 6 h
+   (api/tmdb.js), redemander plus tôt ramènerait la même réponse. hasNewEp reste enregistré sur le
+   titre entre deux vérifications (et repasse à faux dès qu'on avance d'un épisode). Horodatages par
+   id TMDB dans localStorage (wl_air_checked), purgés au-delà de 7 jours. */
+var AIR_CHECK_MS=6*3600000,AIR_BATCH=6;
+function _airChecked(){var m={};try{m=JSON.parse(localStorage.getItem('wl_air_checked')||'{}')||{};}catch(e){m={};}return m;}
+function _airMark(id){
+  var m=_airChecked(),now=Date.now();
+  m[id]=now;
+  Object.keys(m).forEach(function(k){if(now-m[k]>7*86400000)delete m[k];});
+  try{localStorage.setItem('wl_air_checked',JSON.stringify(m));}catch(e){}
+}
 function checkAllAir(){
-  var following=memDB.filter(function(i){return i.status=='encours'&&i.type!='film'&&i.tmdbId});var pending=following.length;if(!pending)return;
-  following.forEach(function(item){checkAir(item);});
-  setTimeout(function(){
-    var newEps=memDB.filter(function(i){return i.hasNewEp});
-    if(newEps.length){
-      var ab=document.getElementById('alertWrap');
-      var namesHtml=newEps.slice(0,3).map(function(i){
-        return '<span class="alert-link"'+uiAct('openPlexQuiet',[i.id])+' style="cursor:pointer;text-decoration:underline">'+esc(i.title)+'</span>';
-      }).join(', ');
-      document.getElementById('alertText').innerHTML='<b>'+esc(tn('suivi.newEps',newEps.length))+'</b> : '+namesHtml;
-      ab.classList.add('on');sfx('toast');render();
-    }
-    renderSuivi();
-  },3000);
+  var seen=_airChecked(),now=Date.now();
+  var following=memDB.filter(function(i){return i.status=='encours'&&i.type!='film'&&i.tmdbId&&!i.deleted&&!(seen[i.tmdbId]&&now-seen[i.tmdbId]<AIR_CHECK_MS);});
+  /* Par lots de AIR_BATCH, pas 100 requêtes d'un coup au démarrage */
+  var i=0;
+  function next(){
+    if(i>=following.length)return Promise.resolve();
+    var batch=following.slice(i,i+AIR_BATCH);i+=AIR_BATCH;
+    return Promise.all(batch.map(checkAir)).then(next);
+  }
+  next().then(_showAirAlert);
+}
+function _showAirAlert(){
+  var newEps=memDB.filter(function(i){return i.hasNewEp&&!i.deleted});
+  if(newEps.length){
+    var ab=document.getElementById('alertWrap');
+    var namesHtml=newEps.slice(0,3).map(function(i){
+      return '<span class="alert-link"'+uiAct('openPlexQuiet',[i.id])+' style="cursor:pointer;text-decoration:underline">'+esc(i.title)+'</span>';
+    }).join(', ');
+    document.getElementById('alertText').innerHTML='<b>'+esc(tn('suivi.newEps',newEps.length))+'</b> : '+namesHtml;
+    ab.classList.add('on');sfx('toast');render();
+  }
+  renderSuivi();
 }
 
 /* ===== MODULE SUIVI ===== */
@@ -120,7 +141,7 @@ function fetchWatchProviders(item,cb){
   tf(TB+'/'+kind+'/'+item.tmdbId+'/watch/providers').then(function(d){
     var fr=d&&d.results&&d.results[TMDB_REGION];
     if(fr&&fr.flatrate&&fr.flatrate.length){
-      item.streamingProviders=fr.flatrate.slice(0,4).map(function(p){return{name:p.provider_name,logo:p.logo_path?IB+'w45'+p.logo_path:null,url:fr.link||null};});
+      item.streamingProviders=fr.flatrate.slice(0,4).map(function(p){return{id:p.provider_id,name:p.provider_name,logo:p.logo_path?IB+'w45'+p.logo_path:null,url:fr.link||null};});
     }
     cb&&cb();
   }).catch(function(){cb&&cb();});

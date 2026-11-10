@@ -54,7 +54,7 @@ function _fxEl(id){return document.getElementById(id);}
 /* Compat : la note n'est plus verrouillée sur « À voir » (toucher une étoile passe en « Terminé ») */
 function _updateStarsLock(){var st=_fxEl('stars');if(st)st.classList.remove('locked');}
 function _fxRateLabel(){var rv=_fxEl('fxRv');if(rv)rv.innerHTML=myRate?esc(String(myRate))+'<small>/10</small>':'–';}
-function buildStars(c){myRate=c||0;_fxEl('stars').innerHTML=Array.from({length:10},function(_,i){var v=i+1;return '<div class="star'+(v<=myRate?' on':'')+'" role="button" aria-label="'+v+'/10" data-sfx-hover'+uiAct('setRate',[v])+'>'+starsvg(v<=myRate)+'</div>';}).join('');_fxRateLabel();}
+function buildStars(c){myRate=c||0;_fxEl('stars').innerHTML=Array.from({length:10},function(_,i){var v=i+1;return '<div class="star'+(v<=myRate?' on':'')+'" role="button" aria-label="'+v+'/10"'+uiAct('setRate',[v])+'>'+starsvg(v<=myRate)+'</div>';}).join('');_fxRateLabel();}
 function _fxHint(msg,hl){var h=_fxEl('fxHint');if(!h)return;h.textContent=msg||'';h.classList.toggle('hl',!!hl);clearTimeout(_fx.hintT);if(hl)_fx.hintT=setTimeout(function(){h.classList.remove('hl');h.textContent=t('add.rateHint2');},2600);}
 function setRate(v){
   sfx('click');

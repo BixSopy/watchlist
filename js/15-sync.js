@@ -198,6 +198,7 @@ function preserveSuiviFields(local,remote){
   remote.lastEpisodeCheck=local.lastEpisodeCheck;
   remote.tvmazeId=local.tvmazeId;
   remote.streamingProviders=local.streamingProviders;
+  remote.providersAt=local.providersAt;
   remote.genreIds=local.genreIds;
   remote.omdbRatings=local.omdbRatings;
   remote.kitsuRating=local.kitsuRating;
@@ -293,13 +294,27 @@ function syncNow(){
   });
 }
 
-function startSyncLoop(){
-  stopSyncLoop();
+/* Synchro périodique toutes les 30 s, seulement onglet visible : un onglet caché ne synchronise plus
+   (2 requêtes/min pour rien), et rattrape d'un coup en redevenant visible. */
+var _syncLoopOn=false,_lastSyncAt=0;
+function _syncTimerStart(){
+  if(syncLoopTimer)return;
   syncLoopTimer=setInterval(function(){
-    if(authProfileId&&navigator.onLine)syncNow();
+    if(authProfileId&&navigator.onLine&&!document.hidden){_lastSyncAt=Date.now();syncNow();}
   },30000);
 }
-function stopSyncLoop(){if(syncLoopTimer){clearInterval(syncLoopTimer);syncLoopTimer=null;}}
+function _syncTimerStop(){if(syncLoopTimer){clearInterval(syncLoopTimer);syncLoopTimer=null;}}
+function startSyncLoop(){
+  _syncTimerStop();_syncLoopOn=true;_lastSyncAt=Date.now();
+  if(!document.hidden)_syncTimerStart();
+}
+function stopSyncLoop(){_syncLoopOn=false;_syncTimerStop();}
+document.addEventListener('visibilitychange',function(){
+  if(!_syncLoopOn)return;
+  if(document.hidden){_syncTimerStop();return;}
+  if(authProfileId&&navigator.onLine&&Date.now()-_lastSyncAt>=30000){_lastSyncAt=Date.now();syncNow();}
+  _syncTimerStart();
+});
 
 /* --- Jeton de suivi auto : authentifie l'extension navigateur (mark_watched_by_title()) --- */
 var trackToken=null,_trackTokenLoaded=false;
