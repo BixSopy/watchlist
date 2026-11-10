@@ -72,7 +72,7 @@ function shareCreate(){
   .then(function(r){
     SHARE.busy=false;var d=r.data||{};
     if(r.error||d.status!=='ok'){toast(t(d.status==='too_many_shares'?'share.errMax':d.status==='rate_limited'?'share.errRate':'share.err'),'err');shareRender();return;}
-    SHARE.last={id:d.id,token:d.token};if(typeof sfx==='function')sfx('success');shareRender();shareLoad();
+    SHARE.last={id:d.id,token:d.token};if(typeof sfx==='function')sfx('done');shareRender();shareLoad();
   },function(){SHARE.busy=false;toast(t('share.err'),'err');shareRender();});
 }
 function shareCopyText(txt){

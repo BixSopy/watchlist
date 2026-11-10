@@ -3,7 +3,6 @@
    un attribut injecté dans la page ne peut donc plus exécuter de code. À la place, le HTML porte
    des attributs de données et ce module appelle la fonction correspondante, prise dans une liste fermée :
      data-click="nom"   data-change="nom"   data-input="nom"   data-args='[…]' (JSON, facultatif)
-     data-sfx-hover     son de survol (équivalent de onmouseenter="sfx('hover')")
      data-hide-broken   image masquée si elle ne charge pas (équivalent de onerror="this.style.display='none'")
    La fonction reçoit (élément, événement, ...arguments), avec this = l'élément, comme l'ancien attribut.
    Les écouteurs sont posés en phase de capture sur window : ils passent avant ceux des conteneurs, et
@@ -40,14 +39,6 @@ function uiAct(name,args,type){
   window.addEventListener('click',function(e){run('click',e);},true);
   window.addEventListener('change',function(e){run('change',e);},true);
   window.addEventListener('input',function(e){run('input',e);},true);
-  /* Survol : un son par élément « entré », comme mouseenter (pas en passant d'un enfant à l'autre) */
-  window.addEventListener('mouseover',function(e){
-    var tg=e.target;if(!tg||!tg.closest)return;
-    for(var el=tg.closest('[data-sfx-hover]');el;el=el.parentElement&&el.parentElement.closest('[data-sfx-hover]')){
-      if(e.relatedTarget&&el.contains(e.relatedTarget))continue;
-      if(typeof sfx==='function')sfx('hover');
-    }
-  },true);
   /* Les erreurs de chargement d'image ne remontent pas : on les attrape en phase de capture */
   document.addEventListener('error',function(e){
     var img=e.target;
