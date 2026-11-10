@@ -231,6 +231,8 @@ uiOn('ficheRemove',function(){ficheRemove();});
 uiOn('setRate',function(el,e,v){setRate(v);});
 uiOn('rmTag',function(el,e,i){rmTag(i);});
 uiOn('plexSeason',function(el,e,n){plexSeason(n);});
+uiOn('peReveal',function(el){el.classList.add('shown');el.removeAttribute('data-click');});
+uiOn('plexOverviewReveal',function(el){el.textContent=el.getAttribute('data-full')||'';el.classList.remove('spoil');el.removeAttribute('data-full');el.removeAttribute('data-click');});
 uiOn('openFolder',function(el,e,id){sfx('open');openFolder(_uiId(id));});
 uiOn('folderItem',function(el,e,id){id=_uiId(id);sfx('open');closeFolder();setTimeout(function(){openPlex(id);},80);});
 uiOn('closeFolder',function(){sfx('close');closeFolder();});

@@ -1900,6 +1900,13 @@ body.p3-v-tonight .home-next{margin-top:40px}
 .pe-row{display:flex;gap:16px;align-items:center;padding:10px;border-radius:16px;animation:hnIn .5s var(--p3-ease) both;animation-delay:calc(var(--i,0)*40ms)}
 .pe-row:nth-child(odd){background:rgba(var(--ink-rgb),.03)}
 .pe-im{width:120px;aspect-ratio:16/9;border-radius:10px;background:var(--bg4) center/cover;flex:none}
+/* Anti-spoiler (js/08-plex.js) : image floutée (flou statique, calculé une fois) et titre masqué tant
+   que l'épisode n'est ni vu ni touché ; clip-path garde le flou dans les coins arrondis. */
+.pe-row.spoil{cursor:pointer}
+.pe-row.spoil:not(.shown) .pe-im{filter:blur(9px) saturate(.6);clip-path:inset(0 round 10px)}
+.pe-row.spoil:not(.shown) .pe-nm,.pe-row.spoil.shown .pe-nm-x{display:none}
+.pe-nm-x{font-style:italic;font-weight:500;color:var(--text3)}
+#plexOverview.spoil{cursor:pointer;font-style:italic;color:var(--text3)}
 .pe-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.pe-tx b{font:650 14.5px 'Inter',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pe-tx i{font-style:normal;font-size:12.5px;color:var(--text2)}
 .pe-ck{width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(var(--ink-rgb),.22);flex:none;display:grid;place-items:center;color:var(--text)}
 .pe-ck.on{background:var(--p3-grad);border-color:transparent}.pe-ck svg{width:16px;height:16px}

@@ -11,6 +11,7 @@ var WL_SETTINGS_DEFAULTS={
   wl_reco_pause_hover:'1',
   wl_reco_limit:'15',
   wl_suivi_providers:'1',
+  wl_spoilers:'1',
   wl_reminders_global:'1',
   wl_glass:'40',
   wl_grain:'50',
