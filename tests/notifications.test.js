@@ -191,3 +191,24 @@ test('newsletter-sync : échec Resend -> 503', async () => {
   const r = await postCall(sync, 'u.ok.tok', { enabled: true });
   assert.strictEqual(r.status, 503);
 });
+
+test('Réglages : un échec de chargement des préférences ne relance pas une boucle de rendu du panneau', async () => {
+  const vm = require('node:vm');
+  let rpcCalls = 0, renders = 0, now = 1e12;
+  const ctx = {
+    Promise, Date: { now: () => now }, authProfileId: 'p1', esc: s => s, t: k => k,
+    supa: { rpc: () => { rpcCalls++; return Promise.resolve({ error: { code: 'XX000', message: 'boom' } }); } },
+    renderSettingsMenu: () => { renders++; ctx._notifSection(0); },
+    _secOpen: () => '', _secTitle: () => '', _delegatedToggleRow: () => '',
+  };
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/40-notifications.js'), 'utf8') + '\nthis._notifSection=_notifSection;', ctx);
+  assert.strictEqual(ctx._notifSection(0), '');
+  await new Promise(r => setTimeout(r, 20));
+  assert.strictEqual(rpcCalls, 1);
+  assert.strictEqual(renders, 0, 'échec : pas de nouveau rendu (avant : rendu → nouvel essai → rendu… en boucle)');
+  ctx._notifSection(0); await new Promise(r => setTimeout(r, 5));
+  assert.strictEqual(rpcCalls, 1, 'pas de nouvel essai dans la minute');
+  now += 61000; ctx._notifSection(0); await new Promise(r => setTimeout(r, 5));
+  assert.strictEqual(rpcCalls, 2, 'nouvel essai après une minute');
+});

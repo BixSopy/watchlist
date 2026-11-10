@@ -222,6 +222,8 @@ uiOn('ficheRemove',function(){ficheRemove();});
 uiOn('setRate',function(el,e,v){setRate(v);});
 uiOn('rmTag',function(el,e,i){rmTag(i);});
 uiOn('plexSeason',function(el,e,n){plexSeason(n);});
+uiOn('toggleMyProvFilter',function(){toggleMyProvFilter();});
+uiOn('toggleMyProvider',function(el,e,id){toggleMyProvider(id);});
 uiOn('peReveal',function(el){el.classList.add('shown');el.removeAttribute('data-click');});
 uiOn('plexOverviewReveal',function(el){el.textContent=el.getAttribute('data-full')||'';el.classList.remove('spoil');el.removeAttribute('data-full');el.removeAttribute('data-click');});
 uiOn('openFolder',function(el,e,id){sfx('open');openFolder(_uiId(id));});

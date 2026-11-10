@@ -198,6 +198,7 @@ function preserveSuiviFields(local,remote){
   remote.lastEpisodeCheck=local.lastEpisodeCheck;
   remote.tvmazeId=local.tvmazeId;
   remote.streamingProviders=local.streamingProviders;
+  remote.providersAt=local.providersAt;
   remote.genreIds=local.genreIds;
   remote.omdbRatings=local.omdbRatings;
   remote.kitsuRating=local.kitsuRating;

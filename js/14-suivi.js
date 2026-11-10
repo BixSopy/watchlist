@@ -141,7 +141,7 @@ function fetchWatchProviders(item,cb){
   tf(TB+'/'+kind+'/'+item.tmdbId+'/watch/providers').then(function(d){
     var fr=d&&d.results&&d.results[TMDB_REGION];
     if(fr&&fr.flatrate&&fr.flatrate.length){
-      item.streamingProviders=fr.flatrate.slice(0,4).map(function(p){return{name:p.provider_name,logo:p.logo_path?IB+'w45'+p.logo_path:null,url:fr.link||null};});
+      item.streamingProviders=fr.flatrate.slice(0,4).map(function(p){return{id:p.provider_id,name:p.provider_name,logo:p.logo_path?IB+'w45'+p.logo_path:null,url:fr.link||null};});
     }
     cb&&cb();
   }).catch(function(){cb&&cb();});
