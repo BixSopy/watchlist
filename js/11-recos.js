@@ -91,7 +91,7 @@ function recoCardHtml(d,idx){
   var sc=d.score?'<div class="reco-score">&#9733; '+parseFloat(d.score).toFixed(1)+'</div>':'';
   var num=typeof idx==='number'?'<div class="reco-num">'+(idx+1)+'</div>':'';
   var ds='data-tmdbid="'+(d.tmdbId||'')+'" data-type="'+esc(d.type)+'" data-title="'+esc(d.title)+'" data-year="'+esc(String(d.year||''))+'" data-poster="'+esc(d.poster||'')+'" data-score="'+esc(String(d.score||''))+'" data-overview="'+esc(d.overview||'')+'" data-genres="'+esc((d.genreIds||[]).join(','))+'" data-origin="'+esc(d.originCountry||'')+'"';
-  return '<div class="reco-card" '+ds+'><div class="reco-img-wrap" data-click="recoPreview" title="'+esc(t('plex.overview'))+'">'+num+ph+'</div><div class="reco-body"><div class="reco-title">'+esc(d.title)+'</div><div class="reco-year">'+esc(String(d.year||''))+'</div>'+sc+'<div class="reco-btns"><button class="rbtn add" data-sfx-hover data-click="recoAdd">'+esc(t('reco.add'))+'</button><button class="rbtn no" data-sfx-hover data-click="recoDismiss">'+esc(t('reco.no'))+'</button></div></div></div>';
+  return '<div class="reco-card" '+ds+'><div class="reco-img-wrap" data-click="recoPreview" title="'+esc(t('plex.overview'))+'">'+num+ph+'</div><div class="reco-body"><div class="reco-title">'+esc(d.title)+'</div><div class="reco-year">'+esc(String(d.year||''))+'</div>'+sc+'<div class="reco-btns"><button class="rbtn add" data-click="recoAdd">'+esc(t('reco.add'))+'</button><button class="rbtn no" data-click="recoDismiss">'+esc(t('reco.no'))+'</button></div></div></div>';
 }
 function renderRecos(tHtml,bHtml,sHtml,json,inList){
   if(_apiAuthState){_paintLoginRequired();return;}
