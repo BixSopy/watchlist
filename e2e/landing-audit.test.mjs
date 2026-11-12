@@ -149,3 +149,70 @@ test('ordinateur : en plein chapitre « Tu regardes. Il coche. », le texte est 
   const r = await page.evaluate(() => [...document.querySelectorAll('.lp-ch')].map(c => { const e = c.querySelector('.lp-ch-t').getBoundingClientRect(); return c.classList.contains('on') && e.top >= 64 && e.bottom <= innerHeight; }));
   assert.ok(r.some(Boolean), 'un texte de chapitre entièrement visible à g ≈ 1,65');
 });
+
+/* ---- Textes des chapitres : un seul à la fois, sur son écran (retour de Pierre du 12/11) ---- */
+const goG = async (page, g, settled = true) => {
+  await page.evaluate(g => { const c = Math.floor(g), el = document.querySelectorAll('.lp-ch')[c], r = el.getBoundingClientRect(); scrollTo(0, Math.round(scrollY + r.top + r.height * (g - c) - innerHeight * 0.38)); }, g);
+  /* la valeur affichée rejoint la cible en douceur : on attend que le chapitre visé soit devenu le chapitre courant */
+  if (settled) await page.waitForFunction(c => document.querySelectorAll('.lp-ch')[c].classList.contains('on'), Math.floor(g), { timeout: 30000 });
+  else await page.waitForTimeout(3000);
+  await page.waitForTimeout(1800);   /* fondu des scènes et des textes (0,2 s de sortie, puis entrée) */
+};
+const state = page => page.evaluate(() => ({
+  html: document.documentElement.className,
+  scenes: [...document.querySelectorAll('.lp-s')].filter(e => +getComputedStyle(e).opacity > .5).map(e => +e.getAttribute('data-s')),
+  texts: [...document.querySelectorAll('.lp-ch-t')].map((t, i) => { const b = t.getBoundingClientRect(), o = Math.max(...[...t.children].map(k => +getComputedStyle(k).opacity)); return o > .1 && b.bottom > 73 && b.top < innerHeight ? { i, top: Math.round(b.top), bottom: Math.round(b.bottom) } : null; }).filter(Boolean),
+  thumbs: [...document.querySelectorAll('.lp-ex-row .lp-po')].map(p => +getComputedStyle(p).opacity),
+}));
+
+for (const [w, h] of [[1440, 900], [2560, 1300], [1280, 600]]) {
+  test(`ordinateur ${w}×${h} : un seul texte de chapitre à la fois, celui de l'écran affiché, épinglé au centre`, async t => {
+    const page = await open(t, { viewport: { width: w, height: h } });
+    for (const g of [1.6, 2.5, 2.97, 3.05, 5.9, 5.97, 6.05, 7.5]) {
+      await goG(page, g);
+      const r = await state(page), c = Math.floor(g);
+      assert.deepEqual(r.texts.map(x => x.i), [c], `g=${g} : textes visibles ${JSON.stringify(r.texts)}`);
+      assert.ok(r.scenes.includes(c <= 1 ? 0 : c), `g=${g} : écran affiché ${r.scenes}`);
+      /* épinglé : même place en début et en fin de chapitre (en sticky, il était déjà sorti par le haut à g = i + 0,9) */
+      const mid = (r.texts[0].top + r.texts[0].bottom) / 2;
+      assert.ok(Math.abs(mid - h / 2) <= 2, `g=${g} : centre du texte à ${mid} px pour un écran de ${h} px`);
+    }
+  });
+}
+
+test('accueil atteint après une session (déconnexion, session expirée — cas des prévisualisations) : animations actives, un seul texte, vignettes de « Détectés » vides avant l\'arrivée des affiches', async t => {
+  server.config = { turnstileSiteKey: '', signupsOpen: true };
+  const ctx = await browser.newContext({ locale: 'fr-FR', viewport: { width: 1440, height: 900 } });
+  t.after(() => ctx.close());
+  const page = await ctx.newPage();
+  await installFakeSupabase(page);   /* sans { landing: true } : l'application s'ouvre d'abord */
+  await page.goto(server.url + '/');
+  await page.waitForFunction(() => document.documentElement.classList.contains('lp-member'), null, { timeout: 30000 });
+  await page.evaluate(() => lpEnter('login'));
+  await page.waitForSelector('#landing [data-lp-j]', { state: 'visible', timeout: 30000 });
+  await page.waitForTimeout(1500);
+  const cls = await page.evaluate(() => document.documentElement.className);
+  assert.ok(/\blp-guest\b/.test(cls) && /\blp-anim\b/.test(cls) && /\blp-pin\b/.test(cls), 'classes de <html> : ' + cls);
+  await goG(page, 2.05);
+  let r = await state(page);
+  assert.ok(r.thumbs.length === 6 && r.thumbs.every(o => o < .05), 'vignettes vides au début du chapitre : ' + r.thumbs.join(' '));
+  await goG(page, 2.97);
+  r = await state(page);
+  assert.ok(r.thumbs.every(o => o > .95), 'toutes les affiches sont arrivées en fin de chapitre');
+  await goG(page, 5.9);
+  r = await state(page);
+  assert.deepEqual(r.texts.map(x => x.i), [5], 'un seul texte (avant : chapitres 5 et 6 superposés) : ' + JSON.stringify(r.texts));
+});
+
+test('mobile 390×844 : le bandeau de texte suit l\'écran affiché (même chapitre), et n\'apparaît qu\'une fois le texte d\'accueil sorti', async t => {
+  const page = await open(t, { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const titles = await page.evaluate(() => [...document.querySelectorAll('.lp-ch')].map(c => (c.querySelector('h2') || {}).textContent || ''));
+  const card = () => page.evaluate(() => { const m = document.querySelector('.lp-j-mtext'); return m.classList.contains('on') ? m.querySelector('h2').textContent : ''; });
+  await goG(page, 1.05, false);
+  assert.equal(await card(), '', 'pas de bandeau tant que le texte d\'accueil est à l\'écran');
+  for (const g of [1.5, 2.05, 2.6, 2.97, 3.05, 6.97, 7.05]) {
+    await goG(page, g);
+    assert.equal(await card(), titles[Math.floor(g)], `g=${g}`);
+  }
+});
+

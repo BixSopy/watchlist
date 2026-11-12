@@ -56,6 +56,11 @@ function lpEnter(view){
   try{localStorage.removeItem(LP_GUEST_KEY);}catch(e){}
   var r=document.documentElement;if(r.classList.contains('lp-guest'))return;
   r.classList.remove('lp-member');r.classList.add('lp-guest');
+  /* Même règle que js/00-landing-gate.js : sans « lp-anim », les textes des chapitres restaient tous affichés (par paires,
+     superposés) et les vignettes de « Détectés » étaient déjà là avant l'arrivée de leur affiche. lpLeave() retire la
+     classe ; elle n'était jamais remise au retour sur l'accueil (déconnexion, session expirée : le cas courant sur une
+     prévisualisation, où la passerelle ouvre d'abord une session). */
+  if(!_lpReduced())r.classList.add('lp-anim');
   _lpSetup(view||'login');
   try{window.scrollTo(0,0);}catch(e){}
 }
@@ -134,6 +139,9 @@ function _lpImgsOnGesture(){
 }
 function _lpJourney(){
   var S=document.querySelector('#landing [data-lp-j]');if(!S||S._lp)return;S._lp=1;
+  /* Ce script tourne : les textes des chapitres peuvent être épinglés et affichés un par un (landing.css, html.lp-pin).
+     Sans JavaScript ils restent dans le flux, tous lisibles. */
+  document.documentElement.classList.add('lp-pin');
   /* Clavier mobile : on demande au navigateur de le poser par-dessus la page (sans la redimensionner)
      tant que la landing est affichée ; réglage d'origine remis dès qu'on n'est plus visiteur. */
   (function(){var mv=document.querySelector('meta[name="viewport"]');if(!mv)return;var base=mv.getAttribute('content');
@@ -195,7 +203,7 @@ function _lpJourney(){
     var _lpRest=function(){tmx=0;tmy=0;if(vis)req();};
     document.documentElement.addEventListener('mouseleave',_lpRest);addEventListener('blur',_lpRest);
   }
-  var tops=[],hs=[],ths=[],vw=0,vh=0,sTop=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
+  var tops=[],hs=[],vw=0,vh=0,sTop=0,hb0=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
   function big0(g){return ease(seg(g,8.42,8.8));}
   function clamp(x){return x<0?0:x>1?1:x;}
   function seg(x,a,b){return clamp((x-a)/(b-a));}
@@ -209,8 +217,9 @@ function _lpJourney(){
        d'avant pour que l'appareil ne rapetisse pas et ne saute pas (cf. capture de Pierre). */
     var nh=innerHeight;if(!(innerWidth<=860&&innerWidth===vw&&nh<vh))vh=nh;vw=innerWidth;var y=scrollY||0;
     if(vw<=860){stick.style.height=vh+'px';var bt=Q('.lp-ch[data-ch="8"] .lp-ch-t');band8=bt?bt.getBoundingClientRect().bottom:vh*.4;}else stick.style.height='';
-    chs.forEach(function(c,i){var b=c.getBoundingClientRect(),tx=c.querySelector('.lp-ch-t');tops[i]=b.top+y;hs[i]=b.height;ths[i]=tx?tx.offsetHeight:0;});
+    chs.forEach(function(c,i){var b=c.getBoundingClientRect();tops[i]=b.top+y;hs[i]=b.height;});
     sTop=S.getBoundingClientRect().top+y;
+    var t0=chs[0]&&chs[0].querySelector('.lp-ch-t');hb0=t0?t0.getBoundingClientRect().bottom+y:0;
     var t8=Q('.lp-ch[data-ch="8"] .lp-ch-t');if(t8){if(t8.scrollHeight>t8.clientHeight+1)t8.setAttribute('tabindex','0');else t8.removeAttribute('tabindex');}/* haut de la scène dans la page : tant qu'elle n'est pas épinglée, elle est décalée d'autant vers le bas */
     target();
   }
@@ -374,17 +383,22 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
       set(p.e,'opacity',o);if(o>.01)p.e.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) translate(-50%,-50%) scale('+sc.toFixed(3)+') rotate('+rot.toFixed(2)+'deg)';
     });
     set(prog,'--gp',g/(chs.length));
-    /* Texte du chapitre courant : fenêtres disjointes (pas de recouvrement entre chapitres voisins).
-       Texte désormais sticky/fixe à l'écran (voir landing.css) : deux chapitres « on » en même temps
-       s'afficheraient au même endroit, superposés et illisibles, au lieu de se croiser pendant le
-       défilement comme avant. Le fondu CSS (transition .8-1.1s) fait la bascule visuelle. */
-    /* Ordinateur : le texte d'un chapitre reste affiché jusqu'à ce que le suivant soit entré dans l'écran (son centre à
-       80 % de la hauteur), ou jusqu'à ce que lui-même commence à sortir par le haut (bloc très haut, ex. chapitre
-       Extension) — le premier des deux. Avant, la bascule se faisait à mi-chapitre : dans les chapitres longs (190 vh,
-       160 vh) le texte s'effaçait alors que le suivant était encore loin sous l'écran, et la colonne de gauche restait vide.
-       Y = position à l'écran du haut du chapitre suivant (= centre de son texte) au moment de la bascule. */
-    var hand=function(j){if(mob)return .5;var Y=Math.max(.8*vh,70+1.5*(ths[j]||0));return Math.min(.5,(Y-.38*vh)/(hs[j]||vh));};
-    chs.forEach(function(c,i){var last=i===chs.length-1,on=(last&&mob)?(g>=8.16&&g<8.3):(g>=(i===0?-1:i-hand(i-1))&&(last||g<i+1-hand(i)));/* mobile : la carte 3 étapes du ch. 8 n'apparaît qu'une fois l'appareil arrivé, puis s'efface avant que le téléphone d'inscription grandisse */if(c._on!==on){c._on=on;c.classList.toggle('on',on);}});
+    /* Texte du chapitre courant : UN seul à la fois, échangé au même instant que l'écran de l'appareil. Le texte du
+       chapitre i est affiché pendant g ∈ [i, i+1), exactement la fenêtre de sa scène (RG plus haut : fondu des scènes
+       autour de g entier) — « chaque texte sur son image, à son moment » (Pierre, 12/11). Avant, la bascule se faisait
+       à mi-chapitre (g = i ± 0,5, puis i + 0,63) : le texte suivant s'affichait alors que l'écran montrait encore le
+       chapitre précédent, et le texte courant quittait l'écran avant la fin de sa scène (colonne de gauche vide).
+       Ordinateur : les textes 1 à 7 sont épinglés au centre de la colonne (landing.css, html.lp-pin) ; ils ne défilent
+       plus, ils se remplacent sur place (sortie rapide, puis entrée). Le chapitre 1 partage sa scène avec l'accueil :
+       il attend (mobile compris) que le texte d'accueil soit sorti sous la barre de navigation.
+       Mobile : même fenêtre pour le bandeau ; le ch. 7 s'efface à 7,5 (le téléphone descend à partir de 7,55) et la carte
+       « 3 étapes » du ch. 8 n'apparaît qu'une fois l'appareil arrivé, puis s'efface avant que le téléphone grandisse. */
+    var heroGone=(scrollY||0)>=hb0-sTop;
+    chs.forEach(function(c,i){var last=i===chs.length-1,on;
+      if(last&&mob)on=g>=8.16&&g<8.3;
+      else if(i===0)on=g<1;
+      else on=g>=i&&(last||g<(mob&&i===7?7.5:i+1))&&(i!==1||heroGone);
+      if(c._on!==on){c._on=on;c.classList.toggle('on',on);}});
     /* Mobile (1-7) : un seul bandeau fixe dont le JS recopie le texte du chapitre actif, plutôt que
        7 bandeaux fixes indépendants empilés (voir landing.css, règle .lp-j-mtext). */
     if(mob&&mtext){

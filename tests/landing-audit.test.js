@@ -72,12 +72,40 @@ test('mobile : PC et tablette mis en page sur une surface logique plus petite (c
   assert.ok(/translateX\(calc\(var\(--pg,0\)\*\(var\(--iw,856px\) - 44px\)\)\)/.test(read('landing/landing.css')), 'le curseur du lecteur suit la largeur réelle de l\'écran');
 });
 
-test('ordinateur : le texte d\'un chapitre reste jusqu\'à l\'arrivée du suivant (plus de colonne vide), appareil agrandi', () => {
-  const js = read('js/23-landing.js');
-  assert.ok(/var hand=function\(j\)\{if\(mob\)return \.5;var Y=Math\.max\(\.8\*vh,70\+1\.5\*\(ths\[j\]\|\|0\)\);return Math\.min\(\.5,\(Y-\.38\*vh\)\/\(hs\[j\]\|\|vh\)\);\};/.test(js));
-  assert.ok(/g>=\(i===0\?-1:i-hand\(i-1\)\)&&\(last\|\|g<i\+1-hand\(i\)\)/.test(js));
+test('textes des chapitres : un seul à la fois, échangé au même instant que l\'écran (fenêtre g ∈ [i, i+1) de la scène)', () => {
+  const js = read('js/23-landing.js'), css = read('landing/landing.css');
+  /* la bascule à mi-chapitre (g = i ± 0,5, puis hand()) affichait le texte suivant sur l'écran du chapitre précédent */
+  assert.ok(!/hand\(/.test(js) && !/g>=i-\.5/.test(js));
+  assert.ok(/else if\(i===0\)on=g<1;\s*else on=g>=i&&\(last\|\|g<\(mob&&i===7\?7\.5:i\+1\)\)&&\(i!==1\|\|heroGone\);/.test(js));
+  assert.ok(/var heroGone=\(scrollY\|\|0\)>=hb0-sTop;/.test(js), 'le chapitre 1 attend la sortie du texte d\'accueil');
+  /* mêmes bornes entières que le fondu des scènes */
+  assert.ok(/var RG=\{0:\[-1,2\],2:\[2,3\],3:\[3,4\],4:\[4,5\],5:\[5,6\],6:\[6,7\],7:\[7,8\],8:\[8,10\]\};/.test(js));
+  /* ordinateur : textes 1 à 7 épinglés, remplacés sur place (sortie 0,2 s puis entrée) ; rien sans JavaScript */
+  assert.ok(/document\.documentElement\.classList\.add\('lp-pin'\);/.test(js));
+  assert.ok(/html\.lp-pin \.lp-ch:not\(\[data-ch="0"\]\):not\(\[data-ch="8"\]\) \.lp-ch-t\{position:fixed;left:clamp\(20px,5vw,72px\);width:min\(36vw,520px\)\}/.test(css));
+  assert.ok(/html\.lp-pin \.lp-ch:not\(\[data-ch="0"\]\):not\(\.on\) \.lp-ch-t>\*\{opacity:0\}/.test(css), 'un seul texte, même sans animation');
+  assert.ok(/html\.lp-pin \.lp-ch:not\(\[data-ch="0"\]\):not\(\.on\) \.lp-ch-t\{pointer-events:none\}/.test(css));
+  assert.ok(/html\.lp-pin\.lp-anim \.lp-ch:not\(\[data-ch="0"\]\):not\(\.on\) \.lp-ch-t>\*\{transition:opacity \.2s linear,transform 0s linear \.2s\}/.test(css));
+  assert.ok(/html\.lp-pin\.lp-anim \.lp-ch\.on \.lp-ch-t>\*\{transition-delay:\.22s\}/.test(css), 'l\'entrant attend la sortie du précédent');
   assert.ok(/:vw\*\.5,bh=mob\?lerp\(bhM,h8,ch8\):vh\*\.78,/.test(js), 'appareil : 50 vw × 78 vh');
   assert.ok(/cy-=Math\.max\(0,sTop-\(scrollY\|\|0\)\);/.test(js), 'l\'appareil ne bouge pas pendant les premiers pixels de défilement');
+});
+
+test('retour sur l\'accueil après une session (déconnexion, session expirée) : les animations sont remises', () => {
+  const js = read('js/23-landing.js');
+  /* sans lp-anim : tous les textes de chapitre affichés (par paires, superposés) et vignettes de « Détectés » déjà là */
+  assert.ok(/r\.classList\.remove\('lp-member'\);r\.classList\.add\('lp-guest'\);[\s\S]{0,700}if\(!_lpReduced\(\)\)r\.classList\.add\('lp-anim'\);\s*_lpSetup\(view\|\|'login'\);/.test(js));
+  assert.ok(/if\(!member&&!\(window\.matchMedia&&window\.matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches\)\)root\.classList\.add\('lp-anim'\)/.test(read('js/00-landing-gate.js')), 'même règle que le chargement initial');
+});
+
+test('écran final : dégradés de la marque à la place du bleu uni (variables de marque, aucun hex recopié)', () => {
+  const css = read('landing/landing.css');
+  assert.ok(/\.lp-s-cta \.lp-cta-w em\{background:var\(--violet-grad\);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent/.test(css), '« episode » : dégradé glacé du logo');
+  assert.ok(/html\.lp-anim \.lp-s-cta \.lp-cta-w em\{animation:logoGradDrift 14s ease-in-out infinite alternate\}/.test(css) && /@keyframes logoGradDrift/.test(read('css/app.css')));
+  assert.ok(/\.lp-s-cta::before\{content:"";position:absolute;inset:0;background:var\(--p3-grad\);/.test(css), 'halo : dégradé dominant, sans filtre de flou');
+  assert.ok(!/\.lp-s-cta::before\{[^}]*filter/.test(css));
+  assert.ok(/\.lp-j-steps-line i\{[^}]*background:var\(--p3-grad\)/.test(css) && !/#5b4fe0|#1fb8a3/i.test(css), 'plus de hex du dégradé recopié à la main');
+  assert.ok(/\.lp-j-step-count\{[^}]*background:var\(--p3-grad\)/.test(css) && /\.lp-j-step-ic::after\{[^}]*background:var\(--p3-grad\)/.test(css));
 });
 
 test('poids : la liste des langues n\'utilise plus de police web (noms en arabe, hindi, bengali, ourdou, russe)', () => {

@@ -369,14 +369,14 @@ html.lp-anim .lp-ch.on .lp-ch-t>:nth-child(n+4){transition-delay:.18s}
 .lp-j-big{font-size:clamp(2.2rem,1rem + 3.2vw,4.4rem)}
 .lp-j-steps{position:relative;display:grid;gap:22px;margin:30px 0 8px;padding-inline-start:2px}
 .lp-j-steps-line{position:absolute;inset-inline-start:19px;top:8px;bottom:8px;width:2px;background:rgba(255,255,255,.1);border-radius:1px;overflow:hidden}
-.lp-j-steps-line i{display:block;width:100%;height:calc(var(--sp,0)*100%);background:linear-gradient(180deg,#5b4fe0,#1fb8a3);border-radius:1px;box-shadow:0 0 10px rgba(var(--accent-rgb),.6);transition:height .1s linear}
+.lp-j-steps-line i{display:block;width:100%;height:calc(var(--sp,0)*100%);background:var(--p3-grad);border-radius:1px;box-shadow:0 0 12px rgba(var(--grad-rgb),.75);transition:height .1s linear}
 .lp-j-step{position:relative;z-index:1;display:flex;gap:16px;align-items:flex-start}
 .lp-j-step-ic{position:relative;flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#17181d;border:1.5px solid var(--lp-line2);color:var(--lp-faint)}
 .lp-j-step-ic svg{width:17px;height:17px}
 .lp-j-step div>b{display:block;font:700 15.5px 'Inter',sans-serif;color:var(--lp-text);margin-bottom:3px}
 .lp-j-step div>p{margin:0;font-size:13.5px;color:var(--lp-muted);line-height:1.5}
-.lp-j-step-pop{position:absolute;top:-6px;inset-inline-end:-6px;width:15px;height:15px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:800 11px/15px 'Inter',sans-serif;text-align:center;opacity:0;transform:scale(.3) translateY(4px)}
-.lp-j-step-count{font:800 10px 'Inter',sans-serif;position:absolute;bottom:-5px;inset-inline-end:-7px;min-width:17px;height:17px;line-height:17px;text-align:center;border-radius:999px;background:var(--accent);color:var(--on-accent);letter-spacing:-.02em}
+.lp-j-step-pop{position:absolute;top:-6px;inset-inline-end:-6px;width:15px;height:15px;border-radius:50%;background:var(--p3-grad);color:#fff;font:800 11px/15px 'Inter',sans-serif;text-align:center;opacity:0;transform:scale(.3) translateY(4px)}
+.lp-j-step-count{font:800 10px 'Inter',sans-serif;position:absolute;bottom:-5px;inset-inline-end:-7px;min-width:17px;height:17px;line-height:17px;text-align:center;border-radius:999px;background:var(--p3-grad);color:#fff;letter-spacing:-.02em;box-shadow:0 2px 10px rgba(var(--grad-rgb),.55)}
 .lp-j-step-dot{opacity:0}
 .lp-j-step-ck{stroke-dasharray:11;stroke-dashoffset:11}
 html.lp-anim .lp-j-step-ic{animation:lpStepLit 6s ease-in-out infinite}
@@ -385,17 +385,22 @@ html.lp-anim .lp-j-step[data-step="1"] .lp-j-step-ic{animation-delay:2s}
 html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ic{animation-delay:4s}
 @keyframes lpStepLit{
   0%,3%{border-color:var(--lp-line2);color:var(--lp-faint);background:#17181d;box-shadow:none;transform:scale(1)}
-  12%,24%{border-color:var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),.16);box-shadow:0 0 0 5px rgba(var(--accent-rgb),.15),0 0 22px rgba(var(--accent-rgb),.4);transform:scale(1.07)}
+  12%,24%{border-color:transparent;color:#fff;background:#121826;box-shadow:0 0 0 5px rgba(var(--grad-rgb),.16),0 0 28px rgba(var(--grad-rgb),.6);transform:scale(1.07)}
   33%,100%{border-color:var(--lp-line2);color:var(--lp-faint);background:#17181d;box-shadow:none;transform:scale(1)}
 }
+/* anneau en dégradé de marque de l'étape allumée (masque en couronne ; même boucle et mêmes décalages que lpStepLit) */
+.lp-j-step-ic::after{content:"";position:absolute;inset:-2px;border-radius:50%;padding:2px;background:var(--p3-grad);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);opacity:0;pointer-events:none}
+html.lp-anim .lp-j-step-ic::after{animation:lpStepRing 6s ease-in-out infinite;animation-delay:inherit}
+@keyframes lpStepRing{0%,3%{opacity:0}12%,24%{opacity:1}33%,100%{opacity:0}}
 html.lp-anim .lp-j-step[data-step="0"] .lp-j-step-pop{animation:lpStepPop 6s ease-in-out infinite}
 @keyframes lpStepPop{0%,5%{opacity:0;transform:scale(.3) translateY(4px)}14%,22%{opacity:1;transform:scale(1) translateY(0)}30%,100%{opacity:0;transform:scale(.3) translateY(4px)}}
 html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-in-out infinite;animation-delay:4s}
 @keyframes lpStepCk{0%,12%{stroke-dashoffset:11}24%,30%{stroke-dashoffset:0}33%,100%{stroke-dashoffset:11}}
 .lp-j-ext-link{display:inline-flex;margin-top:24px}
 @media (prefers-reduced-motion:reduce){
-  html.lp-anim .lp-j-step-ic,html.lp-anim .lp-j-step-pop,html.lp-anim .lp-j-step-ck{animation:none!important}
-  .lp-j-step[data-step="0"] .lp-j-step-ic{border-color:var(--accent);color:var(--accent)}
+  html.lp-anim .lp-j-step-ic,html.lp-anim .lp-j-step-ic::after,html.lp-anim .lp-j-step-pop,html.lp-anim .lp-j-step-ck{animation:none!important}
+  .lp-j-step[data-step="0"] .lp-j-step-ic{border-color:transparent;color:#fff}
+  .lp-j-step[data-step="0"] .lp-j-step-ic::after{opacity:1}
 }
 
 /* Mobile : l'appareil occupe le haut de l'écran (~60 %), le texte prend une bande fixée en bas qui
@@ -695,3 +700,40 @@ html.lp-3don .lp-3d{display:block}
 html.lp-3don .lp-dv{background:none;box-shadow:none;transform-style:flat}
 html.lp-3don .lp-dv::before,html.lp-3don .lp-dv::after,html.lp-3don .lp-dv-glint,html.lp-3don .lp-dv-gloss{display:none}
 html.lp-3don .lp-dv-scr{transform:none;border-radius:var(--r3,6px)}
+
+/* ---------- Textes des chapitres : un seul à la fois, sur son écran (ordinateur) ----------
+   html.lp-pin est posé par js/23-landing.js quand la visite guidée tourne. Les textes des chapitres 1 à 7 sont alors
+   épinglés au centre de la colonne de gauche (position:fixed, même place que l'ancien sticky) et le JS n'en laisse
+   qu'un « on » : celui dont l'écran est affiché (g ∈ [i, i+1)). Ils se remplacent sur place : le sortant s'efface en
+   0,2 s, l'entrant arrive ensuite — jamais deux textes lisibles ensemble. En sticky, un texte quittait l'écran par le
+   haut avant la fin de sa scène et le suivant montait par le bas : deux textes à la fois, ou colonne vide.
+   Le chapitre 0 (accueil) reste dans le flux ; le 8 (dernier) reste sticky et part avec la section.
+   Sans JavaScript (pas de lp-pin) : textes dans le flux, tous lisibles, comme avant. */
+@media (min-width:861px){
+  html.lp-pin .lp-ch:not([data-ch="0"]):not([data-ch="8"]) .lp-ch-t{position:fixed;left:clamp(20px,5vw,72px);width:min(36vw,520px)}
+  html.lp-pin .lp-ch:not([data-ch="0"]):not(.on) .lp-ch-t{pointer-events:none}
+  html.lp-pin .lp-ch:not([data-ch="0"]):not(.on) .lp-ch-t>*{opacity:0}
+  html.lp-pin.lp-anim .lp-ch:not([data-ch="0"]):not(.on) .lp-ch-t>*{transition:opacity .2s linear,transform 0s linear .2s}
+  html.lp-pin.lp-anim .lp-ch.on .lp-ch-t>*{transition-delay:.22s}
+  html.lp-pin.lp-anim .lp-ch.on .lp-ch-t>:nth-child(2){transition-delay:.28s}
+  html.lp-pin.lp-anim .lp-ch.on .lp-ch-t>:nth-child(3){transition-delay:.34s}
+  html.lp-pin.lp-anim .lp-ch.on .lp-ch-t>:nth-child(n+4){transition-delay:.4s}
+}
+
+/* ---------- Écran final : les dégradés de la marque à la place du bleu uni ----------
+   « Mieux représenter le bleu glacé dégradé, ici bleu fixe, manque d'effet marquant » (Pierre, 12/11). Le mot « episode »,
+   la lueur de fond, la ligne et les pastilles des étapes étaient en bleu uni (--accent). Désormais, selon la hiérarchie
+   de brand.config.json : le mot « episode » reprend le dégradé glacé du logo (--violet-grad, lavande → bleu clair →
+   menthe, avec sa dérive lente, comme .logo em dans css/app.css) ; le halo, la ligne de progression, l'anneau de l'étape
+   allumée et les pastilles prennent le dégradé dominant (--p3-grad, indigo → bleu → turquoise).
+   Halo : le dégradé lui-même, découpé par un masque radial (pas de filtre de flou, rien d'animé). Toutes les couleurs
+   viennent des variables de marque, aucun hex recopié. */
+.lp-s-cta{background:#000}
+.lp-s-cta::before{content:"";position:absolute;inset:0;background:var(--p3-grad);opacity:.72;pointer-events:none;
+  -webkit-mask-image:radial-gradient(125% 66% at 50% 32%,#000 0,rgba(0,0,0,.5) 30%,transparent 70%);mask-image:radial-gradient(125% 66% at 50% 32%,#000 0,rgba(0,0,0,.5) 30%,transparent 70%)}
+.lp-s-cta::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(34% 20% at 50% 30%,rgba(var(--accent2-rgb),.2),transparent 72%)}
+.lp-s-cta>*{position:relative;z-index:1}
+.lp-s-cta .lp-cta-w em{background:var(--violet-grad);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+html.lp-anim .lp-s-cta .lp-cta-w em{animation:logoGradDrift 14s ease-in-out infinite alternate}
+.lp-s-cta .lp-cta-ic svg{filter:drop-shadow(0 0 18px rgba(var(--accent2-rgb),.65))}
+@media (prefers-reduced-motion:reduce){html.lp-anim .lp-s-cta .lp-cta-w em{animation:none}}
