@@ -61,3 +61,91 @@ for (const [w, h] of [[1366, 768], [1280, 720], [1536, 864], [1440, 900]]) {
     assert.ok(r.devBottom <= r.vh - 8, 'pied de l\'écran visible : ' + JSON.stringify(r));
   });
 }
+
+/* ---- Suite de l'audit (points 1 à 6 demandés par Pierre le 12/11) ---- */
+const phone = (w, h) => ({ viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+
+for (const [w, h] of [[390, 844], [360, 640]]) {
+  test(`mobile ${w}×${h} : au chargement l'appareil est visible, le texte d'accueil est dessous, les deux boutons tiennent à l'écran`, async t => {
+    const page = await open(t, phone(w, h));
+    const r = await page.evaluate(() => {
+      const scr = document.querySelector('.lp-dv-scr').getBoundingClientRect(), h1 = document.querySelector('.lp-hero h1').getBoundingClientRect();
+      const cta = [...document.querySelectorAll('.lp-hero .lp-cta-row a')].map(e => e.getBoundingClientRect());
+      const cs = getComputedStyle(document.querySelector('.lp-hero .lp-ch-t'));
+      return { vh: innerHeight, vw: innerWidth, scrTop: scr.top, scrBottom: scr.bottom, h1Top: h1.top, h1Left: h1.left, ctaBottom: Math.max(...cta.map(c => c.bottom)), padL: cs.paddingLeft, docW: document.documentElement.scrollWidth };
+    });
+    assert.ok(r.scrTop >= 64 && r.scrBottom <= r.h1Top, 'appareil au-dessus du titre, sans recouvrement : ' + JSON.stringify(r));
+    assert.ok(r.h1Left >= 16, 'marge latérale : ' + r.h1Left);
+    assert.ok(r.ctaBottom <= r.vh, 'boutons à l\'écran : ' + JSON.stringify(r));
+    assert.ok(r.docW <= r.vw, 'pas de défilement horizontal');
+  });
+}
+
+/* Régression du 12/11 : le bloc d'accueil ancré en bas par flex-end était compté comme décalé en entier (CLS 0,19) quand le
+   texte français de la page était remplacé par la langue du visiteur (le second bouton remontait sur la première rangée).
+   Scripts retardés = cas d'un réseau lent ; le français ne déclenche rien, d'où l'anglais ici. */
+for (const [w, h] of [[412, 823], [390, 844], [360, 640]]) {
+  test(`mobile ${w}×${h}, visiteur non francophone, scripts lents : pas de décalage de mise en page à l'arrivée de la langue`, async t => {
+    server.config = { turnstileSiteKey: '', signupsOpen: true };
+    const ctx = await browser.newContext({ locale: 'en-US', viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+    t.after(() => ctx.close());
+    const page = await ctx.newPage();
+    await installFakeSupabase(page, { landing: true });
+    await page.route(/\/js\/.*\.js(\?|$)/, async r => { await new Promise(x => setTimeout(x, 500)); await r.fallback(); });
+    await page.addInitScript(() => {
+      window.__cls = 0; window.__src = [];
+      new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) { window.__cls += e.value; for (const s of e.sources) if (s.node && s.node.className) window.__src.push(String(s.node.className)); } }).observe({ type: 'layout-shift', buffered: true });
+    });
+    await page.goto(server.url + '/');
+    await page.waitForSelector('#landing [data-lp-j]', { state: 'attached', timeout: 30000 });
+    await page.waitForFunction(() => /Everything/.test(document.querySelector('#lp-title').textContent), null, { timeout: 30000 });
+    await page.waitForTimeout(1200);
+    const r = await page.evaluate(() => ({ cls: window.__cls, src: window.__src, rows: new Set([...document.querySelectorAll('#lp-top .lp-cta-row .lp-btn')].map(b => Math.round(b.getBoundingClientRect().top))).size }));
+    assert.ok(r.cls < 0.05, `CLS ${r.cls.toFixed(3)} (sources : ${r.src.join(', ')})`);
+    assert.ok(!r.src.includes('lp-ch-t'), 'le bloc d\'accueil entier ne doit pas bouger');
+    assert.equal(r.rows, 2, 'boutons empilés, quelle que soit la langue');
+  });
+}
+
+test('mobile 390×844 : le bandeau de texte montre le paragraphe entier et ne touche pas l\'appareil ; contenu des écrans ≥ 6,5 px', async t => {
+  const page = await open(t, phone(390, 844));
+  const y = await page.evaluate(() => { const c = document.querySelectorAll('.lp-ch')[2], q = c.getBoundingClientRect(); return Math.round(scrollY + q.top + q.height * 0.3 - innerHeight * 0.38); });
+  await page.evaluate(v => scrollTo(0, v), y);
+  await page.waitForFunction(() => { const m = document.querySelector('.lp-j-mtext'); return m && m.classList.contains('on') && /Extension/i.test(m.textContent); }, null, { timeout: 30000 });
+  await page.waitForTimeout(2500);
+  const r = await page.evaluate(() => {
+    const m = document.querySelector('.lp-j-mtext'), p = m.querySelector('.lp-p'), scr = document.querySelector('.lp-dv-scr'), sr = scr.getBoundingClientRect(), k = sr.width / scr.offsetWidth;
+    let minF = 99; for (const e of document.querySelectorAll('.lp-s.vis *')) { const own = [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim().length > 1); if (!own || !e.getClientRects().length) continue; minF = Math.min(minF, parseFloat(getComputedStyle(e).fontSize) * k); }
+    return { lines: Math.round(p.getBoundingClientRect().height / parseFloat(getComputedStyle(p).lineHeight)), clipped: p.scrollHeight > p.clientHeight + 1, cardTop: m.getBoundingClientRect().top, scrBottom: sr.bottom, minF };
+  });
+  assert.ok(r.lines >= 3 && !r.clipped, 'paragraphe entier : ' + JSON.stringify(r));
+  assert.ok(r.cardTop >= r.scrBottom + 8, 'le bandeau ne recouvre pas l\'appareil : ' + JSON.stringify(r));
+  assert.ok(r.minF >= 6.5, 'texte des écrans (il était à 4,6 px) : ' + r.minF);
+});
+
+test('ordinateur : aucune police web téléchargée pour la liste des langues ; texte des écrans ≥ 9,5 px en 1440×900', async t => {
+  const fonts = [];
+  server.config = { turnstileSiteKey: '', signupsOpen: true };
+  const ctx = await browser.newContext({ locale: 'fr-FR', viewport: { width: 1440, height: 900 } });
+  t.after(() => ctx.close());
+  const page = await ctx.newPage();
+  page.on('request', r => { if (r.resourceType() === 'font') fonts.push(r.url().split('/').pop()); });
+  await installFakeSupabase(page, { landing: true });
+  await page.goto(server.url + '/');
+  await page.waitForFunction(() => document.documentElement.classList.contains('lp-3don'), null, { timeout: 60000 });
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await page.waitForTimeout(1500);
+  assert.deepEqual(fonts.filter(f => /noto|cyrillic|arabic|devanagari|bengali/i.test(f)), [], 'polices : ' + fonts.join(', '));
+  await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(2500);
+  const minF = await page.evaluate(() => { const scr = document.querySelector('.lp-dv-scr'), k = scr.getBoundingClientRect().width / scr.offsetWidth; let m = 99;
+    for (const e of document.querySelectorAll('.lp-s.vis *')) { const own = [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim().length > 1); if (!own || !e.getClientRects().length) continue; m = Math.min(m, parseFloat(getComputedStyle(e).fontSize) * k); } return m; });
+  assert.ok(minF >= 9.5, 'texte du lecteur : ' + minF);
+});
+
+test('ordinateur : en plein chapitre « Tu regardes. Il coche. », le texte est toujours là (il disparaissait à mi-chapitre)', async t => {
+  const page = await open(t, { viewport: { width: 1440, height: 900 } });
+  const y = await page.evaluate(() => { const c = document.querySelectorAll('.lp-ch')[1], q = c.getBoundingClientRect(); return Math.round(scrollY + q.top + q.height * 0.65 - innerHeight * 0.38); });
+  await page.evaluate(v => scrollTo(0, v), y);
+  await page.waitForTimeout(3500);
+  const r = await page.evaluate(() => [...document.querySelectorAll('.lp-ch')].map(c => { const e = c.querySelector('.lp-ch-t').getBoundingClientRect(); return c.classList.contains('on') && e.top >= 64 && e.bottom <= innerHeight; }));
+  assert.ok(r.some(Boolean), 'un texte de chapitre entièrement visible à g ≈ 1,65');
+});

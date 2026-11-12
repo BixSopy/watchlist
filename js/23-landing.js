@@ -94,6 +94,9 @@ function _lpReveal(){
 var LP_TINT=[[10,30,56],[6,44,66],[30,14,30],[10,36,72],[6,40,54],[14,30,70],[4,48,60],[12,26,60],[8,44,70]];
 var LP_PLAT=[[90,14,22],[10,52,96],[96,46,10]];
 var LP_DEV=[{w:880,h:550,r:22,bz:12},{w:600,h:800,r:36,bz:14},{w:340,h:700,r:52,bz:11}];
+/* Mobile : mêmes appareils, mais mis en page sur une surface logique plus petite pour le PC et la tablette. Affichés à la
+   même taille à l'écran, leur contenu ressort donc plus grand (le texte des écrans passait à 4,6–5,8 px, audit du 12/11). */
+var LP_DEV_M=[{w:600,h:375,r:16,bz:9},{w:460,h:613,r:28,bz:11},{w:340,h:700,r:52,bz:11}];
 /* Type d'appareil du visiteur (pour le formulaire final dans le bon appareil). ?device=phone|tablet|pc force. */
 function lpDevice(){
   try{var q=(location.search.match(/[?&]device=(phone|tablet|pc)\b/)||[])[1];if(q)return q;}catch(e){}
@@ -171,8 +174,8 @@ function _lpJourney(){
   try{L3q=(location.search.match(/[?&]lp3d=(off|force)\b/)||[])[1]||'';}catch(e){}
   function lp3dDims(){/* écran HTML = proportions exactes de la dalle de chaque image (pas d'étirement du cadre) */
     LP_DEV.forEach(function(d,k){if(!d._o)d._o={w:d.w,h:d.h};
-      var r=L3.ratio[k],iw=d._o.w-2*d.bz,ih=d._o.h-2*d.bz;
-      if(k===0)d.w=Math.round(ih*r)+2*d.bz;else d.h=Math.round(iw/r)+2*d.bz;});}
+      var r=L3.ratio[k],iw=d._o.w-2*d.bz;
+      d.h=Math.round(iw/r)+2*d.bz;});}
   (function(){
     var cv=document.getElementById('lpDv3d'),sd=false;try{sd=!!(navigator.connection&&navigator.connection.saveData);}catch(e){}
     if(!cv||L3q==='off'||sd||innerWidth<=860||typeof createImageBitmap==='undefined')return;
@@ -192,7 +195,7 @@ function _lpJourney(){
     var _lpRest=function(){tmx=0;tmy=0;if(vis)req();};
     document.documentElement.addEventListener('mouseleave',_lpRest);addEventListener('blur',_lpRest);
   }
-  var tops=[],hs=[],vw=0,vh=0,sTop=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
+  var tops=[],hs=[],ths=[],vw=0,vh=0,sTop=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
   function big0(g){return ease(seg(g,8.42,8.8));}
   function clamp(x){return x<0?0:x>1?1:x;}
   function seg(x,a,b){return clamp((x-a)/(b-a));}
@@ -206,8 +209,9 @@ function _lpJourney(){
        d'avant pour que l'appareil ne rapetisse pas et ne saute pas (cf. capture de Pierre). */
     var nh=innerHeight;if(!(innerWidth<=860&&innerWidth===vw&&nh<vh))vh=nh;vw=innerWidth;var y=scrollY||0;
     if(vw<=860){stick.style.height=vh+'px';var bt=Q('.lp-ch[data-ch="8"] .lp-ch-t');band8=bt?bt.getBoundingClientRect().bottom:vh*.4;}else stick.style.height='';
-    chs.forEach(function(c,i){var b=c.getBoundingClientRect();tops[i]=b.top+y;hs[i]=b.height;});
-    sTop=S.getBoundingClientRect().top+y;/* haut de la scène dans la page : tant qu'elle n'est pas épinglée, elle est décalée d'autant vers le bas */
+    chs.forEach(function(c,i){var b=c.getBoundingClientRect(),tx=c.querySelector('.lp-ch-t');tops[i]=b.top+y;hs[i]=b.height;ths[i]=tx?tx.offsetHeight:0;});
+    sTop=S.getBoundingClientRect().top+y;
+    var t8=Q('.lp-ch[data-ch="8"] .lp-ch-t');if(t8){if(t8.scrollHeight>t8.clientHeight+1)t8.setAttribute('tabindex','0');else t8.removeAttribute('tabindex');}/* haut de la scène dans la page : tant qu'elle n'est pas épinglée, elle est décalée d'autant vers le bas */
     target();
   }
   function target(){
@@ -227,10 +231,10 @@ function _lpJourney(){
     if(c0===2){var pk=f[2]*3-.2,a=Math.max(0,Math.min(2,Math.floor(pk))),b=Math.min(2,a+1),w=clamp(pk-a),pc=LP_PLAT[a].map(function(v,j){return lerp(v,LP_PLAT[b][j],w);}),ww=bell(f[2],.08,.8,.12);tint=tint.map(function(v,j){return lerp(v,pc[j],ww);});}
     set(S,'--tint',tint.map(Math.round).join(','));
     /* Mue de l'appareil */
-    var m=ease(seg(g,2.72,3.22))+ease(seg(g,5.72,6.22)),a0=Math.min(1,Math.floor(m)),mt=m-a0,A=LP_DEV[a0],B=LP_DEV[Math.min(2,a0+1)];
+    var m=ease(seg(g,2.72,3.22))+ease(seg(g,5.72,6.22)),a0=Math.min(1,Math.floor(m)),mt=m-a0,DEVS=mob?LP_DEV_M:LP_DEV,A=DEVS[a0],B=DEVS[Math.min(2,a0+1)];
     var W=lerp(A.w,B.w,mt),H=lerp(A.h,B.h,mt),R=lerp(A.r,B.r,mt),BZ=lerp(A.bz,B.bz,mt);
     /* Appel final : l'appareil prend la forme de celui du visiteur */
-    var mf=ease(seg(g,7.82,8.18)),F=LP_DEV[DV];if(mf>0&&DV!==2){W=lerp(W,F.w,mf);H=lerp(H,F.h,mf);R=lerp(R,F.r,mf);BZ=lerp(BZ,F.bz,mf)}
+    var mf=ease(seg(g,7.82,8.18)),F=DEVS[DV];if(mf>0&&DV!==2){W=lerp(W,F.w,mf);H=lerp(H,F.h,mf);R=lerp(R,F.r,mf);BZ=lerp(BZ,F.bz,mf)}
     /* Mobile, chapitre 8 : les 3 étapes passent en haut, l'appareil (et son formulaire) descend
        pour leur laisser la place — « les 3 étapes s'empilent au-dessus de l'appareil ». */
     var L3on=!!(L3&&L3.on&&!mob),w3=null;
@@ -241,7 +245,9 @@ function _lpJourney(){
     /* Ch. 8 : le téléphone prend toute la place libre sous la bande (au lieu d'un 32 % fixe, trop petit). */
     /* Ch. 8 : téléphone pleine largeur (92 vw), posé juste sous la bande ; il peut dépasser en bas
        (fondu), le formulaire reste à l'écran. */
-    var w8=Math.max(vw*.86,Math.min(vw*.92,(vh-band8-14)/.87*W/H)),h8=w8*H/W,bw=mob?lerp(vw*.86,w8,ch8):vw*.46,bh=mob?lerp(vh*.42,h8,ch8):vh*.72,cx=mob?vw*.5:vw*.7,cy=mob?lerp(60+vh*.23,band8+14+h8/2,ch8):vh*.52;
+    /* Mobile : l'appareil occupe toute la place libre entre la barre de navigation (65 px) et le bandeau de texte du bas,
+       dont la hauteur est plafonnée en CSS à min(56 svh − 86 px, 330 px) (.lp-j-mtext) : bhM en est le complément. */
+    var w8=Math.max(vw*.9,Math.min(vw*.92,(vh-band8-14)/.87*W/H)),h8=w8*H/W,bhM=Math.max(vh*.42,vh-111-Math.min(.56*vh-86,330)),bw=mob?lerp(vw*.9,w8,ch8):vw*.5,bh=mob?lerp(bhM,h8,ch8):vh*.78,cx=mob?vw*.5:vw*.7,cy=mob?lerp(73+bhM/2,band8+14+h8/2,ch8):vh*.52;
     if(mob)set(stick,'--f8',ch8*(1-big0(g)));
     var big=mob?ease(seg(g,8.42,8.8)):0;/* fin du ch. 8 sur mobile : le téléphone d'inscription prend l'écran */
     if(big>0){bw=lerp(bw,Math.min(vw*.94,420),big);bh=lerp(bh,vh-112,big);cy=lerp(cy,28+vh*.5,big);}
@@ -251,9 +257,12 @@ function _lpJourney(){
     var ex=.5,ih3=H-2*BZ;
     if(L3on){
       ex=Math.max(.5,L3.ext(w3).down);
-      var off3=Math.max(0,sTop-(scrollY||0)),bot=cy+ex*ih3*s,lim=vh*.93-off3;if(bot>lim)cy-=bot-lim;
+      var bot=cy+ex*ih3*s,lim=vh*.93;if(bot>lim)cy-=bot-lim;
       var top0=vh*.07;if(cy-H*s/2<top0){s=(lim-top0)/(ex*ih3+H/2);cy=top0+H*s/2;}
     }
+    /* Tout en haut de la page, la scène n'est pas encore épinglée (elle commence sous la barre de navigation) : on retire
+       ce décalage, sinon l'appareil est plus bas au chargement puis remonte pendant les premiers pixels de défilement. */
+    cy-=Math.max(0,sTop-(scrollY||0));
     /* l'appareil est FIXE : de face, sans inclinaison d'intro, sans dérive, sans flottement, sans rotation pendant les mues (demande de Pierre, 12/11) */
     var tilt=0,spin=0,float=0;
     if(dv._w!==W||dv._h!==H){dv._w=W;dv._h=H;dv.style.width=W.toFixed(1)+'px';dv.style.height=H.toFixed(1)+'px';dv.style.margin='0';}
@@ -269,7 +278,7 @@ function _lpJourney(){
 if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'appareil devient visible (voir landing.css, anti-CLS) */
     set(dv,'--sh',(50+ry*3).toFixed(1)+'%');
     if(shadow){shadow.style.transform='translate3d('+(cx-50+ry*3*s).toFixed(1)+'px,'+(cy+(L3on?ex*ih3:H/2)*s+(L3on?4:18)+float*.3+rx*1.2).toFixed(1)+'px,0) scale('+(W*s/100*(1-Math.abs(ry)/90)*(L3on?lerp(1,.55,w3[0]):1)).toFixed(3)+','+(1+Math.abs(rx)/12).toFixed(3)+')';shadow.style.opacity=String(.75-Math.min(.35,Math.abs(float)/40));}
-    set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');
+    set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');set(dv,'--iw',(W-2*BZ).toFixed(1)+'px');
     if(L3on){
       set(dv,'--r3',((w3[0]*L3.rad[0]+w3[1]*L3.rad[1]+w3[2]*L3.rad[2])*(W-2*BZ)).toFixed(1)+'px');
       /* taille réelle de la scène (clientWidth : sans la barre de défilement, sinon l'image est écrasée et décalée de ~15 px par rapport au HTML) */
@@ -369,7 +378,13 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
        Texte désormais sticky/fixe à l'écran (voir landing.css) : deux chapitres « on » en même temps
        s'afficheraient au même endroit, superposés et illisibles, au lieu de se croiser pendant le
        défilement comme avant. Le fondu CSS (transition .8-1.1s) fait la bascule visuelle. */
-    chs.forEach(function(c,i){var last=i===chs.length-1,on=(last&&mob)?(g>=8.16&&g<8.3):(g>=i-.5&&(last||g<i+.5));/* mobile : la carte 3 étapes du ch. 8 n'apparaît qu'une fois l'appareil arrivé, puis s'efface avant que le téléphone d'inscription grandisse */if(c._on!==on){c._on=on;c.classList.toggle('on',on);}});
+    /* Ordinateur : le texte d'un chapitre reste affiché jusqu'à ce que le suivant soit entré dans l'écran (son centre à
+       80 % de la hauteur), ou jusqu'à ce que lui-même commence à sortir par le haut (bloc très haut, ex. chapitre
+       Extension) — le premier des deux. Avant, la bascule se faisait à mi-chapitre : dans les chapitres longs (190 vh,
+       160 vh) le texte s'effaçait alors que le suivant était encore loin sous l'écran, et la colonne de gauche restait vide.
+       Y = position à l'écran du haut du chapitre suivant (= centre de son texte) au moment de la bascule. */
+    var hand=function(j){if(mob)return .5;var Y=Math.max(.8*vh,70+1.5*(ths[j]||0));return Math.min(.5,(Y-.38*vh)/(hs[j]||vh));};
+    chs.forEach(function(c,i){var last=i===chs.length-1,on=(last&&mob)?(g>=8.16&&g<8.3):(g>=(i===0?-1:i-hand(i-1))&&(last||g<i+1-hand(i)));/* mobile : la carte 3 étapes du ch. 8 n'apparaît qu'une fois l'appareil arrivé, puis s'efface avant que le téléphone d'inscription grandisse */if(c._on!==on){c._on=on;c.classList.toggle('on',on);}});
     /* Mobile (1-7) : un seul bandeau fixe dont le JS recopie le texte du chapitre actif, plutôt que
        7 bandeaux fixes indépendants empilés (voir landing.css, règle .lp-j-mtext). */
     if(mob&&mtext){

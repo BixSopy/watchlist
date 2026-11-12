@@ -198,6 +198,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .lang-pick option{background:var(--bg2);color:var(--text)}
 .lang-pick:focus-visible{outline:2px solid rgba(var(--accent-rgb),.7);outline-offset:1px}
 .lang-switch-foot .lang-pick{font-size:11px;padding-block:4px;min-width:118px}
+/* Liste des langues en police système : les noms en arabe, hindi, bengali, ourdou et russe faisaient télécharger
+   ~400 Ko de polices web (Noto Arabic/Devanagari/Bengali, Plex cyrillique) à chaque visiteur, juste pour cette liste. */
+.lang-pick{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif}
 .lang-btn{font:inherit;font-size:12px;font-family:'IBM Plex Sans',sans-serif;letter-spacing:0;color:var(--text2);background:none;border:0;border-radius:999px;padding:5px 12px;cursor:pointer}
 .lang-btn:hover{color:var(--text)}
 .lang-btn.on{background:rgba(var(--accent-rgb),.16);color:var(--text);font-weight:600}
