@@ -148,3 +148,15 @@ html.static body::before{content:"";position:fixed;inset:0;z-index:0;pointer-eve
   radial-gradient(1.2px 1.2px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 33% 68%,#cfe,transparent),radial-gradient(1.4px 1.4px at 58% 14%,#fff,transparent),radial-gradient(1px 1px at 77% 52%,#bcf,transparent),radial-gradient(1.2px 1.2px at 91% 83%,#fff,transparent),radial-gradient(1px 1px at 22% 91%,#fff,transparent),radial-gradient(1px 1px at 66% 74%,#cfe,transparent);}
 html.static #fx{display:none}
 html.static #titles,html.static #join,html.static main{position:relative;z-index:1}
+
+/* Repli : texte à gauche, écran de l'appareil à droite (une colonne sur écran étroit) */
+html.static .fig{display:block;width:100%;height:auto;border-radius:14px;border:7px solid #0d1017;background:#05070c;box-shadow:0 30px 80px rgba(47,143,209,.18),0 0 0 1px rgba(236,231,222,.12);margin-top:26px}
+html.static .fig-t{max-width:340px}html.static .fig-h{max-width:250px;border-radius:30px;border-width:8px}
+@media (min-width:900px){
+  html.static .ttl:has(.fig){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:56px;align-items:center;align-content:center;grid-template-rows:auto auto auto;max-width:1100px}
+  html.static .ttl:has(.fig)>.ttl-k,html.static .ttl:has(.fig)>.ttl-h,html.static .ttl:has(.fig)>.ttl-p{grid-column:1}
+  html.static .ttl:has(.fig)>.fig{grid-column:2;grid-row:1 / span 3;margin-top:0;justify-self:center}
+  html.static .fig-m{max-width:none}
+}
+html.static body::after{content:"";position:fixed;top:0;left:0;right:0;height:96px;background:linear-gradient(#000 45%,rgba(0,0,0,0));z-index:2;pointer-events:none}
+html.static .ttl:has(.fig)>.ttl-p{margin-top:18px}

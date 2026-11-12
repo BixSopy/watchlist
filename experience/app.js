@@ -15,7 +15,7 @@ import { RoundedBoxGeometry } from './three/addons/RoundedBoxGeometry.js';
 import { RoomEnvironment } from './three/addons/RoomEnvironment.js';
 import { STEPS, SETUP, GRAND } from './data.js';
 import { createNebula, createDust, createStreaks, PostShader, createPosterSet } from './fx.js';
-import { createAtlas, createScreens } from './screens.js';
+import { createAtlas, createScreens, drawMonitorPlayer, drawMonitorList, drawTablet, drawPhone } from './screens.js';
 
 const qs = new URLSearchParams(location.search);
 const DEBUG = qs.has('debug');
@@ -62,9 +62,31 @@ function staticMode(why) {
   $('loader').classList.add('done'); $('loader').hidden = true;
   setPct(100);
   window.__xp = Object.assign(window.__xp || {}, { ready: true, static: true, why });
+  staticFigures();
+}
+/* Repli : les mêmes écrans (dessinés en 2D, sans aucun GPU) en vignettes d'appareil à côté de chaque texte */
+async function staticFigures() {
+  await Promise.race([Promise.all([document.fonts.load('600 40px Inter'), document.fonts.load('500 20px "IBM Plex Mono"')]).catch(() => {}), new Promise((r) => setTimeout(r, 1500))]);
+  const atlas = createAtlas();
+  const WH = { m: [1792, 1120], t: [1344, 1792], h: [900, 1850] };
+  const DRAW = {
+    '0-0': ['m', (c, w, h) => drawMonitorPlayer(c, w, h, 0.34, 0, 0)], '0-1': ['m', (c, w, h) => drawMonitorPlayer(c, w, h, 0.8, 1, 0)],
+    '1-0': ['m', (c, w, h) => drawMonitorList(c, w, h, atlas, 5, 0)],
+    '2-0': ['t', (c, w, h) => drawTablet(c, w, h, atlas, 0.5)], '2-1': ['t', (c, w, h) => drawTablet(c, w, h, atlas, 1.5)], '2-2': ['t', (c, w, h) => drawTablet(c, w, h, atlas, 2.9)],
+    '3-0': ['h', (c, w, h) => drawPhone(c, w, h, atlas, 0.4)], '3-1': ['h', (c, w, h) => drawPhone(c, w, h, atlas, 1.95)],
+  };
+  const figs = [];
+  for (const tt of titles) {
+    const d = DRAW[tt.step + '-' + tt.el.dataset.seg]; if (!d) continue;
+    const [w, h] = WH[d[0]], cv = document.createElement('canvas'); cv.width = w; cv.height = h; cv.className = 'fig fig-' + d[0]; cv.setAttribute('aria-hidden', 'true');
+    d[1](cv.getContext('2d'), w, h); tt.el.appendChild(cv); figs.push([cv, d, w, h]);
+  }
+  const redraw = () => figs.forEach(([cv, d, w, h]) => d[1](cv.getContext('2d'), w, h));
+  let loaded = false;
+  addEventListener('scroll', () => { if (loaded || scrollY < 10) return; loaded = true; atlas.loadReal(); setTimeout(redraw, 2500); setTimeout(redraw, 6000); }, { passive: true });
 }
 const FORCE = qs.has('force3d');
-if (innerWidth < 820 || (matchMedia('(pointer:coarse)').matches && innerWidth < 1100)) { staticMode('small'); }
+if (qs.has('lite') || innerWidth < 820 || (matchMedia('(pointer:coarse)').matches && innerWidth < 1100)) { staticMode('small'); }
 else boot().catch((e) => { console.warn('scène indisponible', e); staticMode('nogl'); });
 
 /* Sonde : un GPU « logiciel » (SwiftShader, llvmpipe, Basic Render Driver) rend cette scène à 1-3 i/s.
@@ -473,7 +495,7 @@ async function boot() {
         ST.rec = J.rec0 * (1 - sm(0, 0.35, s)); ST.fovAdd = lerp(J.fov0, 0, s) + 22 * Math.pow(bell, 1.4);
         ST.roll = J.grand ? J.dir * 0.105 * bell : 0;
       }
-      ST.flash = Math.pow(sm(0.38, 0.5, s) * (1 - sm(0.5, 0.64, s)), 1.4) * 0.5;
+      ST.flash = Math.pow(sm(0.38, 0.5, s) * (1 - sm(0.5, 0.64, s)), 1.4) * 0.1;
       titleVis = s > 0.8;
       if (s >= 1) { ST.warp = ST.dim = ST.fovAdd = ST.rec = ST.flash = ST.roll = 0; endJump(); camMode = 'pose'; }
     } else { ST.flash = 0; ST.roll *= 0.9; }
