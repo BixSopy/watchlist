@@ -585,13 +585,14 @@ async function boot() {
   const dbg = DEBUG ? Object.assign(document.body.appendChild(document.createElement('pre')), { id: 'dbg' }) : null;
   function updateCovered() { covered = scrollY >= courseH + 0.22 * innerHeight; }
   const WIN = 45;
+  let cap = 2; // plus haut niveau autorisé : abaissé dès qu'un niveau s'est révélé trop lourd (évite les allers-retours)
   function adapt(avgMs) {
     if (tierLocked || FORCE) return;
     const i = TORDER.indexOf(tier), now = performance.now();
     if (now - lastChange < 2500) return;
-    if (avgMs > 38 && i > 0) { tier = TORDER[i - 1]; lastChange = now; buildComposer(); slowWin = 0; }
+    if (avgMs > 38 && i > 0) { cap = i - 1; tier = TORDER[i - 1]; lastChange = now; buildComposer(); slowWin = 0; }
     else if (avgMs > 55 && i === 0) { if (++slowWin >= 3) fallback('slow'); }
-    else if (avgMs < 13.5 && i < 2) { tier = TORDER[i + 1]; lastChange = now; buildComposer(); }
+    else if (avgMs < 13.5 && i < cap) { tier = TORDER[i + 1]; lastChange = now; buildComposer(); }
     else if (avgMs <= 38) slowWin = 0;
   }
   function tick(now) {
