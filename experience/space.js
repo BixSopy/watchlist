@@ -12,7 +12,7 @@ let renderer;
 try { renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: true, powerPreference: 'high-performance' }); }
 catch (e) { $('nogl').hidden = false; $('panel').hidden = true; throw e; }
 
-const P = { etoiles: 0.6, nebuleuse: 0.8, eclats: 1, micro: 1, flou: 0, brouillard: 0.7, vitesse: 1 };
+const P = { etoiles: 0.55, nebuleuse: 0.8, eclats: 1, micro: 1, flou: 0, brouillard: 0.7, vitesse: 1 };
 const DEF = { etoiles: ['Étoiles (fines)', 0, 1.5, 0.05], micro: ['Éclats lointains', 0, 1.5, 0.05], nebuleuse: ['Nébuleuse', 0, 1.5, 0.05], eclats: ['Éclats de verre', 0, 1.5, 0.05], flou: ['Flou de profondeur', 0, 1.5, 0.05], brouillard: ['Brouillard', 0, 1.5, 0.05], vitesse: ['Vitesse de dérive', 0, 4, 0.1] };
 try { Object.assign(P, JSON.parse(decodeURIComponent(location.hash.slice(1) || '{}'))); } catch (e) { /* hash libre */ }
 
@@ -25,7 +25,7 @@ let seed = 5; const rnd = () => { seed = (seed * 16807) % 2147483647; return (se
 const RANGE = 520; // profondeur du volume, qui boucle autour de la caméra
 
 /* ---------- Étoiles : 3 profondeurs + flou de profondeur ---------- */
-const starUniforms = { uFocus: { value: 70 }, uCoc: { value: P.flou }, uPx: { value: 1 }, uTime: { value: 0 }, uCam: { value: new THREE.Vector3() }, uRange: { value: RANGE } };
+const starUniforms = { uAmt: { value: P.etoiles }, uFocus: { value: 70 }, uCoc: { value: P.flou }, uPx: { value: 1 }, uTime: { value: 0 }, uCam: { value: new THREE.Vector3() }, uRange: { value: RANGE } };
 function stars(n, spread, size, bright) {
   const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), sd = new Float32Array(n), sz = new Float32Array(n);
   const pal = [[1, 0.97, 0.92], [0.7, 0.8, 1], [0.7, 1, 0.92], [0.85, 0.78, 1]];
@@ -37,17 +37,17 @@ function stars(n, spread, size, bright) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 3)); g.setAttribute('aSeed', new THREE.BufferAttribute(sd, 1)); g.setAttribute('aSize', new THREE.BufferAttribute(sz, 1));
   const m = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: starUniforms,
-    vertexShader: `attribute vec3 aCol;attribute float aSeed,aSize;uniform float uFocus,uCoc,uPx,uTime,uRange;uniform vec3 uCam;varying vec3 vC;varying float vA,vR;
+    vertexShader: `attribute vec3 aCol;attribute float aSeed,aSize;uniform float uFocus,uCoc,uPx,uTime,uRange,uAmt;uniform vec3 uCam;varying vec3 vC;varying float vA,vR;
 void main(){vec3 p=position;p.z=uCam.z-mod(uCam.z-p.z,uRange);
 vec4 mv=viewMatrix*vec4(p,1.);float d=max(-mv.z,.5);float coc=clamp(abs(d-uFocus)/(uFocus*1.4),0.,1.)*uCoc;
 float edge=smoothstep(0.,28.,d)*(1.-smoothstep(uRange*.78,uRange,d));
 float tw=1.;
-float s=aSize*(1.+coc*5.5);gl_PointSize=clamp(uPx*s*300./d,1.4,90.*uPx);
-vC=aCol;vR=coc;vA=edge*tw/(1.+coc*coc*10.);gl_Position=projectionMatrix*mv;}`,
+float s=aSize*(1.+coc*5.5);gl_PointSize=clamp(max(uPx*s*300./d,3.4*uPx),3.4*uPx,90.*uPx);
+vC=aCol;vR=coc;vA=edge*tw*uAmt/(1.+coc*coc*10.);gl_Position=projectionMatrix*mv;}`,
     fragmentShader: `varying vec3 vC;varying float vA,vR;
 void main(){vec2 q=gl_PointCoord-.5;float r=length(q)*2.;if(r>1.)discard;
-float core=exp(-r*r*(7.-vR*4.));float ring=0.;
-gl_FragColor=vec4(vC*(core+ring)*vA*2.6,1.);}`,
+float core=exp(-r*r*3.4);float ring=0.;
+gl_FragColor=vec4(vC*(core+ring)*vA*2.1,1.);}`,
   });
   const pts = new THREE.Points(g, m); pts.frustumCulled = false; return pts;
 }
@@ -148,7 +148,7 @@ function frame(dt, draw = true) {
   nebulae.forEach((s, i) => { const u = s.userData; s.position.set(u.x + camera.position.x * 0.55, u.y + camera.position.y * 0.55, camZ - (((i * 31.7 + u.z + (-camZ) * 1) % RANGE + RANGE) % RANGE) - 60); s.material.opacity = u.o * P.nebuleuse * (1 - P.brouillard * 0.15); s.material.rotation += u.rot * dt; });
   shards.forEach((g) => { const u = g.userData; g.position.set(u.x, u.y + Math.sin(t * 0.3 + u.z) * 0.8, camZ - (((-camZ + u.z) % RANGE + RANGE) % RANGE)); g.rotation.x += u.r[0] * dt; g.rotation.y += u.r[1] * dt; g.rotation.z += u.r[2] * dt; });
   updateMicro(); shardMat.uniforms.uAmt.value = P.eclats; edgeMat.opacity = 0.32 * Math.min(1, P.eclats);
-  starLayers.forEach((l) => { l.visible = P.etoiles > 0.01; }); $('dist').textContent = Math.round(-camZ) + ' m';
+  starUniforms.uAmt.value = P.etoiles; starLayers.forEach((l) => { l.visible = P.etoiles > 0.01; }); $('dist').textContent = Math.round(-camZ) + ' m';
   if (draw) renderer.render(scene, camera);
 }
 let last = performance.now();
