@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#000000">
+<title>Cinepisode — test de l’espace</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/experience/space.css">
+<script type="module" src="/experience/space.js"></script>
+</head>
+<body>
+<canvas id="gl" aria-label="Fond d’espace en 3D, la caméra avance lentement"></canvas>
+<div class="halo" aria-hidden="true"></div>
+<p id="nogl" hidden>WebGL 2 n’est pas disponible sur cet appareil.</p>
+<aside id="panel" aria-label="Réglages">
+  <div class="row"><button type="button" id="go">Avancer (espace)</button><span id="dist">0 m</span></div>
+  <div id="sliders"></div>
+  <details><summary>Réglages actuels (à me copier)</summary><pre id="json"></pre><button type="button" id="copy">Copier</button></details>
+</aside>
+</body>
+</html>

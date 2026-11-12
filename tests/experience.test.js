@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const ROOT = path.join(__dirname, '..');
 const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
-const OWN = ['experience/app.js', 'experience/data.js', 'experience/fx.js', 'experience/screens.js', 'experience/travel.js'];
+const OWN = ['experience/app.js', 'experience/data.js', 'experience/fx.js', 'experience/screens.js', 'experience/travel.js', 'experience/space.js'];
 
 test('page : aucun script en ligne ni ressource externe, textes réels pour les lecteurs d\'écran et la FAQ', () => {
   const html = read('experience/index.html');
