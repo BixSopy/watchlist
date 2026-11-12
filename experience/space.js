@@ -12,8 +12,8 @@ let renderer;
 try { renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: true, powerPreference: 'high-performance' }); }
 catch (e) { $('nogl').hidden = false; $('panel').hidden = true; throw e; }
 
-const P = { etoiles: 1, nebuleuse: 0.8, eclats: 1, flou: 0.8, brouillard: 0.7, vitesse: 1 };
-const DEF = { etoiles: ['Étoiles', 0.1, 1.5, 0.05], nebuleuse: ['Nébuleuse', 0, 1.5, 0.05], eclats: ['Éclats de verre', 0, 1.5, 0.05], flou: ['Flou de profondeur', 0, 1.5, 0.05], brouillard: ['Brouillard', 0, 1.5, 0.05], vitesse: ['Vitesse de dérive', 0, 4, 0.1] };
+const P = { etoiles: 0.6, nebuleuse: 0.8, eclats: 1, micro: 1, flou: 0, brouillard: 0.7, vitesse: 1 };
+const DEF = { etoiles: ['Étoiles (fines)', 0, 1.5, 0.05], micro: ['Éclats lointains', 0, 1.5, 0.05], nebuleuse: ['Nébuleuse', 0, 1.5, 0.05], eclats: ['Éclats de verre', 0, 1.5, 0.05], flou: ['Flou de profondeur', 0, 1.5, 0.05], brouillard: ['Brouillard', 0, 1.5, 0.05], vitesse: ['Vitesse de dérive', 0, 4, 0.1] };
 try { Object.assign(P, JSON.parse(decodeURIComponent(location.hash.slice(1) || '{}'))); } catch (e) { /* hash libre */ }
 
 const dpr = Math.min(devicePixelRatio || 1, 1.75);
@@ -46,12 +46,12 @@ float s=aSize*(1.+coc*5.5);gl_PointSize=clamp(uPx*s*300./d,1.4,90.*uPx);
 vC=aCol;vR=coc;vA=edge*tw/(1.+coc*coc*10.);gl_Position=projectionMatrix*mv;}`,
     fragmentShader: `varying vec3 vC;varying float vA,vR;
 void main(){vec2 q=gl_PointCoord-.5;float r=length(q)*2.;if(r>1.)discard;
-float core=exp(-r*r*(5.5-vR*4.));float ring=smoothstep(.55,.9,r)*smoothstep(1.,.88,r)*vR*.5;
+float core=exp(-r*r*(7.-vR*4.));float ring=0.;
 gl_FragColor=vec4(vC*(core+ring)*vA*2.6,1.);}`,
   });
   const pts = new THREE.Points(g, m); pts.frustumCulled = false; return pts;
 }
-const starLayers = [stars(1500, 600, 0.55, 1.0), stars(1100, 360, 0.8, 0.9), stars(260, 200, 1.6, 0.85)];
+const starLayers = [stars(650, 600, 0.45, 0.9), stars(140, 360, 0.6, 0.8)];
 starLayers.forEach((s) => scene.add(s));
 
 /* ---------- Nébuleuse : nappes douces à plusieurs profondeurs ---------- */
@@ -103,6 +103,34 @@ for (let i = 0; i < 30; i++) {
   g.userData = { x: (rnd() - 0.5) * 120, y: (rnd() - 0.5) * 60, z: Math.pow(rnd(), 1.5) * RANGE * 0.7, r: [rnd() * 0.3, rnd() * 0.3, rnd() * 0.2] };
   scene.add(g); shards.push(g);
 }
+
+/* ---------- Éclats lointains : de minuscules fragments de verre à la place des « particules » ---------- */
+const microMat = new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false, side: THREE.DoubleSide, uniforms: { uAmt: { value: P.micro } },
+  vertexShader: `varying vec3 vN,vV;varying float vS;void main(){mat4 im=mat4(1.);
+#ifdef USE_INSTANCING
+im=instanceMatrix;
+#endif
+vec4 w=modelMatrix*im*vec4(position,1.);vN=normalize(mat3(modelMatrix*im)*normal);vV=normalize(cameraPosition-w.xyz);vS=length(cameraPosition-w.xyz);gl_Position=projectionMatrix*viewMatrix*w;}`,
+  fragmentShader: `uniform float uAmt;varying vec3 vN,vV;varying float vS;
+void main(){vec3 n=normalize(vN);if(!gl_FrontFacing)n=-n;float f=pow(1.-abs(dot(n,normalize(vV))),1.6);
+float spec=pow(max(dot(reflect(-normalize(vV),n),normalize(vec3(.4,.8,.3))),0.),18.);
+vec3 col=mix(vec3(.28,.30,.95),vec3(.15,.75,.7),f)*(.25+.9*f)+vec3(.6,.7,1.)*spec*.5;
+float fade=smoothstep(18.,60.,vS)*(1.-smoothstep(260.,460.,vS));
+gl_FragColor=vec4(col*uAmt,(.25+.5*f+spec*.3)*fade*uAmt);}`,
+});
+const MICRO = 150, microGeo = new THREE.TetrahedronGeometry(1, 0), micro = new THREE.InstancedMesh(microGeo, microMat, MICRO);
+micro.frustumCulled = false; scene.add(micro);
+const microData = Array.from({ length: MICRO }, () => ({ x: (rnd() - 0.5) * 220, y: (rnd() - 0.5) * 110, z: rnd() * RANGE, s: 0.12 + Math.pow(rnd(), 2.5) * 0.9, r: [rnd() * 6, rnd() * 6, rnd() * 6], v: [(rnd() - 0.5) * 0.6, (rnd() - 0.5) * 0.6, (rnd() - 0.5) * 0.4] }));
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _sc = new THREE.Vector3();
+function updateMicro() {
+  microData.forEach((d, i) => {
+    _e.set(d.r[0] + t * d.v[0], d.r[1] + t * d.v[1], d.r[2] + t * d.v[2]); _q.setFromEuler(_e);
+    _p.set(d.x, d.y + Math.sin(t * 0.25 + d.z) * 0.4, camZ - (((-camZ + d.z) % RANGE + RANGE) % RANGE)); _sc.setScalar(d.s * (0.8 + 0.6 * Math.sin(i)));
+    _m.compose(_p, _q, _sc); micro.setMatrixAt(i, _m);
+  });
+  micro.instanceMatrix.needsUpdate = true; microMat.uniforms.uAmt.value = P.micro; micro.visible = P.micro > 0.01;
+}
 scene.fog = new THREE.FogExp2(0x000000, 0.0);
 
 /* ---------- Boucle ---------- */
@@ -119,8 +147,8 @@ function frame(dt, draw = true) {
   starUniforms.uTime.value = t; starUniforms.uCam.value.copy(camera.position); starUniforms.uCoc.value = P.flou;
   nebulae.forEach((s, i) => { const u = s.userData; s.position.set(u.x + camera.position.x * 0.55, u.y + camera.position.y * 0.55, camZ - (((i * 31.7 + u.z + (-camZ) * 1) % RANGE + RANGE) % RANGE) - 60); s.material.opacity = u.o * P.nebuleuse * (1 - P.brouillard * 0.15); s.material.rotation += u.rot * dt; });
   shards.forEach((g) => { const u = g.userData; g.position.set(u.x, u.y + Math.sin(t * 0.3 + u.z) * 0.8, camZ - (((-camZ + u.z) % RANGE + RANGE) % RANGE)); g.rotation.x += u.r[0] * dt; g.rotation.y += u.r[1] * dt; g.rotation.z += u.r[2] * dt; });
-  shardMat.uniforms.uAmt.value = P.eclats; edgeMat.opacity = 0.32 * Math.min(1, P.eclats);
-  starLayers[0].material.opacity = 1; $('dist').textContent = Math.round(-camZ) + ' m';
+  updateMicro(); shardMat.uniforms.uAmt.value = P.eclats; edgeMat.opacity = 0.32 * Math.min(1, P.eclats);
+  starLayers.forEach((l) => { l.visible = P.etoiles > 0.01; }); $('dist').textContent = Math.round(-camZ) + ' m';
   if (draw) renderer.render(scene, camera);
 }
 let last = performance.now();
