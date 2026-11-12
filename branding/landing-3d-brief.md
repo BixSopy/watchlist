@@ -1,6 +1,15 @@
 # Brief : landing 3D « voyage dans l'espace » (inspirée d'igloo.inc)
 
-Version 2 (12/11/2026), remplace le prototype « bobine » rejeté par Pierre. Servie sur `/experience`
+> **v3 (12/11, nuit)** : la v2 ne démarrait pas sur la machine de Pierre (30-60 s de chargement, puis plus rien, fond noir
+> et titre seul). Corrections : démarrage au niveau `low`, montée de niveau seulement si les images suivent, descente puis
+> repli en lecture normale si elles peinent (sonde GPU logiciel, garde-fou à 6 s, perte de contexte), aucune compilation
+> bloquante, polices plafonnées à 1,2 s, cible 8 bits si le GPU n'a pas le demi-flottant. Les déplacements sont devenus un
+> **voyage continu** (courbe de caméra avec détours en haut / en bas / en arrière, brouillard qui révèle chaque appareil à
+> l'arrivée) au lieu d'une coupure. Le repli en lecture normale affiche les mêmes écrans d'appareil, dessinés en 2D.
+> Paramètres : `?lite` force le repli, `?q=low|std|high` verrouille, `?debug` affiche les mesures, `?force3d` ignore la sonde
+> GPU (tests). Outils gratuits repérés : `branding/landing-3d-outils-gratuits.md`.
+
+Version 2 puis 3 (12/11/2026), remplace le prototype « bobine » rejeté par Pierre. Servie sur `/experience`
 (dossier `experience/`). Ne remplace pas la landing actuelle (`index.html`, `landing/`, `js/23-landing.js`).
 On reprend le principe d'animation d'igloo.inc (une scène plein écran pilotée au défilement), jamais ses
 contenus, formes ni son code.
@@ -53,8 +62,7 @@ Après l'étape 5 : FAQ (6 questions) et pied de page, en sections classiques qu
   donc avec lueur et reflets), `app.js` (scène, appareils, défilement hybride, sauts, anneaux, textes, son, qualité).
 - Rendu : cible demi-flottante MSAA ×4, lueur (UnrealBloom), passe finale (aberration chromatique, flou radial
   pendant les sauts, vignettage, grain, flash), ton ACES ; densité de pixels native plafonnée à 2.
-- Niveaux `max` → `high` → `std`, dégradation seulement si < ~50 i/s soutenus ; `?q=max|high|std` verrouille,
-  `?debug` affiche cadence, niveau, étape, tension, appels de rendu.
+- Niveaux `low` → `std` → `high` (v3 : on démarre au plus léger et on monte si < 13,5 ms par image ; on descend au-delà de 38 ms).
 - Appareils : formes PBR provisoires (RoundedBox + plan d'écran arrondi + reflet de vitre). À remplacer par des GLB
   (Blender) : 3 modèles, maillage `screen` à UV 0-1, sans logo, ~50 k / 30 k triangles. Poids total visé ≤ 8 Mo, ouverture < 1,5 Mo.
 - Rendu suspendu quand l'onglet est caché et quand la FAQ recouvre la scène ; repli en lecture normale sans WebGL.

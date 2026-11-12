@@ -372,18 +372,18 @@ async function boot() {
       const camP = camera.position;
       FLIGHT.forEach((f, i) => {
         for (let g = 0; g < 3; g++) {
-          const idx = i * 3 + g, lag = g * 0.014;
+          const idx = i * 3 + g, lag = g * 0.02;
           const k = clamp((u - lag - f.s) / f.d);
           if (k <= 0 || k >= 1) { flights.hide(idx); continue; }
           flightTarget(f.row, _v3);
           const ease = 1 - Math.pow(1 - k, 2.2), tj = (i % 2 ? 1 : -1);
-          const S0 = _x.set(14 + 3 * i, 3 - 1.2 * i, -34 - 4 * i).applyQuaternion(mq).add(_v3);
-          const C0 = _y.set(9, 1.6 * tj, 7).applyQuaternion(mq).add(_v3);
+          const S0 = _x.set(22 + 4 * i, 4 - 1.2 * i, -46 - 5 * i).applyQuaternion(mq).add(_v3);
+          const C0 = _y.set(-5.5, 1.4 * tj, 8.5).applyQuaternion(mq).add(_v3);
           const a = (1 - ease) * (1 - ease), b = 2 * (1 - ease) * ease, c = ease * ease;
           _v.set(S0.x * a + C0.x * b + _v3.x * c, S0.y * a + C0.y * b + _v3.y * c, S0.z * a + C0.z * b + _v3.z * c);
           _m.lookAt(_v, camP, UP); _q.setFromRotationMatrix(_m);
           _q.slerp(mq, Math.pow(ease, 2));
-          const sc = lerp(1.15, 0.146, Math.pow(ease, 0.8)) * (g ? 0.8 : 1);
+          const sc = lerp(2.3, 0.146, Math.pow(ease, 0.7)) * (g ? 0.75 : 1);
           flights.set(idx, _v, _q, _s.set(sc, sc, 1), sm(0, 0.1, k) * (1 - sm(0.9, 1, k)) * (g ? 0.5 : 1), 1);
         }
       });
