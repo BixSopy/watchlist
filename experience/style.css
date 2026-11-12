@@ -73,11 +73,11 @@ html.past .hud-bl,html.past .hud-br{opacity:0;pointer-events:none}
 #titles{position:fixed;inset:0;z-index:2;pointer-events:none;transition:opacity .9s}
 .ttl{position:absolute;left:clamp(24px,7vw,120px);top:32vh;max-width:min(46vw,680px);margin:0;will-change:transform;visibility:hidden;transition:visibility 0s .9s}
 .ttl.on{visibility:visible;transition:visibility 0s}
-.ttl[data-step="1"]{top:30vh}.ttl[data-step="4"]{top:17vh}.ttl.hero{top:30vh;max-width:min(52vw,820px)}
+.ttl[data-step="1"]{top:30vh}.ttl[data-step="4"]{top:17vh}.ttl.hero{top:28vh;max-width:min(44vw,760px)}
 .ttl-k{margin:0 0 18px;font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-lo);opacity:0;transform:translateY(8px);transition:opacity .7s .05s,transform .7s .05s var(--ease)}
 .ttl.on .ttl-k{opacity:1;transform:none}
 .ttl-h{margin:0;font:600 clamp(34px,4vw,72px)/1.02 var(--sans);letter-spacing:-.04em;color:var(--ink-hi);text-wrap:balance;text-shadow:0 2px 40px rgba(0,0,0,.7)}
-.ttl.hero .ttl-h{font-size:clamp(44px,6.3vw,112px);line-height:.98;letter-spacing:-.048em}
+.ttl.hero .ttl-h{font-size:clamp(44px,5.3vw,100px);line-height:.98;letter-spacing:-.048em}
 .ttl-p{display:none}
 .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .02em .14em;margin-bottom:-.14em}
 .w>span{display:inline-block;transform:translateY(112%);opacity:0;filter:blur(10px);transition:transform .95s var(--ease) calc(var(--i)*58ms),opacity .7s ease calc(var(--i)*58ms),filter .85s ease calc(var(--i)*58ms)}

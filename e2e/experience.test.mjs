@@ -63,6 +63,18 @@ test('GPU logiciel (ici SwiftShader) : repli immédiat en lecture normale, pas d
   assert.deepEqual(problems, []);
 });
 
+test('repli en cours de route (GPU qui peine) : la page bascule en lecture normale sans rien perdre', async t => {
+  const { page, problems } = await open(t);
+  await page.waitForFunction(() => window.__xp.state.jump === null, null, { timeout: 90000 });
+  await page.evaluate(() => window.__xp.fallback('slow'));
+  assert.ok(await page.evaluate(() => document.documentElement.classList.contains('static')));
+  assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('scene')).display), 'none');
+  assert.equal(await page.evaluate(() => scrollY), 0);
+  await page.evaluate(() => scrollTo(0, 600)); await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => scrollY), 600, 'le défilement n\'est plus verrouillé');
+  assert.deepEqual(problems, []);
+});
+
 test('défilement hybride : la tension monte puis retombe si on revient ; passé le seuil, le saut part seul et verrouille le défilement', async t => {
   const { page, problems } = await open(t);
   await page.evaluate(() => window.__xp.goto(0, 0.9));

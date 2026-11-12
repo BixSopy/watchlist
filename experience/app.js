@@ -228,7 +228,9 @@ async function boot() {
     dpr = Math.min(devicePixelRatio || 1, T.dpr);
     renderer.setPixelRatio(dpr); renderer.setSize(innerWidth, innerHeight, false);
     composer?.dispose?.();
-    const rt = new THREE.WebGLRenderTarget(innerWidth * dpr, innerHeight * dpr, { type: THREE.HalfFloatType, samples: T.samples });
+    // cible demi-flottante seulement si le GPU sait la rendre ; sinon 8 bits (jamais d'écran noir par cible incomplète)
+    const hdr = renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float');
+    const rt = new THREE.WebGLRenderTarget(innerWidth * dpr, innerHeight * dpr, { type: hdr ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: T.samples });
     composer = new EffectComposer(renderer, rt); composer.setPixelRatio(dpr); composer.setSize(innerWidth, innerHeight);
     composer.addPass(new RenderPass(scene, camera));
     bloom = post = null;
@@ -263,7 +265,7 @@ async function boot() {
   function startJump(from, to, o = {}) {
     if (J || dead) return;
     const grand = !REDUCED && GRAND(from, to) && from >= 0;
-    const D = REDUCED ? 0.6 : o.intro ? 2.4 : grand ? 3.3 : 1.9;
+    const D = REDUCED ? 0.6 : o.intro ? 2.4 : grand ? 3.3 : 1.7;
     const tu = o.scrollU != null ? o.scrollU : to > from ? 0.0176 : 0.982;
     const B = poseOf(to, tu);
     const A = from < 0 ? [add(B[0], [-36, 22, 110]), add(B[1], [0, 0, 0])] : [_pa.copy(camera.position).toArray(), lastLook.toArray()];
@@ -490,7 +492,7 @@ async function boot() {
       if (REDUCED) { view = J.cut ? cur : J.from; ST.warp = 0; ST.dim = Math.sin(Math.PI * s); ST.fovAdd = 0; ST.rec = 0; }
       else {
         const bell = Math.sin(Math.PI * s);
-        ST.warp = Math.max(J.w0 * (1 - s), Math.pow(bell, 0.8));
+        ST.warp = Math.max(J.w0 * (1 - s), Math.pow(bell, 1.25));
         ST.dim = Math.max(J.dim0 * (1 - s * 2), 0.0) + 0.78 * Math.pow(bell, 1.6) * 0.5;
         ST.rec = J.rec0 * (1 - sm(0, 0.35, s)); ST.fovAdd = lerp(J.fov0, 0, s) + 22 * Math.pow(bell, 1.4);
         ST.roll = J.grand ? J.dir * 0.105 * bell : 0;
@@ -546,7 +548,7 @@ async function boot() {
       d.quaternion.copy(d.userData.base).multiply(_q.setFromEuler(_e));
     }
     if (ST.dimK !== ST.dim) { ST.dimK = ST.dim; dimmables.forEach((d) => { d.m.color.copy(d.c).multiplyScalar(1 - ST.dim * 0.9); if (d.e) d.m.envMapIntensity = 1 - ST.dim * 0.8; }); }
-    nebula.mesh.position.copy(camera.position); nebula.mesh.rotation.y = (view + (J ? J.dir * s : 0)) * 0.7 + t * 0.003; nebula.setAmt(1 - ST.dim * 0.5);
+    nebula.mesh.position.copy(camera.position); nebula.mesh.rotation.y = (J ? J.from + (J.to - J.from) * easeIO(s) : cur) * 0.7 + t * 0.003; nebula.setAmt(1 - ST.dim * 0.5);
 
     const dstage = J && J.cut ? cur : view;
     if (dstage >= 0 && dstage < NS) driveScreens(dstage, uView);
@@ -628,6 +630,7 @@ async function boot() {
     pause(b) { paused = b; },
     render() { composer.render(0.016); },
     setTier(n) { tier = n; buildComposer(); },
+    fallback,
     dbg: { scene, camera, monitor, tablet, phone, bloom: () => bloom, post: () => post, ST },
   };
   requestAnimationFrame((n) => { last = n; born = n; tick(n); });
