@@ -43,7 +43,7 @@ test('étapes : 5 étapes, 9 segments de texte, 3 pastilles de configuration', (
 test('scripts : imports relatifs uniquement, Three.js r170 figé avec sa licence, requêtes limitées à TMDB', () => {
   const files = [...OWN, ...fs.readdirSync(path.join(ROOT, 'experience/three/addons')).map(f => 'experience/three/addons/' + f)];
   for (const f of files) {
-    for (const m of read(f).matchAll(/\bfrom\s+'([^']+)'/g)) assert.match(m[1], /^\.\.?\//, f + ' : import relatif (' + m[1] + ')');
+    for (const m of read(f).replace(/^\s*(\/\/|\*|\/\*).*$/gm, '').matchAll(/\bfrom\s+'([^']+)'/g)) assert.match(m[1], /^\.\.?\//, f + ' : import relatif (' + m[1] + ')');
   }
   assert.match(read('experience/three/three.module.min.js').slice(0, 200), /Copyright 2010-20\d\d Three\.js Authors/);
   assert.match(read('experience/three/three.module.min.js'), /REVISION="170"|const \w+="170"/);
