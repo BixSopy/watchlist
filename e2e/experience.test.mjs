@@ -20,6 +20,7 @@ before(async () => {
 after(async () => { await browser?.close(); await server?.close(); });
 
 async function open(t, opts = {}) {
+  const q = opts.q === undefined ? '?q=low&force3d' : opts.q;
   const ctx = await browser.newContext({ viewport: opts.vp || { width: 1440, height: 900 }, reducedMotion: opts.reduced ? 'reduce' : 'no-preference' });
   t.after(() => ctx.close());
   const page = await ctx.newPage();
@@ -28,7 +29,7 @@ async function open(t, opts = {}) {
   /* les affiches TMDB (autorisées par la CSP) ne se chargent qu'au premier geste ; hors ligne ici, leur échec est attendu */
   page.on('console', m => { if (m.type() === 'error' && !/image\.tmdb\.org/.test(m.location().url || '')) problems.push(m.text()); });
   page.on('request', r => { const u = new URL(r.url()); if (!/^(127\.0\.0\.1|localhost)$/.test(u.hostname) && !/^(data|blob):/.test(r.url()) && u.hostname !== 'image.tmdb.org') external.push(r.url()); });
-  await page.goto(server.url + '/experience/index.html?q=std');
+  await page.goto(server.url + '/experience/index.html' + q);
   await page.waitForFunction(() => window.__xp, null, { timeout: 90000 });
   return { page, problems, external };
 }
@@ -49,6 +50,16 @@ test('chargement sous la CSP du site : 100 %, ouverture par un saut vers l\'ordi
   await page.click('#soundBtn');
   assert.equal(await page.getAttribute('#soundBtn', 'aria-pressed'), 'false');
   assert.deepEqual(external, [], 'aucune requête hors du site');
+  assert.deepEqual(problems, []);
+});
+
+test('GPU logiciel (ici SwiftShader) : repli immédiat en lecture normale, pas d\'attente ni d\'écran noir', async t => {
+  const { page, problems } = await open(t, { q: '' });
+  assert.ok(await page.evaluate(() => document.documentElement.classList.contains('soft')));
+  assert.ok(await page.evaluate(() => document.documentElement.classList.contains('static')));
+  assert.equal(await page.textContent('#ldPct'), '100');
+  assert.equal(await page.locator('.ttl').count(), 9);
+  for (const el of await page.locator('.ttl').all()) assert.equal(await el.evaluate(e => getComputedStyle(e).visibility), 'visible');
   assert.deepEqual(problems, []);
 });
 

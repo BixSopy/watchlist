@@ -76,7 +76,11 @@ test('accessibilité et énergie : animations réduites, repli sans scène, rend
   assert.match(js, /covered/);
   assert.match(js, /staticMode\('nogl'\)/, 'repli sans WebGL');
   assert.match(js, /tierLocked/, 'niveau de qualité verrouillable (?q=)');
-  assert.match(js, /fps < 50/, 'dégradation seulement sous ~50 i/s');
+  assert.match(js, /let tier = TIERS\[qs\.get\('q'\)\] \? qs\.get\('q'\) : 'low'/, 'démarrage au niveau le plus léger');
+  assert.match(js, /softwareGpu/, 'sonde GPU logiciel : lecture normale plutôt qu\'une attente de 60 s');
+  assert.match(js, /fallback\('slow'\)/, 'garde-fou : repli si la scène ne tient pas la cadence');
+  assert.match(js, /Promise\.race/, 'les polices ne bloquent jamais le démarrage');
+  assert.doesNotMatch(js, /compileAsync/, 'aucune compilation bloquante de tous les shaders au démarrage');
   assert.match(css, /html\.static #scene/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /:focus-visible/);

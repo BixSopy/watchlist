@@ -5,26 +5,31 @@ import * as THREE from './three/three.module.min.js';
 
 function mulberry(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
-/* ---------- Nébuleuse : nuages très sombres indigo / turquoise, centrée sur la caméra ---------- */
+/* ---------- Nébuleuse : dessinée UNE fois dans une texture 2048 × 1024 (nuages indigo / turquoise, bande de
+   voie lactée, étoiles), plaquée à l'intérieur d'une sphère. Coût d'affichage quasi nul, contrairement à un
+   shader de bruit calculé à chaque pixel. ---------- */
 export function createNebula() {
-  const mat = new THREE.ShaderMaterial({
-    side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
-    uniforms: { uTime: { value: 0 }, uAmt: { value: 1 } },
-    vertexShader: 'varying vec3 vD;void main(){vD=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader: `varying vec3 vD;uniform float uTime;uniform float uAmt;
-float h(vec3 p){p=fract(p*0.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
-float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
-return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z);}
-float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*n3(p);p=p*2.03+vec3(1.7,9.2,3.1);a*=.5;}return s;}
-void main(){vec3 d=normalize(vD);
-float a=fbm(d*2.1+vec3(0.,uTime*.004,0.));float b=fbm(d*3.5+vec3(7.,3.,uTime*.003));
-vec3 col=vec3(.026,.018,.085)*smoothstep(.40,.86,a)*1.7+vec3(0.,.055,.075)*smoothstep(.50,.92,b)*1.3+vec3(.006,.008,.02);
-gl_FragColor=vec4(col*uAmt,1.);}`,
-  });
-  const mesh = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 24), mat);
+  const W = 2048, H = 1024, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), r = mulberry(42);
+  x.fillStyle = '#01020a'; x.fillRect(0, 0, W, H);
+  const blob = (cx, cy, rad, col, a) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, rad); g.addColorStop(0, 'rgba(' + col + ',' + a + ')'); g.addColorStop(0.55, 'rgba(' + col + ',' + a * 0.35 + ')'); g.addColorStop(1, 'rgba(' + col + ',0)'); x.fillStyle = g; x.fillRect(cx - rad, cy - rad, rad * 2, rad * 2); };
+  x.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 46; i++) blob(r() * W, H * (0.15 + r() * 0.7), 120 + r() * 340, r() < 0.62 ? '34,26,128' : '8,80,96', 0.035 + r() * 0.05);
+  for (let i = 0; i < 24; i++) { const t = i / 24; blob(W * t + (r() - 0.5) * 120, H * (0.5 + 0.18 * Math.sin(t * 6.3)) + (r() - 0.5) * 80, 90 + r() * 170, '80,70,190', 0.035 + r() * 0.04); }
+  /* Skia tramé les dégradés (matrice de Bayer 4 × 4) : agrandie ×4 sur l'écran, cette trame ferait un quadrillage.
+     On floute légèrement le nuage avant d'y poser les étoiles. */
+  x.globalCompositeOperation = 'source-over';
+  const c2 = document.createElement('canvas'); c2.width = W; c2.height = H; const x2 = c2.getContext('2d');
+  x2.filter = 'blur(2.5px)'; x2.drawImage(c, 0, 0); x2.filter = 'none';
+  x.globalCompositeOperation = 'copy'; x.drawImage(c2, 0, 0); x.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < 2600; i++) { const a = Math.pow(r(), 3) * 0.9 + 0.1, s = r() < 0.04 ? 2.2 : r() < 0.2 ? 1.4 : 0.9; x.fillStyle = r() < 0.15 ? 'rgba(160,190,255,' + a + ')' : r() < 0.1 ? 'rgba(190,255,235,' + a + ')' : 'rgba(255,248,235,' + a + ')'; x.fillRect(r() * W, r() * H, s, s); }
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.mapping = THREE.EquirectangularReflectionMapping; tex.anisotropy = 4;
+  const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false, toneMapped: true });
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 32), mat);
   mesh.renderOrder = -100; mesh.frustumCulled = false;
-  return { mesh, mat };
+  return { mesh, mat, setAmt(k) { mat.color.setScalar(clampK(k)); } };
 }
+const clampK = (k) => Math.max(0, Math.min(1.4, k));
 
 /* ---------- Poussière : 3 couches à des profondeurs différentes, toujours autour de la caméra ---------- */
 export function createDust(density = 1) {
