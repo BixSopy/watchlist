@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const ROOT = path.join(__dirname, '..');
 const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
-const OWN = ['experience/app.js', 'experience/data.js', 'experience/fx.js', 'experience/screens.js'];
+const OWN = ['experience/app.js', 'experience/data.js', 'experience/fx.js', 'experience/screens.js', 'experience/travel.js'];
 
 test('page : aucun script en ligne ni ressource externe, textes réels pour les lecteurs d\'écran et la FAQ', () => {
   const html = read('experience/index.html');
@@ -84,4 +84,14 @@ test('accessibilité et énergie : animations réduites, repli sans scène, rend
   assert.match(css, /html\.static #scene/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /:focus-visible/);
+});
+
+test('page de test du saut : aucun script en ligne, réglages et rendu en une passe', () => {
+  const html = read('experience/travel.html'), js = read('experience/travel.js');
+  for (const [, , body] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)) assert.strictEqual(body.trim(), '');
+  assert.doesNotMatch(html, /(src|href)="https?:\/\//);
+  assert.match(html, /id="play"/);
+  assert.match(js, /getContext\('webgl2'/);
+  assert.match(js, /deformation/);
+  assert.match(js, /rebond/);
 });
