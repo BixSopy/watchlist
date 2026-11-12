@@ -31,7 +31,7 @@ export async function start(cv, fx, opts) {
   await load(dev[0]);
   dev.slice(1).forEach(d => load(d).catch(() => {}));
 
-  let cw = 0, ch = 0;
+  let cw = 0, ch = 0, last = '';
   function size(vw, vh) {
     cw = vw; ch = vh;
     for (const c of [cv, fx]) { if (!c) continue; c.width = Math.round(vw * dpr); c.height = Math.round(vh * dpr); }
@@ -50,6 +50,10 @@ export async function start(cv, fx, opts) {
     /* st : vw, vh, cx, cy (centre de l'écran), iw, ih (zone d'écran DOM), s (échelle), w[3] (poids PC / tablette / téléphone),
        glass (0..1, force des reflets). */
     draw(st) {
+      /* rien n'a changé depuis la dernière image (appareil fixe) : on ne redessine pas */
+      const key = [st.vw, st.vh, st.cx.toFixed(2), st.cy.toFixed(2), st.iw.toFixed(2), st.ih.toFixed(2), st.s.toFixed(4), st.w.map(v => v.toFixed(3)).join('/'), st.glass, dev.map(d => d.bmp ? 1 : 0).join('')].join('|');
+      if (key === last) return;
+      last = key;
       if (st.vw !== cw || st.vh !== ch) size(st.vw, st.vh);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch);
       if (cfx) { cfx.setTransform(dpr, 0, 0, dpr, 0, 0); cfx.clearRect(0, 0, cw, ch); }

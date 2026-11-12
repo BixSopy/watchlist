@@ -50,14 +50,16 @@ test('landing 3D : deux canvas décoratifs, classe de <html> distincte de celle 
   assert.ok(/\.lp-3d-fx\{z-index:4;mix-blend-mode:screen\}/.test(css));
 });
 
-test('landing 3D : repli sur l\'appareil CSS (mobile, ?lp3d=off, économie de données, erreur, lenteur)', () => {
+test('landing 3D : repli sur l\'appareil CSS (mobile, ?lp3d=off, économie de données, erreur de chargement)', () => {
   const js = read('js/23-landing.js');
   assert.ok(/lp3d=\(off\|force\)/.test(js) && /L3q==='off'/.test(js));
   assert.ok(/innerWidth<=860/.test(js), 'pas de 3D sur mobile');
   assert.ok(/saveData/.test(js));
   assert.ok(/import\('\/landing\/3d\/lp3d\.js'\)[\s\S]*\.catch\(function\(\)\{L3=null;\}\)/.test(js), 'échec de chargement : on garde le CSS');
   assert.ok(/if\(!L3\.ready\(w3\)\)L3on=false;/.test(js), 'images pas prêtes : appareil CSS');
-  assert.ok(/L3slow>50\)lp3dOff\(\)/.test(js), 'filet de lenteur');
+  /* pas de repli « lenteur » : il remplaçait l'appareil Blender par l'appareil CSS en cours de page (audit du 12/11) */
+  assert.ok(!/L3slow|lp3dOff/.test(js));
+  assert.ok(/if \(key === last\) return;/.test(read('landing/3d/lp3d.js')), 'pas de redessin quand rien ne change');
 });
 
 test('landing 3D : l\'appareil est fixe (ni curseur, ni inclinaison, ni flottement) et l\'écran HTML se pose par translation + échelle', () => {

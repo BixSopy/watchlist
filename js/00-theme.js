@@ -5,7 +5,12 @@
    le bloc :root[data-theme="light"] de css/app.css et le menu Réglages (js/17-settings-menu.js). */
 (function(){
   var MQ=window.matchMedia?window.matchMedia('(prefers-color-scheme: light)'):null;
+  /* La page d'accueil publique (html.lp-guest) est sombre par conception : elle ne suit ni l'OS ni le réglage.
+     Sans cela, un visiteur dont l'OS est en mode clair recevait les jetons clairs dans le panneau d'inscription
+     (onglets blancs, texte actif à 1,9:1) et le sélecteur de langue (texte noir sur fond noir). */
+  function guest(){return document.documentElement.classList.contains('lp-guest');}
   function resolve(pref){
+    if(guest())return 'dark';
     if(pref==='dark'||pref==='light')return pref;
     return (MQ&&MQ.matches)?'light':'dark';
   }
@@ -26,9 +31,15 @@
     apply(resolve(pref));
     refreshGlass();
   };
-  var pref;
-  try{pref=localStorage.getItem('wl_theme')||'system';}catch(e){pref='system';}
+  function stored(){try{return localStorage.getItem('wl_theme')||'system';}catch(e){return 'system';}}
+  var pref=stored();
   apply(resolve(pref));
+  /* Connexion (accueil → app) ou déconnexion (app → accueil) : le thème se recale tout seul */
+  if(typeof MutationObserver!=='undefined'){
+    var wasGuest=guest();
+    new MutationObserver(function(){var g=guest();if(g===wasGuest)return;wasGuest=g;apply(resolve(stored()));refreshGlass();})
+      .observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  }
   if(MQ&&MQ.addEventListener){
     MQ.addEventListener('change',function(){
       var cur;

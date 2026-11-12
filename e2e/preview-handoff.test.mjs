@@ -67,7 +67,7 @@ test('production non connectée : retour propre sur la prévisualisation, aucune
   await page.goto(PREV + '/'); await ready(page); await page.waitForTimeout(2500);
   assert.equal(await page.evaluate(() => location.href), PREV + '/');
   assert.equal(await session(page), null);
-  const pages = nav.filter(u => !/\.(js|css|woff2|png|svg|json|jpg)(\?|$)/.test(u) && !u.includes('/api/'));
+  const pages = nav.filter(u => !/\.(js|css|woff2|png|svg|json|jpg|webp)(\?|$)/.test(u) && !u.includes('/api/'));
   assert.ok(pages.length <= 3, 'pas de boucle : ' + pages.join(' | '));
 });
 
