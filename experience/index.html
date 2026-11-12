@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0a0e16">
-<title>Cinepisode — la bobine</title>
-<meta name="description" content="Prototype de landing 3D de Cinepisode : une bobine de film pilotée par le défilement.">
+<meta name="theme-color" content="#000000">
+<title>Cinepisode — voyage</title>
+<meta name="description" content="Prototype de landing 3D de Cinepisode : un voyage dans l’espace en cinq étapes, piloté par le défilement.">
 <link rel="icon" href="/icons/icon-192.png">
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/experience/style.css">
@@ -14,84 +14,82 @@
 </head>
 <body>
 <canvas id="scene" aria-hidden="true"></canvas>
-<div id="labels" aria-hidden="true"></div>
 
-<!-- Chargement : la scène elle-même apparaît en fil de fer ; ici seulement la progression réelle -->
+<!-- Chargement : progression réelle (modules, polices, scène, shaders, première image) -->
 <div id="loader" role="status" aria-live="polite">
-  <span class="ld-k">Chargement de la bobine</span>
+  <span class="ld-mark">cin<em>episode</em></span>
   <span class="ld-n"><b id="ldPct">000</b>&nbsp;%</span>
   <span class="ld-bar"><i id="ldBar"></i></span>
 </div>
 
-<!-- Interface épinglée dans les coins (monospace, petite) -->
+<!-- Textes de l'étape : un bloc par segment, placés « dans l'espace » avec un léger décalage de parallaxe -->
+<div id="titles"></div>
+
+<!-- Étape 5 : vrai formulaire HTML par-dessus la scène -->
+<section id="join" aria-labelledby="joinT">
+  <ol id="joinList" class="join-list"></ol>
+  <div class="join-cta">
+    <a class="btn" href="/#lp-join" id="joinT">Créer mon compte gratuit</a>
+    <a class="btn ghost" href="/#lp-join">Se connecter</a>
+  </div>
+  <p class="join-note">Gratuit, sans pub, sans pistage. Un email suffit.</p>
+</section>
+
+<!-- Interface épinglée dans les coins -->
 <header class="hud hud-tl">
   <a class="mark" href="/" aria-label="Cinepisode, ouvrir l’application">cin<em>episode</em></a>
   <span class="hud-s">© 2026 Cinepisode</span>
 </header>
-<p class="hud hud-tr">Films, séries et anime.<br>Un seul endroit pour savoir où tu en es,<br>sans pub et sans traceur.</p>
+<nav class="hud hud-tr" aria-label="Compte">
+  <a class="lnk" href="/#lp-join">Se connecter</a>
+  <a class="pill" href="/#lp-join">Créer un compte</a>
+</nav>
 <div class="hud hud-bl">
-  <span class="scroll-hint" id="scrollHint">Fais défiler pour découvrir</span>
-  <button type="button" id="soundBtn" class="hud-btn" aria-pressed="false">Son : coupé</button>
+  <p id="phrase" class="out" aria-hidden="true"></p>
+  <div class="hud-row">
+    <span class="scroll-hint" id="scrollHint">Fais défiler pour voyager</span>
+    <button type="button" id="soundBtn" class="hud-btn" aria-pressed="false">Son : coupé</button>
+  </div>
 </div>
-<div class="hud hud-br" aria-hidden="true">
-  <span class="chap-n"><b id="chapN">00</b> / 04</span>
-  <span class="prog"><i id="progBar"></i></span>
+<div class="hud hud-br">
+  <span class="chap-n"><b id="chapN">01</b> / 05</span>
+  <nav class="dots" aria-label="Étapes">
+    <button type="button" data-go="0" aria-label="Étape 1 : vu automatiquement" aria-current="step"></button>
+    <button type="button" data-go="1" aria-label="Étape 2 : l’extension"></button>
+    <button type="button" data-go="2" aria-label="Étape 3 : la tablette"></button>
+    <button type="button" data-go="3" aria-label="Étape 4 : le téléphone"></button>
+    <button type="button" data-go="4" aria-label="Étape 5 : créer son compte"></button>
+  </nav>
+  <span class="prog" aria-hidden="true"><i id="progBar"></i></span>
 </div>
 
-<!-- Récit : vrais textes HTML (référencement, lecteurs d'écran) ; positionnés par le défilement -->
 <main id="story">
   <h1 class="sr-only">Cinepisode, le suivi de tes films, séries et anime</h1>
-  <section class="chap" data-c="1" aria-labelledby="c1t">
-    <p class="chap-k">01 — Éparpillé</p>
-    <h2 id="c1t">Tes épisodes sont partout.</h2>
-    <p>Netflix, Prime Video, Disney+, Crunchyroll, Apple TV : chaque plateforme garde sa part de ton historique. L’extension Cinepisode les retrouve pour toi.</p>
-  </section>
-  <section class="chap" data-c="2" aria-labelledby="c2t">
-    <p class="chap-k">02 — Remis en ordre</p>
-    <h2 id="c2t">Chaque épisode reprend sa place.</h2>
-    <p>Cinepisode sait où tu t’es arrêté, t’annonce les prochains épisodes et les ajoute à ton calendrier.</p>
-  </section>
-  <section class="chap" data-c="3" aria-labelledby="c3t">
-    <p class="chap-k">03 — Ta salle</p>
-    <h2 id="c3t">Une salle à ton nom.</h2>
-    <p>Statistiques, récap à partager, anti-spoiler, plateformes auxquelles tu es abonné : tout reste chez toi, rien n’est revendu.</p>
-  </section>
-  <section class="chap" data-c="4" aria-labelledby="c4t">
-    <p class="chap-k">04 — Générique</p>
-    <h2 id="c4t">Reprends ta liste là où tu l’as laissée.</h2>
-    <p>Gratuit, sans publicité, en 10 langues.</p>
-  </section>
+  <noscript><p class="ns">Cinepisode suit tes films, séries et anime : l’extension coche les épisodes vus à 80 %, ta liste se synchronise sur tous tes écrans. Gratuit, sans pub, sans pistage. <a href="/">Ouvrir Cinepisode</a></p></noscript>
   <div id="course" aria-hidden="true"></div>
 
   <!-- Sections classiques : elles recouvrent la scène à la fin de la course -->
   <div class="after">
-    <section class="blk" aria-labelledby="featT">
-      <p class="blk-k">Catalogue</p>
-      <h2 id="featT">Ce que fait Cinepisode</h2>
-      <ul class="feat">
-        <li><b>Suivi par épisode</b><span>Statut, saison, épisode, note sur 10 : la liste se met à jour d’un geste.</span></li>
-        <li><b>Détection automatique</b><span>L’extension repère ce que tu regardes sur Netflix, Prime Video, Disney+, Crunchyroll et Apple TV.</span></li>
-        <li><b>Calendrier des sorties</b><span>Semaine, mois ou agenda, avec export vers ton agenda.</span></li>
-        <li><b>Anti-spoiler</b><span>Les épisodes pas encore vus restent floutés, le résumé des saisons suivantes masqué.</span></li>
-        <li><b>Imports</b><span>TV Time, Letterboxd, Trakt et exports RGPD de Disney+ et Apple TV, lus dans ton navigateur.</span></li>
-        <li><b>Statistiques et récap</b><span>Activité sur 12 mois, genres préférés, et une image récap à partager.</span></li>
-      </ul>
-    </section>
-    <section class="blk" aria-labelledby="epT">
-      <p class="blk-k">Épisodes</p>
-      <h2 id="epT">Une pellicule, une progression</h2>
-      <ol class="strip" aria-label="Exemple de progression dans une saison">
-        <li class="seen">E01</li><li class="seen">E02</li><li class="seen">E03</li><li class="seen">E04</li><li class="now">E05</li><li>E06</li><li>E07</li><li>E08</li>
-      </ol>
-      <p class="blk-p">Chaque case est un épisode : vu, en cours, à venir. La bobine du haut de page, c’est ta saison.</p>
-    </section>
-    <section class="blk cta" aria-labelledby="ctaT">
-      <h2 id="ctaT">Ta prochaine séance t’attend.</h2>
-      <a class="cta-btn" href="/">Créer ma liste — gratuit</a>
+    <section class="blk" id="faq" aria-labelledby="faqT">
+      <p class="blk-k">FAQ</p>
+      <h2 id="faqT">Questions fréquentes</h2>
+      <div class="faq">
+        <details><summary>C’est vraiment gratuit ?</summary><p>Oui. Pas d’abonnement, pas de version payante, pas de publicité.</p></details>
+        <details><summary>Quelles données sont enregistrées ?</summary><p>Ton adresse email et ta liste : titres, progression, notes. Le tout est hébergé dans l’Union européenne et n’est jamais revendu ni utilisé pour de la publicité.</p></details>
+        <details><summary>L’extension est-elle disponible ?</summary><p>Oui, elle est disponible sur le Chrome Web Store. Elle importe ton historique Netflix, Prime Video et Crunchyroll, détecte en direct Disney+ et Apple TV, et tu valides chaque titre dans l’onglet « Détectés ».</p></details>
+        <details><summary>Y a-t-il une appli pour téléphone ?</summary><p>Cinepisode s’installe directement depuis le navigateur, sur Android, iPhone et ordinateur : ouvre le site puis « Ajouter à l’écran d’accueil ».</p></details>
+        <details><summary>D’où viennent les fiches des films et séries ?</summary><p>Du catalogue collaboratif TMDB, dans la langue que tu as choisie, avec les plateformes où chaque titre est disponible.</p></details>
+        <details><summary>Je peux partir avec mes données ?</summary><p>Oui. Depuis « Mon compte », tu exportes toute ta liste en un fichier, et tu peux supprimer ton compte à tout moment.</p></details>
+      </div>
     </section>
     <footer class="foot">
-      <span>© 2026 Cinepisode · Prototype de landing</span>
-      <span><a href="/confidentialite">Confidentialité</a> · <a href="/conditions">Conditions</a></span>
+      <div class="foot-top">
+        <a class="mark" href="/">cin<em>episode</em></a>
+        <p>Ton suivi de films, séries et anime. Gratuit, sans pub, sans pistage.</p>
+        <nav aria-label="Pied de page"><a href="/#lp-features">Fonctionnalités</a><a href="/#lp-extension">Extension</a><a href="#faq">FAQ</a><a href="/confidentialite">Confidentialité</a><a href="/conditions">Conditions</a></nav>
+      </div>
+      <p class="foot-tmdb">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+      <p class="foot-c">© 2026 Cinepisode · Prototype de landing</p>
     </footer>
   </div>
 </main>

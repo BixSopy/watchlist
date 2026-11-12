@@ -1,67 +1,68 @@
-# Brief : porter la landing page de Cinepisode au niveau d'igloo.inc
+# Brief : landing 3D « voyage dans l'espace » (inspirée d'igloo.inc)
 
-Version adaptée à Cinepisode du brief générique (10/11/2026). Le prototype qui l'applique est servi sur
-`/experience` (dossier `experience/`). Il ne remplace pas encore la landing actuelle (`index.html`, `landing/`,
-`js/23-landing.js`).
+Version 2 (12/11/2026), remplace le prototype « bobine » rejeté par Pierre. Servie sur `/experience`
+(dossier `experience/`). Ne remplace pas la landing actuelle (`index.html`, `landing/`, `js/23-landing.js`).
+On reprend le principe d'animation d'igloo.inc (une scène plein écran pilotée au défilement), jamais ses
+contenus, formes ni son code.
 
-## 1. Objectif
+## 1. Décisions de Pierre
 
-Atteindre le niveau d'exécution de https://www.igloo.inc/ : une scène 3D plein écran qui se transforme au fil
-du défilement. L'univers reste celui de Cinepisode : films, séries, anime, et surtout **les épisodes**. On
-reprend le principe d'animation, jamais les contenus, les formes ni le code de la référence.
+- Version **ordinateur uniquement** pour l'instant (écran < 820 px : lecture normale, sans scène). Le téléphone
+  reste un **appareil** de l'étape 4.
+- Niveau « supra premium », aucun sacrifice de qualité : on part du maximum et on ne dégrade qu'en dessous de
+  ~50 images/s.
+- Fond noir d'espace (profondeur, parallaxe) ; on voyage entre les étapes ; les appareils ne sont pas visibles à l'avance.
+- Textes : grand titre « dans l'espace » (HTML, décalage de parallaxe par rapport à une ancre 3D), phrase courte
+  fixe en bas à gauche, affichés seulement pendant les pauses, masqués dès que la tension monte.
+- Pas de son par défaut.
 
-## 2. Moodboard retenu
+## 2. Les 5 étapes
 
-| Élément | Choix pour Cinepisode |
-|---|---|
-| Fond | noir bleuté de salle obscure `#0a0e16`, brume `#0c111b` qui fond l'horizon |
-| Lumière | faisceau de projecteur blanc chaud `#f3e6cf` ; lueur intérieure ambrée `#ffc78a` |
-| Accent unique | bleu de la marque `#2f8fd1`, réservé à l'épisode « en cours » |
-| Textes d'interface | IBM Plex Mono 11-12 px, blanc cassé `rgba(236,231,222,.72)`, épinglés aux 4 coins |
-| Mot-marque | « cinepisode », Inter 800, blanc |
-| Objet héros | **une bobine de film** faite de blocs arrondis givrés (flasques, moyeu, rayons), un tambour de pellicule sombre, et une pellicule qui se déroule jusqu'au sol, dont chaque image est un épisode (S01 · E01…) |
-| Vocabulaire technique | quadrillage au sol en fil de fer, cubes filaires numérotés, polyligne reliant des blocs de la bobine avec leurs numéros |
-| Atmosphère | poussière qui flotte dans le faisceau (équivalent de la neige), parallaxe caméra à la souris |
-| Son | ronronnement de projecteur et cliquetis synthétisés en Web Audio, coupés par défaut |
-
-## 3. Chorégraphie au défilement
-
-Le défilement pilote l'animation, il ne la déclenche pas : la scène est une fonction de la progression lissée
-(interpolation exponentielle), elle rejoue à l'envers quand on remonte. La toile reste fixe ; la course fait
-7 hauteurs d'écran.
-
-| Chapitre | Course | Scène | Texte |
+| # | Appareil | Contenu de l'écran (dessiné par nous) | Texte |
 |---|---|---|---|
-| 00 Accueil | 0-12 % | bobine assemblée, rotation lente, caméra qui orbite | manifeste en haut à droite, « Fais défiler pour découvrir » |
-| 01 Éparpillé | 12-36 % | les blocs se détachent (trajectoire et rotation propres à chacun), caméra en hauteur, quadrillage visible | « Tes épisodes sont partout. » (historique éparpillé entre les plateformes) |
-| 02 Remis en ordre | 36-58 % | réassemblage et travelling avant | « Chaque épisode reprend sa place. » |
-| 03 Ta salle | 58-80 % | la caméra entre ; les blocs forment une salle-dôme, la pellicule devient un bandeau d'écrans autour du spectateur | « Une salle à ton nom. » |
-| 04 Générique | 80-100 % | sortie, la bobine se recompose, les sections classiques recouvrent la scène | « Reprends ta liste là où tu l'as laissée. » |
+| 1 | Ordinateur | lecteur Severance, progression jusqu'à 80 % → « Vu, automatiquement » (ouverture : « Tout ce que tu regardes, enfin au même endroit. ») | Tu regardes. Il coche. |
+| 2 | Même ordinateur + extension | des affiches arrivent des profondeurs (courbes) et remplissent la liste « Détectés » | Ton historique arrive tout seul. |
+| 3 | Tablette | 3 états : filtres Films / Séries / Anime → Reprendre + nouveaux épisodes → mes chiffres + « Pour toi » | Une seule liste / Reprends pile où tu t'es arrêté / Tes chiffres. Ta prochaine envie. |
+| 4 | Téléphone (grande étape visuelle) | liste synchronisée puis récap en story ; **4 anneaux de 72 affiches** en orbite lente autour | Synchronisé, sur tous tes écrans / Ton récap en story. |
+| 5 | Les trois appareils | 3 pastilles de configuration + vrai lien « Créer mon compte » (HTML) | Commence ta liste ce soir. |
 
-Courbes power3 in-out ; textes en fondu + 18 px de déplacement vertical ; compteur `00 / 04` et barre de
-progression en bas à droite.
+Après l'étape 5 : FAQ (6 questions) et pied de page, en sections classiques qui recouvrent la scène.
 
-## 4. Socle technique (choix faits pour ce site)
+## 3. Défilement hybride et sauts
 
-- **Three.js r170 servi localement** (`experience/three/`) : la CSP du site n'autorise que les scripts de
-  l'origine (`script-src 'self'`). Pas de CDN, pas d'import map (script en ligne interdit par la CSP) : les addons
-  importent le module par chemin relatif.
-- Pas de GSAP ni de Lenis : progression et lissage maison (≈ 30 lignes), moins de poids et aucune dépendance.
-- Lueur : UnrealBloomPass sur ordinateur, seuil élevé pour ne faire briller que les parties émissives ; aucun
-  post-traitement sur mobile.
-- Géométrie procédurale (RoundedBoxGeometry) et textures dessinées en canvas : aucun modèle GLB ni image à
-  télécharger.
-- Mobile : moins de blocs (68 au lieu de 100), pas de lueur, densité de pixels plafonnée à 1,5, cadrage portrait
-  recalculé.
-- Chargement : la scène apparaît d'abord en fil de fer, puis les blocs se matérialisent un par un ; le
-  pourcentage suit les vraies étapes (modules, polices, compilation des shaders, première image).
-- `prefers-reduced-motion` : scène fixe, textes en lecture normale. Sans WebGL : textes seuls.
-- Textes réels dans le HTML (titre h1, sections h2) pour le référencement et les lecteurs d'écran.
-- Rendu suspendu quand l'onglet est caché et quand les sections finales recouvrent la scène.
+- Défilement natif ; la course = somme des étapes + **un écran d'écart** entre deux étapes. Dans une étape, la
+  progression anime l'écran de l'appareil (réversible).
+- Dans l'écart, la **tension** monte (assombrissement, recul, champ de vision élargi, traînées) ; passé **~60 %**
+  (ou coup de molette rapide) le **saut part seul** : défilement verrouillé, inertie absorbée ~350 ms. Revenir avant
+  le seuil détend la scène ; remonter avant le début d'une étape déclenche le saut inverse.
+- Clavier : PageDown / Espace = étape suivante, PageUp / Maj+Espace = précédente, Début / Fin ; ancres 01-05 en bas à droite.
+- **Saut normal** (~1,05 s) : traînées de lumière dégradé Cinepisode (indigo #5b4fe0 → bleu #2f8fd1 → turquoise #1fb8a3,
+  tête blanche), flash à la coupure, décor et appareils changent, la caméra arrive de loin en décélérant.
+- **Grand saut** tablette ↔ téléphone (~2,6 s) : tunnel de 72 affiches sur 4 anneaux cylindriques qui tournent en sens
+  inverses autour de la caméra, inclinées en pétales, roulis ≤ 6°, flou de profondeur ; à l'arrivée les anneaux se
+  resserrent autour du téléphone et gardent une orbite lente.
+- **Animations réduites** : mêmes scènes, saut remplacé par un fondu court, ni traînées, ni parallaxe, ni anneaux.
+
+## 4. Socle technique
+
+- **Three.js r170 servi localement** (`experience/three/`), CSP `script-src 'self'` : pas de CDN, pas d'import map,
+  aucun script en ligne. Seule requête externe : affiches TMDB (`img-src` déjà autorisé), chargées **au premier
+  geste** de défilement ; affiches générées aux couleurs de la marque en attendant.
+- Fichiers : `data.js` (étapes, textes, pastilles), `fx.js` (nébuleuse, poussière 3 couches, traînées instanciées,
+  affiches instanciées, passe finale), `screens.js` (atlas d'affiches, écrans dessinés en canvas puis plaqués en 3D,
+  donc avec lueur et reflets), `app.js` (scène, appareils, défilement hybride, sauts, anneaux, textes, son, qualité).
+- Rendu : cible demi-flottante MSAA ×4, lueur (UnrealBloom), passe finale (aberration chromatique, flou radial
+  pendant les sauts, vignettage, grain, flash), ton ACES ; densité de pixels native plafonnée à 2.
+- Niveaux `max` → `high` → `std`, dégradation seulement si < ~50 i/s soutenus ; `?q=max|high|std` verrouille,
+  `?debug` affiche cadence, niveau, étape, tension, appels de rendu.
+- Appareils : formes PBR provisoires (RoundedBox + plan d'écran arrondi + reflet de vitre). À remplacer par des GLB
+  (Blender) : 3 modèles, maillage `screen` à UV 0-1, sans logo, ~50 k / 30 k triangles. Poids total visé ≤ 8 Mo, ouverture < 1,5 Mo.
+- Rendu suspendu quand l'onglet est caché et quand la FAQ recouvre la scène ; repli en lecture normale sans WebGL.
 
 ## 5. Étapes restantes
 
-1. Validation du rendu sur un vrai GPU (ordinateur, tablette, téléphone) : cadence mesurée, temps de chargement.
-2. Traductions (le prototype est en français seulement ; le site compte 10 langues).
-3. Intégration à la landing actuelle sans supprimer de contenu existant : à décider avec Pierre, puisque la
-   landing est un chantier coordonné (voir COORDINATION.md).
+1. Valider la cadence sur de vrais GPU (non mesurable ici : rendu logiciel). Seuil de dégradation à ajuster selon les mesures.
+2. Modèles 3D Blender (GLB) à la place des formes provisoires.
+3. ~40-60 affiches réelles (le tunnel en répète 15 pour l'instant).
+4. Traductions (français seulement ; le site compte 10 langues) et version visiteur mobile.
+5. Décision d'intégration à la landing actuelle (chantier coordonné, voir COORDINATION.md).
