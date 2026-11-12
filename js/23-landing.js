@@ -148,7 +148,7 @@ function _lpJourney(){
     function sync(){mv.setAttribute('content',lpIsGuest()?base+', interactive-widget=resizes-visual':base);}
     sync();if(typeof MutationObserver!=='undefined')new MutationObserver(sync).observe(document.documentElement,{attributes:true,attributeFilter:['class']});})();
   var Q=function(s){return S.querySelector(s);},QA=function(s){return [].slice.call(S.querySelectorAll(s));};
-  var stick=Q('.lp-j-stick'),dv=Q('.lp-dv'),flash=Q('.lp-j-flash'),fly=Q('.lp-j-fly'),story=Q('.lp-j-story'),prog=Q('.lp-j-prog'),
+  var stick=Q('.lp-j-stick'),bgEl=Q('.lp-j-bg'),bgL=[],bgP=[],dv=Q('.lp-dv'),flash=Q('.lp-j-flash'),fly=Q('.lp-j-fly'),story=Q('.lp-j-story'),prog=Q('.lp-j-prog'),
       chs=QA('.lp-ch'),words=QA('.lp-j-w'),scr={},time=document.getElementById('lpTime'),detN=document.getElementById('lpDetN'),
       stepsLine=Q('.lp-j-steps-line i'),stepCount=Q('.lp-j-step-count'),mtext=Q('.lp-j-mtext'),
       mtextK=mtext&&mtext.querySelector('.lp-kicker'),mtextH=mtext&&mtext.querySelector('h2'),mtextP=mtext&&mtext.querySelector('.lp-p');
@@ -165,6 +165,10 @@ function _lpJourney(){
     })();
   }
   QA('.lp-s').forEach(function(e){scr[e.getAttribute('data-s')]=e;});
+  /* calques de teinte du fond (voir frame()) : 2 pour les chapitres, 3 pour les plateformes du chapitre 2 */
+  if(bgEl&&!bgEl.firstElementChild)for(var bi=0;bi<5;bi++){var be=document.createElement('i');be.className='lp-j-bgl';
+    if(bi>1){be.style.setProperty('--tint',LP_PLAT[bi-2].join(','));be.style.opacity='0';be.style.display='none';}
+    bgEl.appendChild(be);(bi<2?bgL:bgP).push(be);}
   var fl=QA('.lp-j-far .lp-fl').map(function(e,i,a){return {e:e,far:1,a0:i/a.length*6.283+.4,k:i};})
     .concat(QA('.lp-j-near .lp-fl').map(function(e,i,a){return {e:e,far:0,a0:i/a.length*6.283+1.1,k:i+8};}));
   var exRows=QA('.lp-ex-row'),exPl=QA('.lp-ex-pl'),rsRows=QA('.lp-rs-row'),stRes=QA('.lp-st-res .lp-po'),pvRows=QA('.lp-pv span'),
@@ -203,7 +207,7 @@ function _lpJourney(){
     var _lpRest=function(){tmx=0;tmy=0;if(vis)req();};
     document.documentElement.addEventListener('mouseleave',_lpRest);addEventListener('blur',_lpRest);
   }
-  var tops=[],hs=[],vw=0,vh=0,sTop=0,hb0=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
+  var tops=[],hs=[],vw=0,vh=0,stW=0,stH=0,sTop=0,hb0=0,band8=0,tgt=0,cur=-1,vis=false,run=false,last={},T0=performance.now();
   function big0(g){return ease(seg(g,8.42,8.8));}
   function clamp(x){return x<0?0:x>1?1:x;}
   function seg(x,a,b){return clamp((x-a)/(b-a));}
@@ -218,7 +222,7 @@ function _lpJourney(){
     var nh=innerHeight;if(!(innerWidth<=860&&innerWidth===vw&&nh<vh))vh=nh;vw=innerWidth;var y=scrollY||0;
     if(vw<=860){stick.style.height=vh+'px';var bt=Q('.lp-ch[data-ch="8"] .lp-ch-t');band8=bt?bt.getBoundingClientRect().bottom:vh*.4;}else stick.style.height='';
     chs.forEach(function(c,i){var b=c.getBoundingClientRect();tops[i]=b.top+y;hs[i]=b.height;});
-    sTop=S.getBoundingClientRect().top+y;
+    sTop=S.getBoundingClientRect().top+y;stW=stick.clientWidth;stH=stick.clientHeight;
     var t0=chs[0]&&chs[0].querySelector('.lp-ch-t');hb0=t0?t0.getBoundingClientRect().bottom+y:0;
     var t8=Q('.lp-ch[data-ch="8"] .lp-ch-t');if(t8){if(t8.scrollHeight>t8.clientHeight+1)t8.setAttribute('tabindex','0');else t8.removeAttribute('tabindex');}/* haut de la scène dans la page : tant qu'elle n'est pas épinglée, elle est décalée d'autant vers le bas */
     target();
@@ -235,10 +239,30 @@ function _lpJourney(){
     if(cur<0||reduced)cur=tgt;else{cur+=(tgt-cur)*.09;if(Math.abs(tgt-cur)<.0005)cur=tgt;}
     var g=cur,tm=(now-T0)/1000,mob=vw<=860,f=[];
     for(var i=0;i<9;i++)f[i]=clamp(g-i);
-    /* Teinte du chapitre (et des plateformes au chapitre 2) */
-    var c0=Math.min(8,Math.floor(g)),c1=Math.min(8,c0+1),k=ease(seg(g-c0,.7,1)),tint=LP_TINT[c0].map(function(v,j){return lerp(v,LP_TINT[c1][j],k);});
-    if(c0===2){var pk=f[2]*3-.2,a=Math.max(0,Math.min(2,Math.floor(pk))),b=Math.min(2,a+1),w=clamp(pk-a),pc=LP_PLAT[a].map(function(v,j){return lerp(v,LP_PLAT[b][j],w);}),ww=bell(f[2],.08,.8,.12);tint=tint.map(function(v,j){return lerp(v,pc[j],ww);});}
-    set(S,'--tint',tint.map(Math.round).join(','));
+    /* TOUTES les lectures de mise en page se font ici, avant la première écriture de l'image. Lues plus bas, entre deux
+       écritures (scrollY, clientWidth, getBoundingClientRect), elles obligeaient le navigateur à recalculer les styles de
+       toute la scène à chaque lecture : 6 recalculs par image au lieu d'un pendant la mue PC → tablette (transition
+       « très laggy », Pierre, 12/11). La taille de la scène vient de measure() / du ResizeObserver (stW, stH). Les
+       vignettes de « Détectés » ne sont mesurées que pendant le vol des affiches (g entre 2,15 et 2,72). */
+    var sy=scrollY||0,sbR=null,flyR=null;
+    if(!reduced&&g>2.15&&g<2.72){sbR=stick.getBoundingClientRect();flyR=exPo.map(function(p){return p?p.getBoundingClientRect():null;});}
+    /* Teinte du chapitre (et des plateformes au chapitre 2) — sans rien repeindre. Avant, la teinte était une variable CSS
+       lue par un dégradé plein écran : chaque image d'une transition repeignait tout le fond (90 % du coût de peinture
+       mesuré pendant la mue PC → tablette, « très laggy », Pierre, 12/11). Désormais chaque teinte est peinte UNE fois
+       sur son calque et seules les opacités changent (travail du compositeur) : bgL[0] porte le chapitre pair,
+       bgL[1] l'impair, fondus l'un dans l'autre ; un calque ne change de teinte que caché (opacité 0, ou sous l'autre
+       opaque). bgP : les 3 couleurs de plateforme du chapitre 2, par-dessus. Même rendu qu'avant (mêmes mélanges). */
+    var c0=Math.min(8,Math.floor(g)),c1=Math.min(8,c0+1),k=ease(seg(g-c0,.7,1)),ev=c0%2===0;
+    if(bgL.length){
+      set(bgL[0],'--tint',LP_TINT[ev?c0:c1].join(','));set(bgL[1],'--tint',LP_TINT[ev?c1:c0].join(','));
+      set(bgL[1],'opacity',ev?k:1-k);
+      var pOn=g>1.95&&g<2.92,po=[0,0,0];
+      if(bgP._on!==pOn){bgP._on=pOn;bgP.forEach(function(e){e.style.display=pOn?'':'none';});}
+      if(c0===2){var pk=f[2]*3-.2,a=Math.max(0,Math.min(2,Math.floor(pk))),b=Math.min(2,a+1),w=clamp(pk-a),ww=bell(f[2],.08,.8,.12);
+        /* base·(1−ww) + [Pa·(1−w) + Pb·w]·ww avec deux calques opaques empilés (Pa dessous, Pb dessus) */
+        if(a===b)po[a]=ww;else{var yb=ww*w;po[b]=yb;po[a]=yb>=1?0:1-(1-ww)/(1-yb);}}
+      if(pOn)bgP.forEach(function(e,j){set(e,'opacity',po[j]);});
+    }
     /* Mue de l'appareil */
     var m=ease(seg(g,2.72,3.22))+ease(seg(g,5.72,6.22)),a0=Math.min(1,Math.floor(m)),mt=m-a0,DEVS=mob?LP_DEV_M:LP_DEV,A=DEVS[a0],B=DEVS[Math.min(2,a0+1)];
     var W=lerp(A.w,B.w,mt),H=lerp(A.h,B.h,mt),R=lerp(A.r,B.r,mt),BZ=lerp(A.bz,B.bz,mt);
@@ -271,7 +295,7 @@ function _lpJourney(){
     }
     /* Tout en haut de la page, la scène n'est pas encore épinglée (elle commence sous la barre de navigation) : on retire
        ce décalage, sinon l'appareil est plus bas au chargement puis remonte pendant les premiers pixels de défilement. */
-    cy-=Math.max(0,sTop-(scrollY||0));
+    cy-=Math.max(0,sTop-sy);
     /* l'appareil est FIXE : de face, sans inclinaison d'intro, sans dérive, sans flottement, sans rotation pendant les mues (demande de Pierre, 12/11) */
     var tilt=0,spin=0,float=0;
     if(dv._w!==W||dv._h!==H){dv._w=W;dv._h=H;dv.style.width=W.toFixed(1)+'px';dv.style.height=H.toFixed(1)+'px';dv.style.margin='0';}
@@ -291,7 +315,7 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
     if(L3on){
       set(dv,'--r3',((w3[0]*L3.rad[0]+w3[1]*L3.rad[1]+w3[2]*L3.rad[2])*(W-2*BZ)).toFixed(1)+'px');
       /* taille réelle de la scène (clientWidth : sans la barre de défilement, sinon l'image est écrasée et décalée de ~15 px par rapport au HTML) */
-      L3.draw({vw:stick.clientWidth,vh:stick.clientHeight,cx:cx,cy:cy+float,iw:W-2*BZ,ih:ih3,s:s,w:w3,glass:.2});
+      L3.draw({vw:stW,vh:stH,cx:cx,cy:cy+float,iw:W-2*BZ,ih:ih3,s:s,w:w3,glass:.2});
       /* l'écran HTML se pose sur la dalle de l'image : translation + échelle seulement (texte net, aucune perspective) */
       var tr='translate('+(cx-(W-2*BZ)*s/2-BZ*s).toFixed(2)+'px,'+(cy+float-ih3*s/2-BZ*s).toFixed(2)+'px) scale('+s.toFixed(4)+')';
       if(dv._m3!==tr){dv._m3=tr;dv.style.transformOrigin='0 0';dv.style.transform=tr;}
@@ -325,12 +349,11 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
     exPl.forEach(function(p,i){set(p,'--ip',ease(seg(f[2],.1+i*.1,.38+i*.1)));});
     var n=0;exRows.forEach(function(r,i){var v=ease(seg(f[2],.12+i*.07,.22+i*.07));if(v>.5)n++;set(r,'--ri',v);var okr=f[2]>.74+i*.03;if(r._ok!==okr){r._ok=okr;r.classList.toggle('ok',okr);}});
     /* Chaque affiche importée vole jusqu'à la vignette exacte de sa ligne puis s'y fond (FLIP) */
-    var sb=stick.getBoundingClientRect();
     imp.forEach(function(c,i){
       var u=reduced?1:seg(f[2],.16+i*.07,.36+i*.07),ln=reduced?1:seg(u,.86,1),tp=exPo[i];
       if(tp)set(tp,'--ln',g>=3?1:ln);
-      var o=(u>0&&u<1&&g<3)?Math.min(1,u*5)*(1-ln):0;set(c,'opacity',o);if(o<=0||!tp)return;
-      var r=tp.getBoundingClientRect(),tx=r.left-sb.left,ty=r.top-sb.top,ts=r.width/120,e=ease(u),
+      var o=(u>0&&u<1&&g<3)?Math.min(1,u*5)*(1-ln):0;set(c,'opacity',o);if(o<=0||!tp||!flyR||!flyR[i])return;
+      var r=flyR[i],tx=r.left-sbR.left,ty=r.top-sbR.top,ts=r.width/120,e=ease(u),
           sx=vw*(mob?.5:.58)+((i*37)%5-2)*vw*.05,sy=-vh*.25-i*20,ss=mob?.7:1.15;
       var x=lerp(sx,tx,e),y=lerp(sy,ty,e)-Math.sin(Math.PI*e)*vh*.06,sc=lerp(ss,ts,e),rot=(1-e)*(i%2?14:-12);
       c.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) scale('+sc.toFixed(4)+') rotate('+rot.toFixed(2)+'deg)';
@@ -339,7 +362,7 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
     /* 3 · Ma liste : filtres, saga, fiche avec les notes */
     var tb=f[3]<.16?0:f[3]<.27?1:f[3]<.38?2:f[3]<.5?3:0;
     if(S._tb!==tb){S._tb=tb;tabs.forEach(function(e,i){e.classList.toggle('on',i===tb);});grid.forEach(function(p){p.classList.toggle('off',!!(tb&&p._ty!==tb));});S._pl=0;}
-    if(pill&&!S._pl&&tabs[tb]&&tabs[tb].offsetWidth){S._pl=1;pill.style.setProperty('--px',tabs[tb].offsetLeft+'px');pill.style.setProperty('--pw',tabs[tb].offsetWidth+'px');}
+    if(pill&&!S._pl&&scr[3]&&scr[3]._v&&tabs[tb]&&tabs[tb].offsetWidth){S._pl=1;pill.style.setProperty('--px',tabs[tb].offsetLeft+'px');pill.style.setProperty('--pw',tabs[tb].offsetWidth+'px');}
     set(scr[3],'--gi',reduced?1:ease(seg(g,2.85,3.12)));set(scr[3],'--sg',seg(f[3],.52,.58)*(1-seg(f[3],.62,.66)));set(scr[3],'--fi',ease(seg(f[3],.58,.74)));
     /* 4 · Reprendre */
     set(scr[4],'--a1',ease(seg(f[4],0,.18)));set(scr[4],'--bp',1+bell(f[4],.24,.4,.07)*.1);
@@ -393,7 +416,7 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
        il attend (mobile compris) que le texte d'accueil soit sorti sous la barre de navigation.
        Mobile : même fenêtre pour le bandeau ; le ch. 7 s'efface à 7,5 (le téléphone descend à partir de 7,55) et la carte
        « 3 étapes » du ch. 8 n'apparaît qu'une fois l'appareil arrivé, puis s'efface avant que le téléphone grandisse. */
-    var heroGone=(scrollY||0)>=hb0-sTop;
+    var heroGone=sy>=hb0-sTop;
     chs.forEach(function(c,i){var last=i===chs.length-1,on;
       if(last&&mob)on=g>=8.16&&g<8.3;
       else if(i===0)on=g<1;
@@ -420,6 +443,8 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
   function req(){if(!run){run=true;requestAnimationFrame(frame);}}
   addEventListener('scroll',function(){if(vis){target();req();}},{passive:true});
   addEventListener('resize',function(){measure();req();});
+  /* taille réelle de la scène (sans la barre de défilement) tenue à jour sans lecture pendant les images */
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(function(){stW=stick.clientWidth;stH=stick.clientHeight;req();}).observe(stick);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){measure();req();});
   addEventListener('load',function(){measure();req();});
   if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(function(es){vis=es[0].isIntersecting;if(vis){measure();req();}}).observe(S);

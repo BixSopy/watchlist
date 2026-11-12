@@ -132,7 +132,11 @@ html.lp-anim .lp-faq-item.lp-open .lp-faq-a p{opacity:1;transform:none}
 .lp-cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
 .lp-j{position:relative;--tint:8,22,40}
 .lp-j-stick{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;z-index:0;pointer-events:none;contain:strict}
-.lp-j-bg{position:absolute;inset:0;background:radial-gradient(120% 90% at 66% 45%,rgba(var(--tint),1) 0%,rgba(var(--tint),.35) 45%,var(--bg) 80%)}
+/* Fond teinté : .lp-j-bg porte la teinte de l'accueil dès le premier affichage (et sans JavaScript) ; le JS y ajoute
+   des calques .lp-j-bgl, un par teinte, opaques, dont seule l'opacité est animée (js/23-landing.js › frame()) : changer
+   la variable --tint d'un dégradé plein écran le faisait repeindre en entier à chaque image. */
+.lp-j-bg,.lp-j-bgl{position:absolute;inset:0;background:radial-gradient(120% 90% at 66% 45%,rgba(var(--tint,10,30,56),1) 0%,rgba(var(--tint,10,30,56),.35) 45%,var(--bg) 80%),var(--bg)}
+.lp-j-bgl{will-change:opacity}
 .lp-j-flash{position:absolute;inset-inline-start:62%;top:50%;width:140vmax;height:140vmax;margin-block:-70vmax 0;margin-inline:-70vmax 0;border-radius:50%;background:radial-gradient(circle,rgba(var(--accent-rgb),.38),rgba(var(--accent-rgb),0) 55%);opacity:0;transform:scale(.2);will-change:transform,opacity}
 .lp-j-words{position:absolute;inset:0;display:grid;place-items:center}
 .lp-j-w{grid-area:1/1;font-family:'Inter',sans-serif;font-weight:900;font-size:clamp(7rem,24vw,26rem);line-height:.8;letter-spacing:-.07em;white-space:nowrap;color:transparent;
@@ -413,7 +417,7 @@ html.lp-anim .lp-j-step[data-step="2"] .lp-j-step-ck{animation:lpStepCk 6s ease-
    le défilement peuvent clignoter/trembler (coût de compositing). Pas de flou ici : fond en dégradé
    opaque, plus robuste. */
 @media (max-width:860px){
-  .lp-j-bg{background:radial-gradient(130% 70% at 50% 24%,rgba(var(--tint),1),rgba(var(--tint),.3) 50%,var(--bg) 85%)}
+  .lp-j-bg,.lp-j-bgl{background:radial-gradient(130% 70% at 50% 24%,rgba(var(--tint,10,30,56),1),rgba(var(--tint,10,30,56),.3) 50%,var(--bg) 85%),var(--bg)}
   .lp-j-flash{left:50%;top:26%}
   .lp-ch{align-items:flex-start;min-height:120vh;padding:0}
   /* Accueil : le texte se pose en bas du premier écran, sous l'appareil (depuis le 27/10 il restait en haut, par-dessus
@@ -737,3 +741,12 @@ html.lp-3don .lp-dv-scr{transform:none;border-radius:var(--r3,6px)}
 html.lp-anim .lp-s-cta .lp-cta-w em{animation:logoGradDrift 14s ease-in-out infinite alternate}
 .lp-s-cta .lp-cta-ic svg{filter:drop-shadow(0 0 18px rgba(var(--accent2-rgb),.65))}
 @media (prefers-reduced-motion:reduce){html.lp-anim .lp-s-cta .lp-cta-w em{animation:none}}
+
+/* ---------- Écrans non affichés : ni style ni mise en page (ordinateur) ----------
+   L'appareil contient les 8 écrans superposés ; un seul (deux pendant un fondu) est visible. Pendant une mue (PC →
+   tablette → téléphone) la taille de l'appareil change à chaque image : les 6 écrans cachés étaient recalculés et
+   remis en page pour rien. content-visibility:hidden les sort du calcul tant qu'ils n'ont pas la classe .vis, sans
+   relancer leurs animations (le mobile utilise display:none, plus haut). Navigateur sans content-visibility : comme avant. */
+@media (min-width:861px){
+  .lp-s:not(.vis){content-visibility:hidden}
+}

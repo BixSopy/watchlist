@@ -77,7 +77,7 @@ test('textes des chapitres : un seul à la fois, échangé au même instant que 
   /* la bascule à mi-chapitre (g = i ± 0,5, puis hand()) affichait le texte suivant sur l'écran du chapitre précédent */
   assert.ok(!/hand\(/.test(js) && !/g>=i-\.5/.test(js));
   assert.ok(/else if\(i===0\)on=g<1;\s*else on=g>=i&&\(last\|\|g<\(mob&&i===7\?7\.5:i\+1\)\)&&\(i!==1\|\|heroGone\);/.test(js));
-  assert.ok(/var heroGone=\(scrollY\|\|0\)>=hb0-sTop;/.test(js), 'le chapitre 1 attend la sortie du texte d\'accueil');
+  assert.ok(/var heroGone=sy>=hb0-sTop;/.test(js), 'le chapitre 1 attend la sortie du texte d\'accueil');
   /* mêmes bornes entières que le fondu des scènes */
   assert.ok(/var RG=\{0:\[-1,2\],2:\[2,3\],3:\[3,4\],4:\[4,5\],5:\[5,6\],6:\[6,7\],7:\[7,8\],8:\[8,10\]\};/.test(js));
   /* ordinateur : textes 1 à 7 épinglés, remplacés sur place (sortie 0,2 s puis entrée) ; rien sans JavaScript */
@@ -88,7 +88,7 @@ test('textes des chapitres : un seul à la fois, échangé au même instant que 
   assert.ok(/html\.lp-pin\.lp-anim \.lp-ch:not\(\[data-ch="0"\]\):not\(\.on\) \.lp-ch-t>\*\{transition:opacity \.2s linear,transform 0s linear \.2s\}/.test(css));
   assert.ok(/html\.lp-pin\.lp-anim \.lp-ch\.on \.lp-ch-t>\*\{transition-delay:\.22s\}/.test(css), 'l\'entrant attend la sortie du précédent');
   assert.ok(/:vw\*\.5,bh=mob\?lerp\(bhM,h8,ch8\):vh\*\.78,/.test(js), 'appareil : 50 vw × 78 vh');
-  assert.ok(/cy-=Math\.max\(0,sTop-\(scrollY\|\|0\)\);/.test(js), 'l\'appareil ne bouge pas pendant les premiers pixels de défilement');
+  assert.ok(/cy-=Math\.max\(0,sTop-sy\);/.test(js), 'l\'appareil ne bouge pas pendant les premiers pixels de défilement');
 });
 
 test('retour sur l\'accueil après une session (déconnexion, session expirée) : les animations sont remises', () => {
@@ -120,3 +120,24 @@ test('nettoyage : plus de classes mortes dans landing.css, !important réservés
   const n = (css.match(/!important/g) || []).length;
   assert.ok(n <= 26, '!important : ' + n);
 });
+
+test('fluidité : aucune lecture de mise en page entre deux écritures dans frame(), fond teinté sans repeinture, écrans cachés hors calcul', () => {
+  const js = read('js/23-landing.js'), css = read('landing/landing.css');
+  const frame = js.slice(js.indexOf('function frame(now){'), js.indexOf('function req(){')).replace(/\/\*[\s\S]*?\*\//g, '');   /* sans les commentaires */
+  /* 6 recalculs de style par image pendant la mue PC → tablette (« très laggy », Pierre, 12/11) : lectures en tête d'image */
+  assert.ok(/var sy=scrollY\|\|0,sbR=null,flyR=null;/.test(frame));
+  assert.strictEqual((frame.match(/scrollY/g) || []).length, 1, 'scrollY lu une seule fois, en tête');
+  assert.ok(!/clientWidth|clientHeight|offsetHeight|getComputedStyle/.test(frame), 'pas de lecture de taille dans frame()');
+  assert.strictEqual((frame.match(/getBoundingClientRect/g) || []).length, 2, 'les deux lectures du vol des affiches, en tête d\'image');
+  assert.ok(frame.indexOf('getBoundingClientRect') < frame.indexOf("set(bgL[0],'--tint'"), 'lectures avant la première écriture');
+  assert.ok(/L3\.draw\(\{vw:stW,vh:stH,/.test(js) && /new ResizeObserver\(function\(\)\{stW=stick\.clientWidth;stH=stick\.clientHeight;req\(\);\}\)\.observe\(stick\)/.test(js));
+  assert.ok(/if\(pill&&!S\._pl&&scr\[3\]&&scr\[3\]\._v&&tabs\[tb\]&&tabs\[tb\]\.offsetWidth\)/.test(js), 'onglets mesurés seulement quand l\'écran est affiché');
+  /* teinte : calques peints une fois, seule l'opacité change (le dégradé plein écran était repeint à chaque image) */
+  assert.ok(!/set\(S,'--tint'/.test(js) && !/set\(bgEl,'--tint'/.test(js));
+  assert.ok(/set\(bgL\[1\],'opacity',ev\?k:1-k\);/.test(js) && /be\.className='lp-j-bgl'/.test(js));
+  assert.ok(/\.lp-j-bg,\.lp-j-bgl\{position:absolute;inset:0;background:radial-gradient\(120% 90% at 66% 45%,rgba\(var\(--tint,10,30,56\),1\) 0%,rgba\(var\(--tint,10,30,56\),\.35\) 45%,var\(--bg\) 80%\),var\(--bg\)\}/.test(css), 'calques opaques, teinte d\'accueil par défaut');
+  assert.ok(/\.lp-j-bgl\{will-change:opacity\}/.test(css));
+  /* écrans non affichés : ni style ni mise en page sur ordinateur (display:none sur mobile) */
+  assert.ok(/@media \(min-width:861px\)\{\s*\.lp-s:not\(\.vis\)\{content-visibility:hidden\}\s*\}/.test(css));
+});
+
