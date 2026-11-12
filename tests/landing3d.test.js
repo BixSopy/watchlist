@@ -23,6 +23,8 @@ test('landing 3D : manifeste complet, une image WebP de face par appareil, poids
     assert.strictEqual(m.front.length, 4, k + ' : 4 coins de la dalle');
     assert.ok(m.front.every(c => c.length === 2 && c.every(Number.isFinite)), k + ' : coins');
     assert.ok(m.W > 500 && m.H > 500 && m.rad >= 0 && m.down > 0.4 && m.up > 0.4, k + ' : métadonnées');
+    /* traçabilité : le fichier .blend de Pierre dont l'image est le rendu (écran v2, iPad v2, téléphone v4 au 12/11) */
+    assert.ok(/^[\w.-]+\.blend$/.test(m.src), k + ' : fichier source');
     /* dalle rectangulaire de face : coins alignés (translation + échelle suffisent pour y poser le HTML) */
     const f = m.front;
     assert.ok(Math.abs(f[0][1] - f[1][1]) < 1 && Math.abs(f[0][0] - f[3][0]) < 1 && f[1][0] > f[0][0] && f[3][1] > f[0][1], k + ' : dalle de face');

@@ -4,6 +4,8 @@
    texte, cliquable) est posé sur la dalle dont les 4 coins ont été mesurés dans Blender (translation + échelle, pas de
    perspective : texte net). Pendant les transitions, les images se fondent l'une dans l'autre.
    Un 2ᵉ canvas, au-dessus du HTML en mélange « screen », y repose très légèrement les reflets du verre.
+   img/manifest.json : pour chaque appareil, les 4 coins de la dalle dans l'image, son étendue autour de l'écran et « src »,
+   le fichier .blend dont l'image est le rendu (à mettre à jour avec l'image quand Pierre livre une nouvelle version).
    Rien d'externe (CSP) ; si quoi que ce soit échoue, js/23-landing.js garde l'appareil CSS d'origine. */
 const BASE = new URL('./img/', import.meta.url);
 const KEYS = ['pc', 'tab', 'ph'];
