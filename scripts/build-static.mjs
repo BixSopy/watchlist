@@ -20,7 +20,7 @@ import {fileURLToPath} from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'dist-site');
 const FILES = ['index.html', 'conditions.html', 'confidentialite.html', 'privacy.html', 'terms.html', 'robots.txt', 'sitemap.xml', 'manifest.json', 'sw.js'];
-const DIRS = ['js', 'css', 'landing', 'fonts', 'icons', 'sounds', 'og', 'vendor'];
+const DIRS = ['js', 'css', 'landing', 'fonts', 'icons', 'sounds', 'og', 'vendor', 'experience'];
 const MIN = {js: /^js\/(i18n\/)?[^/]+\.js$/, css: /^(css\/app|landing\/landing)\.css$/};
 
 let esbuild = null;
