@@ -13,7 +13,7 @@ import { RoomEnvironment } from './three/RoomEnvironment.js';
 const D = Math.PI / 180;
 /* rx : les GLB iPad/iPhone sont modélisés à plat (écran vers +Y, haut vers −Z) → on les redresse. */
 const DEFS = [
-  { k: 'pc', url: './models/studio-display.glb', rx: 0 },
+  { k: 'pc', url: './models/studio-display.glb', rx: 0, rad: 0.004 },
   { k: 'tab', url: './models/ipad-pro.glb', rx: Math.PI / 2 },
   { k: 'ph', url: './models/telephone.glb', rx: Math.PI / 2 }
 ];
@@ -29,20 +29,35 @@ export async function start(canvas, opts) {
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.0;
   renderer.setClearColor(0x000000, 0);
   const dpr = Math.min(window.devicePixelRatio || 1, opts.maxDpr || 2);
   renderer.setPixelRatio(dpr);
 
   const scene = new THREE.Scene();
+  /* Studio sombre : fond bleu nuit presque noir et quelques softbox. Les aluminiums anodisés « bleu nuit » des GLB
+     (métal = 1, couleur de base marine) ne reflètent que ce qu'on leur donne : une salle blanche les rend chromés,
+     un fond sombre avec de fines sources les garde bleu profond avec un liseré net sur les arêtes. */
   const pm = new THREE.PMREMGenerator(renderer);
-  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.75;
+  const env = new THREE.Scene();
+  /* Voûte en dégradé (haut clair, bas sombre) : un métal reflète la couleur de base × l'éclairement reçu ;
+     avec ~1 de moyenne le cadre rend exactement son bleu marine, les softbox y ajoutent des reflets nets. */
+  const dome = new THREE.SphereGeometry(60, 48, 24), cols = [], top = new THREE.Color(0.6, 0.76, 1.15), bot = new THREE.Color(0.1, 0.14, 0.24), cc = new THREE.Color();
+  const pos = dome.attributes.position;
+  for (let i = 0; i < pos.count; i++) { const k = Math.pow(Math.min(1, Math.max(0, (pos.getY(i) / 60 + 1) / 2)), 1.3); cc.copy(bot).lerp(top, k); cols.push(cc.r, cc.g, cc.b); }
+  dome.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+  env.add(new THREE.Mesh(dome, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide })));
+  const box = (w, h, x, y, z, hex, k) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), side: THREE.DoubleSide }));
+    m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m);
+  };
+  box(30, 12, -8, 36, 16, 0xdce8ff, 2.4);     /* softbox du dessus */
+  box(6, 46, -40, 4, 10, 0xc4d4ff, 1.5);      /* liseré gauche */
+  box(6, 46, 40, 6, -4, 0x3fd8c0, 1.8);       /* liseré droit, teinte Cinepisode */
+  scene.environment = pm.fromScene(env, 0.025).texture;
+  scene.environmentIntensity = 1;
   pm.dispose();
-
-  const key = new THREE.DirectionalLight(0xffffff, 1.7); key.position.set(-700, 900, 1200); scene.add(key);
-  const rim = new THREE.DirectionalLight(0x1fb8a3, 2.4); rim.position.set(1100, 250, -600); scene.add(rim);
-  const fill = new THREE.DirectionalLight(0x8fa6ff, 0.5); fill.position.set(900, -500, 900); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0x1fb8a3, 0.35); rim.position.set(1100, 250, -600); scene.add(rim); /* teinte du chapitre : voir draw() */
 
   const cam = new THREE.PerspectiveCamera(30, 1, 200, 6000);
   const DIST = 1800;
@@ -70,6 +85,17 @@ export async function start(canvas, opts) {
     obj.position.set(-c.x, -c.y, -sb.max.z);
     /* la dalle devient un aplat noir (le HTML est posé dessus) : pas de trou dans le corps */
     if (scr) scr.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: 0x000000 }); } });
+    /* rayon de coin de la dalle : le point du contour le plus proche d'un coin de la boîte englobante est à r·(√2−1) de ce coin */
+    let rad = 0.04;
+    if (scr) {
+      const pts = []; const v = new THREE.Vector3();
+      scr.updateWorldMatrix(true, false);
+      scr.traverse(o => { if (o.isMesh) { const p = o.geometry.attributes.position; for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); pts.push(v.x, v.y); } } });
+      const cs = [[sb.min.x, sb.min.y], [sb.max.x, sb.min.y], [sb.min.x, sb.max.y], [sb.max.x, sb.max.y]];
+      let best = Infinity;
+      for (const [cx, cy] of cs) { let d = Infinity; for (let i = 0; i < pts.length; i += 2) d = Math.min(d, Math.hypot(pts[i] - cx, pts[i + 1] - cy)); best = Math.min(best, d / (Math.SQRT2 - 1)); }
+      rad = Math.min(0.25, best / sz.x);
+    }
     const mats = [];
     obj.traverse(o => {
       if (!o.isMesh) return;
@@ -81,7 +107,7 @@ export async function start(canvas, opts) {
     root.add(holder);
     holder.visible = false;
     return {
-      holder, mats, sw: sz.x, sh: sz.y,
+      holder, mats, sw: sz.x, sh: sz.y, rad: def.rad !== undefined ? def.rad : rad,
       /* étendue sous le centre de la dalle, en fraction de la hauteur d'écran (pied compris) */
       down: Math.max(0.5, (c.y - whole.min.y) / sz.y),
       up: Math.max(0.5, (whole.max.y - c.y) / sz.y),
@@ -106,6 +132,9 @@ export async function start(canvas, opts) {
   const tc = new THREE.Color(), white = new THREE.Color(0xffffff);
   const api = {
     gpu, soft, canvas,
+    /* proportions (largeur/hauteur) et rayon de coin (fraction de la largeur) de la dalle de chaque modèle : le HTML s'y cale */
+    ratio: models.map(m => m.sw / m.sh),
+    rad: models.map(m => m.rad),
     /* étendue (sous / au-dessus du centre de la dalle) pondérée par les poids des 3 modèles, en fraction de la hauteur d'écran */
     ext(w) {
       let dn = 0, up = 0, t = 0;

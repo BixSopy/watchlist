@@ -167,18 +167,22 @@ function _lpJourney(){
      modèles, trop lent) l'appareil CSS d'origine reste en place. ?lp3d=off le coupe, ?lp3d=force passe outre le test GPU logiciel. */
   var L3=null,L3slow=0,L3t=0,L3q='';
   try{L3q=(location.search.match(/[?&]lp3d=(off|force)\b/)||[])[1]||'';}catch(e){}
-  function lp3dOff(){var o=L3;L3=null;document.documentElement.classList.remove('lp-3don');if(o&&o.dispose)o.dispose();}
+  function lp3dDims(on){/* écran HTML = proportions exactes de la dalle du modèle (pas d'étirement du cadre) ; dimensions d'origine rendues au repli */
+    LP_DEV.forEach(function(d,k){if(!d._o)d._o={w:d.w,h:d.h};if(!on){d.w=d._o.w;d.h=d._o.h;return;}
+      var r=L3.ratio[k],iw=d._o.w-2*d.bz,ih=d._o.h-2*d.bz;
+      if(k===0)d.w=Math.round(ih*r)+2*d.bz;else d.h=Math.round(iw/r)+2*d.bz;});}
+  function lp3dOff(){var o=L3;if(o)lp3dDims(false);L3=null;document.documentElement.classList.remove('lp-3don');if(o&&o.dispose)o.dispose();}
   (function(){
     var cv=document.getElementById('lpDv3d'),sd=false;try{sd=!!(navigator.connection&&navigator.connection.saveData);}catch(e){}
     if(!cv||L3q==='off'||sd||innerWidth<=860||typeof WebAssembly==='undefined')return;
     function go(){
       import('/landing/3d/lp3d.js').then(function(m){return m.start(cv,{force:L3q==='force',maxDpr:1.75,onLost:lp3dOff});})
-        .then(function(api){L3=api;L3.on=true;req();})
+        .then(function(api){L3=api;L3.on=true;lp3dDims(true);req();})
         .catch(function(){L3=null;});
     }
     if(document.readyState==='complete')setTimeout(go,300);else addEventListener('load',function(){setTimeout(go,300);},{once:true});
   })();
-  var shadow=Q('.lp-j-shadow'),mx=0,my=0,tmx=0,tmy=0,fine=false;try{fine=matchMedia('(pointer:fine)').matches;}catch(e){}
+  var shadow=Q('.lp-j-shadow'),mx=0,my=0,tmx=0,tmy=0,fine=false;/* l'inclinaison ne suit plus le curseur (demande de Pierre, 12/11) : seulement le défilement */
   /* Inclinaison souris : l'appareil part à plat (0,0) et ne suit le curseur qu'après le premier vrai
      mouvement ; mx/my rejoignent la cible en douceur (lerp dans frame), et reviennent à plat quand
      la souris quitte la fenêtre. Pas sur écran tactile ni en mouvement réduit. */
@@ -264,13 +268,14 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
     if(shadow){shadow.style.transform='translate3d('+(cx-50+ry*3*s).toFixed(1)+'px,'+(cy+(L3on?ex*ih3:H/2)*s+(L3on?4:18)+float*.3+rx*1.2).toFixed(1)+'px,0) scale('+(W*s/100*(1-Math.abs(ry)/90)*(L3on?lerp(1,.55,w3[0]):1)).toFixed(3)+','+(1+Math.abs(rx)/12).toFixed(3)+')';shadow.style.opacity=String(.75-Math.min(.35,Math.abs(float)/40));}
     set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');
     if(L3on){
-      set(dv,'--r3',(w3[0]*3+w3[1]*20+w3[2]*41).toFixed(1)+'px');
+      set(dv,'--r3',((w3[0]*L3.rad[0]+w3[1]*L3.rad[1]+w3[2]*L3.rad[2])*(W-2*BZ)).toFixed(1)+'px');
       L3.draw({vw:vw,vh:vh,cx:cx,cy:cy+float,iw:W-2*BZ,ih:ih3,s:s,rx:rx,ry:ry,w:w3,tint:tint});
       if(!L3.shown){L3.shown=1;document.documentElement.classList.add('lp-3don');}
       /* filet : si l'image passe durablement sous ~22 i/s, on revient à l'appareil CSS */
       var dt3=now-L3t;L3t=now;if(dt3>0&&dt3<500){L3slow=dt3>46?L3slow+1:Math.max(0,L3slow-2);if(L3slow>50&&L3q!=='force')lp3dOff();}
     }
     var bo=1-clamp(m-1),po=clamp((m-1.4)/.6);if(DV===0){bo=lerp(bo,1,mf);po=lerp(po,0,mf);}else if(DV===1){po=lerp(po,0,mf);}
+    if(L3on){bo=w3[0];po=w3[2];}/* 3D : la barre de navigateur reste sur le PC seulement, la barre d'état sur le téléphone seulement */
     set(dv,'--bo',bo);set(dv,'--po',po);
     set(dv,'--gl',(110-(morphing?mt*160:0)-bell(f[1],.62,.8,.06)*160)+'%');
     /* Scènes (fondu enchaîné) */
