@@ -38,10 +38,10 @@ function stars(n, spread, size, bright) {
   const m = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: starUniforms,
     vertexShader: `attribute vec3 aCol;attribute float aSeed,aSize;uniform float uFocus,uCoc,uPx,uTime,uRange;uniform vec3 uCam;varying vec3 vC;varying float vA,vR;
-void main(){vec3 p=position;p.z=uCam.z-mod(uCam.z-p.z,uRange);p.xy+=vec2(sin(uTime*.05+aSeed*40.),cos(uTime*.04+aSeed*30.))*.35;
+void main(){vec3 p=position;p.z=uCam.z-mod(uCam.z-p.z,uRange);
 vec4 mv=viewMatrix*vec4(p,1.);float d=max(-mv.z,.5);float coc=clamp(abs(d-uFocus)/(uFocus*1.4),0.,1.)*uCoc;
 float edge=smoothstep(0.,28.,d)*(1.-smoothstep(uRange*.78,uRange,d));
-float tw=.78+.22*sin(uTime*(.7+aSeed*2.)+aSeed*90.);
+float tw=1.;
 float s=aSize*(1.+coc*5.5);gl_PointSize=clamp(uPx*s*300./d,1.4,90.*uPx);
 vC=aCol;vR=coc;vA=edge*tw/(1.+coc*coc*10.);gl_Position=projectionMatrix*mv;}`,
     fragmentShader: `varying vec3 vC;varying float vA,vR;
