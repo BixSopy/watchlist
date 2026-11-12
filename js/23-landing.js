@@ -271,7 +271,8 @@ if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'ap
     set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');
     if(L3on){
       set(dv,'--r3',((w3[0]*L3.rad[0]+w3[1]*L3.rad[1]+w3[2]*L3.rad[2])*(W-2*BZ)).toFixed(1)+'px');
-      L3.draw({vw:vw,vh:vh,cx:cx,cy:cy+float,iw:W-2*BZ,ih:ih3,s:s,w:w3,glass:.2});
+      /* taille réelle de la scène (clientWidth : sans la barre de défilement, sinon l'image est écrasée et décalée de ~15 px par rapport au HTML) */
+      L3.draw({vw:stick.clientWidth,vh:stick.clientHeight,cx:cx,cy:cy+float,iw:W-2*BZ,ih:ih3,s:s,w:w3,glass:.2});
       /* l'écran HTML se pose sur la dalle de l'image : translation + échelle seulement (texte net, aucune perspective) */
       var tr='translate('+(cx-(W-2*BZ)*s/2-BZ*s).toFixed(2)+'px,'+(cy+float-ih3*s/2-BZ*s).toFixed(2)+'px) scale('+s.toFixed(4)+')';
       if(dv._m3!==tr){dv._m3=tr;dv.style.transformOrigin='0 0';dv.style.transform=tr;}
