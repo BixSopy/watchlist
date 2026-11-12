@@ -1,44 +1,53 @@
 'use strict';
 /*
- * Appareils 3D de la landing (landing/3d/lp3d.js + hook dans js/23-landing.js) : modèles et Three.js servis
- * localement (CSP script-src 'self'), repli sur l'appareil CSS, aucune classe qui en masque une autre.
+ * Appareils de la landing rendus par Blender (landing/3d/ : lp3d.js, img/*.webp, manifest.json + hook dans js/23-landing.js) :
+ * images locales (CSP), grille de poses complète, repli sur l'appareil CSS, aucune classe qui en masque une autre.
  * Rendu réel : e2e/landing3d.test.mjs. Lancer : node --test tests/
  */
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const ROOT = path.join(__dirname, '..');
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
+const IMG = path.join(ROOT, 'landing/3d/img');
 
-test('landing 3D : Three.js, chargeurs et modèles sont locaux et complets', () => {
-  for (const f of ['landing/3d/lp3d.js', 'landing/3d/three/three.module.min.js', 'landing/3d/three/GLTFLoader.js',
-    'landing/3d/three/BufferGeometryUtils.js', 'landing/3d/three/RoomEnvironment.js', 'landing/3d/three/LICENSE'])
-    assert.ok(fs.existsSync(path.join(ROOT, f)), f + ' manquant');
-  for (const f of ['studio-display', 'ipad-pro', 'telephone']) {
-    const b = fs.readFileSync(path.join(ROOT, 'landing/3d/models/' + f + '.glb'));
-    assert.strictEqual(b.toString('latin1', 0, 4), 'glTF', f + ' : pas un GLB');
-    assert.ok(b.length > 50e3 && b.length < 800e3, f + ' : taille inattendue (' + b.length + ')');
+test('landing 3D : manifeste complet, une image WebP de face par appareil, poids raisonnable', () => {
+  const man = JSON.parse(fs.readFileSync(path.join(IMG, 'manifest.json'), 'utf8'));
+  let total = 0;
+  for (const k of ['pc', 'tab', 'ph']) {
+    const m = man[k];
+    assert.ok(m, k + ' absent du manifeste');
+    assert.strictEqual(m.front.length, 4, k + ' : 4 coins de la dalle');
+    assert.ok(m.front.every(c => c.length === 2 && c.every(Number.isFinite)), k + ' : coins');
+    assert.ok(m.W > 500 && m.H > 500 && m.rad >= 0 && m.down > 0.4 && m.up > 0.4, k + ' : métadonnées');
+    /* dalle rectangulaire de face : coins alignés (translation + échelle suffisent pour y poser le HTML) */
+    const f = m.front;
+    assert.ok(Math.abs(f[0][1] - f[1][1]) < 1 && Math.abs(f[0][0] - f[3][0]) < 1 && f[1][0] > f[0][0] && f[3][1] > f[0][1], k + ' : dalle de face');
+    const b = fs.readFileSync(path.join(IMG, m.file));
+    assert.strictEqual(b.toString('latin1', 0, 4) + b.toString('latin1', 8, 12), 'RIFFWEBP', m.file);
+    total += b.length;
   }
+  assert.ok(total < 3e6, 'images trop lourdes : ' + total);
 });
 
-test('landing 3D : aucun import externe (CSP script-src self), chemins relatifs seulement', () => {
-  for (const f of ['landing/3d/lp3d.js', 'landing/3d/three/GLTFLoader.js', 'landing/3d/three/BufferGeometryUtils.js', 'landing/3d/three/RoomEnvironment.js']) {
-    const src = read(f).split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
-    for (const m of src.matchAll(/^\s*(?:import\b[^;]*?|\})\s*from\s*['"]([^'"]+)['"]/gm)) assert.ok(/^\.\//.test(m[1]), f + ' importe ' + m[1]);
-  }
-  assert.ok(!/https?:\/\//.test(read('landing/3d/lp3d.js').split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n')), 'lp3d.js : URL externe');
-  assert.ok(/new URL\(d\.url, import\.meta\.url\)/.test(read('landing/3d/lp3d.js')), 'les GLB doivent se résoudre depuis le module');
+test('landing 3D : lp3d.js sans import ni URL externe (CSP), images résolues depuis le module', () => {
+  const src = read('landing/3d/lp3d.js').split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+  assert.ok(!/^\s*import\b/m.test(src), 'aucun import');
+  assert.ok(!/https?:\/\//.test(src), 'URL externe');
+  assert.ok(/new URL\('\.\/img\/', import\.meta\.url\)/.test(src));
+  assert.ok(!fs.existsSync(path.join(ROOT, 'landing/3d/three')) && !fs.existsSync(path.join(ROOT, 'landing/3d/models')), 'plus de Three.js ni de GLB');
 });
 
-test('landing 3D : canvas décoratif, classe de <html> distincte de celle du canvas', () => {
-  const html = read('index.html'), css = read('landing/landing.css');
-  assert.ok(/<canvas class="lp-3d" id="lpDv3d" aria-hidden="true"><\/canvas><div class="lp-dv"/.test(html), 'canvas #lpDv3d juste avant .lp-dv');
+test('landing 3D : deux canvas décoratifs, classe de <html> distincte de celle des canvas', () => {
+  const html = read('index.html'), css = read('landing/landing.css'), js = read('js/23-landing.js');
+  assert.ok(/<canvas class="lp-3d" id="lpDv3d" aria-hidden="true"><\/canvas><canvas class="lp-3d lp-3d-fx" id="lpDv3dFx" aria-hidden="true"><\/canvas><div class="lp-dv"/.test(html));
   /* régression : html.lp-3d recevait la règle .lp-3d{display:none} du canvas et blanchissait toute la page */
-  assert.ok(!/classList\.(add|remove)\('lp-3d'\)/.test(read('js/23-landing.js')), 'la classe de <html> doit être lp-3don');
-  assert.ok(/html\.lp-3don \.lp-3d\{display:block\}/.test(css));
-  assert.ok(/^\.lp-3d\{display:none;/m.test(css), 'le canvas reste masqué tant que le 3D n\'est pas prêt');
+  assert.ok(!/classList\.(add|remove)\('lp-3d'\)/.test(js) && /toggle\('lp-3don'/.test(js));
+  assert.ok(/html\.lp-3don \.lp-3d\{display:block\}/.test(css) && /^\.lp-3d\{display:none;/m.test(css));
+  assert.ok(/\.lp-3d-fx\{z-index:4;mix-blend-mode:screen\}/.test(css));
 });
 
 test('landing 3D : repli sur l\'appareil CSS (mobile, ?lp3d=off, économie de données, erreur, lenteur)', () => {
@@ -47,14 +56,15 @@ test('landing 3D : repli sur l\'appareil CSS (mobile, ?lp3d=off, économie de do
   assert.ok(/innerWidth<=860/.test(js), 'pas de 3D sur mobile');
   assert.ok(/saveData/.test(js));
   assert.ok(/import\('\/landing\/3d\/lp3d\.js'\)[\s\S]*\.catch\(function\(\)\{L3=null;\}\)/.test(js), 'échec de chargement : on garde le CSS');
-  assert.ok(/soft-gpu/.test(read('landing/3d/lp3d.js')), 'GPU logiciel refusé sauf ?lp3d=force');
-  assert.ok(/L3slow>50&&L3q!=='force'\)lp3dOff\(\)/.test(js), 'filet de lenteur');
-  assert.ok(/webglcontextlost/.test(read('landing/3d/lp3d.js')));
+  assert.ok(/if\(!L3\.ready\(w3\)\)L3on=false;/.test(js), 'images pas prêtes : appareil CSS');
+  assert.ok(/L3slow>50\)lp3dOff\(\)/.test(js), 'filet de lenteur');
 });
 
-test('landing 3D : la caméra reproduit la transformation CSS (perspective 1800, rotateX inversé)', () => {
-  const lp = read('landing/3d/lp3d.js'), js = read('js/23-landing.js');
-  assert.ok(/DIST = 1800/.test(lp) && /perspective\(1800px\)/.test(js));
-  assert.ok(/root\.rotation\.set\(-st\.rx \* D, st\.ry \* D, 0, 'XYZ'\)/.test(lp));
-  assert.ok(/setViewOffset\(cw, ch, cw \/ 2 - st\.cx, ch \/ 2 - st\.cy, cw, ch\)/.test(lp));
+test('landing 3D : l\'appareil est fixe (ni curseur, ni inclinaison, ni flottement) et l\'écran HTML se pose par translation + échelle', () => {
+  const js = read('js/23-landing.js');
+  assert.ok(/fine=false;/.test(js), 'pas de suivi du curseur (demande de Pierre)');
+  assert.ok(/var tilt=0,spin=0,float=0;/.test(js), 'ni inclinaison d\'intro, ni rotation de mue, ni flottement');
+  assert.ok(/var rx=0,ry=0;/.test(js), 'ni dérive au défilement');
+  assert.ok(!/lerp\(1\.06,1,seg\(g,\.3,1\.2\)\)/.test(js), 'pas de zoom d\'intro');
+  assert.ok(/dv\.style\.transformOrigin='0 0';dv\.style\.transform=tr/.test(js) && /'px\) scale\('/.test(js));
 });

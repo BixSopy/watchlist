@@ -162,10 +162,11 @@ function _lpJourney(){
   grid.forEach(function(p,i){p._ty=TY[p.getAttribute('data-t')]||2;p.style.setProperty('--k',i);});
   if(scr[8])scr[8].setAttribute('data-dev',['pc','tablet','phone'][DV]);
   var reduced=_lpReduced(),anim=document.documentElement.classList.contains('lp-anim');
-  /* Appareils 3D (landing/3d/lp3d.js) : corps du PC / de la tablette / du téléphone dessiné dans le <canvas> #lpDv3d,
-     derrière l'écran HTML. Chargé à la demande, ordinateur seulement (> 860 px) ; au moindre échec (WebGL, GPU logiciel,
-     modèles, trop lent) l'appareil CSS d'origine reste en place. ?lp3d=off le coupe, ?lp3d=force passe outre le test GPU logiciel. */
-  var L3=null,L3slow=0,L3t=0,L3q='';
+  /* Appareils 3D (landing/3d/lp3d.js) : le corps du PC / de la tablette / du téléphone est une image rendue par Blender
+     (fichiers .blend de Pierre) dessinée dans le <canvas> #lpDv3d derrière l'écran HTML, dont les 4 coins sont calés sur
+     la dalle mesurée dans Blender (matrice CSS 3D). Chargé à la demande, ordinateur seulement (> 860 px) ; au moindre
+     échec (images, trop lent) l'appareil CSS d'origine reste en place. ?lp3d=off le coupe. */
+  var L3=null,L3slow=0,L3t=0,L3q='',fx3=document.getElementById('lpDv3dFx');
   try{L3q=(location.search.match(/[?&]lp3d=(off|force)\b/)||[])[1]||'';}catch(e){}
   function lp3dDims(on){/* écran HTML = proportions exactes de la dalle du modèle (pas d'étirement du cadre) ; dimensions d'origine rendues au repli */
     LP_DEV.forEach(function(d,k){if(!d._o)d._o={w:d.w,h:d.h};if(!on){d.w=d._o.w;d.h=d._o.h;return;}
@@ -174,9 +175,9 @@ function _lpJourney(){
   function lp3dOff(){var o=L3;if(o)lp3dDims(false);L3=null;document.documentElement.classList.remove('lp-3don');if(o&&o.dispose)o.dispose();}
   (function(){
     var cv=document.getElementById('lpDv3d'),sd=false;try{sd=!!(navigator.connection&&navigator.connection.saveData);}catch(e){}
-    if(!cv||L3q==='off'||sd||innerWidth<=860||typeof WebAssembly==='undefined')return;
+    if(!cv||L3q==='off'||sd||innerWidth<=860||typeof createImageBitmap==='undefined')return;
     function go(){
-      import('/landing/3d/lp3d.js').then(function(m){return m.start(cv,{force:L3q==='force',maxDpr:1.75,onLost:lp3dOff});})
+      import('/landing/3d/lp3d.js').then(function(m){return m.start(cv,fx3,{maxDpr:2});})
         .then(function(api){L3=api;L3.on=true;lp3dDims(true);req();})
         .catch(function(){L3=null;});
     }
@@ -232,7 +233,9 @@ function _lpJourney(){
     /* Mobile, chapitre 8 : les 3 étapes passent en haut, l'appareil (et son formulaire) descend
        pour leur laisser la place — « les 3 étapes s'empilent au-dessus de l'appareil ». */
     var L3on=!!(L3&&L3.on&&!mob),w3=null;
-    if(L3on){var q0=clamp(m),q1=clamp(m-1);w3=[1-q0,q0-q1,q1];if(mf>0){var oh=[0,0,0];oh[DV]=1;w3=w3.map(function(v,j){return lerp(v,oh[j],mf);});}}
+    if(L3on){var q0=clamp(m),q1=clamp(m-1);w3=[1-q0,q0-q1,q1];if(mf>0){var oh=[0,0,0];oh[DV]=1;w3=w3.map(function(v,j){return lerp(v,oh[j],mf);});}
+      if(!L3.ready(w3))L3on=false;/* images de l'appareil pas encore décodées : appareil CSS le temps de l'attendre */}
+    var h3=document.documentElement.classList;if(L3&&h3.contains('lp-3don')!==L3on){h3.toggle('lp-3don',L3on);}
     var ch8=mob?ease(seg(g,7.55,8.15)):0;
     /* Ch. 8 : le téléphone prend toute la place libre sous la bande (au lieu d'un 32 % fixe, trop petit). */
     /* Ch. 8 : téléphone pleine largeur (92 vw), posé juste sous la bande ; il peut dépasser en bas
@@ -242,7 +245,6 @@ function _lpJourney(){
     var big=mob?ease(seg(g,8.42,8.8)):0;/* fin du ch. 8 sur mobile : le téléphone d'inscription prend l'écran */
     if(big>0){bw=lerp(bw,Math.min(vw*.94,420),big);bh=lerp(bh,vh-112,big);cy=lerp(cy,28+vh*.5,big);}
     var s=Math.min(bw/W,bh/H),morphing=(mt>0&&mt<1);
-    if(g<1.2&&!mob){s*=lerp(1.06,1,seg(g,.3,1.2));}
     if(g>8.05){s*=1+ease(seg(g,8.05,8.5))*.06;}
     /* 3D : le pied du Studio Display dépasse sous l'écran ; on remonte / réduit le bloc pour qu'il reste entier à l'écran */
     var ex=.5,ih3=H-2*BZ;
@@ -251,28 +253,30 @@ function _lpJourney(){
       var bot=cy+ex*ih3*s,lim=vh*.93;if(bot>lim)cy-=bot-lim;
       var top0=vh*.07;if(cy-H*s/2<top0){s=(lim-top0)/(ex*ih3+H/2);cy=top0+H*s/2;}
     }
-    var tilt=reduced?0:(1-ease(seg(g,.2,1.05)))*14,spin=reduced?0:Math.sin(Math.PI*(mt))*(a0?-1:1)*16,
-        float=reduced?0:Math.sin(tm*.8)*4;
+    /* l'appareil est FIXE : de face, sans inclinaison d'intro, sans dérive, sans flottement, sans rotation pendant les mues (demande de Pierre, 12/11) */
+    var tilt=0,spin=0,float=0;
     if(dv._w!==W||dv._h!==H){dv._w=W;dv._h=H;dv.style.width=W.toFixed(1)+'px';dv.style.height=H.toFixed(1)+'px';dv.style.margin='0';}
     dv.style.left='0';dv.style.top='0';
     /* Relief 3D en CSS : inclinaison (défilement + souris sur ordinateur), tranche, reflet, ombre au sol */
     mx+=(tmx-mx)*.06;my+=(tmy-my)*.06;var mm=Math.abs(tmx-mx)+Math.abs(tmy-my)>.002;
-    var rx=tilt+(reduced?0:(fine?-my*7:Math.sin(g*1.7)*2.5)),ry=spin-(mob?0:tilt*.6)+(reduced?0:(fine?mx*9:Math.cos(g*1.3)*3.5));
+    var rx=0,ry=0;
     if(mob){/* v6 : l'appareil est mis en page à sa taille affichée (zoom) au lieu d'être peint en 880 px puis réduit
    par scale() -> calque ~6x plus petit, net, et plus de re-peinture géante pendant les mues */
   var z=Math.max(.2,Math.round(s*50)/50);if(dv._z!==z){dv._z=z;dv.style.zoom=String(z);}
   dv.style.transform='translate3d('+((cx-W*z/2)/z).toFixed(2)+'px,'+((cy-H*z/2+float)/z).toFixed(2)+'px,0) perspective('+(1800/z).toFixed(0)+'px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+(s/z).toFixed(4)+')';
-}else{if(dv._z){dv._z=0;dv.style.zoom='';}dv.style.transform='translate3d('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float).toFixed(1)+'px,0) perspective(1800px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+s.toFixed(4)+')';}
+}else if(!L3on){if(dv._z){dv._z=0;dv.style.zoom='';}if(dv._m3){dv._m3=null;dv.style.transformOrigin='';}dv.style.transform='translate3d('+(cx-W/2).toFixed(1)+'px,'+(cy-H/2+float).toFixed(1)+'px,0) perspective(1800px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale('+s.toFixed(4)+')';}
 if(!dv._on){dv._on=1;dv.classList.add('lp-on');}/* premier placement fait : l'appareil devient visible (voir landing.css, anti-CLS) */
     set(dv,'--sh',(50+ry*3).toFixed(1)+'%');
     if(shadow){shadow.style.transform='translate3d('+(cx-50+ry*3*s).toFixed(1)+'px,'+(cy+(L3on?ex*ih3:H/2)*s+(L3on?4:18)+float*.3+rx*1.2).toFixed(1)+'px,0) scale('+(W*s/100*(1-Math.abs(ry)/90)*(L3on?lerp(1,.55,w3[0]):1)).toFixed(3)+','+(1+Math.abs(rx)/12).toFixed(3)+')';shadow.style.opacity=String(.75-Math.min(.35,Math.abs(float)/40));}
     set(dv,'--r',R.toFixed(1)+'px');set(dv,'--bz',BZ.toFixed(1)+'px');
     if(L3on){
       set(dv,'--r3',((w3[0]*L3.rad[0]+w3[1]*L3.rad[1]+w3[2]*L3.rad[2])*(W-2*BZ)).toFixed(1)+'px');
-      L3.draw({vw:vw,vh:vh,cx:cx,cy:cy+float,iw:W-2*BZ,ih:ih3,s:s,rx:rx,ry:ry,w:w3,tint:tint});
-      if(!L3.shown){L3.shown=1;document.documentElement.classList.add('lp-3don');}
+      L3.draw({vw:vw,vh:vh,cx:cx,cy:cy+float,iw:W-2*BZ,ih:ih3,s:s,w:w3,glass:.2});
+      /* l'écran HTML se pose sur la dalle de l'image : translation + échelle seulement (texte net, aucune perspective) */
+      var tr='translate('+(cx-(W-2*BZ)*s/2-BZ*s).toFixed(2)+'px,'+(cy+float-ih3*s/2-BZ*s).toFixed(2)+'px) scale('+s.toFixed(4)+')';
+      if(dv._m3!==tr){dv._m3=tr;dv.style.transformOrigin='0 0';dv.style.transform=tr;}
       /* filet : si l'image passe durablement sous ~22 i/s, on revient à l'appareil CSS */
-      var dt3=now-L3t;L3t=now;if(dt3>0&&dt3<500){L3slow=dt3>46?L3slow+1:Math.max(0,L3slow-2);if(L3slow>50&&L3q!=='force')lp3dOff();}
+      var dt3=now-L3t;L3t=now;if(dt3>0&&dt3<500){L3slow=dt3>46?L3slow+1:Math.max(0,L3slow-2);if(L3slow>50)lp3dOff();}
     }
     var bo=1-clamp(m-1),po=clamp((m-1.4)/.6);if(DV===0){bo=lerp(bo,1,mf);po=lerp(po,0,mf);}else if(DV===1){po=lerp(po,0,mf);}
     if(L3on){bo=w3[0];po=w3[2];}/* 3D : la barre de navigateur reste sur le PC seulement, la barre d'état sur le téléphone seulement */

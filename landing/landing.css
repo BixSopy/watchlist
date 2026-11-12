@@ -651,12 +651,13 @@ html:is(:lang(ru),:lang(hi),:lang(bn),:lang(ar),:lang(ur),:lang(es),:lang(pt)) b
 .lp-dv.lp-on{visibility:visible;animation:none}
 @keyframes lpDvShow{to{visibility:visible}}
 
-/* ==== Appareils 3D (landing/3d/lp3d.js) : le corps de l'appareil est dessiné dans un canvas derrière l'écran HTML ====
-   Actif seulement quand le module a chargé les modèles et fait un premier rendu (html.lp-3don) ; sinon l'appareil CSS ci-dessus
-   reste tel quel (mobile, GPU logiciel, WebGL absent, erreur). Le DOM garde la même boîte et la même transformation :
-   on retire seulement son habillage (fond, tranche, ombre, reflets) pour laisser voir le modèle. */
+/* ==== Appareils 3D (landing/3d/lp3d.js) : images Blender dans un canvas derrière l'écran HTML ====
+   Actif seulement quand le module a chargé les images de l'appareil affiché (html.lp-3don) ; sinon l'appareil CSS ci-dessus
+   reste tel quel (mobile, images absentes, trop lent). Le DOM garde sa boîte mais reçoit une matrice 3D calée sur les 4 coins
+   de la dalle mesurés dans Blender : on retire son habillage (fond, tranche, ombre, reflets CSS), l'image fait le corps. */
 .lp-3d{display:none;position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.lp-3d-fx{z-index:4;mix-blend-mode:screen}
 html.lp-3don .lp-3d{display:block}
-html.lp-3don .lp-dv{background:none;box-shadow:none}
+html.lp-3don .lp-dv{background:none;box-shadow:none;transform-style:flat}
 html.lp-3don .lp-dv::before,html.lp-3don .lp-dv::after,html.lp-3don .lp-dv-glint,html.lp-3don .lp-dv-gloss{display:none}
-html.lp-3don .lp-dv-scr{border-radius:var(--r3,6px)}
+html.lp-3don .lp-dv-scr{transform:none;border-radius:var(--r3,6px)}
